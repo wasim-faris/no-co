@@ -1,0 +1,116 @@
+
+{% extends 'user_base/base.html' %}
+
+{% block content %}
+{% load static %}
+
+
+  <main class="w-full">
+<section class="w-full relative">
+  <div class="w-full aspect-[16/8] md:aspect-[16/7] bg-[#f3f3f3] overflow-hidden">
+    <img src="{% static 'core/images/hero.jpg' %}" alt="Hero" class="w-full h-full object-cover object-top">
+  </div>
+  <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white">
+    <span class="section-label">Valid on selected styles</span>
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </div>
+</section>
+
+    <section class="w-full grid grid-cols-1 md:grid-cols-2 no-gap">
+      <div class="w-full border-r border-gray-100">
+        <div class="w-full aspect-[4/5] overflow-hidden">
+            <img src="{% static "core/images/home-img1.jpg" %}" alt="Soft Romance" class="w-full h-full object-cover">
+        </div>
+        <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white">
+            <span class="section-label">Soft Romance</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+      <div class="w-full">
+        <div class="w-full aspect-[4/5] overflow-hidden">
+            <img src="{% static "core/images/home-img2.jpg" %}" alt="New Occasionwear" class="w-full h-full object-cover">
+        </div>
+        <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white">
+            <span class="section-label">New Occasionwear</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="w-full grid grid-cols-3 md:grid-cols-6 no-gap">
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/5f/eb/5feb147aafab1236ea7daa3344696c9401ca254e.jpg?imwidth=384"></div>
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/ae/2e/ae2ee0a97b9e563c11f08785b4b6b92b572a26c3.jpg?imwidth=384"></div>
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/08/3e/083efb5fddf4759258e6cdb9e90948569cec8a57.jpg?imwidth=384"></div>
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/7d/71/7d716760645646ba339a1ac494f3734ec9c92836.jpg?imwidth=384"></div>
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/64/17/6417bde3c7f79f30842585ef3cbfc7674006bb68.jpg?imwidth=384"></div>
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/8c/2e/8c2ec641dacde32e3ef65e0918050d0ce21db9c5.jpg?imwidth=384"></div>
+
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/d9/d2/d9d22770c6399170f81f951c3985a5df1af61949.jpg?imwidth=384"></div>
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/f3/f2/f3f2031a46b64589003bda133e3e1c265476cfcd.jpg?imwidth=384"></div>
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/3e/b4/3eb46a8906c06c1b2de0c0cc24b7955020efbe69.jpg?imwidth=384"></div>
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/c7/b8/c7b8ed5bb65ce332e3914d5ab64a6c0aaaa76874.jpg?imwidth=384"></div>
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/24/de/24dec0e5d6d5c5bf877af864fc151c240aeeb1be.jpg?imwidth=384"></div>
+      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/10/e4/10e48c5b86e7832b7e2200c95125858647be84f6.jpg?imwidth=384"></div>
+    </section>
+
+    <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white">
+      <span class="section-label">New In</span>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </div>
+
+    <section class="w-full grid grid-cols-1 md:grid-cols-2 no-gap border-t border-gray-100">
+      <div class="w-full">
+        <div class="w-full aspect-[4/5] overflow-hidden">
+            <img src="{% static "core/images/home-img3.jpg" %}" alt="Shirts" class="w-full h-full object-cover">
+        </div>
+        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
+            <p class="section-label">Shirts</p>
+            <p class="sub-label">Explore</p>
+        </div>
+      </div>
+      <div class="w-full border-l border-gray-100">
+        <div class="w-full aspect-[4/5] overflow-hidden">
+            <img src="{% static "core/images/home-img4.jpg" %}" alt="Trousers" class="w-full h-full object-cover">
+        </div>
+        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
+            <p class="section-label">Trousers</p>
+            <p class="sub-label">Explore</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="w-full grid grid-cols-1 md:grid-cols-2 no-gap border-t border-gray-100">
+      <div class="w-full">
+        <div class="w-full aspect-[4/5] overflow-hidden">
+            <img src="{% static "core/images/home-img5.jpg" %}" alt="Shirts" class="w-full h-full object-cover">
+        </div>
+        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
+            <p class="section-label">Shirts</p>
+            <p class="sub-label">Explore</p>
+        </div>
+      </div>
+      <div class="w-full border-l border-gray-100">
+        <div class="w-full aspect-[4/5] overflow-hidden">
+            <img src="{% static "core/images/home-img6.jpg" %}" alt="Trousers" class="w-full h-full object-cover">
+        </div>
+        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
+            <p class="section-label">Trousers</p>
+            <p class="sub-label">Explore</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="w-full bg-white px-6 md:px-12 py-16 md:py-24 text-center">
+      <div class="max-w-4xl mx-auto">
+        <h2 class="text-sm font-bold uppercase tracking-widest mb-10">Men's Clothing</h2>
+        <p class="text-[0.8rem] leading-relaxed text-gray-700 font-medium">
+          Check out all the freshest styles your closet needs in our men's clothing range. You'll find a roundup of everyday essentials, including tops and T-Shirts, as well as comfy lounge sets and underwear. Formal event coming up? Scroll no further than our men's blazers and suits for the sharpest looks and nail the dress code. When it comes to <span class="underline underline-offset-4 cursor-pointer">men's pants</span>, there's chinos, joggers and cargo styles in all the staple colors. Dreaming of denim? Our <span class="underline underline-offset-4 cursor-pointer">men's jeans</span> offer a range of fits to suit your style, including skinny, straight and tapered, to name just a few. Wear yours with a trendy oversized shirt or a classic denim number from our men's shirts edit. And when it comes to chilly weather, our men's jackets and coats have you covered – we've got puffer jackets and trench coats, as well as leather jackets and bomber jackets in year-round colors.
+        </p>
+      </div>
+    </section>
+
+  </main>
+
+</body>
+</html>
+{% endblock %}
