@@ -11,68 +11,6 @@
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <link rel="stylesheet" href="{% static 'accounts/css/signup.css' %}">
-    <style>
-        .serif-font { font-family: 'Playfair Display', serif; }
-        body { font-family: 'Inter', sans-serif; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-
-        /* Premium Minimalist Toast */
-        #toast-container {
-            z-index: 9999;
-            pointer-events: none;
-        }
-
-        .toast-pill {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 14px 28px;
-            border-radius: 2px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
-            transform: translateY(-150%);
-            opacity: 0;
-            transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .toast-pill.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .toast-pill.error {
-            border-left: 3px solid #000;
-        }
-
-        .toast-text {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.25em;
-            font-weight: 600;
-            color: #000;
-        }
-
-        /* Modern Tooltip Styling */
-        .tippy-box[data-theme~='minimal-dark'] {
-            background-color: #111;
-            color: white;
-            border-radius: 0px;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: 4px 8px;
-        }
-        .info-icon {
-            cursor: help;
-            opacity: 0.4;
-            transition: opacity 0.3s;
-        }
-        .info-icon:hover {
-            opacity: 1;
-        }
-    </style>
 </head>
 <body class="bg-[#fcfcfc] h-screen flex items-center justify-center overflow-hidden">
 
@@ -109,10 +47,10 @@
                         <div class="space-y-5">
                             <div class="group">
                                 <label class="flex items-center text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1 transition-colors group-focus-within:text-black">
-                                    Full Name
+                                    username
                                     <svg data-tippy-content="Username must be 4–20 chars (letters, numbers, _)." class="info-icon ml-2 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                 </label>
-                                <input type="text" name="full_name" placeholder="Sarah Jenkins"
+                                <input type="text" name="username" placeholder="Sarah"
                                        class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
                             </div>
 
@@ -148,8 +86,12 @@
                             </div>
                         </div>
 
-                        <button type="submit" class="w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] active:scale-[0.99] transition-all duration-300">
-                            <span>Register</span>
+                        <button type="submit" id="submitBtn" class="w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] active:scale-[0.99] transition-all duration-300">
+                            <span id="btnText">Register</span>
+                            <svg id="btnSpinner" class="hidden animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
                         </button>
 
                         <div class="relative py-2 flex items-center">
@@ -186,16 +128,42 @@
     </div>
 
     <script src="{% static 'accounts/js/signup.js' %}"></script>
-    <script>
-        // Initialize Tooltips
-        tippy('[data-tippy-content]', {
-            theme: 'minimal-dark',
-            animation: 'shift-away',
-            duration: [300, 200],
-            arrow: false,
-            offset: [0, 10],
-        });
-    </script>
+<script>
+    // Fail-safe Tooltip Initialization
+    (function() {
+        function initTippy() {
+            if (typeof tippy !== 'undefined') {
+                tippy('.info-icon', {
+                    content: (reference) => reference.getAttribute('data-tippy-content'),
+                    theme: 'minimal-dark',
+                    animation: 'shift-away',
+                    duration: 200,
+                    arrow: false,
+                    offset: [0, 8],
+                    zIndex: 99999,
+                    appendTo: document.body
+                });
+            } else {
+                // If tippy didn't load, try again in 500ms
+                setTimeout(initTippy, 500);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTippy);
+        } else {
+            initTippy();
+        }
+    })();
+
+    function togglePassword(inputId, button) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.type = input.type === 'password' ? 'text' : 'password';
+            button.style.opacity = input.type === 'text' ? '1' : '0.4';
+        }
+    }
+</script>
 
     <script id="django-messages" type="application/json">
         [

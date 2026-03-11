@@ -1,25 +1,72 @@
-
 {% extends 'user_base/base.html' %}
 
 {% block content %}
 {% load static %}
 
+<style>
+    #toast-container {
+        z-index: 9999;
+        pointer-events: none;
+    }
 
-  <main class="w-full">
+    .toast-pill {
+        background: #ffffff;
+        border-left: 2px solid #000000; /* Thinner accent line */
+        border-top: 1px solid #eeeeee;
+        border-right: 1px solid #eeeeee;
+        border-bottom: 1px solid #eeeeee;
+        /* Significantly reduced padding for a smaller footprint */
+        padding: 10px 20px;
+        border-radius: 0px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.03);
+        transform: translateY(-130%);
+        opacity: 0;
+        transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    .toast-pill.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+
+    .toast-text {
+        /* Smaller font size and precise tracking */
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.25em;
+        font-weight: 500;
+        color: #111;
+        font-family: 'Inter', sans-serif;
+    }
+
+    /* Shiver fix for logout */
+    .logout-btn-wrapper {
+        width: 100%;
+        display: block;
+        margin: 0;
+        padding: 0;
+    }
+</style>
+
+<div id="toast-container" class="fixed top-8 left-0 right-0 flex flex-col items-center space-y-3 px-4"></div>
+
+<main class="w-full">
 <section class="w-full relative">
   <div class="w-full aspect-[16/8] md:aspect-[16/7] bg-[#f3f3f3] overflow-hidden">
     <img src="{% static 'core/images/hero.jpg' %}" alt="Hero" class="w-full h-full object-cover object-top">
   </div>
   <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white">
-    <span class="section-label">Valid on selected styles</span>
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    <span class="section-label text-[10px] uppercase tracking-widest font-medium">Valid on selected styles</span>
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
   </div>
 </section>
 
     <section class="w-full grid grid-cols-1 md:grid-cols-2 no-gap">
       <div class="w-full border-r border-gray-100">
         <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static "core/images/home-img1.jpg" %}" alt="Soft Romance" class="w-full h-full object-cover">
+            <img src="{% static 'core/images/home-img1.jpg' %}" alt="Soft Romance" class="w-full h-full object-cover">
         </div>
         <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white">
             <span class="section-label">Soft Romance</span>
@@ -28,7 +75,7 @@
       </div>
       <div class="w-full">
         <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static "core/images/home-img2.jpg" %}" alt="New Occasionwear" class="w-full h-full object-cover">
+            <img src="{% static 'core/images/home-img2.jpg' %}" alt="New Occasionwear" class="w-full h-full object-cover">
         </div>
         <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white">
             <span class="section-label">New Occasionwear</span>
@@ -61,7 +108,7 @@
     <section class="w-full grid grid-cols-1 md:grid-cols-2 no-gap border-t border-gray-100">
       <div class="w-full">
         <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static "core/images/home-img3.jpg" %}" alt="Shirts" class="w-full h-full object-cover">
+            <img src="{% static 'core/images/home-img3.jpg' %}" alt="Shirts" class="w-full h-full object-cover">
         </div>
         <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
             <p class="section-label">Shirts</p>
@@ -70,7 +117,7 @@
       </div>
       <div class="w-full border-l border-gray-100">
         <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static "core/images/home-img4.jpg" %}" alt="Trousers" class="w-full h-full object-cover">
+            <img src="{% static 'core/images/home-img4.jpg' %}" alt="Trousers" class="w-full h-full object-cover">
         </div>
         <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
             <p class="section-label">Trousers</p>
@@ -82,7 +129,7 @@
     <section class="w-full grid grid-cols-1 md:grid-cols-2 no-gap border-t border-gray-100">
       <div class="w-full">
         <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static "core/images/home-img5.jpg" %}" alt="Shirts" class="w-full h-full object-cover">
+            <img src="{% static 'core/images/home-img5.jpg' %}" alt="Shirts" class="w-full h-full object-cover">
         </div>
         <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
             <p class="section-label">Shirts</p>
@@ -91,7 +138,7 @@
       </div>
       <div class="w-full border-l border-gray-100">
         <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static "core/images/home-img6.jpg" %}" alt="Trousers" class="w-full h-full object-cover">
+            <img src="{% static 'core/images/home-img6.jpg' %}" alt="Trousers" class="w-full h-full object-cover">
         </div>
         <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
             <p class="section-label">Trousers</p>
@@ -104,13 +151,66 @@
       <div class="max-w-4xl mx-auto">
         <h2 class="text-sm font-bold uppercase tracking-widest mb-10">Men's Clothing</h2>
         <p class="text-[0.8rem] leading-relaxed text-gray-700 font-medium">
-          Check out all the freshest styles your closet needs in our men's clothing range. You'll find a roundup of everyday essentials, including tops and T-Shirts, as well as comfy lounge sets and underwear. Formal event coming up? Scroll no further than our men's blazers and suits for the sharpest looks and nail the dress code. When it comes to <span class="underline underline-offset-4 cursor-pointer">men's pants</span>, there's chinos, joggers and cargo styles in all the staple colors. Dreaming of denim? Our <span class="underline underline-offset-4 cursor-pointer">men's jeans</span> offer a range of fits to suit your style, including skinny, straight and tapered, to name just a few. Wear yours with a trendy oversized shirt or a classic denim number from our men's shirts edit. And when it comes to chilly weather, our men's jackets and coats have you covered – we've got puffer jackets and trench coats, as well as leather jackets and bomber jackets in year-round colors.
+          Check out all the freshest styles your closet needs in our men's clothing range...
         </p>
       </div>
     </section>
-
   </main>
 
-</body>
-</html>
+  <script id="django-messages" type="application/json">
+    [
+        {% if messages %}
+            {% for message in messages %}
+                {
+                    "message": "{{ message|escapejs }}",
+                    "tags": "{{ message.tags }}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
+    ]
+  </script>
+
+  <script>
+    function showToast(message, type = 'error') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        toast.className = `toast-pill`;
+
+        // Scaled down icon to match "small" look
+        const icon = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="margin-right: 1rem;">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+            </svg>`;
+
+        toast.innerHTML = `
+            ${icon}
+            <span class="toast-text">${message}</span>
+        `;
+
+        container.appendChild(toast);
+        requestAnimationFrame(() => toast.classList.add('show'));
+
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 500);
+        }, 3500);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const dataElement = document.getElementById('django-messages');
+        if (dataElement) {
+            try {
+                const messages = JSON.parse(dataElement.textContent);
+                messages.forEach(msg => {
+                    showToast(msg.message, msg.tags.includes('error') ? 'error' : 'success');
+                });
+            } catch (e) {}
+        }
+    });
+  </script>
+
 {% endblock %}

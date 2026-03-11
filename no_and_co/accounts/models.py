@@ -4,7 +4,6 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
-    full_name = models.CharField(max_length=60)
     phone_number = models.CharField(max_length=13, null=True , blank=True)
     profile_photo = models.ImageField(upload_to="profile_pic/", default="accounts/images/default.jpg")
     created_at = models.DateTimeField(auto_now_add=True)
