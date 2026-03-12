@@ -8,6 +8,12 @@ import random
 import time
 from django.views.decorators.cache import never_cache
 from django.contrib.auth import login, logout, authenticate
+from .models import PasswordResetToken
+import uuid
+from django.shortcuts import get_object_or_404
+from datetime import timedelta
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 
 email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 password_pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$"
@@ -17,16 +23,20 @@ User = get_user_model()
 
 @never_cache
 def signup(request):
+
+    if request.user.is_authenticated:
+        return redirect("home")
+
     session_check = request.session.get("signup_values")
 
     if session_check:
         return redirect("signup-otp-verification")
     else:
         if request.method == "POST":
-            username = request.POST["username"]
-            email = request.POST["email"]
-            password = request.POST["password"]
-            confirm_password = request.POST["confirm_password"]
+            username = request.POST.get("username", "").strip()
+            email = request.POST.get("email")
+            password = request.POST.get("password")
+            confirm_password = request.POST.get("confirm_password")
 
             if not username or not email or not password or not confirm_password:
                 messages.error(request, "All fields are required")
@@ -93,13 +103,18 @@ def signup(request):
 
     return render(request, "signup.html")
 
-
+@never_cache
 def login_user(request):
+
+    if request.user.is_authenticated:
+        return redirect("home")
+
+    login_attempts = request.session.get("login_attempts", 0)
 
     if request.method == "POST":
 
-        username = request.POST["username"].strip()
-        password = request.POST["password"]
+        username = request.POST.get("username", "").strip()
+        password = request.POST.get("password")
 
         if not username or not password:
             messages.error(request, "All fields are required")
@@ -112,7 +127,14 @@ def login_user(request):
             messages.success(request, "login succesfuly")
             return redirect("home")
         else:
+            login_attempts +=1
+            request.session["login_attempts"] = login_attempts
+
+            if login_attempts >=5:
+                messages.error(request, "Too many login attempts. Try again later.")
+                return redirect("login")
             messages.error(request, "invalid username or password")
+
             return redirect("login")
 
     return render(request, "login.html")
@@ -121,7 +143,10 @@ def login_user(request):
 @never_cache
 def signup_otp_verification(request):
 
-    otp_created_time = request.session["otp_created_time"]
+    if request.user.is_authenticated:
+        return redirect("home")
+
+    otp_created_time = request.session.get("otp_created_time")
 
     remaining = 0
 
@@ -132,25 +157,47 @@ def signup_otp_verification(request):
             remaining = 0
 
     if request.method == "POST":
-        user_otp = request.POST["otp"]
-        otp = request.session["otp"]
+
+        if remaining <= 0:
+            messages.error(request, "OTP expired. Please request a new one.")
+            return redirect("signup-otp-verification")
+
+        user_otp = request.POST.get("otp")
+        otp = request.session.get("otp")
+        attempts = request.session.get("attempts", 0)
 
         if str(user_otp) == str(otp):
             signup_data = request.session.get("signup_values")
+
+            if not signup_data:
+                messages.error(request, "Session expired. Please sign up again.")
+                return redirect("signup")
 
             username = signup_data["username"]
             email = signup_data["email"]
             password = signup_data["password"]
 
-            User.objects.create_user(username=username, email=email, password=password)
+
+            user = User.objects.create_user(username=username, email=email, password=password)
+
+            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
             messages.success(request, "Account created successfully")
-            return redirect("login")
+            return redirect("home")
         else:
+            attempts += 1
+            request.session["attempts"] = attempts
+
+            if attempts >= 5:
+                messages.error(request, "Too many incorrect attempts")
+                return redirect("signup")
+
             messages.error(request, "Invalid OTP")
             return redirect("signup-otp-verification")
 
-    return render(request, "signup-otp-verification.html", {"remaining_seconds": remaining})
+    return render(
+        request, "signup-otp-verification.html", {"remaining_seconds": remaining}
+    )
 
 
 def resend_otp_verification(request):
@@ -159,7 +206,7 @@ def resend_otp_verification(request):
 
         if otp_count >= 3:
             messages.error(request, "resend limit completed")
-            return redirect("otp-verification")
+            return redirect("signup-otp-verification")
         else:
             otp = random.randint(100000, 999999)
             request.session["otp"] = otp
@@ -188,7 +235,15 @@ def cancel_otp_verification(request):
         return redirect("signup")
 
 
+def not_found(request):
+    return render(request, "404.html")
+
+@never_cache
 def forgot_password(request):
+
+    if request.user.is_authenticated:
+        return redirect("home")
+
     if request.method == "POST":
 
         email = request.POST.get("email")
@@ -198,54 +253,112 @@ def forgot_password(request):
 
             return redirect("forgot-password")
 
-        if User.objects.filter(email=email).exists():
+        try:
+            user = User.objects.get(email=email)
 
-            otp = random.randint(100000, 999999)
+            last_token = PasswordResetToken.objects.filter(
+                user=user, is_used=False
+            ).last()
+            current_time = timezone.now()
 
-            request.session["otp"] = otp
-            request.session["email"] = email
+            if last_token and current_time - last_token.created_at < timedelta(
+                minutes=10
+            ):
+                messages.error(request, "link already send")
+                return redirect("forgot-password")
+            else:
+                uuid_token = uuid.uuid4()
 
-            send_mail(
-                "Resend Email verification OTP",
-                f"Your OTP to sign up is {otp}",
-                "waseemfaris@gmail.com",
-                [email],
-                fail_silently=False,
-            )
+                PasswordResetToken.objects.create(user=user, uuid_token=uuid_token)
 
-            print(otp)
+                reset_link = f"http://127.0.0.1:8000/reset-link/{uuid_token}/"
 
-            messages.success(request, "otp send succesfully")
-            return redirect("forgot_password-otp-verification")
-        else:
-            messages.error(request, "invalid email")
+                message = f"""
+                    Hello,
+                    We received a request to reset your password.
+                    Click the link below to reset your password:
+                    {reset_link}
+                    If you did not request a password reset, you can safely ignore this email.
+                    Thanks,
+                    Your Website Team
+                    """
+
+                send_mail(
+                    "Password Reset Request",  # subject
+                    message,  # email body
+                    "your_email@gmail.com",  # from email (configured in settings)
+                    [email],  # recipient list
+                    fail_silently=False,
+                )
+                messages.success(request, "reset link send to the email")
+                return redirect("email-confirm")
+
+        except User.DoesNotExist:
+            messages.error(request, "If the email exists, a reset link has been sent.")
             return redirect("forgot-password")
 
     return render(request, "forgot-password.html")
 
-def forgot_password_otp_verification(request):
+@never_cache
+def email_confirm(request):
+    return render(request, "email-confirm.html")
+
+
+def reset_link(request, uuid):
+
+    try:
+        check = PasswordResetToken.objects.get(uuid_token=uuid, is_used=False)
+        created_time = check.created_at
+        current_time = timezone.now()
+        total_time = current_time - created_time
+
+        if total_time > timedelta(minutes=10):
+            messages.error(request, "link expired")
+            return redirect("not-found")
+
+        return redirect("reset-password", uuid=uuid)
+    except PasswordResetToken.DoesNotExist:
+        messages.error(request, "page not found")
+        return redirect("not-found")
+
+@never_cache
+def reset_password(request, uuid):
 
     if request.method == "POST":
+        new_password = request.POST.get("new_password")
+        new_confirm_password = request.POST.get("confirm_password")
 
-        otp = request.POST.get("otp")
-        session_otp = request.session["otp"]
+        if not re.match(password_pattern, new_password):
+            messages.error(request, "week password")
+            return redirect("reset-password", uuid=uuid)
 
-        if not otp:
-            return redirect(request, "enter a otp to reset password")
+        if not new_password or not new_confirm_password:
+            messages.error(request, "please fill form to continue")
+            return redirect("reset-password", uuid=uuid)
 
-        if str(otp)==str(session_otp):
-            messages.success(request, "otp verification succesfully")
-            return redirect("reset-password")
-        else:
-            messages.error(request, "invalid otp")
-            return redirect("reset-password")
+        if new_password != new_confirm_password:
+            messages.error(request, "password doesnt match")
+            return redirect("reset-password", uuid=uuid)
+        try:
+            reset_password_user = PasswordResetToken.objects.get(
+                uuid_token=uuid, is_used=False
+            )
 
-    return render(request,"forgot-password-otp-verification.html")
+            reset_password_user.user.set_password(new_password)
+            reset_password_user.is_used = True
+            reset_password_user.save()
+            reset_password_user.user.save()
 
-def reset_password(request):
-    return render(request, "reset-password.html")
+            messages.success(request, "password changes succesfully")
+            return redirect("login")
+
+        except PasswordResetToken.DoesNotExist:
+            return redirect("not_found")
+
+    return render(request, "reset-password.html", {"uuid": uuid})
 
 
+@login_required
 def logout_user(request):
 
     logout(request)

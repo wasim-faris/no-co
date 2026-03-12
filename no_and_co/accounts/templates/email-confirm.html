@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-store" />
+    <title>NØ&Co | Check Email</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .serif-font { font-family: 'Playfair Display', serif; }
+        body { font-family: 'Inter', sans-serif; }
+
+        /* Floating Toast */
+        #toast-container {
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .toast-pill {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 14px 28px;
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.04);
+            transform: translateY(-150%);
+            opacity: 0;
+            transition: all 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+            /* Add left border by default for consistency if desired, or let class handle it */
+            border-left: 3px solid transparent;
+        }
+
+        .toast-pill.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        /* Black Left Border specifically for error/success states */
+        .toast-pill.error, .toast-pill.success {
+            border-left: 3px solid #000 !important;
+        }
+
+        .toast-text {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            font-weight: 600;
+            color: #000;
+        }
+    </style>
+</head>
+<body class="bg-[#fcfcfc] h-screen flex items-center justify-center p-6">
+
+<div id="toast-container" class="fixed top-8 left-0 right-0 flex flex-col items-center space-y-3 px-4"></div>
+
+<div class="bg-white w-full max-w-[800px] aspect-[4/3] flex flex-col items-center justify-center relative shadow-sm border border-gray-50">
+
+    <div class="text-center px-8 md:px-20">
+
+        <div class="flex justify-center mb-6">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+                <path d="M16 19l2 2 4-4" stroke="#000" stroke-width="2"></path>
+            </svg>
+        </div>
+
+        <h1 class="text-3xl md:text-4xl font-black tracking-tighter mb-6 uppercase">
+            Check your email!
+        </h1>
+
+        <p class="text-gray-400 text-[12px] md:text-[13px] font-light leading-relaxed mb-10 max-w-[400px] mx-auto">
+            Thanks! An email was sent that will allow you to click on a link to reset your password. If you don't get the email, please contact support.
+        </p>
+
+        <button class="w-full max-w-[300px] bg-black text-white py-4 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#333] transition-all duration-300 mb-6">
+            Open Email Inbox
+        </button>
+
+        <p class="text-[10px] text-gray-400 uppercase tracking-widest">
+            <a href="{% url 'login' %}" class="text-black font-bold border-b border-black hover:border-transparent transition-colors pb-0.5">
+                Back to Login
+            </a>
+        </p>
+    </div>
+
+    <div class="absolute bottom-8 left-8 right-8 flex justify-start items-center text-[8px] text-gray-300 uppercase tracking-[0.2em]">
+        <p>Copyright 2026 | Privacy Policy</p>
+    </div>
+
+</div>
+
+<script id="django-messages" type="application/json">
+[
+{% if messages %}
+{% for message in messages %}
+{
+"message": "{{ message|escapejs }}",
+"tags": "{{ message.tags }}"
+}{% if not forloop.last %},{% endif %}
+{% endfor %}
+{% endif %}
+]
+</script>
+
+<script>
+function showToast(message, type = 'error') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    // Ensure the type (error or success) is added to trigger the CSS border
+    toast.className = `toast-pill ${type}`;
+
+    const icon = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="margin-right: 1rem;">
+    <circle cx="12" cy="12" r="10"></circle>
+    <line x1="15" y1="9" x2="9" y2="15"></line>
+    <line x1="9" y1="9" x2="15" y2="15"></line>
+    </svg>`;
+
+    toast.innerHTML = `
+    ${icon}
+    <span class="toast-text">${message}</span>
+    `;
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 700);
+    }, 3500);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const dataElement = document.getElementById('django-messages');
+    if (dataElement) {
+        try {
+            const messages = JSON.parse(dataElement.textContent);
+            messages.forEach(msg => {
+                // Check tags for error or success
+                const type = msg.tags.includes('error') ? 'error' : 'success';
+                showToast(msg.message, type);
+            });
+        } catch (e) {}
+    }
+});
+</script>
+
+</body>
+</html>

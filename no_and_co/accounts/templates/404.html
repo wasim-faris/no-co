@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+
+        #toast-container {
+            z-index: 9999;
+            pointer-events: none;
+        }
+
+        .toast-pill {
+            background: #ffffff;
+            border-left: 2px solid #000000;
+            border-top: 1px solid #eeeeee;
+            border-right: 1px solid #eeeeee;
+            border-bottom: 1px solid #eeeeee;
+            padding: 10px 20px;
+            border-radius: 0px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.03);
+            transform: translateY(-130%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .toast-pill.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast-text {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            font-weight: 500;
+            color: #111;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+
+<body class="bg-white flex flex-col min-h-screen">
+
+<div id="toast-container" class="fixed top-8 left-0 right-0 flex flex-col items-center space-y-3 px-4"></div>
+
+<main class="flex-grow flex flex-col items-center justify-center px-4 text-center">
+
+    <div class="mb-8">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-black">
+            <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V7h7a2 2 0 0 1 2 2v1h-18V9a2 2 0 0 1 2-2h7V5.73c-.6-.34-1-1.01-1-1.73a2 2 0 0 1 2-2z"/>
+            <path d="M3 10c0 4.42 4.03 8 9 8s9-3.58 9-8"/>
+        </svg>
+    </div>
+
+    <h1 class="text-[12rem] font-bold leading-none tracking-tighter text-black mb-4">
+        404
+    </h1>
+
+    <h2 class="text-2xl font-bold text-black mb-2">
+        Sorry, the page you're looking for doesn't exist.
+    </h2>
+    <p class="text-gray-400 text-sm mb-10">
+        It may have been moved or deleted.
+    </p>
+
+    <div class="flex flex-col sm:flex-row gap-4 w-full max-w-md justify-center">
+        <a href="{% url "home" %}" class="inline-block bg-black text-white px-10 py-4 text-xs font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors text-center">
+            Back to Home
+        </a>
+    </div>
+
+</main>
+
+<footer class="py-12 text-center">
+    <div class="flex justify-center gap-8 mb-6 text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400">
+        <a href="#" class="hover:text-black transition-colors">Help</a>
+        <a href="#" class="hover:text-black transition-colors">Contact</a>
+        <a href="#" class="hover:text-black transition-colors">Returns</a>
+        <a href="#" class="hover:text-black transition-colors">Privacy Policy</a>
+    </div>
+    <p class="text-[10px] uppercase tracking-widest text-gray-300">
+        © 2023 NO&CO. All Rights Reserved.
+    </p>
+</footer>
+
+<script id="django-messages" type="application/json">
+[
+{% if messages %}
+{% for message in messages %}
+{
+"message": "{{ message|escapejs }}",
+"tags": "{{ message.tags }}"
+}{% if not forloop.last %},{% endif %}
+{% endfor %}
+{% endif %}
+]
+</script>
+
+<script>
+function showToast(message, type = 'error') {
+
+const container = document.getElementById('toast-container');
+if (!container) return;
+
+const toast = document.createElement('div');
+toast.className = `toast-pill`;
+
+const icon = `
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="margin-right: 1rem;">
+<circle cx="12" cy="12" r="10"></circle>
+<line x1="15" y1="9" x2="9" y2="15"></line>
+<line x1="9" y1="9" x2="15" y2="15"></line>
+</svg>`;
+
+toast.innerHTML = `
+${icon}
+<span class="toast-text">${message}</span>
+`;
+
+container.appendChild(toast);
+
+requestAnimationFrame(() => {
+toast.classList.add('show');
+});
+
+setTimeout(() => {
+toast.classList.remove('show');
+setTimeout(() => toast.remove(), 500);
+}, 3500);
+
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+
+const dataElement = document.getElementById('django-messages');
+
+if (dataElement) {
+
+try {
+
+const messages = JSON.parse(dataElement.textContent);
+
+messages.forEach(msg => {
+
+showToast(msg.message, msg.tags.includes('error') ? 'error' : 'success');
+
+});
+
+} catch (e) {}
+
+}
+
+});
+</script>
+
+</body>
+</html>
