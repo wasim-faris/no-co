@@ -160,4 +160,13 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "testingemailwasim@gmail.com"
 EMAIL_HOST_PASSWORD = "aohhxotksyichqva"
 
+ACCOUNT_LOGIN_METHODS = {"email"}
+
+ACCOUNT_SIGNUP_FIELDS = [
+    "email*",
+    "username*",
+    "password1*",
+    "password2*",
+]
+
 SITE_ID = 1

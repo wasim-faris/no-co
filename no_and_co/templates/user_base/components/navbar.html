@@ -71,7 +71,7 @@
                     <p class="text-[9px] text-gray-400 uppercase tracking-widest">Logged in as</p>
                     <p class="text-[11px] font-bold truncate">{{ user.username }}</p>
                 </div>
-                <a href="" class="dropdown-item">My Profile</a>
+                <a href="{% url "user-profile" user.id%}" class="dropdown-item">My Profile</a>
                 <a href="#" class="dropdown-item">Settings</a>
                 <div class="dropdown-divider"></div>
                 <form action="{% url "logout-user" %}" method="post" style="display: inline;">

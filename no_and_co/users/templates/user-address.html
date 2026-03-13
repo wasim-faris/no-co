@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Addresses — Studio Archive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --ink: #111111;
+            --ink-mid: #4A4A4A;
+            --ink-soft: #9A9A9A;
+            --ink-faint: #E8E8E8;
+            --surface: #FAFAFA;
+            --surface-raised: #FFFFFF;
+            --radius-card: 1.75rem;
+            --radius-pill: 999px;
+            --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.05);
+            --shadow-lifted: 0 4px 12px rgba(0,0,0,0.04), 0 20px 48px -8px rgba(0,0,0,0.09);
+            --transition-smooth: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            color: var(--ink);
+            background-color: var(--surface);
+        }
+
+        .serif { font-family: 'DM Serif Display', serif; }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--surface-raised);
+            border: 1px solid var(--ink-faint);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            transition: var(--transition-smooth);
+        }
+        .card:hover {
+            box-shadow: var(--shadow-lifted);
+            border-color: #D8D8D8;
+            transform: translateY(-3px);
+        }
+
+        /* ── Sidebar ── */
+        .sidebar-active {
+            background: var(--ink);
+            color: #fff !important;
+        }
+        .sidebar-link { transition: var(--transition-smooth); }
+
+        /* ── Buttons ── */
+        .btn-primary {
+            background: var(--ink);
+            color: #fff;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-size: 10px;
+            font-weight: 600;
+            transition: var(--transition-smooth);
+            border: 1.5px solid var(--ink);
+            cursor: pointer;
+        }
+        .btn-primary:hover { background: #2a2a2a; }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--ink);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-size: 10px;
+            font-weight: 600;
+            border: 1.5px solid var(--ink-faint);
+            transition: var(--transition-smooth);
+            cursor: pointer;
+        }
+        .btn-ghost:hover { border-color: var(--ink); }
+
+        /* ── Label ── */
+        .label-xs {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.22em;
+            font-weight: 700;
+        }
+
+        /* ── Address Card ── */
+        .address-card {
+            background: var(--surface-raised);
+            border: 1px solid var(--ink-faint);
+            border-radius: var(--radius-card);
+            box-shadow: var(--shadow-card);
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+        .address-card:hover {
+            box-shadow: var(--shadow-lifted);
+            border-color: #D8D8D8;
+            transform: translateY(-2px);
+        }
+        .address-card.is-default {
+            border-color: var(--ink);
+        }
+
+        /* Default badge */
+        .default-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--ink);
+            color: #fff;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: var(--radius-pill);
+        }
+
+        /* Label badge (Home / Work) */
+        .type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            padding: 4px 12px;
+            border-radius: var(--radius-pill);
+            border: 1px solid var(--ink-faint);
+            color: var(--ink-mid);
+            background: transparent;
+        }
+
+        /* Action buttons */
+        .action-btn {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: color 0.25s ease;
+            padding: 0;
+            line-height: 1;
+        }
+        .action-btn:hover { color: var(--ink); }
+        .action-btn.delete:hover { color: #c0392b; }
+
+        /* Separator dot */
+        .dot-sep {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--ink-faint);
+            display: inline-block;
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade { animation: fadeIn 0.55s ease-out forwards; }
+
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .card-animate {
+            opacity: 0;
+            animation: cardIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+
+        /* ── Modal ── */
+        #addressModal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        #addressModal.open {
+            display: flex;
+        }
+        .modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .modal-box {
+            position: relative;
+            background: #fff;
+            width: 100%;
+            max-width: 560px;
+            max-height: 92vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lifted);
+            animation: fadeIn 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+        }
+        .modal-box::-webkit-scrollbar { width: 4px; }
+        .modal-box::-webkit-scrollbar-track { background: transparent; }
+        .modal-box::-webkit-scrollbar-thumb { background: var(--ink-faint); border-radius: 4px; }
+
+        /* ── Form ── */
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-label {
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--ink-soft);
+        }
+        .form-input {
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid var(--ink-faint);
+            padding: 10px 0;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 400;
+            color: var(--ink);
+            background: transparent;
+            outline: none;
+            transition: border-color 0.25s ease;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .form-input:focus { border-color: var(--ink); }
+        .form-input.error { border-color: #c0392b; }
+        .form-input::placeholder { color: var(--ink-soft); font-weight: 300; }
+
+        select.form-input {
+            cursor: pointer;
+        }
+
+        .error-msg {
+            font-size: 9px;
+            color: #c0392b;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+            display: none;
+            margin-top: 2px;
+        }
+        .error-msg.show { display: block; }
+
+        /* Phone row */
+        .phone-row {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid var(--ink-faint);
+            transition: border-color 0.25s ease;
+        }
+        .phone-row:focus-within { border-color: var(--ink); }
+        .phone-row.error { border-color: #c0392b; }
+        .phone-code-select {
+            width: 120px;
+            flex-shrink: 0;
+            border: none;
+            border-right: 1px solid var(--ink-faint);
+            padding: 10px 8px 10px 0;
+            font-size: 12px;
+            font-family: 'Inter', sans-serif;
+            color: var(--ink);
+            background: transparent;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+        }
+        .phone-number-input {
+            flex: 1;
+            border: none;
+            padding: 10px 0 10px 12px;
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            color: var(--ink);
+            background: transparent;
+            outline: none;
+        }
+        .phone-number-input::placeholder { color: var(--ink-soft); font-weight: 300; }
+
+        /* Radio & Checkbox */
+        .radio-group, .check-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .radio-item, .check-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        .radio-item input[type="radio"],
+        .check-item input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 14px;
+            height: 14px;
+            border: 1.5px solid var(--ink-faint);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .check-item input[type="checkbox"] {
+            border-radius: 3px;
+        }
+        .radio-item input[type="radio"]:checked,
+        .check-item input[type="checkbox"]:checked {
+            background: var(--ink);
+            border-color: var(--ink);
+        }
+        .radio-item input[type="radio"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #fff;
+        }
+        .check-item input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 1px;
+            left: 4px;
+            width: 4px;
+            height: 7px;
+            border: 1.5px solid #fff;
+            border-top: none;
+            border-left: none;
+            transform: rotate(45deg);
+        }
+        .radio-label, .check-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--ink-mid);
+            letter-spacing: 0.06em;
+            user-select: none;
+        }
+
+        /* Delete confirm overlay */
+        .delete-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.97);
+            border-radius: var(--radius-card);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+            z-index: 10;
+        }
+        .delete-overlay.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Scrollbar for main */
+        main::-webkit-scrollbar { width: 0; }
+
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 80px 32px;
+            text-align: center;
+            border: 1px dashed var(--ink-faint);
+            border-radius: var(--radius-card);
+        }
+
+        /* Loading spinner for country fetch */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner {
+            width: 14px; height: 14px;
+            border: 2px solid var(--ink-faint);
+            border-top-color: var(--ink);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            display: inline-block;
+        }
+
+        /* ── Responsive tweaks ── */
+        @media (max-width: 640px) {
+            .modal-box { max-height: 100vh; border-radius: 0; }
+        }
+
+        /* ============================================================
+           FEATURE 1 — PROFILE COMPLETION
+        ============================================================ */
+        .pc-progress-track {
+            height: 2px;
+            background: var(--ink-faint);
+            border-radius: var(--radius-pill);
+            overflow: hidden;
+        }
+        .pc-progress-fill {
+            height: 100%;
+            border-radius: var(--radius-pill);
+            background: var(--ink);
+            width: 0%;
+            transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .pct-ring {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+        }
+        .pct-ring-track {
+            fill: none;
+            stroke: var(--ink-faint);
+            stroke-width: 2.5;
+        }
+        .pct-ring-fill {
+            fill: none;
+            stroke: var(--ink);
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-dasharray: 138.2;
+            stroke-dashoffset: 138.2;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+            transition: stroke-dashoffset 1.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .pc-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 11px;
+            color: var(--ink-soft);
+            transition: color 0.3s ease;
+        }
+        .pc-item.done { color: var(--ink); }
+        .pc-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            border: 1.5px solid #D8D8D8;
+            flex-shrink: 0;
+            transition: var(--transition-smooth);
+        }
+        .pc-item.done .pc-dot {
+            background: var(--ink);
+            border-color: var(--ink);
+            box-shadow: 0 0 0 3px rgba(17,17,17,0.08);
+        }
+
+        /* ============================================================
+           FEATURE 2 — ELEGANT EMPTY STATE
+        ============================================================ */
+        .empty-state-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            padding: 80px 32px 88px;
+            text-align: center;
+        }
+        .empty-illustration {
+            width: 130px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .empty-svg {
+            width: 130px;
+            height: 100px;
+            overflow: visible;
+        }
+
+        /* Pin bob animation */
+        @keyframes pinBob {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-6px); }
+        }
+        .es-pin-body, .es-pin-circle, .es-plus-v, .es-plus-h {
+            animation: pinBob 3.2s ease-in-out infinite;
+            transform-origin: 80px 102px;
+        }
+        /* Subtle shadow shrink in sync */
+        @keyframes shadowPulse {
+            0%, 100% { transform: scaleX(1);   opacity: 1; }
+            50%       { transform: scaleX(0.7); opacity: 0.5; }
+        }
+        .es-shadow {
+            transform-origin: 80px 108px;
+            animation: shadowPulse 3.2s ease-in-out infinite;
+        }
+        /* Orbit dots fade */
+        @keyframes orbitFade {
+            0%, 100% { opacity: 0.5; }
+            50%       { opacity: 1; }
+        }
+        .es-dot-1 { animation: orbitFade 2.4s 0.0s ease-in-out infinite; }
+        .es-dot-2 { animation: orbitFade 2.4s 0.4s ease-in-out infinite; }
+        .es-dot-3 { animation: orbitFade 2.4s 0.8s ease-in-out infinite; }
+        .es-dot-4 { animation: orbitFade 2.4s 1.2s ease-in-out infinite; }
+        .es-dot-5 { animation: orbitFade 2.4s 1.6s ease-in-out infinite; }
+        .es-dot-6 { animation: orbitFade 2.4s 2.0s ease-in-out infinite; }
+
+        .empty-text h2 { line-height: 1.2; }
+    </style>
+</head>
+
+<body>
+<div class="max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-screen">
+
+    <!-- ═══════════════════════════════════════════
+         SIDEBAR — UNCHANGED
+    ═══════════════════════════════════════════ -->
+    <aside class="w-full lg:w-72 xl:w-80 p-10 lg:p-14 border-r border-neutral-200 bg-white flex-shrink-0">
+        <div class="lg:sticky lg:top-36">
+            <p class="label-xs text-neutral-400 mb-10">Account</p>
+            <nav class="space-y-1">
+                <a href="#" class="sidebar-link flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 hover:text-black rounded-full group">
+                    <svg class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h7"/></svg>
+                    Overview
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 hover:text-black rounded-full group">
+                    <svg class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    My Orders
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 hover:text-black rounded-full group">
+                    <svg class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    Wishlist
+                </a>
+                <a href="#" class="sidebar-link sidebar-active flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest rounded-full group">
+                    <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+                    Addresses
+                </a>
+                <a href="#" class="sidebar-link flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 hover:text-black rounded-full group">
+                    <svg class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+                    Settings
+                </a>
+            </nav>
+        </div>
+    </aside>
+
+    <!-- ═══════════════════════════════════════════
+         MAIN — SAVED ADDRESSES
+    ═══════════════════════════════════════════ -->
+    <main class="flex-1 px-8 md:px-16 xl:px-20 py-14 animate-fade min-w-0">
+
+        <!-- ── PAGE HEADER ── -->
+        <header class="mb-14 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+            <div>
+                <p class="label-xs text-neutral-400 mb-3">Account / Addresses</p>
+                <h1 class="serif text-4xl font-light tracking-tight text-neutral-900">Saved Addresses</h1>
+                <p class="text-[12px] text-neutral-400 font-light mt-2 leading-relaxed">Manage your delivery addresses for faster checkout.</p>
+            </div>
+            <button
+                onclick="openModal()"
+                class="btn-primary flex items-center gap-3 px-8 py-4 flex-shrink-0"
+                style="border-radius: 0;"
+            >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                Add New Address
+            </button>
+        </header>
+
+        <!-- ── ADDRESS COUNT ── -->
+        <div class="flex items-center gap-4 mb-8 border-b border-neutral-100 pb-5">
+            <h3 class="label-xs text-neutral-900">Your Addresses</h3>
+            <span id="address-count" class="text-[9px] font-bold px-2.5 py-1 bg-neutral-100 text-neutral-500 rounded-full tracking-widest uppercase">2 Saved</span>
+        </div>
+
+        <!-- ── ADDRESS CARDS GRID ── -->
+        <div id="address-list" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- Card 1 — Home (Default) -->
+            <div class="address-card is-default card-animate p-8 group" style="animation-delay: 0.05s;" data-id="1">
+                <!-- Top row: type badge + default badge -->
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="type-badge">
+                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                            Home
+                        </span>
+                        <span class="default-badge">
+                            <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                            Default
+                        </span>
+                    </div>
+                    <!-- Subtle top-right corner pin icon -->
+                    <svg class="w-4 h-4 text-neutral-200 group-hover:text-neutral-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+
+                <!-- Address info -->
+                <div class="space-y-1 mb-8">
+                    <p class="text-[13px] font-semibold text-neutral-900 tracking-tight">Wasim Faris</p>
+                    <p class="text-[12px] text-neutral-400 font-light">+91 9605505651</p>
+                    <div class="pt-2 space-y-0.5">
+                        <p class="text-[12px] text-neutral-600 font-light leading-relaxed">No 21, Palm Street</p>
+                        <p class="text-[12px] text-neutral-600 font-light leading-relaxed">Calicut, Kerala 673001</p>
+                        <p class="text-[12px] text-neutral-600 font-light leading-relaxed">India</p>
+                    </div>
+                </div>
+
+                <!-- Action row -->
+                <div class="flex items-center gap-4 pt-5 border-t border-neutral-50">
+                    <button class="action-btn" onclick="openEditModal(1)">Edit</button>
+                    <span class="dot-sep"></span>
+                    <button class="action-btn delete" onclick="confirmDelete(1)">Delete</button>
+                    <!-- No "Set Default" since already default -->
+                </div>
+
+                <!-- Delete confirm overlay -->
+                <div class="delete-overlay" id="delete-overlay-1">
+                    <p class="text-[11px] font-medium text-neutral-700 tracking-wide text-center px-6">Remove this address?<br><span class="text-neutral-400 font-light">This action cannot be undone.</span></p>
+                    <div class="flex items-center gap-4">
+                        <button onclick="cancelDelete(1)" class="btn-ghost px-6 py-3" style="border-radius:0; font-size:9px;">Cancel</button>
+                        <button onclick="deleteAddress(1)" class="btn-primary px-6 py-3" style="border-radius:0; font-size:9px; background:#c0392b; border-color:#c0392b;">Remove</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2 — Work -->
+            <div class="address-card card-animate p-8 group" style="animation-delay: 0.15s;" data-id="2">
+                <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center gap-3">
+                        <span class="type-badge">
+                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                            Work
+                        </span>
+                    </div>
+                    <svg class="w-4 h-4 text-neutral-200 group-hover:text-neutral-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </div>
+
+                <div class="space-y-1 mb-8">
+                    <p class="text-[13px] font-semibold text-neutral-900 tracking-tight">Wasim Faris</p>
+                    <p class="text-[12px] text-neutral-400 font-light">+91 9605505651</p>
+                    <div class="pt-2 space-y-0.5">
+                        <p class="text-[12px] text-neutral-600 font-light leading-relaxed">Tech Park Building</p>
+                        <p class="text-[12px] text-neutral-600 font-light leading-relaxed">Kozhikode, Kerala 673002</p>
+                        <p class="text-[12px] text-neutral-600 font-light leading-relaxed">India</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 pt-5 border-t border-neutral-50">
+                    <button class="action-btn" onclick="openEditModal(2)">Edit</button>
+                    <span class="dot-sep"></span>
+                    <button class="action-btn delete" onclick="confirmDelete(2)">Delete</button>
+                    <span class="dot-sep"></span>
+                    <button class="action-btn" onclick="setDefault(2)">Set as Default</button>
+                </div>
+
+                <div class="delete-overlay" id="delete-overlay-2">
+                    <p class="text-[11px] font-medium text-neutral-700 tracking-wide text-center px-6">Remove this address?<br><span class="text-neutral-400 font-light">This action cannot be undone.</span></p>
+                    <div class="flex items-center gap-4">
+                        <button onclick="cancelDelete(2)" class="btn-ghost px-6 py-3" style="border-radius:0; font-size:9px;">Cancel</button>
+                        <button onclick="deleteAddress(2)" class="btn-primary px-6 py-3" style="border-radius:0; font-size:9px; background:#c0392b; border-color:#c0392b;">Remove</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             EMPTY STATE — shown when no addresses exist
+        ═══════════════════════════════════════════ -->
+        <div id="empty-state" class="hidden">
+            <div class="empty-state-wrap">
+
+                <!-- Animated SVG illustration -->
+                <div class="empty-illustration" aria-hidden="true">
+                    <svg viewBox="0 0 160 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="empty-svg">
+                        <!-- Map pin shadow -->
+                        <ellipse cx="80" cy="108" rx="22" ry="5" fill="#F0F0F0" class="es-shadow"/>
+                        <!-- Pin body -->
+                        <path d="M80 18C62.327 18 48 32.327 48 50C48 72 80 102 80 102C80 102 112 72 112 50C112 32.327 97.673 18 80 18Z" fill="#FAFAFA" stroke="#E8E8E8" stroke-width="1.5" class="es-pin-body"/>
+                        <!-- Pin inner circle -->
+                        <circle cx="80" cy="50" r="13" fill="#FFFFFF" stroke="#D8D8D8" stroke-width="1.5" class="es-pin-circle"/>
+                        <!-- Plus inside circle (add icon) -->
+                        <line x1="80" y1="44" x2="80" y2="56" stroke="#C8C8C8" stroke-width="1.5" stroke-linecap="round" class="es-plus-v"/>
+                        <line x1="74" y1="50" x2="86" y2="50" stroke="#C8C8C8" stroke-width="1.5" stroke-linecap="round" class="es-plus-h"/>
+                        <!-- Decorative dashes around pin (orbit dots) -->
+                        <circle cx="40" cy="46" r="2" fill="#E8E8E8" class="es-dot es-dot-1"/>
+                        <circle cx="120" cy="46" r="2" fill="#E8E8E8" class="es-dot es-dot-2"/>
+                        <circle cx="55" cy="24" r="1.5" fill="#EFEFEF" class="es-dot es-dot-3"/>
+                        <circle cx="105" cy="24" r="1.5" fill="#EFEFEF" class="es-dot es-dot-4"/>
+                        <circle cx="44" cy="72" r="1.5" fill="#EFEFEF" class="es-dot es-dot-5"/>
+                        <circle cx="116" cy="72" r="1.5" fill="#EFEFEF" class="es-dot es-dot-6"/>
+                    </svg>
+                </div>
+
+                <!-- Text -->
+                <div class="empty-text">
+                    <h2 class="serif text-2xl font-light text-neutral-800 tracking-tight">No saved addresses yet</h2>
+                    <p class="text-[12px] text-neutral-400 font-light mt-2 leading-relaxed">Add your first address to make checkout faster.</p>
+                </div>
+
+                <!-- CTA -->
+                <button
+                    onclick="openModal()"
+                    class="btn-primary flex items-center gap-3 px-10 py-4 mt-2"
+                    style="border-radius:0;"
+                >
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    Add Address
+                </button>
+
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════
+             PROFILE COMPLETION SECTION
+             Always shown at the bottom of the page.
+        ═══════════════════════════════════════════ -->
+        <section class="mt-16" id="profile-completion-section" data-pct="75">
+            <div class="card overflow-hidden" style="border-radius: var(--radius-card);">
+
+                <!-- Top strip -->
+                <div class="px-10 pt-9 pb-8 border-b border-neutral-50">
+                    <div class="flex items-center gap-6 mb-6">
+
+                        <!-- SVG ring -->
+                        <div class="relative flex-shrink-0">
+                            <svg class="pct-ring" viewBox="0 0 52 52">
+                                <circle class="pct-ring-track" cx="26" cy="26" r="22"/>
+                                <circle class="pct-ring-fill" id="pc-ring-fill" cx="26" cy="26" r="22"/>
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span id="pc-counter" class="text-[11px] font-semibold text-neutral-900 tabular-nums" style="letter-spacing:-0.02em;">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Label + bar -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-baseline justify-between gap-4 mb-3">
+                                <p class="label-xs text-neutral-900">Profile Completion</p>
+                                <span
+                                    id="pc-badge"
+                                    class="text-[8px] uppercase tracking-[0.18em] font-bold px-2.5 py-1 rounded-full border border-neutral-200 text-neutral-400 whitespace-nowrap transition-all duration-500"
+                                >Almost There</span>
+                            </div>
+                            <!-- Progress bar -->
+                            <div class="pc-progress-track">
+                                <div class="pc-progress-fill" id="pc-progress-fill"></div>
+                            </div>
+                            <p class="text-[10px] text-neutral-400 font-light mt-2.5 leading-relaxed">
+                                Complete your profile to unlock a faster checkout experience.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Completion items — 2-col grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2">
+
+                    <!-- 1. Username -->
+                    <div class="pc-item done px-10 py-5 border-b border-r border-neutral-50 gap-4">
+                        <div class="pc-dot flex-shrink-0"></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[11px] font-medium leading-snug text-neutral-900">Username added</p>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-neutral-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+
+                    <!-- 2. Phone number -->
+                    <div class="pc-item done px-10 py-5 border-b border-neutral-50 gap-4">
+                        <div class="pc-dot flex-shrink-0"></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[11px] font-medium leading-snug text-neutral-900">Phone number added</p>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-neutral-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+
+                    <!-- 3. Profile photo -->
+                    <div class="pc-item done px-10 py-5 border-r border-neutral-50 gap-4">
+                        <div class="pc-dot flex-shrink-0"></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[11px] font-medium leading-snug text-neutral-900">Profile photo uploaded</p>
+                        </div>
+                        <svg class="w-3.5 h-3.5 text-neutral-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    </div>
+
+                    <!-- 4. Shipping address — not done -->
+                    <div class="pc-item px-10 py-5 gap-4">
+                        <div class="pc-dot flex-shrink-0"></div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[11px] font-medium leading-snug text-neutral-400">Add shipping address</p>
+                            <p class="text-[10px] text-neutral-400 mt-0.5 font-light">For faster checkout</p>
+                        </div>
+                        <button onclick="openModal()" class="flex-shrink-0 text-[9px] uppercase tracking-widest text-neutral-400 hover:text-black transition-colors font-bold border-b border-neutral-200 hover:border-black pb-px">Add</button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     ADD / EDIT ADDRESS MODAL
+═══════════════════════════════════════════ -->
+<div id="addressModal">
+    <div class="modal-backdrop" onclick="closeModal()"></div>
+    <div class="modal-box">
+        <div class="p-10 md:p-14">
+
+            <!-- Modal header -->
+            <header class="flex justify-between items-start mb-12">
+                <div>
+                    <p class="label-xs text-neutral-400 mb-2">Account / Addresses</p>
+                    <h2 class="serif text-2xl font-light text-neutral-900" id="modal-title">Add New Address</h2>
+                </div>
+                <button onclick="closeModal()" class="text-neutral-400 hover:text-black transition-colors mt-1">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </header>
+
+            <!-- Form -->
+            <form id="addressForm" novalidate>
+                <div class="space-y-8">
+
+                    <!-- Name row -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="form-field">
+                            <label class="form-label">First Name <span class="text-red-400">*</span></label>
+                            <input type="text" id="f-first-name" class="form-input" placeholder="First name" autocomplete="given-name">
+                            <span class="error-msg" id="err-first-name">Please enter your first name</span>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Last Name <span class="text-red-400">*</span></label>
+                            <input type="text" id="f-last-name" class="form-input" placeholder="Last name" autocomplete="family-name">
+                            <span class="error-msg" id="err-last-name">Please enter your last name</span>
+                        </div>
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="form-field">
+                        <label class="form-label">Phone Number <span class="text-red-400">*</span></label>
+                        <div class="phone-row" id="phone-row">
+                            <select id="f-phone-code" class="phone-code-select">
+                                <option value="">Loading…</option>
+                            </select>
+                            <input type="tel" id="f-phone" class="phone-number-input" placeholder="Phone number" maxlength="15" autocomplete="tel-national">
+                        </div>
+                        <span class="error-msg" id="err-phone">Please enter a valid phone number (7–15 digits)</span>
+                    </div>
+
+                    <!-- Address Line 1 -->
+                    <div class="form-field">
+                        <label class="form-label">Address Line 1 <span class="text-red-400">*</span></label>
+                        <input type="text" id="f-addr1" class="form-input" placeholder="House / flat number, street name" autocomplete="address-line1">
+                        <span class="error-msg" id="err-addr1">Please enter your address</span>
+                    </div>
+
+                    <!-- Address Line 2 -->
+                    <div class="form-field">
+                        <label class="form-label">Address Line 2 <span style="font-size:8px;letter-spacing:0.1em;color:#bbb;font-weight:400;text-transform:none;">(optional)</span></label>
+                        <input type="text" id="f-addr2" class="form-input" placeholder="Apartment, suite, landmark…" autocomplete="address-line2">
+                    </div>
+
+                    <!-- City + State -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="form-field">
+                            <label class="form-label">City <span class="text-red-400">*</span></label>
+                            <input type="text" id="f-city" class="form-input" placeholder="City" autocomplete="address-level2">
+                            <span class="error-msg" id="err-city">Please enter your city</span>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">State / Province <span class="text-red-400">*</span></label>
+                            <input type="text" id="f-state" class="form-input" placeholder="State" autocomplete="address-level1">
+                            <span class="error-msg" id="err-state">Please enter your state</span>
+                        </div>
+                    </div>
+
+                    <!-- Postal + Country -->
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="form-field">
+                            <label class="form-label">Postal Code <span class="text-red-400">*</span></label>
+                            <input type="text" id="f-postal" class="form-input" placeholder="Postal code" maxlength="10" autocomplete="postal-code">
+                            <span class="error-msg" id="err-postal">Please enter a valid postal code</span>
+                        </div>
+                        <div class="form-field">
+                            <label class="form-label">Country <span class="text-red-400">*</span></label>
+                            <div class="relative flex items-center">
+                                <select id="f-country" class="form-input pr-8">
+                                    <option value="">Select country…</option>
+                                </select>
+                                <span id="country-loading" class="spinner absolute right-0" style="display:none;"></span>
+                            </div>
+                            <span class="error-msg" id="err-country">Please select a country</span>
+                        </div>
+                    </div>
+
+                    <!-- Address Type -->
+                    <div class="form-field">
+                        <label class="form-label">Address Type</label>
+                        <div class="radio-group mt-2">
+                            <label class="radio-item">
+                                <input type="radio" name="addr-type" value="Home" checked>
+                                <span class="radio-label">Home</span>
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="addr-type" value="Work">
+                                <span class="radio-label">Work</span>
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="addr-type" value="Other">
+                                <span class="radio-label">Other</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Set as Default -->
+                    <div class="form-field">
+                        <label class="check-item gap-3">
+                            <input type="checkbox" id="f-default">
+                            <span class="check-label">Set as default address</span>
+                        </label>
+                    </div>
+
+                </div>
+
+                <!-- Submit -->
+                <div class="pt-10 mt-4 border-t border-neutral-50">
+                    <button type="submit" class="btn-primary w-full py-5" style="border-radius:0;" id="submit-btn">Save Address</button>
+                    <button type="button" onclick="closeModal()" class="w-full mt-4 label-xs text-neutral-400 hover:text-black transition-colors py-2">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ── Scripts ── -->
+<script>
+/* ============================================================
+   STATE
+============================================================ */
+var addresses = [
+    {
+        id: 1,
+        type: 'Home',
+        firstName: 'Wasim',
+        lastName: 'Faris',
+        phone: '+91 9605505651',
+        addr1: 'No 21, Palm Street',
+        addr2: '',
+        city: 'Calicut',
+        state: 'Kerala',
+        postal: '673001',
+        country: 'India',
+        isDefault: true
+    },
+    {
+        id: 2,
+        type: 'Work',
+        firstName: 'Wasim',
+        lastName: 'Faris',
+        phone: '+91 9605505651',
+        addr1: 'Tech Park Building',
+        addr2: '',
+        city: 'Kozhikode',
+        state: 'Kerala',
+        postal: '673002',
+        country: 'India',
+        isDefault: false
+    }
+];
+var nextId = 3;
+var editingId = null;
+var countriesData = []; // [{name, dial_code, flag}]
+
+/* ============================================================
+   COUNTRY DATA FETCH
+   Using restcountries.com API
+============================================================ */
+async function fetchCountries() {
+    var codeSelect  = document.getElementById('f-phone-code');
+    var countrySelect = document.getElementById('f-country');
+    var spinner     = document.getElementById('country-loading');
+
+    spinner.style.display = 'inline-block';
+
+    try {
+        var res  = await fetch('https://restcountries.com/v3.1/all?fields=name,idd,flag,cca2');
+        var data = await res.json();
+
+        // Sort alphabetically by common name
+        data.sort(function(a, b) {
+            return a.name.common.localeCompare(b.name.common);
+        });
+
+        countriesData = data.map(function(c) {
+            var root   = (c.idd && c.idd.root) ? c.idd.root : '';
+            var suffix = (c.idd && c.idd.suffixes && c.idd.suffixes.length === 1) ? c.idd.suffixes[0] : '';
+            var dial   = root + suffix;
+            return {
+                name  : c.name.common,
+                dial  : dial || '',
+                flag  : c.flag || ''
+            };
+        }).filter(function(c) { return c.dial; });
+
+        // Preferred countries shown first
+        var preferred = ['India', 'United States', 'United Kingdom', 'United Arab Emirates'];
+        var preferredList = [];
+        var restList      = [];
+
+        countriesData.forEach(function(c) {
+            if (preferred.indexOf(c.name) !== -1) {
+                preferredList.push(c);
+            } else {
+                restList.push(c);
+            }
+        });
+
+        // Sort preferred in the same order as preferred array
+        preferredList.sort(function(a, b) {
+            return preferred.indexOf(a.name) - preferred.indexOf(b.name);
+        });
+
+        var finalList = preferredList.concat(restList);
+
+        // Populate phone code select
+        codeSelect.innerHTML = '';
+        finalList.forEach(function(c) {
+            var opt    = document.createElement('option');
+            opt.value  = c.dial;
+            opt.textContent = c.flag + ' ' + c.dial + ' ' + c.name;
+            if (c.name === 'India') opt.selected = true;
+            codeSelect.appendChild(opt);
+        });
+
+        // Populate country select
+        countrySelect.innerHTML = '<option value="">Select country…</option>';
+        finalList.forEach(function(c) {
+            var opt   = document.createElement('option');
+            opt.value = c.name;
+            opt.textContent = c.flag + ' ' + c.name;
+            if (c.name === 'India') opt.selected = true;
+            countrySelect.appendChild(opt);
+        });
+
+    } catch(e) {
+        // Fallback if API fails — hardcode a small list
+        var fallback = [
+            { dial: '+91', flag: '🇮🇳', name: 'India' },
+            { dial: '+1',  flag: '🇺🇸', name: 'United States' },
+            { dial: '+44', flag: '🇬🇧', name: 'United Kingdom' },
+            { dial: '+971',flag: '🇦🇪', name: 'United Arab Emirates' },
+            { dial: '+61', flag: '🇦🇺', name: 'Australia' },
+            { dial: '+49', flag: '🇩🇪', name: 'Germany' },
+            { dial: '+33', flag: '🇫🇷', name: 'France' },
+            { dial: '+81', flag: '🇯🇵', name: 'Japan' },
+        ];
+        codeSelect.innerHTML = '';
+        countrySelect.innerHTML = '<option value="">Select country…</option>';
+        fallback.forEach(function(c) {
+            var o1 = document.createElement('option');
+            o1.value = c.dial;
+            o1.textContent = c.flag + ' ' + c.dial + ' ' + c.name;
+            if (c.name === 'India') o1.selected = true;
+            codeSelect.appendChild(o1);
+
+            var o2 = document.createElement('option');
+            o2.value = c.name;
+            o2.textContent = c.flag + ' ' + c.name;
+            if (c.name === 'India') o2.selected = true;
+            countrySelect.appendChild(o2);
+        });
+    } finally {
+        spinner.style.display = 'none';
+    }
+}
+
+/* ============================================================
+   MODAL OPEN / CLOSE
+============================================================ */
+function openModal() {
+    editingId = null;
+    document.getElementById('modal-title').textContent = 'Add New Address';
+    document.getElementById('submit-btn').textContent  = 'Save Address';
+    resetForm();
+    document.getElementById('addressModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function openEditModal(id) {
+    var addr = addresses.find(function(a) { return a.id === id; });
+    if (!addr) return;
+
+    editingId = id;
+    document.getElementById('modal-title').textContent = 'Edit Address';
+    document.getElementById('submit-btn').textContent  = 'Update Address';
+    resetForm();
+
+    // Populate fields
+    document.getElementById('f-first-name').value = addr.firstName;
+    document.getElementById('f-last-name').value  = addr.lastName;
+    document.getElementById('f-addr1').value       = addr.addr1;
+    document.getElementById('f-addr2').value       = addr.addr2 || '';
+    document.getElementById('f-city').value        = addr.city;
+    document.getElementById('f-state').value       = addr.state;
+    document.getElementById('f-postal').value      = addr.postal;
+    document.getElementById('f-default').checked   = addr.isDefault;
+
+    // Phone: split dial code from number
+    var phoneRaw = addr.phone || '';
+    var phoneCodeEl = document.getElementById('f-phone-code');
+    var phoneNumEl  = document.getElementById('f-phone');
+
+    // Try to match dial code from options
+    var matched = false;
+    for (var i = 0; i < phoneCodeEl.options.length; i++) {
+        var optVal = phoneCodeEl.options[i].value;
+        if (optVal && phoneRaw.startsWith(optVal)) {
+            phoneCodeEl.value = optVal;
+            phoneNumEl.value  = phoneRaw.slice(optVal.length).trim();
+            matched = true;
+            break;
+        }
+    }
+    if (!matched) {
+        phoneNumEl.value = phoneRaw;
+    }
+
+    // Address type radio
+    var radios = document.querySelectorAll('input[name="addr-type"]');
+    radios.forEach(function(r) {
+        r.checked = (r.value === addr.type);
+    });
+
+    // Country
+    var countryEl = document.getElementById('f-country');
+    for (var j = 0; j < countryEl.options.length; j++) {
+        if (countryEl.options[j].value === addr.country) {
+            countryEl.selectedIndex = j;
+            break;
+        }
+    }
+
+    document.getElementById('addressModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+    document.getElementById('addressModal').classList.remove('open');
+    document.body.style.overflow = 'auto';
+    editingId = null;
+}
+
+function resetForm() {
+    document.getElementById('addressForm').reset();
+    clearErrors();
+    // Reset country to India default after reset
+    var countryEl = document.getElementById('f-country');
+    for (var i = 0; i < countryEl.options.length; i++) {
+        if (countryEl.options[i].value === 'India') {
+            countryEl.selectedIndex = i;
+            break;
+        }
+    }
+    // Reset phone code to India
+    var codeEl = document.getElementById('f-phone-code');
+    for (var j = 0; j < codeEl.options.length; j++) {
+        if (codeEl.options[j].textContent.includes('India')) {
+            codeEl.selectedIndex = j;
+            break;
+        }
+    }
+}
+
+/* ============================================================
+   VALIDATION
+============================================================ */
+function clearErrors() {
+    document.querySelectorAll('.error-msg').forEach(function(el) {
+        el.classList.remove('show');
+    });
+    document.querySelectorAll('.form-input, .phone-row').forEach(function(el) {
+        el.classList.remove('error');
+    });
+}
+
+function showError(fieldId, errId) {
+    var field = document.getElementById(fieldId);
+    var err   = document.getElementById(errId);
+    if (field) field.classList.add('error');
+    if (err)   err.classList.add('show');
+}
+
+function validateForm() {
+    clearErrors();
+    var valid = true;
+
+    var firstName = document.getElementById('f-first-name').value.trim();
+    var lastName  = document.getElementById('f-last-name').value.trim();
+    var phoneNum  = document.getElementById('f-phone').value.trim().replace(/\D/g, '');
+    var addr1     = document.getElementById('f-addr1').value.trim();
+    var city      = document.getElementById('f-city').value.trim();
+    var state     = document.getElementById('f-state').value.trim();
+    var postal    = document.getElementById('f-postal').value.trim();
+    var country   = document.getElementById('f-country').value;
+
+    if (!firstName) { showError('f-first-name', 'err-first-name'); valid = false; }
+    if (!lastName)  { showError('f-last-name',  'err-last-name');  valid = false; }
+    if (!phoneNum || phoneNum.length < 7 || phoneNum.length > 15) {
+        document.getElementById('phone-row').classList.add('error');
+        document.getElementById('err-phone').classList.add('show');
+        valid = false;
+    }
+    if (!addr1) { showError('f-addr1', 'err-addr1'); valid = false; }
+    if (!city)  { showError('f-city',  'err-city');  valid = false; }
+    if (!state) { showError('f-state', 'err-state'); valid = false; }
+    if (!postal || !/\d/.test(postal)) {
+        showError('f-postal', 'err-postal');
+        document.getElementById('err-postal').textContent = !/\d/.test(postal) && postal
+            ? 'Postal code must contain numbers'
+            : 'Please enter a valid postal code';
+        valid = false;
+    }
+    if (!country) { showError('f-country', 'err-country'); valid = false; }
+
+    return valid;
+}
+
+/* ============================================================
+   FORM SUBMIT — ADD / EDIT
+============================================================ */
+document.getElementById('addressForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    var dialCode  = document.getElementById('f-phone-code').value;
+    var phoneNum  = document.getElementById('f-phone').value.trim();
+    var fullPhone = dialCode ? (dialCode + ' ' + phoneNum) : phoneNum;
+
+    var addrType  = document.querySelector('input[name="addr-type"]:checked').value;
+    var isDefault = document.getElementById('f-default').checked;
+
+    var newAddr = {
+        id        : editingId || nextId++,
+        type      : addrType,
+        firstName : document.getElementById('f-first-name').value.trim(),
+        lastName  : document.getElementById('f-last-name').value.trim(),
+        phone     : fullPhone,
+        addr1     : document.getElementById('f-addr1').value.trim(),
+        addr2     : document.getElementById('f-addr2').value.trim(),
+        city      : document.getElementById('f-city').value.trim(),
+        state     : document.getElementById('f-state').value.trim(),
+        postal    : document.getElementById('f-postal').value.trim(),
+        country   : document.getElementById('f-country').value,
+        isDefault : isDefault
+    };
+
+    // If set as default, unset all others
+    if (isDefault) {
+        addresses.forEach(function(a) { a.isDefault = false; });
+    }
+
+    if (editingId !== null) {
+        // Replace existing
+        var idx = addresses.findIndex(function(a) { return a.id === editingId; });
+        if (idx !== -1) addresses[idx] = newAddr;
+    } else {
+        addresses.push(newAddr);
+    }
+
+    closeModal();
+    renderAddresses();
+});
+
+/* ============================================================
+   RENDER ADDRESSES
+============================================================ */
+function renderAddresses() {
+    var list  = document.getElementById('address-list');
+    var empty = document.getElementById('empty-state');
+    var count = document.getElementById('address-count');
+
+    count.textContent = addresses.length + ' Saved';
+
+    if (addresses.length === 0) {
+        list.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+    }
+    empty.classList.add('hidden');
+
+    list.innerHTML = '';
+    addresses.forEach(function(addr, i) {
+        var card = document.createElement('div');
+        card.className = 'address-card card-animate p-8 group' + (addr.isDefault ? ' is-default' : '');
+        card.setAttribute('data-id', addr.id);
+        card.style.animationDelay = (i * 0.08) + 's';
+
+        var typeIcon = addr.type === 'Work'
+            ? '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>'
+            : '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>';
+
+        var defaultBadge = addr.isDefault
+            ? '<span class="default-badge"><svg class="w-2 h-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>Default</span>'
+            : '';
+
+        var setDefaultBtn = !addr.isDefault
+            ? '<span class="dot-sep"></span><button class="action-btn" onclick="setDefault(' + addr.id + ')">Set as Default</button>'
+            : '';
+
+        var addr2Line = addr.addr2 ? '<p class="text-[12px] text-neutral-600 font-light leading-relaxed">' + escHtml(addr.addr2) + '</p>' : '';
+
+        card.innerHTML =
+            '<div class="flex items-center justify-between mb-6">' +
+                '<div class="flex items-center gap-3">' +
+                    '<span class="type-badge">' + typeIcon + escHtml(addr.type) + '</span>' +
+                    defaultBadge +
+                '</div>' +
+                '<svg class="w-4 h-4 text-neutral-200 group-hover:text-neutral-400 transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>' +
+            '</div>' +
+            '<div class="space-y-1 mb-8">' +
+                '<p class="text-[13px] font-semibold text-neutral-900 tracking-tight">' + escHtml(addr.firstName + ' ' + addr.lastName) + '</p>' +
+                '<p class="text-[12px] text-neutral-400 font-light">' + escHtml(addr.phone) + '</p>' +
+                '<div class="pt-2 space-y-0.5">' +
+                    '<p class="text-[12px] text-neutral-600 font-light leading-relaxed">' + escHtml(addr.addr1) + '</p>' +
+                    addr2Line +
+                    '<p class="text-[12px] text-neutral-600 font-light leading-relaxed">' + escHtml(addr.city + ', ' + addr.state + ' ' + addr.postal) + '</p>' +
+                    '<p class="text-[12px] text-neutral-600 font-light leading-relaxed">' + escHtml(addr.country) + '</p>' +
+                '</div>' +
+            '</div>' +
+            '<div class="flex items-center gap-4 pt-5 border-t border-neutral-50">' +
+                '<button class="action-btn" onclick="openEditModal(' + addr.id + ')">Edit</button>' +
+                '<span class="dot-sep"></span>' +
+                '<button class="action-btn delete" onclick="confirmDelete(' + addr.id + ')">Delete</button>' +
+                setDefaultBtn +
+            '</div>' +
+            '<div class="delete-overlay" id="delete-overlay-' + addr.id + '">' +
+                '<p class="text-[11px] font-medium text-neutral-700 tracking-wide text-center px-6">Remove this address?<br><span class="text-neutral-400 font-light">This action cannot be undone.</span></p>' +
+                '<div class="flex items-center gap-4">' +
+                    '<button onclick="cancelDelete(' + addr.id + ')" class="btn-ghost px-6 py-3" style="border-radius:0;font-size:9px;">Cancel</button>' +
+                    '<button onclick="deleteAddress(' + addr.id + ')" class="btn-primary px-6 py-3" style="border-radius:0;font-size:9px;background:#c0392b;border-color:#c0392b;">Remove</button>' +
+                '</div>' +
+            '</div>';
+
+        list.appendChild(card);
+    });
+}
+
+function escHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+/* ============================================================
+   DELETE
+============================================================ */
+function confirmDelete(id) {
+    var overlay = document.getElementById('delete-overlay-' + id);
+    if (overlay) overlay.classList.add('visible');
+}
+function cancelDelete(id) {
+    var overlay = document.getElementById('delete-overlay-' + id);
+    if (overlay) overlay.classList.remove('visible');
+}
+function deleteAddress(id) {
+    addresses = addresses.filter(function(a) { return a.id !== id; });
+    renderAddresses();
+}
+
+/* ============================================================
+   SET DEFAULT
+============================================================ */
+function setDefault(id) {
+    addresses.forEach(function(a) { a.isDefault = (a.id === id); });
+    renderAddresses();
+}
+
+/* ============================================================
+   INLINE VALIDATION — live clear on input
+============================================================ */
+['f-first-name','f-last-name','f-addr1','f-city','f-state','f-postal','f-country'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', function() {
+        el.classList.remove('error');
+        var errId = id.replace('f-', 'err-');
+        var errEl = document.getElementById(errId);
+        if (errEl) errEl.classList.remove('show');
+    });
+});
+
+document.getElementById('f-phone').addEventListener('input', function() {
+    document.getElementById('phone-row').classList.remove('error');
+    document.getElementById('err-phone').classList.remove('show');
+    // Only allow digits
+    this.value = this.value.replace(/[^\d]/g, '');
+});
+
+/* ============================================================
+   PROFILE COMPLETION ANIMATION
+============================================================ */
+function animateProfileCompletion() {
+    var section = document.getElementById('profile-completion-section');
+    if (!section) return;
+    var pct = parseInt(section.getAttribute('data-pct'), 10) || 0;
+
+    var fill    = document.getElementById('pc-progress-fill');
+    var counter = document.getElementById('pc-counter');
+    var ring    = document.getElementById('pc-ring-fill');
+    var badge   = document.getElementById('pc-badge');
+    if (!fill || !counter || !ring || !badge) return;
+
+    var CIRCUMFERENCE = 2 * Math.PI * 22; // 138.23
+    var targetOffset  = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
+
+    requestAnimationFrame(function() {
+        fill.style.width = pct + '%';
+        ring.style.strokeDashoffset = targetOffset;
+    });
+
+    // Count-up number
+    var duration  = 1300;
+    var startTime = null;
+    function countUp(ts) {
+        if (!startTime) startTime = ts;
+        var progress = Math.min((ts - startTime) / duration, 1);
+        var eased    = 1 - Math.pow(1 - progress, 3);
+        counter.textContent = Math.round(eased * pct) + '%';
+        if (progress < 1) {
+            requestAnimationFrame(countUp);
+        } else {
+            // Update badge text based on tier
+            if      (pct === 100) { badge.textContent = 'Complete';    badge.style.borderColor = '#111'; badge.style.color = '#111'; }
+            else if (pct >= 75)   { badge.textContent = 'Almost There'; }
+            else if (pct >= 50)   { badge.textContent = 'Half Way';    }
+            else                  { badge.textContent = 'In Progress'; }
+        }
+    }
+    requestAnimationFrame(countUp);
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+    fetchCountries();
+    document.getElementById('address-count').textContent = addresses.length + ' Saved';
+    // Trigger profile completion animation after a short delay for visual polish
+    setTimeout(animateProfileCompletion, 400);
+});
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeModal();
+});
+</script>
+</body>
+</html>
