@@ -5,11 +5,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NØ&Co | Verify Account</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
+
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="{% static 'accounts/css/otp-verification.css' %}">
 
 <style>
+
 .serif-font{font-family:'Playfair Display',serif}
 body{font-family:'Inter',sans-serif}
 .no-scrollbar::-webkit-scrollbar{display:none}
@@ -99,6 +103,7 @@ body{font-family:'Inter',sans-serif}
 
 #timer-container{ transition:opacity .5s ease; }
 .hidden-resend{ display:none; }
+
 </style>
 </head>
 
@@ -117,17 +122,14 @@ body{font-family:'Inter',sans-serif}
 </div>
 
 <div class="w-full md:w-1/2 h-full flex flex-col bg-white relative">
-
 <div class="pt-8 px-8 flex justify-start items-center shrink-0 md:hidden">
 <span class="serif-font text-2xl font-semibold tracking-tighter text-black">NØ&Co.</span>
 </div>
 
 <div class="flex-grow flex items-center justify-center px-8 md:px-20 py-4 overflow-y-auto no-scrollbar">
-
 <div class="w-full max-w-[440px] text-center">
-
 <header class="mb-10">
-<h1 class="serif-font text-4xl text-[#111] tracking-tight mb-3">Verify your account</h1>
+<h1 class="serif-font text-4xl text-[#111] tracking-tight mb-3">email verification</h1>
 <p class="text-gray-400 text-[13px] font-light leading-relaxed">
 We've sent a 6-digit code to your email.<br>
 Enter it below to continue.
@@ -136,90 +138,52 @@ Enter it below to continue.
 
 <form method="POST" id="otpForm">
 {% csrf_token %}
-
 <div class="flex justify-center gap-2 sm:gap-3 mb-10">
-<input type="text" maxlength="1" class="otp-input" oninput="moveNext(this,1)">
-<input type="text" maxlength="1" class="otp-input" oninput="moveNext(this,2)">
-<input type="text" maxlength="1" class="otp-input" oninput="moveNext(this,3)">
-<input type="text" maxlength="1" class="otp-input" oninput="moveNext(this,4)">
-<input type="text" maxlength="1" class="otp-input" oninput="moveNext(this,5)">
-<input type="text" maxlength="1" class="otp-input" oninput="moveNext(this,6)">
+<input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-input">
+<input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-input">
+<input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-input">
+<input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-input">
+<input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-input">
+<input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-input">
 </div>
-
 <input type="hidden" name="otp" id="otp">
 
 <div class="mb-10">
-
 <div id="timer-container" class="text-[10px] text-gray-400 uppercase tracking-[0.2em] mb-4">
-Resend available in <span id="timer-count" class="text-black font-bold">{{ remaining_seconds }}</span>s
+Resend available in <span id="timer-count" class="text-black font-bold">{{ remaining }}</span>s
 </div>
-
 <div id="resend-text" class="text-[11px] text-gray-400 uppercase tracking-widest hidden-resend mb-4">
-Didn't receive code?
-<a href="#" id="resend-btn" class="text-black font-bold border-b border-black ml-1 uppercase tracking-widest">Resend</a>
+Didn't receive code? <a href="#" id="resend-btn" class="text-black font-bold border-b border-black ml-1 uppercase tracking-widest">Resend</a>
 </div>
-
 <div class="flex flex-col space-y-3">
 
-<p class="text-[10px] text-gray-300 uppercase tracking-tighter">
-<a href="#" class="hover:text-black transition-colors">Change email address</a>
-</p>
-
-<p class="text-[10px] text-gray-300 uppercase tracking-widest">
-<a href="#" id="cancel-signup-btn" class="hover:text-black transition-colors border-b border-transparent hover:border-black pb-0.5">
-Cancel & Return to Signup
-</a>
-</p>
-
+<p class="text-[10px] text-gray-300 uppercase tracking-widest"><a href="#" id="cancel-signup-btn" class="hover:text-black transition-colors border-b border-transparent hover:border-black pb-0.5">Cancel & Return to profile</a></p>
+</div>
 </div>
 
-</div>
-
-<button type="submit" id="verifyBtn" class="w-full bg-black text-white py-4 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] active:scale-[0.99] transition-all duration-300">
-<span id="verifyText">Verify & Continue</span>
-
-<svg id="verifySpinner" class="hidden animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-<path class="opacity-75" fill="currentColor"
-d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-</svg>
-
+<button type="submit" class="w-full bg-black text-white py-4 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] active:scale-[0.99] transition-all duration-300">
+<span>Verify & Continue</span>
 </button>
-
 </form>
 
-<form method="POST" action="{% url 'resend-otp-verification' %}" id="resendForm" style="display:none;">
-{% csrf_token %}
-</form>
-
-<form method="POST" action="{% url 'cancel-otp-verification' %}" id="cancelSignupForm" style="display:none;">
-{% csrf_token %}
-</form>
+<form method="POST" action="{% url 'email-resend-otp-verification' %}" id="resendForm" style="display:none;">{% csrf_token %}</form>
+<form method="POST" action="{% url 'cancel-email-verification' request.user.id %}" id="cancelSignupForm" style="display:none;">{% csrf_token %}</form>
 
 </div>
 </div>
 
 <footer class="pb-8 px-8 flex flex-col items-center space-y-4 shrink-0">
-<p class="text-[9px] text-gray-300 text-center max-w-[300px] leading-relaxed">
-By continuing, you agree to our Terms of Service and Privacy Policy.
-</p>
-
+<p class="text-[9px] text-gray-300 text-center max-w-[300px] leading-relaxed">By continuing, you agree to our Terms of Service and Privacy Policy.</p>
 <div class="w-full flex justify-between items-center text-[8px] text-gray-300 uppercase tracking-[0.2em]">
 <p>© 2026 NO&CO</p>
-
-<div class="flex space-x-6">
-<a href="#" class="hover:text-black transition-colors">Privacy</a>
-<a href="#" class="hover:text-black transition-colors">Cookies</a>
+<div class="flex space-x-6"><a href="#" class="hover:text-black transition-colors">Privacy</a><a href="#" class="hover:text-black transition-colors">Cookies</a></div>
 </div>
-</div>
-
 </footer>
-
 </div>
 </div>
 
 <script>
-  function showToast(message, type = 'error') {
+function showToast(message, type = 'error') {
     const container = document.getElementById('toast-container');
     if (!container) return;
 
@@ -251,109 +215,68 @@ By continuing, you agree to our Terms of Service and Privacy Policy.
     }, 4000);
 }
 
-    // Handle Django messages
-    document.addEventListener('DOMContentLoaded', () => {
-        const dataElement = document.getElementById('django-messages');
-        if (dataElement) {
-            try {
-                const messages = JSON.parse(dataElement.textContent);
-                messages.forEach(msg => showToast(msg.message, msg.tags));
-            } catch (e) {}
-        }
-    });
+document.addEventListener("DOMContentLoaded",function(){
+{% if messages %}
+{% for message in messages %}
+showToast("{{ message|escapejs }}", "{% if 'success' in message.tags %}success{% else %}error{% endif %}")
+{% endfor %}
+{% endif %}
 
-    // Form submission UI
-    const signupForm = document.getElementById('signupForm');
-    if (signupForm) {
-        signupForm.addEventListener('submit', () => {
-            const btnText = document.getElementById('btnText');
-            const btnSpinner = document.getElementById('btnSpinner');
-            btnText.innerText = "SENDING...";
-            btnSpinner.classList.remove('hidden');
-        });
-    }
-document.addEventListener("DOMContentLoaded", function() {
+const inputs=document.querySelectorAll(".otp-input")
+const otpHidden=document.getElementById("otp")
 
-const timerCount = document.getElementById("timer-count");
-const timerContainer = document.getElementById("timer-container");
-const resendText = document.getElementById("resend-text");
-const resendBtn = document.getElementById("resend-btn");
-const resendForm = document.getElementById("resendForm");
-const cancelBtn = document.getElementById("cancel-signup-btn");
-const cancelForm = document.getElementById("cancelSignupForm");
+inputs.forEach((input,index)=>{
+input.addEventListener("input",function(){
+this.value=this.value.replace(/[^0-9]/g,'')
+if(this.value && index<5){ inputs[index+1].focus() }
+})
+input.addEventListener("keydown",function(e){
+if(e.key==="Backspace" && !this.value && index>0){ inputs[index-1].focus() }
+})
+})
 
-let timeLeft = {{ remaining_seconds }};
+document.getElementById("otpForm").addEventListener("submit",function(e){
+let otp=""
+inputs.forEach(i=>{ otp+=i.value })
+if(otp.length!==6){
+e.preventDefault()
+showToast("Complete OTP required")
+return
+}
+otpHidden.value=otp
+})
 
-if(timeLeft <= 0){
-timerContainer.style.display="none";
-resendText.classList.remove("hidden-resend");
+const timerCount=document.getElementById("timer-count")
+const timerContainer=document.getElementById("timer-container")
+const resendText=document.getElementById("resend-text")
+const resendBtn=document.getElementById("resend-btn")
+const resendForm=document.getElementById("resendForm")
+const cancelBtn=document.getElementById("cancel-signup-btn")
+const cancelForm=document.getElementById("cancelSignupForm")
+
+let timeLeft=parseInt("{{ remaining|default:0 }}")
+
+function updateUI(){
+if(timeLeft<=0){
+timerContainer.style.display="none"
+resendText.classList.remove("hidden-resend")
+return true
+}
+timerCount.innerText=timeLeft
+return false
 }
 
-const countdown = setInterval(()=>{
-
-timerCount.innerText = timeLeft;
-
-timeLeft--;
-
-if(timeLeft < 0){
-
-clearInterval(countdown);
-
-timerContainer.style.display="none";
-
-resendText.classList.remove("hidden-resend");
-
+const finished=updateUI()
+if(!finished){
+const countdown=setInterval(()=>{
+timeLeft--
+if(updateUI()){ clearInterval(countdown) }
+},1000)
 }
 
-},1000);
-
-if(resendBtn){
-resendBtn.addEventListener("click", function(e){
-e.preventDefault();
-resendForm.submit();
-});
-}
-
-if(cancelBtn){
-cancelBtn.addEventListener("click", function(e){
-e.preventDefault();
-cancelForm.submit();
-});
-}
-
-});
-
- function moveNext(current, index) {
-            if (current.value.length >= 1) {
-                const next = current.parentElement.children[index];
-                if (next) next.focus();
-            }
-        }
-
-        function moveNext(input) {
-
-    let inputs = document.querySelectorAll(".otp-input");
-
-    if (input.value.length === 1) {
-        let next = input.nextElementSibling;
-        if (next) {
-            next.focus();
-        }
-    }
-
-    // combine otp
-    let otp = "";
-    inputs.forEach(function(i){
-        otp += i.value;
-    });
-
-    document.getElementById("otp").value = otp;
-}
-
+resendBtn.addEventListener("click",function(e){ e.preventDefault(); resendForm.submit(); })
+cancelBtn.addEventListener("click",function(e){ e.preventDefault(); cancelForm.submit(); })
+})
 </script>
-<script id="django-messages" type="application/json">
-    [{% if messages %}{% for message in messages %}{"message": "{{ message|escapejs }}", "tags": "{{ message.tags }}"}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}]
-</script>
-
 </body>
 </html>

@@ -7,48 +7,101 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; }
+       .serif-font{font-family:'Playfair Display',serif}
+body{font-family:'Inter',sans-serif}
+.no-scrollbar::-webkit-scrollbar{display:none}
 
-        #toast-container {
-            z-index: 9999;
-            pointer-events: none;
-        }
+/* --- DYNAMIC BLACK PILL TOAST (HUGS CONTENT) --- */
+#toast-container {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
 
-        .toast-pill {
-            background: #ffffff;
-            border-left: 2px solid #000000;
-            border-top: 1px solid #eeeeee;
-            border-right: 1px solid #eeeeee;
-            border-bottom: 1px solid #eeeeee;
-            padding: 10px 20px;
-            border-radius: 0px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.03);
-            transform: translateY(-130%);
-            opacity: 0;
-            transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
-        }
+.custom-pill-toast {
+    width: max-content; /* Hugs the text */
+    max-width: 90vw;
+    padding: 10px 22px 10px 14px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: auto;
+    background: #000;
+    color: #fff;
+}
 
-        .toast-pill.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
+.custom-pill-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
 
-        .toast-text {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.25em;
-            font-weight: 500;
-            color: #111;
-            font-family: 'Inter', sans-serif;
-        }
+.toast-left-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toast-icon-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.toast-success .toast-icon-circle { background: #2F8D46; }
+.toast-error .toast-icon-circle { background: #E03B2A; }
+
+.toast-message-wrapper {
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap; /* Prevents text wrapping */
+    margin-right: 15px;
+}
+
+.toast-main-text {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+
+.toast-sub-text {
+    font-size: 9px;
+    opacity: 0.7;
+    margin-top: 1px;
+}
+
+.toast-close-btn {
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.toast-close-btn:hover { opacity: 1; }
+
+#timer-container{ transition:opacity .5s ease; }
+.hidden-resend{ display:none; }
     </style>
 </head>
 
 <body class="bg-white flex flex-col min-h-screen">
 
-<div id="toast-container" class="fixed top-8 left-0 right-0 flex flex-col items-center space-y-3 px-4"></div>
+<div id="toast-container"></div>
 
 <main class="flex-grow flex flex-col items-center justify-center px-4 text-center">
 
@@ -104,59 +157,48 @@
 </script>
 
 <script>
-function showToast(message, type = 'error') {
+ function showToast(message, type = 'error') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
 
-const container = document.getElementById('toast-container');
-if (!container) return;
+    const toast = document.createElement('div');
+    const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
+    toast.className = `custom-pill-toast ${toastClass}`;
 
-const toast = document.createElement('div');
-toast.className = `toast-pill`;
+    const icon = type === 'success' ? '✓' : '✕';
+    const subtext = "Notification";
 
-const icon = `
-<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" style="margin-right: 1rem;">
-<circle cx="12" cy="12" r="10"></circle>
-<line x1="15" y1="9" x2="9" y2="15"></line>
-<line x1="9" y1="9" x2="15" y2="15"></line>
-</svg>`;
+    toast.innerHTML = `
+        <div class="toast-left-content">
+            <div class="toast-icon-circle">${icon}</div>
+            <div class="toast-message-wrapper">
+                <span class="toast-main-text">${message}</span>
+                <span class="toast-sub-text">${subtext}</span>
+            </div>
+        </div>
+        <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>
+    `;
 
-toast.innerHTML = `
-${icon}
-<span class="toast-text">${message}</span>
-`;
-
-container.appendChild(toast);
-
-requestAnimationFrame(() => {
-toast.classList.add('show');
-});
-
-setTimeout(() => {
-toast.classList.remove('show');
-setTimeout(() => toast.remove(), 500);
-}, 3500);
-
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        if(toast.parentNode) {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }
+    }, 4000);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-
-const dataElement = document.getElementById('django-messages');
-
-if (dataElement) {
-
-try {
-
-const messages = JSON.parse(dataElement.textContent);
-
-messages.forEach(msg => {
-
-showToast(msg.message, msg.tags.includes('error') ? 'error' : 'success');
-
-});
-
-} catch (e) {}
-
-}
-
+    const dataElement = document.getElementById('django-messages');
+    if (dataElement) {
+        try {
+            const messages = JSON.parse(dataElement.textContent);
+            messages.forEach(msg => {
+                showToast(msg.message, msg.tags.includes('error') ? 'error' : 'success');
+            });
+        } catch (e) {}
+    }
 });
 </script>
 

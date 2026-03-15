@@ -11,18 +11,106 @@
     <script src="https://unpkg.com/@popperjs/core@2"></script>
     <script src="https://unpkg.com/tippy.js@6"></script>
     <link rel="stylesheet" href="{% static 'accounts/css/signup.css' %}">
+
+    <style>
+.serif-font{font-family:'Playfair Display',serif}
+body{font-family:'Inter',sans-serif}
+.no-scrollbar::-webkit-scrollbar{display:none}
+
+/* --- DYNAMIC BLACK PILL TOAST (HUGS CONTENT) --- */
+#toast-container {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.custom-pill-toast {
+    width: max-content; /* Hugs the text */
+    max-width: 90vw;
+    padding: 10px 22px 10px 14px;
+    border-radius: 50px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(-20px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    pointer-events: auto;
+    background: #000;
+    color: #fff;
+}
+
+.custom-pill-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.toast-left-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.toast-icon-circle {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.toast-success .toast-icon-circle { background: #2F8D46; }
+.toast-error .toast-icon-circle { background: #E03B2A; }
+
+.toast-message-wrapper {
+    display: flex;
+    flex-direction: column;
+    white-space: nowrap; /* Prevents text wrapping */
+    margin-right: 15px;
+}
+
+.toast-main-text {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+
+.toast-sub-text {
+    font-size: 9px;
+    opacity: 0.7;
+    margin-top: 1px;
+}
+
+.toast-close-btn {
+    cursor: pointer;
+    font-size: 16px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+.toast-close-btn:hover { opacity: 1; }
+
+#timer-container{ transition:opacity .5s ease; }
+.hidden-resend{ display:none; }
+    </style>
 </head>
 <body class="bg-[#fcfcfc] h-screen flex items-center justify-center overflow-hidden">
 
-    <div id="toast-container" class="fixed top-8 left-0 right-0 flex flex-col items-center space-y-4 px-4"></div>
+    <div id="toast-container"></div>
 
     <div class="bg-white w-full h-screen flex flex-col md:flex-row overflow-hidden">
-
         <div class="relative hidden md:block md:w-1/2 h-full bg-[#eee]">
-            <img src="{% static 'accounts/images/signup.jpg' %}"
-                 alt="Autumn/Winter Collection"
-                 class="w-full h-full object-cover grayscale object-top">
-
+            <img src="{% static 'accounts/images/signup.jpg' %}" alt="Autumn/Winter" class="w-full h-full object-cover grayscale object-top">
             <div class="absolute bottom-12 left-12 text-white">
                 <p class="text-[10px] uppercase tracking-[0.5em] mb-3 font-medium opacity-90">Collection 2026</p>
                 <h2 class="serif-font text-6xl tracking-tight leading-none">NØ&Co.</h2>
@@ -30,7 +118,6 @@
         </div>
 
         <div class="w-full md:w-1/2 h-full flex flex-col bg-white relative">
-
             <div class="pt-8 px-8 flex justify-start items-center shrink-0 md:hidden">
                 <span class="serif-font text-2xl font-semibold tracking-tighter">NØ&Co.</span>
             </div>
@@ -46,136 +133,111 @@
                         {% csrf_token %}
                         <div class="space-y-5">
                             <div class="group">
-                                <label class="flex items-center text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1 transition-colors group-focus-within:text-black">
-                                    username
-                                    <svg data-tippy-content="Username must be 4–20 chars (letters, numbers, _)." class="info-icon ml-2 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </label>
-                                <input type="text" name="username" placeholder="Sarah"
-                                       class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
+                                <label class="flex items-center text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1">username</label>
+                                <input type="text" name="username" placeholder="Sarah" class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none">
                             </div>
-
                             <div class="group">
-                                <label class="flex items-center text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1 transition-colors group-focus-within:text-black">
-                                    Email Address
-                                    <svg data-tippy-content="Email must include '@' and a valid domain (example: user@gmail.com)." class="info-icon ml-2 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                </label>
-                                <input type="email" name="email" placeholder="sarah@example.com"
-                                       class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
+                                <label class="flex items-center text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1">Email Address</label>
+                                <input type="email" name="email" placeholder="sarah@example.com" class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none">
                             </div>
-
                             <div class="grid grid-cols-2 gap-6">
                                 <div class="group relative">
-                                    <label class="flex items-center text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1 transition-colors group-focus-within:text-black">
-                                        Password
-                                        <svg data-tippy-content="Password must contain uppercase, lowercase, number and special character" class="info-icon ml-2 w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    </label>
-                                    <input type="password" id="password" name="password" placeholder="••••••••"
-                                           class="w-full border-b border-gray-200 bg-transparent py-2 pr-8 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
-                                    <button type="button" onclick="togglePassword('password', this)" class="eye-toggle absolute right-0 bottom-2 text-gray-400 hover:text-black transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L1 1m22 22L14.12 14.12"></path></svg>
-                                    </button>
+                                    <label class="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1">Password</label>
+                                    <input type="password" id="password" name="password" placeholder="••••••••" class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none">
                                 </div>
                                 <div class="group relative">
-                                    <label class="block text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1 transition-colors group-focus-within:text-black">Confirm</label>
-                                    <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••"
-                                           class="w-full border-b border-gray-200 bg-transparent py-2 pr-8 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
-                                    <button type="button" onclick="togglePassword('confirm_password', this)" class="eye-toggle absolute right-0 bottom-2 text-gray-400 hover:text-black transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L1 1m22 22L14.12 14.12"></path></svg>
-                                    </button>
+                                    <label class="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1">Confirm</label>
+                                    <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••" class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none">
                                 </div>
                             </div>
                         </div>
 
-                        <button type="submit" id="submitBtn" class="w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] active:scale-[0.99] transition-all duration-300">
+                        <button type="submit" id="submitBtn" class="w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center hover:bg-[#333] transition-all">
                             <span id="btnText">Register</span>
-                            <svg id="btnSpinner" class="hidden animate-spin h-3 w-3 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
+                            <svg id="btnSpinner" class="hidden animate-spin h-3 w-3 ml-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         </button>
 
-                        <div class="relative py-2 flex items-center">
-                            <div class="flex-grow border-t border-gray-100"></div>
-                            <span class="flex-shrink mx-4 text-[9px] text-gray-300 uppercase tracking-[0.3em]">or</span>
-                            <div class="flex-grow border-t border-gray-100"></div>
-                        </div>
-
                         <a href="{% provider_login_url 'google' process='login' %}" class="w-full border border-gray-200 py-3 text-[10px] font-medium uppercase tracking-[0.15em] flex items-center justify-center space-x-3 hover:bg-gray-50 transition-all duration-300">
-    <svg width="14" height="14" viewBox="0 0 24 24">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-    </svg>
-    <span class="text-gray-500">Sign up with Google</span>
-</a>
-                    </form>
+                            <svg width="14" height="14" viewBox="0 0 24 24">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                            </svg>
+                            <span class="text-gray-500">Sign in with Google</span>
+                        </a>
 
-                    <p class="text-center mt-8 text-[11px] text-gray-400 uppercase tracking-widest">
-                        A Member? <a href="{% url 'login' %}" class="text-black font-bold border-b border-black ml-1 pb-0.5">Sign In</a>
-                    </p>
+                        <div class="pt-4 text-center">
+                            <p class="text-[11px] text-gray-400 uppercase tracking-widest font-medium">
+                                Already have an account?
+                                <a href="{% url 'login' %}" class="text-black hover:underline underline-offset-4 ml-1">Sign In</a>
+                            </p>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <footer class="pb-8 px-8 md:px-12 flex justify-between items-center text-[8px] text-gray-300 uppercase tracking-[0.2em] shrink-0">
-                <p>© 2026 CLOUZIE WOMEN</p>
-                <div class="flex space-x-6">
-                    <a href="#" class="hover:text-black transition-colors">Privacy</a>
-                    <a href="#" class="hover:text-black transition-colors">Cookies</a>
-                </div>
-            </footer>
         </div>
     </div>
 
-    <script src="{% static 'accounts/js/signup.js' %}"></script>
 <script>
-    // Fail-safe Tooltip Initialization
-    (function() {
-        function initTippy() {
-            if (typeof tippy !== 'undefined') {
-                tippy('.info-icon', {
-                    content: (reference) => reference.getAttribute('data-tippy-content'),
-                    theme: 'minimal-dark',
-                    animation: 'shift-away',
-                    duration: 200,
-                    arrow: false,
-                    offset: [0, 8],
-                    zIndex: 99999,
-                    appendTo: document.body
-                });
-            } else {
-                // If tippy didn't load, try again in 500ms
-                setTimeout(initTippy, 500);
-            }
-        }
+   function showToast(message, type = 'error') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initTippy);
-        } else {
-            initTippy();
-        }
-    })();
+    const toast = document.createElement('div');
+    const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
+    toast.className = `custom-pill-toast ${toastClass}`;
 
-    function togglePassword(inputId, button) {
-        const input = document.getElementById(inputId);
-        if (input) {
-            input.type = input.type === 'password' ? 'text' : 'password';
-            button.style.opacity = input.type === 'text' ? '1' : '0.4';
+    const icon = type === 'success' ? '✓' : '✕';
+    const subtext = "Notification";
+
+    toast.innerHTML = `
+        <div class="toast-left-content">
+            <div class="toast-icon-circle">${icon}</div>
+            <div class="toast-message-wrapper">
+                <span class="toast-main-text">${message}</span>
+                <span class="toast-sub-text">${subtext}</span>
+            </div>
+        </div>
+        <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => {
+        if(toast.parentNode) {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
         }
+    }, 4000);
+}
+
+    // Keep your Form submission UI and Django message logic as is,
+    // but they will now use the new showToast above.
+    document.addEventListener('DOMContentLoaded', () => {
+        const dataElement = document.getElementById('django-messages');
+        if (dataElement) {
+            try {
+                const messages = JSON.parse(dataElement.textContent);
+                messages.forEach(msg => showToast(msg.message, msg.tags));
+            } catch (e) {}
+        }
+    });
+
+    const signupForm = document.getElementById('signupForm');
+    if (signupForm) {
+        signupForm.addEventListener('submit', () => {
+            const btnText = document.getElementById('btnText');
+            const btnSpinner = document.getElementById('btnSpinner');
+            btnText.innerText = "SENDING...";
+            btnSpinner.classList.remove('hidden');
+        });
     }
 </script>
 
-    <script id="django-messages" type="application/json">
-        [
-            {% if messages %}
-                {% for message in messages %}
-                    {
-                        "message": "{{ message|escapejs }}",
-                        "tags": "{{ message.tags }}"
-                    }{% if not forloop.last %},{% endif %}
-                {% endfor %}
-            {% endif %}
-        ]
-    </script>
+<script id="django-messages" type="application/json">
+    [{% if messages %}{% for message in messages %}{"message": "{{ message|escapejs }}", "tags": "{{ message.tags }}"}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}]
+</script>
+
 </body>
 </html>

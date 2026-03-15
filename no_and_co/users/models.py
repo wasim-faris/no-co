@@ -10,7 +10,8 @@ class Addresses(models.Model):
     )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL,  on_delete=models.CASCADE, related_name="addresses")
-    full_name = models.CharField(max_length=150)
+    first_name = models.CharField(max_length=150)
+    last_name = models.CharField(max_length=150)
     phone_number = models.CharField(max_length=13)
     address_line1 = models.CharField(max_length=255)
     address_line2 = models.CharField(max_length=255 , blank=True , null=True)

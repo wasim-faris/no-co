@@ -14,7 +14,7 @@ from django.shortcuts import get_object_or_404
 from datetime import timedelta
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-
+from allauth.socialaccount.models import SocialAccount
 email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 password_pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$"
 username_pattern = r"^[a-zA-Z0-9_]{4,20}$"
@@ -159,7 +159,7 @@ def signup_otp_verification(request):
     if request.method == "POST":
 
         if remaining <= 0:
-            messages.error(request, "OTP expired. Please request a new one.")
+            messages.error(request, "OTP expired. request new one")
             return redirect("signup-otp-verification")
 
         user_otp = request.POST.get("otp")
@@ -231,7 +231,7 @@ def resend_otp_verification(request):
 def cancel_otp_verification(request):
     if request.method == "POST":
         request.session.flush()
-        messages.success(request, "otp verification failed")
+        messages.error(request, "otp verification failed")
         return redirect("signup")
 
 
@@ -247,14 +247,19 @@ def forgot_password(request):
     if request.method == "POST":
 
         email = request.POST.get("email")
-
         if not email:
             messages.error(request, "please fill form to continue")
 
             return redirect("forgot-password")
+        email = email.strip()
 
         try:
+
             user = User.objects.get(email=email)
+
+            if SocialAccount.objects.filter(user=user, provider="google").exists():
+                messages.error(request, "This account uses Google Sign-In.")
+                return redirect("login")
 
             last_token = PasswordResetToken.objects.filter(
                 user=user, is_used=False
@@ -294,7 +299,8 @@ def forgot_password(request):
                 return redirect("email-confirm")
 
         except User.DoesNotExist:
-            messages.error(request, "If the email exists, a reset link has been sent.")
+
+            messages.error(request, "email doenst exists")
             return redirect("forgot-password")
 
     return render(request, "forgot-password.html")
