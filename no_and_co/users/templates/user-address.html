@@ -1,907 +1,1066 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saved Addresses — Studio Archive</title>
-    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-minimal/minimal.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+{% extends 'user_base/base.html' %}
 
-    <style>
-        :root {
-            --ink: #111111;
-            --ink-mid: #4A4A4A;
-            --ink-soft: #9A9A9A;
-            --ink-faint: #E8E8E8;
-            --surface: #FAFAFA;
-            --surface-raised: #FFFFFF;
-            --radius-card: 1.75rem;
-            --radius-pill: 999px;
-            --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 8px 24px -4px rgba(0,0,0,0.05);
-            --shadow-lifted: 0 4px 12px rgba(0,0,0,0.04), 0 20px 48px -8px rgba(0,0,0,0.09);
-            --transition-smooth: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-        }
+{% block content %}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
+    /* ============================================================
+       CRITICAL FIX: Scope ALL resets and styles to .shell only
+       Never use bare * or body selectors in child templates
+    ============================================================ */
+    .shell *, .shell *::before, .shell *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            -webkit-font-smoothing: antialiased;
-            color: var(--ink);
-            background-color: var(--surface);
-        }
+    /* CSS variables on .shell — never on :root */
+    .shell {
+        --ink:        #0A0A0A;
+        --ink-mid:    #4A4444;
+        --ink-soft:   #9A9494;
+        --ink-faint:  #E4E0DC;
+        --ink-ghost:  #F5F3F0;
+        --warm-white: #FDFCFA;
+        --pure-white: #FFFFFF;
+        --danger:     #B5291C;
 
-        .serif { font-family: 'DM Serif Display', serif; }
+        --border:     1px solid var(--ink-faint);
+        --radius-sm:  2px;
+        --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 
-        .card {
-            background: var(--surface-raised);
-            border: 1px solid var(--ink-faint);
-            border-radius: var(--radius-card);
-            box-shadow: var(--shadow-card);
-            transition: var(--transition-smooth);
-        }
-        .card:hover {
-            box-shadow: var(--shadow-lifted);
-            border-color: #D8D8D8;
-            transform: translateY(-3px);
-        }
+        max-width: 1440px;
+        margin: 0 auto;
+        display: flex;
+        min-height: 100vh;
+        background: var(--warm-white);
+        font-family: 'Figtree', sans-serif;
+        color: var(--ink);
+        font-size: 14px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
 
-        .sidebar-active { background: var(--ink); color: #fff !important; }
-        .sidebar-link { transition: var(--transition-smooth); }
+    .shell .display { font-family: 'Playfair Display', serif; }
 
-        .btn-primary {
-            background: var(--ink);
-            color: #fff;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            font-size: 10px;
-            font-weight: 600;
-            transition: var(--transition-smooth);
-            border: 1.5px solid var(--ink);
-            cursor: pointer;
-        }
-        .btn-primary:hover { background: #2a2a2a; }
+    .shell .micro {
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-weight: 600;
+    }
 
-        .btn-ghost {
-            background: transparent;
-            color: var(--ink);
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            font-size: 10px;
-            font-weight: 600;
-            border: 1.5px solid var(--ink-faint);
-            transition: var(--transition-smooth);
-            cursor: pointer;
-        }
-        .btn-ghost:hover { border-color: var(--ink); }
+    .shell .label {
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 500;
+        color: var(--ink-soft);
+    }
 
-        .label-xs {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.22em;
-            font-weight: 700;
-        }
+    /* ── Sidebar ── */
+    .shell .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        border-right: var(--border);
+        background: var(--pure-white);
+        padding: 56px 40px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+    }
 
-        .address-card {
-            background: var(--surface-raised);
-            border: 1px solid var(--ink-faint);
-            border-radius: var(--radius-card);
-            box-shadow: var(--shadow-card);
-            transition: var(--transition-smooth);
-            position: relative;
-            overflow: hidden;
-        }
-        .address-card:hover {
-            box-shadow: var(--shadow-lifted);
-            border-color: #D8D8D8;
-            transform: translateY(-2px);
-        }
-        .address-card.is-default { border-color: var(--ink); }
+    .shell .sidebar-section-label {
+        font-size: 8px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        font-weight: 600;
+        margin-bottom: 32px;
+        display: block;
+    }
 
-        .default-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: var(--ink);
-            color: #fff;
-            font-size: 8px;
-            font-weight: 700;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            padding: 4px 10px;
-            border-radius: var(--radius-pill);
-        }
+    .shell .nav-list  { list-style: none; }
+    .shell .nav-item + .nav-item { margin-top: 2px; }
 
-        .type-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 8px;
-            font-weight: 700;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            padding: 4px 12px;
-            border-radius: var(--radius-pill);
-            border: 1px solid var(--ink-faint);
-            color: var(--ink-mid);
-            background: transparent;
-        }
+    .shell .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 11px 16px;
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        font-weight: 500;
+        color: var(--ink-mid);
+        text-decoration: none;
+        border-radius: 2px;
+        transition: var(--transition);
+        border: 1px solid transparent;
+    }
 
-        .action-btn {
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            color: var(--ink-soft);
-            background: none;
-            border: none;
-            cursor: pointer;
-            transition: color 0.25s ease;
-            padding: 0;
-            line-height: 1;
-        }
-        .action-btn:hover { color: var(--ink); }
-        .action-btn.delete:hover { color: #c0392b; }
+    .shell .nav-link:hover { color: var(--ink); background: var(--ink-ghost); }
+    .shell .nav-link.active { background: var(--ink); color: white; }
 
-        .dot-sep {
-            width: 3px;
-            height: 3px;
-            border-radius: 50%;
-            background: var(--ink-faint);
-            display: inline-block;
-        }
+    .shell .nav-icon { width: 14px; height: 14px; opacity: 0.5; flex-shrink: 0; }
+    .shell .nav-link.active .nav-icon { opacity: 1; filter: invert(1); }
+    .shell .nav-link:hover .nav-icon  { opacity: 1; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(12px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade { animation: fadeIn 0.55s ease-out forwards; }
+    /* ── Main ── */
+    .shell .main {
+        flex: 1;
+        min-width: 0;
+        padding: 56px 64px 80px;
+        background: var(--warm-white);
+    }
 
-        @keyframes cardIn {
-            from { opacity: 0; transform: translateY(16px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .card-animate {
-            opacity: 0;
-            animation: cardIn 0.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
+    /* ── Page header ── */
+    .shell .page-header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding-bottom: 48px;
+        border-bottom: var(--border);
+        margin-bottom: 40px;
+        gap: 24px;
+        flex-wrap: wrap;
+    }
 
-        /* ── Modal ── */
-        #addressModal {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-        #addressModal.open { display: flex; }
+    .shell .breadcrumb {
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--ink-soft);
+        margin-bottom: 10px;
+    }
 
-        .modal-backdrop {
-            position: absolute;
-            inset: 0;
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-        }
-        .modal-box {
-            position: relative;
-            background: #fff;
-            width: 100%;
-            max-width: 560px;
-            max-height: 92vh;
-            overflow-y: auto;
-            box-shadow: var(--shadow-lifted);
-            animation: fadeIn 0.35s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
-        .modal-box::-webkit-scrollbar { width: 4px; }
-        .modal-box::-webkit-scrollbar-track { background: transparent; }
-        .modal-box::-webkit-scrollbar-thumb { background: var(--ink-faint); border-radius: 4px; }
+    .shell .page-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 28px;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+        line-height: 1.1;
+        margin-bottom: 6px;
+    }
 
-        /* ── Form ── */
-        .form-field { display: flex; flex-direction: column; gap: 6px; }
-        .form-label {
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--ink-soft);
-        }
-        .form-input {
-            width: 100%;
-            border: none;
-            border-bottom: 1px solid var(--ink-faint);
-            padding: 10px 0;
-            font-size: 13px;
-            font-family: 'Inter', sans-serif;
-            font-weight: 400;
-            color: var(--ink);
-            background: transparent;
-            outline: none;
-            transition: border-color 0.25s ease;
-            appearance: none;
-            -webkit-appearance: none;
-        }
-        .form-input:focus { border-color: var(--ink); }
-        .form-input.error { border-color: #c0392b; }
-        .form-input::placeholder { color: var(--ink-soft); font-weight: 300; }
-        select.form-input { cursor: pointer; }
+    .shell .page-sub {
+        font-size: 11px;
+        color: var(--ink-soft);
+        font-weight: 300;
+        letter-spacing: 0.01em;
+    }
 
-        .error-msg {
-            font-size: 9px;
-            color: #c0392b;
-            letter-spacing: 0.05em;
-            font-weight: 500;
-            display: none;
-            margin-top: 2px;
-        }
-        .error-msg.show { display: block; }
+    /* ── Section divider ── */
+    .shell .section-head {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        border-bottom: var(--border);
+        padding-bottom: 14px;
+        margin-bottom: 28px;
+    }
 
-        .phone-row {
-            display: flex;
-            gap: 0;
-            border-bottom: 1px solid var(--ink-faint);
-            transition: border-color 0.25s ease;
-        }
-        .phone-row:focus-within { border-color: var(--ink); }
-        .phone-row.error { border-color: #c0392b; }
+    .shell .count-chip {
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 4px 10px;
+        background: var(--ink-ghost);
+        color: var(--ink-soft);
+        border: var(--border);
+    }
 
-        .phone-code-select {
-            width: 120px;
-            flex-shrink: 0;
-            border: none;
-            border-right: 1px solid var(--ink-faint);
-            padding: 10px 8px 10px 0;
-            font-size: 12px;
-            font-family: 'Inter', sans-serif;
-            color: var(--ink);
-            background: transparent;
-            outline: none;
-            cursor: pointer;
-            appearance: none;
-            -webkit-appearance: none;
-        }
-        .phone-number-input {
-            flex: 1;
-            border: none;
-            padding: 10px 0 10px 12px;
-            font-size: 13px;
-            font-family: 'Inter', sans-serif;
-            color: var(--ink);
-            background: transparent;
-            outline: none;
-        }
-        .phone-number-input::placeholder { color: var(--ink-soft); font-weight: 300; }
+    /* ── Buttons ── */
+    .shell .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        font-weight: 600;
+        font-family: 'Figtree', sans-serif;
+        padding: 13px 28px;
+        cursor: pointer;
+        transition: var(--transition);
+        border: none;
+        outline: none;
+        text-decoration: none;
+        border-radius: 0;
+    }
 
-        .radio-group, .check-group { display: flex; gap: 20px; align-items: center; }
-        .radio-item, .check-item { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .shell .btn-dark    { background: var(--ink); color: white; border: 1px solid var(--ink); }
+    .shell .btn-dark:hover { background: #222; }
+    .shell .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--ink-faint); }
+    .shell .btn-outline:hover { border-color: var(--ink); }
 
-        .radio-item input[type="radio"],
-        .check-item input[type="checkbox"] {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 14px;
-            height: 14px;
-            border: 1.5px solid var(--ink-faint);
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            position: relative;
-            flex-shrink: 0;
-        }
-        .check-item input[type="checkbox"] { border-radius: 3px; }
+    .shell .btn-text {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 500;
+        font-family: 'Figtree', sans-serif;
+        color: var(--ink-soft);
+        cursor: pointer;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        text-decoration-color: var(--ink-faint);
+        transition: var(--transition);
+    }
+    .shell .btn-text:hover { color: var(--ink); text-decoration-color: var(--ink); }
+    .shell .btn-text-danger { color: var(--danger); text-decoration-color: rgba(181,41,28,0.25); }
+    .shell .btn-text-danger:hover { color: var(--danger); text-decoration-color: var(--danger); }
 
-        .radio-item input[type="radio"]:checked,
-        .check-item input[type="checkbox"]:checked {
-            background: var(--ink);
-            border-color: var(--ink);
-        }
-        .radio-item input[type="radio"]:checked::after {
-            content: '';
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 4px; height: 4px;
-            border-radius: 50%;
-            background: #fff;
-        }
-        .check-item input[type="checkbox"]:checked::after {
-            content: '';
-            position: absolute;
-            top: 1px; left: 4px;
-            width: 4px; height: 7px;
-            border: 1.5px solid #fff;
-            border-top: none; border-left: none;
-            transform: rotate(45deg);
-        }
-        .radio-label, .check-label {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--ink-mid);
-            letter-spacing: 0.06em;
-            user-select: none;
-        }
+    .shell .dot-sep {
+        width: 3px; height: 3px;
+        border-radius: 50%;
+        background: var(--ink-faint);
+        display: inline-block;
+        flex-shrink: 0;
+    }
 
-        /* Delete confirm overlay */
-        .delete-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(255,255,255,0.97);
-            border-radius: var(--radius-card);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 16px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.25s ease;
-            z-index: 10;
-        }
-        .delete-overlay.visible { opacity: 1; pointer-events: all; }
+    /* ── Address Grid ── */
+    .shell .address-grid {
+        display: flex;
+        flex-wrap: wrap;
+        border-top: var(--border);
+        border-left: var(--border);
+        margin-bottom: 48px;
+    }
 
-        main::-webkit-scrollbar { width: 0; }
+    .shell .address-tile {
+        background: var(--pure-white);
+        padding: 32px;
+        position: relative;
+        overflow: hidden;
+        transition: background 0.25s ease;
+        border-right: var(--border);
+        border-bottom: var(--border);
+        flex: 1 1 320px;
+        min-width: 280px;
+        max-width: 50%;
+    }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .spinner {
-            width: 14px; height: 14px;
-            border: 2px solid var(--ink-faint);
-            border-top-color: var(--ink);
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
-            display: inline-block;
-        }
+    .shell .address-tile:hover { background: var(--ink-ghost); }
 
-        @media (max-width: 640px) {
-            .modal-box { max-height: 100vh; border-radius: 0; }
-        }
+    .shell .address-tile.is-default { background: var(--ink-ghost); }
 
-        /* ── Profile Completion ── */
-        .pc-progress-track {
-            height: 2px;
-            background: var(--ink-faint);
-            border-radius: var(--radius-pill);
-            overflow: hidden;
-        }
-        .pc-progress-fill {
-            height: 100%;
-            border-radius: var(--radius-pill);
-            background: var(--ink);
-            width: 0%;
-            transition: width 1.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .pct-ring { width: 52px; height: 52px; flex-shrink: 0; }
-        .pct-ring-track { fill: none; stroke: var(--ink-faint); stroke-width: 2.5; }
-        .pct-ring-fill {
-            fill: none;
-            stroke: var(--ink);
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            stroke-dasharray: 138.2;
-            stroke-dashoffset: 138.2;
-            transform: rotate(-90deg);
-            transform-origin: 50% 50%;
-            transition: stroke-dashoffset 1.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .pc-item { display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--ink-soft); transition: color 0.3s ease; }
-        .pc-item.done { color: var(--ink); }
-        .pc-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            border: 1.5px solid #D8D8D8;
-            flex-shrink: 0;
-            transition: var(--transition-smooth);
-        }
-        .pc-item.done .pc-dot {
-            background: var(--ink);
-            border-color: var(--ink);
-            box-shadow: 0 0 0 3px rgba(17,17,17,0.08);
-        }
+    .shell .address-tile.is-default::before {
+        content: '';
+        position: absolute;
+        left: 0; top: 0; bottom: 0;
+        width: 2px;
+        background: var(--ink);
+    }
 
-        /* ── Empty State ── */
-        .empty-state-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 24px;
-            padding: 80px 32px 88px;
-            text-align: center;
-        }
-        .empty-illustration { width: 130px; height: 100px; display: flex; align-items: center; justify-content: center; }
-        .empty-svg { width: 130px; height: 100px; overflow: visible; }
+    .shell .tile-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 24px;
+    }
 
-        @keyframes pinBob {
-            0%, 100% { transform: translateY(0px); }
-            50%       { transform: translateY(-6px); }
-        }
-        .es-pin-body, .es-pin-circle, .es-plus-v, .es-plus-h {
-            animation: pinBob 3.2s ease-in-out infinite;
-            transform-origin: 80px 102px;
-        }
-        @keyframes shadowPulse {
-            0%, 100% { transform: scaleX(1);   opacity: 1; }
-            50%       { transform: scaleX(0.7); opacity: 0.5; }
-        }
-        .es-shadow { transform-origin: 80px 108px; animation: shadowPulse 3.2s ease-in-out infinite; }
-        @keyframes orbitFade {
-            0%, 100% { opacity: 0.5; }
-            50%       { opacity: 1; }
-        }
-        .es-dot-1 { animation: orbitFade 2.4s 0.0s ease-in-out infinite; }
-        .es-dot-2 { animation: orbitFade 2.4s 0.4s ease-in-out infinite; }
-        .es-dot-3 { animation: orbitFade 2.4s 0.8s ease-in-out infinite; }
-        .es-dot-4 { animation: orbitFade 2.4s 1.2s ease-in-out infinite; }
-        .es-dot-5 { animation: orbitFade 2.4s 1.6s ease-in-out infinite; }
-        .es-dot-6 { animation: orbitFade 2.4s 2.0s ease-in-out infinite; }
-        .empty-text h2 { line-height: 1.2; }
+    .shell .type-badge {
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 4px 10px;
+        border: var(--border);
+        color: var(--ink-mid);
+    }
 
-  .serif-font{font-family:'Playfair Display',serif}
-body{font-family:'Inter',sans-serif}
-.no-scrollbar::-webkit-scrollbar{display:none}
+    .shell .default-badge {
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        font-weight: 700;
+        padding: 4px 10px;
+        background: var(--ink);
+        color: white;
+    }
 
-/* --- DYNAMIC BLACK PILL TOAST (HUGS CONTENT) --- */
-#toast-container {
-    position: fixed;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-}
+    .shell .tile-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink);
+        margin-bottom: 4px;
+        letter-spacing: 0.01em;
+    }
 
-.custom-pill-toast {
-    width: max-content; /* Hugs the text */
-    max-width: 90vw;
-    padding: 10px 22px 10px 14px;
-    border-radius: 50px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    pointer-events: auto;
-    background: #000;
-    color: #fff;
-}
+    .shell .tile-phone {
+        font-size: 11px;
+        color: var(--ink-soft);
+        font-weight: 300;
+        margin-bottom: 14px;
+    }
 
-.custom-pill-toast.show {
-    opacity: 1;
-    transform: translateY(0);
-}
+    .shell .tile-address {
+        font-size: 12px;
+        color: var(--ink-mid);
+        font-weight: 300;
+        line-height: 1.8;
+    }
 
-.toast-left-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
+    .shell .tile-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin-top: 24px;
+        padding-top: 20px;
+        border-top: var(--border);
+    }
 
-.toast-icon-circle {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
-}
+    /* ── Delete overlay ── */
+    .shell .delete-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(253,252,250,0.97);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+        z-index: 10;
+        padding: 24px;
+        text-align: center;
+    }
 
-.toast-success .toast-icon-circle { background: #2F8D46; }
-.toast-error .toast-icon-circle { background: #E03B2A; }
+    .shell .delete-overlay.visible { opacity: 1; pointer-events: all; }
 
-.toast-message-wrapper {
-    display: flex;
-    flex-direction: column;
-    white-space: nowrap; /* Prevents text wrapping */
-    margin-right: 15px;
-}
+    .shell .delete-overlay-text {
+        font-size: 12px;
+        color: var(--ink);
+        font-weight: 400;
+        line-height: 1.6;
+    }
 
-.toast-main-text {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    line-height: 1.2;
-}
+    .shell .delete-overlay-sub {
+        font-size: 11px;
+        color: var(--ink-soft);
+        font-weight: 300;
+        margin-top: 4px;
+    }
 
-.toast-sub-text {
-    font-size: 9px;
-    opacity: 0.7;
-    margin-top: 1px;
-}
+    .shell .delete-overlay-actions { display: flex; align-items: center; gap: 12px; }
 
-.toast-close-btn {
-    cursor: pointer;
-    font-size: 16px;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-}
-.toast-close-btn:hover { opacity: 1; }
+    /* ── Empty state ── */
+    .shell .empty-state {
+        padding: 80px 32px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 28px;
+        background: var(--pure-white);
+        border: var(--border);
+    }
 
-#timer-container{ transition:opacity .5s ease; }
-.hidden-resend{ display:none; }
+    .shell .empty-icon {
+        width: 56px; height: 56px;
+        border: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
+    .shell .empty-icon svg { width: 20px; height: 20px; color: var(--ink-soft); }
 
-@keyframes slideLeft {
-    from { transform: translateX(100%); }
-    to { transform: translateX(0); }
-}
+    .shell .empty-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 22px;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+        line-height: 1.2;
+    }
 
-.animate-slide-left {
-    animation: slideLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-}
+    .shell .empty-sub {
+        font-size: 11px;
+        color: var(--ink-soft);
+        font-weight: 300;
+        max-width: 280px;
+        margin: 0 auto;
+        line-height: 1.7;
+    }
 
-/* Modern Swal Customization */
-.swal-modern-popup {
-    border-radius: 0px !important; /* Sharp edges like H&M/Zara */
-    padding: 2rem !important;
-}
+    @keyframes pinBob {
+        0%, 100% { transform: translateY(0); }
+        50%       { transform: translateY(-5px); }
+    }
+    .shell .empty-pin { animation: pinBob 3s ease-in-out infinite; }
 
-.swal-modern-button {
-    background-color: #111 !important;
-    color: #fff !important;
-    padding: 12px 40px !important;
-    border: none !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    letter-spacing: 1.5px !important;
-    cursor: pointer;
-    transition: 0.3s ease;
-}
+    /* ── Profile completion ── */
+    .shell .completion-module {
+        border: var(--border);
+        background: var(--pure-white);
+        margin-top: 48px;
+    }
 
-.swal-modern-button:hover {
-    background-color: #333 !important;
-}
+    .shell .completion-top {
+        padding: 28px 32px 24px;
+        border-bottom: var(--border);
+    }
 
-.form-input {
-    transition: background-color 0.3s ease, border 0.3s ease;
-}
+    .shell .completion-header-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
 
-.form-input[readonly] {
-    color: #777;
-    border-bottom: 1px dashed #ccc !important; /* Visual hint it's locked */
-    cursor: default;
-}
-    </style>
-</head>
+    .shell .completion-badge {
+        font-size: 8px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        font-weight: 600;
+        padding: 4px 10px;
+        border: var(--border);
+        color: var(--ink-soft);
+        transition: var(--transition);
+    }
 
-<body>
-    <div id="toast-container"></div>
-<div class="max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-screen">
+    .shell .progress-rail {
+        height: 1px;
+        background: var(--ink-faint);
+        position: relative;
+        margin-bottom: 10px;
+    }
 
-    <!-- ═══════════════════════════════════════════
-         SIDEBAR
-    ═══════════════════════════════════════════ -->
-    <aside class="w-full lg:w-72 xl:w-80 p-10 lg:p-14 border-r border-neutral-200 bg-white flex-shrink-0">
-        <div class="lg:sticky lg:top-36">
-            <p class="label-xs text-neutral-400 mb-10">Account</p>
-            <nav class="space-y-1">
-                <a href="{% url "user-profile" request.user.id %}" class="sidebar-link flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 hover:text-black rounded-full group">
-                    <svg class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h7"/></svg>
+    .shell .progress-bar {
+        height: 1px;
+        background: var(--ink);
+        width: 0%;
+        transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+    }
+
+    .shell .progress-bar::after {
+        content: '';
+        position: absolute;
+        right: -2px; top: -2px;
+        width: 5px; height: 5px;
+        background: var(--ink);
+        border-radius: 50%;
+    }
+
+    .shell .progress-sub {
+        font-size: 10px;
+        color: var(--ink-soft);
+        font-weight: 300;
+        margin-top: 10px;
+    }
+
+    .shell .completion-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .shell .completion-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 18px 32px;
+        border-right: var(--border);
+        border-bottom: var(--border);
+        transition: background 0.2s;
+    }
+
+    .shell .completion-item:nth-child(2n) { border-right: none; }
+    .shell .completion-item:nth-child(3),
+    .shell .completion-item:nth-child(4)  { border-bottom: none; }
+    .shell .completion-item:hover { background: var(--ink-ghost); }
+
+    .shell .completion-dot {
+        width: 5px; height: 5px;
+        border-radius: 50%;
+        border: 1px solid var(--ink-faint);
+        flex-shrink: 0;
+        transition: var(--transition);
+    }
+
+    .shell .completion-item.done .completion-dot { background: var(--ink); border-color: var(--ink); }
+
+    .shell .ci-title {
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--ink-soft);
+        letter-spacing: 0.01em;
+    }
+
+    .shell .completion-item.done .ci-title { color: var(--ink); }
+
+    .shell .ci-sub {
+        font-size: 10px;
+        color: var(--ink-soft);
+        font-weight: 300;
+        margin-top: 2px;
+    }
+
+    .shell .ci-check svg { width: 11px; height: 11px; color: var(--ink-faint); }
+
+    /* ── Animate in ── */
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .shell .animate-in { animation: fadeUp 0.5s ease forwards; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+        .shell .main    { padding: 40px 32px 64px; }
+        .shell .sidebar { display: none; }
+    }
+
+    @media (max-width: 700px) {
+        .shell .address-tile { max-width: 100%; flex: 1 1 100%; }
+    }
+
+    @media (max-width: 640px) {
+        .shell .completion-grid { grid-template-columns: 1fr; }
+        .shell .completion-item { border-right: none !important; }
+        .shell .page-header     { flex-direction: column; align-items: flex-start; }
+    }
+
+    /* ============================================================
+       MODAL — outside .shell so it can cover full viewport
+    ============================================================ */
+    #addressModal, #EditaddressModal {
+        position: fixed;
+        inset: 0;
+        z-index: 200;
+        display: none;
+        align-items: stretch;
+        font-family: 'Figtree', sans-serif;
+    }
+
+    #addressModal.open, #EditaddressModal.open { display: flex; }
+
+    .modal-backdrop-side {
+        flex: 1;
+        background: rgba(10,10,10,0.25);
+        backdrop-filter: blur(2px);
+    }
+
+    .modal-panel {
+        width: 100%;
+        max-width: 480px;
+        background: #FFFFFF;
+        height: 100%;
+        overflow-y: auto;
+        transform: translateX(100%);
+        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        flex-direction: column;
+        color: #0A0A0A;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    #addressModal.open    .modal-panel,
+    #EditaddressModal.open .modal-panel { transform: translateX(0); }
+
+    .modal-panel *, .modal-panel *::before, .modal-panel *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    .modal-top {
+        padding: 40px 40px 28px;
+        border-bottom: 1px solid #E4E0DC;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-shrink: 0;
+    }
+
+    .modal-close {
+        width: 32px; height: 32px;
+        display: flex; align-items: center; justify-content: center;
+        border: 1px solid #E4E0DC;
+        cursor: pointer;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        background: none;
+        flex-shrink: 0;
+    }
+
+    .modal-close:hover { border-color: #0A0A0A; background: #0A0A0A; color: white; }
+    .modal-close svg { width: 13px; height: 13px; }
+
+    .modal-body { padding: 36px 40px; flex: 1; overflow-y: auto; }
+
+    .modal-footer {
+        padding: 24px 40px 40px;
+        border-top: 1px solid #E4E0DC;
+        flex-shrink: 0;
+    }
+
+    .modal-btn-dark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        background: #0A0A0A;
+        color: white;
+        border: 1px solid #0A0A0A;
+        padding: 13px 28px;
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        font-weight: 600;
+        font-family: 'Figtree', sans-serif;
+        cursor: pointer;
+        transition: background 0.2s;
+        border-radius: 0;
+    }
+
+    .modal-btn-dark:hover { background: #222; }
+
+    .modal-btn-cancel {
+        display: block;
+        width: 100%;
+        margin-top: 12px;
+        font-size: 9px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 500;
+        color: #9A9494;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: 'Figtree', sans-serif;
+        padding: 10px;
+        text-align: center;
+    }
+
+    /* Modal label */
+    .modal-micro-label {
+        font-size: 10px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 500;
+        color: #9A9494;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .modal-title {
+        font-family: 'Playfair Display', serif;
+        font-size: 22px;
+        font-weight: 400;
+        letter-spacing: -0.01em;
+        color: #0A0A0A;
+    }
+
+    /* Form fields */
+    .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 28px; }
+
+    .form-label {
+        font-size: 8px;
+        font-weight: 700;
+        letter-spacing: 0.26em;
+        text-transform: uppercase;
+        color: #9A9494;
+    }
+
+    .form-input {
+        width: 100%;
+        border: none;
+        border-bottom: 1px solid #E4E0DC;
+        padding: 10px 0;
+        font-size: 13px;
+        font-family: 'Figtree', sans-serif;
+        font-weight: 300;
+        color: #0A0A0A;
+        background: transparent;
+        outline: none;
+        transition: border-color 0.25s ease;
+        appearance: none;
+        -webkit-appearance: none;
+    }
+
+    .form-input:focus { border-bottom-color: #0A0A0A; }
+    .form-input.error { border-bottom-color: #B5291C !important; }
+    .form-input::placeholder { color: #9A9494; font-weight: 300; }
+    select.form-input { cursor: pointer; }
+
+    .form-input[readonly] {
+        color: #9A9494;
+        border-bottom-style: dashed;
+        cursor: default;
+    }
+
+    .error-msg {
+        font-size: 9px;
+        color: #B5291C;
+        letter-spacing: 0.05em;
+        font-weight: 500;
+        display: none;
+        margin-top: 3px;
+    }
+
+    .error-msg.show { display: block; }
+
+    .phone-row {
+        display: flex;
+        gap: 0;
+        border-bottom: 1px solid #E4E0DC;
+        transition: border-color 0.25s ease;
+    }
+
+    .phone-row:focus-within { border-bottom-color: #0A0A0A; }
+    .phone-row.error { border-bottom-color: #B5291C; }
+
+    .phone-code-select {
+        width: 130px;
+        flex-shrink: 0;
+        border: none;
+        border-right: 1px solid #E4E0DC;
+        padding: 10px 8px 10px 0;
+        font-size: 12px;
+        font-family: 'Figtree', sans-serif;
+        color: #0A0A0A;
+        background: transparent;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+    }
+
+    .phone-number-input {
+        flex: 1;
+        border: none;
+        padding: 10px 0 10px 12px;
+        font-size: 13px;
+        font-family: 'Figtree', sans-serif;
+        font-weight: 300;
+        color: #0A0A0A;
+        background: transparent;
+        outline: none;
+    }
+
+    .phone-number-input::placeholder { color: #9A9494; font-weight: 300; }
+
+    .radio-group, .check-group { display: flex; gap: 20px; align-items: center; }
+    .radio-item, .check-item   { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+
+    .radio-item input[type="radio"],
+    .check-item input[type="checkbox"] {
+        appearance: none;
+        -webkit-appearance: none;
+        width: 13px; height: 13px;
+        border: 1.5px solid #E4E0DC;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        flex-shrink: 0;
+    }
+
+    .check-item input[type="checkbox"] { border-radius: 2px; }
+
+    .radio-item input[type="radio"]:checked,
+    .check-item input[type="checkbox"]:checked {
+        background: #0A0A0A;
+        border-color: #0A0A0A;
+    }
+
+    .radio-item input[type="radio"]:checked::after {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%, -50%);
+        width: 4px; height: 4px;
+        border-radius: 50%;
+        background: white;
+    }
+
+    .check-item input[type="checkbox"]:checked::after {
+        content: '';
+        position: absolute;
+        top: 1px; left: 3px;
+        width: 4px; height: 7px;
+        border: 1.5px solid white;
+        border-top: none; border-left: none;
+        transform: rotate(45deg);
+    }
+
+    .radio-label, .check-label {
+        font-size: 11px;
+        font-weight: 400;
+        color: #4A4444;
+        letter-spacing: 0.04em;
+        user-select: none;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+        width: 12px; height: 12px;
+        border: 1.5px solid #E4E0DC;
+        border-top-color: #0A0A0A;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        display: inline-block;
+    }
+
+    @media (max-width: 640px) {
+        .modal-panel { max-width: 100%; }
+    }
+
+    /* ── Toast ── */
+    #toast-container {
+        position: fixed;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+    }
+
+    .custom-pill-toast {
+        width: max-content;
+        max-width: 90vw;
+        padding: 10px 22px 10px 14px;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        pointer-events: auto;
+        background: #000;
+        color: #fff;
+    }
+
+    .custom-pill-toast.show { opacity: 1; transform: translateY(0); }
+    .toast-left-content { display: flex; align-items: center; gap: 12px; }
+
+    .toast-icon-circle {
+        width: 28px; height: 28px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .toast-success .toast-icon-circle { background: #2F8D46; }
+    .toast-error   .toast-icon-circle { background: #E03B2A; }
+
+    .toast-message-wrapper {
+        display: flex;
+        flex-direction: column;
+        white-space: nowrap;
+        margin-right: 15px;
+    }
+
+    .toast-main-text {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        line-height: 1.2;
+    }
+
+    .toast-sub-text { font-size: 9px; opacity: 0.7; margin-top: 1px; }
+    .toast-close-btn { cursor: pointer; font-size: 16px; opacity: 0.6; transition: opacity 0.2s; }
+    .toast-close-btn:hover { opacity: 1; }
+</style>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<div class="shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+        <span class="sidebar-section-label">Account</span>
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="{% url 'user-profile' request.user.id %}" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h10M4 18h16"/></svg>
                     Overview
                 </a>
-                <a href="#" class="sidebar-link flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 hover:text-black rounded-full group">
-                    <svg class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                    My Orders
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                    Orders
                 </a>
-                <a href="#" class="sidebar-link flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 hover:text-black rounded-full group">
-                    <svg class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                     Wishlist
                 </a>
-                <a href="#" class="sidebar-link sidebar-active flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest rounded-full group">
-                    <svg class="w-4 h-4 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link active">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                     Addresses
                 </a>
-                <a href="#" class="sidebar-link flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 hover:text-black rounded-full group">
-                    <svg class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
                     Settings
                 </a>
-            </nav>
-        </div>
+            </li>
+        </ul>
     </aside>
 
-    <!-- ═══════════════════════════════════════════
-         MAIN
-    ═══════════════════════════════════════════ -->
-    <main class="flex-1 px-8 md:px-16 xl:px-20 py-14 animate-fade min-w-0">
+    <!-- MAIN CONTENT -->
+    <main class="main animate-in">
 
-        <!-- Page Header -->
-        <header class="mb-14 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+        <header class="page-header">
             <div>
-                <p class="label-xs text-neutral-400 mb-3">Account / Addresses</p>
-                <h1 class="serif text-4xl font-light tracking-tight text-neutral-900">Saved Addresses</h1>
-                <p class="text-[12px] text-neutral-400 font-light mt-2 leading-relaxed">Manage your delivery addresses for faster checkout.</p>
+                <p class="breadcrumb">Account / Addresses</p>
+                <h1 class="page-title">Saved Addresses</h1>
+                <p class="page-sub">Manage delivery addresses for faster checkout.</p>
             </div>
-            <button
-                onclick="openModal()"
-                class="btn-primary flex items-center gap-3 px-8 py-4 flex-shrink-0"
-                style="border-radius: 0;"
-            >
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Add New Address
+            <button onclick="openModal()" class="btn btn-dark">
+                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                Add Address
             </button>
         </header>
 
-        <!-- Address Count -->
-        <div class="flex items-center gap-4 mb-8 border-b border-neutral-100 pb-5">
-            <h3 class="label-xs text-neutral-900">Your Addresses</h3>
-            <span class="text-[9px] font-bold px-2.5 py-1 bg-neutral-100 text-neutral-500 rounded-full tracking-widest uppercase">
-                {{addresses.count}} saved
-            </span>
+        <div class="section-head">
+            <span class="label" style="color:var(--ink);">Your Addresses</span>
+            <span class="count-chip">{{ addresses.count }} saved</span>
         </div>
 
-        <!-- ═══════════════════════════════════════════
-        ═══════════════════════════════════════════ -->
-        <div id="address-list" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-{% if addresses %}
-
-
-{% for address in addresses %}
-
-<div class="address-card p-8 group">
-
-    <div class="flex items-center justify-between mb-6">
-
-        <div class="flex items-center gap-3">
-
-<span class="type-badge">
-{{ address.get_type_display }}
-</span>
-
-{% if address.is_default %}
-<span class="default-badge">
-Default
-</span>
-{% endif %}
-
-</div>
-    </div>
-
-
-    <div class="space-y-1 mb-8">
-
-        <p class="text-[13px] font-semibold text-neutral-900 tracking-tight">
-            {{ address.first_name }} {{ address.last_name }}
-        </p>
-
-        <p class="text-[12px] text-neutral-400 font-light">
-            +91 {{ address.phone_number }}
-        </p>
-
-        <div class="pt-2 space-y-0.5">
-
-            <p class="text-[12px] text-neutral-600 font-light leading-relaxed">
-                {{ address.address_line1 }}
-            </p>
-
-            {% if address.address_line2 %}
-            <p class="text-[12px] text-neutral-600 font-light leading-relaxed">
-                {{ address.address_line2 }}
-            </p>
-            {% endif %}
-
-            <p class="text-[12px] text-neutral-600 font-light leading-relaxed">
-                {{ address.city }}, {{ address.state }} {{ address.postal_code }}
-            </p>
-
-            <p class="text-[12px] text-neutral-600 font-light leading-relaxed">
-                {{ address.country }}
-            </p>
-
+        {% if addresses %}
+        <div id="address-list" class="address-grid">
+            {% for address in addresses %}
+            <div class="address-tile {% if address.is_default %}is-default{% endif %}">
+                <div class="tile-head">
+                    <span class="type-badge">{{ address.get_type_display }}</span>
+                    {% if address.is_default %}<span class="default-badge">Default</span>{% endif %}
+                </div>
+                <p class="tile-name">{{ address.first_name }} {{ address.last_name }}</p>
+                <p class="tile-phone">+91 {{ address.phone_number }}</p>
+                <div class="tile-address">
+                    <p>{{ address.address_line1 }}</p>
+                    {% if address.address_line2 %}<p>{{ address.address_line2 }}</p>{% endif %}
+                    <p>{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p>
+                    <p>{{ address.country }}</p>
+                </div>
+                <div class="tile-actions">
+                    <button class="btn-text"
+                        onclick='openEditModal({
+                            "id":         "{{ address.id }}",
+                            "first_name": "{{ address.first_name|escapejs }}",
+                            "last_name":  "{{ address.last_name|escapejs }}",
+                            "phone":      "{{ address.phone_number|escapejs }}",
+                            "addr1":      "{{ address.address_line1|escapejs }}",
+                            "addr2":      "{{ address.address_line2|default:""|escapejs }}",
+                            "city":       "{{ address.city|escapejs }}",
+                            "state":      "{{ address.state|escapejs }}",
+                            "postal":     "{{ address.pin_code|escapejs }}",
+                            "country":    "{{ address.country|escapejs }}",
+                            "type":       "{{ address.type|escapejs }}",
+                            "is_default": {{ address.is_default|yesno:"true,false" }}
+                        })'>
+                        Edit
+                    </button>
+                    <span class="dot-sep"></span>
+                    <button class="btn-text btn-text-danger" onclick="confirmDelete({{ address.id }})">Delete</button>
+                    {% if not address.is_default %}
+                    <span class="dot-sep"></span>
+                    <form method="POST" action="{% url 'user-address-set-default' address.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-text">Set Default</button>
+                    </form>
+                    {% endif %}
+                </div>
+                <div class="delete-overlay" id="delete-overlay-{{ address.id }}">
+                    <div>
+                        <p class="delete-overlay-text">Remove this address?</p>
+                        <p class="delete-overlay-sub">This action cannot be undone.</p>
+                    </div>
+                    <div class="delete-overlay-actions">
+                        <button onclick="cancelDelete({{ address.id }})" class="btn btn-outline" style="padding:10px 20px;">Cancel</button>
+                        <form method="POST" action="{% url 'delete-user-address' address.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-dark" style="padding:10px 20px;background:var(--danger);border-color:var(--danger);">Remove</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
-
-    </div>
-
-
-    <div class="flex items-center gap-4 pt-5 border-t border-neutral-50">
-
-<button class="text-[10px] uppercase tracking-[0.2em] text-neutral-400 hover:text-black transition-colors"
-    onclick='openEditModal({
-        "id": "{{ address.id }}",
-        "first_name": "{{ address.first_name|escapejs }}",
-        "last_name": "{{ address.last_name|escapejs }}",
-        "phone": "{{ address.phone_number|escapejs }}",
-        "addr1": "{{ address.address_line1|escapejs }}",
-        "addr2": "{{ address.address_line2|default:""|escapejs }}",
-        "city": "{{ address.city|escapejs }}",
-        "state": "{{ address.state|escapejs }}",
-        "postal": "{{ address.pin_code|escapejs }}",
-        "country": "{{ address.country|escapejs }}",
-        "type": "{{ address.type|escapejs }}",
-        "is_default": {{ address.is_default|yesno:"true,false" }}
-    })'>
-    Edit
-</button>
-
-        <span class="dot-sep"></span>
-
-        <button class="action-btn delete" onclick="confirmDelete({{ address.id }})">
-            Delete
-        </button>
-
-        {% if not address.is_default %}
-        <span class="dot-sep"></span>
-
-        <form method="POST" action="{% url "user-address-set-default" address.id %}" style="display:inline;">
-            {% csrf_token %}
-            <button type="submit" class="action-btn">
-                Set as Default
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon empty-pin">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="empty-title">No saved addresses</h2>
+                <p class="empty-sub">Add your first address to enable faster checkout across all your orders.</p>
+            </div>
+            <button onclick="openModal()" class="btn btn-dark">
+                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                Add Address
             </button>
-        </form>
+        </div>
         {% endif %}
 
-    </div>
-
-
-    <!-- Delete Confirmation -->
-
-    <div class="delete-overlay" id="delete-overlay-{{ address.id }}">
-
-        <p class="text-[11px] font-medium text-neutral-700 text-center px-6">
-            Remove this address?<br>
-            <span class="text-neutral-400 font-light">
-                This action cannot be undone.
-            </span>
-        </p>
-
-        <div class="flex items-center gap-4">
-
-            <button onclick="cancelDelete({{ address.id }})"
-                class="btn-ghost px-6 py-3"
-                style="border-radius:0; font-size:9px;">
-                Cancel
-            </button>
-
-            <form method="POST" action="{% url "delete-user-address" address.id %}">
-                {% csrf_token %}
-
-                <button type="submit"
-                    class="btn-primary px-6 py-3"
-                    style="border-radius:0; font-size:9px; background:#c0392b; border-color:#c0392b;">
-                    Remove
-                </button>
-
-            </form>
-
-        </div>
-
-    </div>
-
-</div>
-
-{% endfor %}
-
-{% else %}
-
-<p class="text-gray-500 text-sm">
-No saved addresses yet.
-</p>
-
-{% endif %}
-
-</div>
-        <!-- END demo cards -->
-
-        <!-- ═══════════════════════════════════════════
-             EMPTY STATE
-             Show this block when there are no addresses.
-             In your Django template: {% if not addresses %} ... {% endif %}
-        ═══════════════════════════════════════════ -->
-        <div id="empty-state" class="hidden">
-            <div class="empty-state-wrap">
-
-                <!-- Animated SVG illustration -->
-                <div class="empty-illustration" aria-hidden="true">
-                    <svg viewBox="0 0 160 120" fill="none" xmlns="http://www.w3.org/2000/svg" class="empty-svg">
-                        <ellipse cx="80" cy="108" rx="22" ry="5" fill="#F0F0F0" class="es-shadow"/>
-                        <path d="M80 18C62.327 18 48 32.327 48 50C48 72 80 102 80 102C80 102 112 72 112 50C112 32.327 97.673 18 80 18Z" fill="#FAFAFA" stroke="#E8E8E8" stroke-width="1.5" class="es-pin-body"/>
-                        <circle cx="80" cy="50" r="13" fill="#FFFFFF" stroke="#D8D8D8" stroke-width="1.5" class="es-pin-circle"/>
-                        <line x1="80" y1="44" x2="80" y2="56" stroke="#C8C8C8" stroke-width="1.5" stroke-linecap="round" class="es-plus-v"/>
-                        <line x1="74" y1="50" x2="86" y2="50" stroke="#C8C8C8" stroke-width="1.5" stroke-linecap="round" class="es-plus-h"/>
-                        <circle cx="40" cy="46" r="2" fill="#E8E8E8" class="es-dot es-dot-1"/>
-                        <circle cx="120" cy="46" r="2" fill="#E8E8E8" class="es-dot es-dot-2"/>
-                        <circle cx="55" cy="24" r="1.5" fill="#EFEFEF" class="es-dot es-dot-3"/>
-                        <circle cx="105" cy="24" r="1.5" fill="#EFEFEF" class="es-dot es-dot-4"/>
-                        <circle cx="44" cy="72" r="1.5" fill="#EFEFEF" class="es-dot es-dot-5"/>
-                        <circle cx="116" cy="72" r="1.5" fill="#EFEFEF" class="es-dot es-dot-6"/>
-                    </svg>
+        <!-- Profile Completion -->
+        <section class="completion-module" id="profile-completion-section" data-pct="75">
+            <div class="completion-top">
+                <div class="completion-header-row">
+                    <span class="label" style="color:var(--ink);">Profile Completion</span>
+                    <span class="completion-badge" id="pc-badge">Almost There</span>
                 </div>
-
-                <div class="empty-text">
-                    <h2 class="serif text-2xl font-light text-neutral-800 tracking-tight">No saved addresses yet</h2>
-                    <!-- Plain message as requested -->
-                    <p class="text-gray-500 text-sm mt-2">No saved addresses yet.</p>
-                    <p class="text-[12px] text-neutral-400 font-light mt-1 leading-relaxed">Add your first address to make checkout faster.</p>
+                <div class="progress-rail">
+                    <div class="progress-bar" id="pc-progress-fill"></div>
                 </div>
-
-                <button
-                    onclick="openModal()"
-                    class="btn-primary flex items-center gap-3 px-10 py-4 mt-2"
-                    style="border-radius:0;"
-                >
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                    Add Address
-                </button>
-
+                <p class="progress-sub">
+                    <span id="pc-counter" style="font-weight:500;color:var(--ink);">0%</span>
+                    &nbsp;— Complete your profile to unlock faster checkout.
+                </p>
             </div>
-        </div>
-
-        <!-- ═══════════════════════════════════════════
-             PROFILE COMPLETION SECTION
-        ═══════════════════════════════════════════ -->
-        <section class="mt-16" id="profile-completion-section" data-pct="75">
-            <div class="card overflow-hidden" style="border-radius: var(--radius-card);">
-
-                <div class="px-10 pt-9 pb-8 border-b border-neutral-50">
-                    <div class="flex items-center gap-6 mb-6">
-                        <div class="relative flex-shrink-0">
-                            <svg class="pct-ring" viewBox="0 0 52 52">
-                                <circle class="pct-ring-track" cx="26" cy="26" r="22"/>
-                                <circle class="pct-ring-fill" id="pc-ring-fill" cx="26" cy="26" r="22"/>
-                            </svg>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <span id="pc-counter" class="text-[11px] font-semibold text-neutral-900 tabular-nums" style="letter-spacing:-0.02em;">0%</span>
-                            </div>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-baseline justify-between gap-4 mb-3">
-                                <p class="label-xs text-neutral-900">Profile Completion</p>
-                                <span id="pc-badge" class="text-[8px] uppercase tracking-[0.18em] font-bold px-2.5 py-1 rounded-full border border-neutral-200 text-neutral-400 whitespace-nowrap transition-all duration-500">Almost There</span>
-                            </div>
-                            <div class="pc-progress-track">
-                                <div class="pc-progress-fill" id="pc-progress-fill"></div>
-                            </div>
-                            <p class="text-[10px] text-neutral-400 font-light mt-2.5 leading-relaxed">
-                                Complete your profile to unlock a faster checkout experience.
-                            </p>
-                        </div>
-                    </div>
+            <div class="completion-grid">
+                <div class="completion-item done">
+                    <div class="completion-dot"></div>
+                    <div style="flex:1;min-width:0;"><p class="ci-title">Username added</p></div>
+                    <div class="ci-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
                 </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2">
-
-                    <div class="pc-item done px-10 py-5 border-b border-r border-neutral-50 gap-4">
-                        <div class="pc-dot flex-shrink-0"></div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[11px] font-medium leading-snug text-neutral-900">Username added</p>
-                        </div>
-                        <svg class="w-3.5 h-3.5 text-neutral-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                <div class="completion-item done">
+                    <div class="completion-dot"></div>
+                    <div style="flex:1;min-width:0;"><p class="ci-title">Phone number added</p></div>
+                    <div class="ci-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
+                </div>
+                <div class="completion-item done">
+                    <div class="completion-dot"></div>
+                    <div style="flex:1;min-width:0;"><p class="ci-title">Profile photo uploaded</p></div>
+                    <div class="ci-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
+                </div>
+                <div class="completion-item">
+                    <div class="completion-dot"></div>
+                    <div style="flex:1;min-width:0;">
+                        <p class="ci-title">Add shipping address</p>
+                        <p class="ci-sub">For faster checkout</p>
                     </div>
-
-                    <div class="pc-item done px-10 py-5 border-b border-neutral-50 gap-4">
-                        <div class="pc-dot flex-shrink-0"></div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[11px] font-medium leading-snug text-neutral-900">Phone number added</p>
-                        </div>
-                        <svg class="w-3.5 h-3.5 text-neutral-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    </div>
-
-                    <div class="pc-item done px-10 py-5 border-r border-neutral-50 gap-4">
-                        <div class="pc-dot flex-shrink-0"></div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[11px] font-medium leading-snug text-neutral-900">Profile photo uploaded</p>
-                        </div>
-                        <svg class="w-3.5 h-3.5 text-neutral-300 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    </div>
-
-                    <div class="pc-item px-10 py-5 gap-4">
-                        <div class="pc-dot flex-shrink-0"></div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-[11px] font-medium leading-snug text-neutral-400">Add shipping address</p>
-                            <p class="text-[10px] text-neutral-400 mt-0.5 font-light">For faster checkout</p>
-                        </div>
-                        <button onclick="openModal()" class="flex-shrink-0 text-[9px] uppercase tracking-widest text-neutral-400 hover:text-black transition-colors font-bold border-b border-neutral-200 hover:border-black pb-px">Add</button>
-                    </div>
-
+                    <button onclick="openModal()" class="btn-text">Add</button>
                 </div>
             </div>
         </section>
@@ -909,1209 +1068,601 @@ No saved addresses yet.
     </main>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     ADD / EDIT ADDRESS MODAL
-     Single shared form — action URL is updated by JS
-     depending on whether we're adding or editing.
-═══════════════════════════════════════════ -->
+<!-- ADD ADDRESS MODAL -->
 <div id="addressModal">
-    <div class="modal-backdrop" onclick="closeModal()"></div>
-    <div class="modal-box">
-        <div class="p-10 md:p-14">
-
-            <header class="flex justify-between items-start mb-12">
-                <div>
-                    <p class="label-xs text-neutral-400 mb-2">Account / Addresses</p>
-                    <h2 class="serif text-2xl font-light text-neutral-900" id="modal-title">Add New Address</h2>
-                </div>
-                <button onclick="closeModal()" class="text-neutral-400 hover:text-black transition-colors mt-1">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </header>
-
-            <!--
-                FORM NOTES:
-                ───────────
-                • method="POST" — submits to your Django view.
-                • action is left blank here; set it to your add/edit URL.
-                  e.g. action="/add-address/" or action="/edit-address/{{ id }}/"
-                • {% csrf_token %} is included for Django CSRF protection.
-                • All inputs have name= attributes that match the field names
-                  your Django view expects from request.POST.
-                • JS only handles: modal open/close, phone-code dropdown,
-                  client-side validation, and edit form pre-fill.
-                  No address data is ever stored in JS or localStorage.
-            -->
-            <form
-                id="addressForm"
-                method="POST"
-                action=""
-                novalidate
-            >
-                {% csrf_token %}
-
-                <div class="space-y-8">
-
-                    <!-- Name -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="form-field">
-                            <label class="form-label">First Name <span class="text-red-400">*</span></label>
-                            <input type="text" id="f-first-name" name="first_name" class="form-input" placeholder="First name" autocomplete="given-name">
-                            <span class="error-msg" id="err-first-name">Please enter your first name</span>
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label">Last Name <span class="text-red-400">*</span></label>
-                            <input type="text" id="f-last-name" name="last_name" class="form-input" placeholder="Last name" autocomplete="family-name">
-                            <span class="error-msg" id="err-last-name">Please enter your last name</span>
-                        </div>
-                    </div>
-
-                    <!-- Phone -->
-                    <div class="form-field">
-                        <label class="form-label">Phone Number <span class="text-red-400">*</span></label>
-                        <div class="phone-row" id="phone-row">
-                            <!--
-                                phone_code + phone are submitted separately.
-                                In your Django view, combine them:
-                                full_phone = request.POST['phone_code'] + ' ' + request.POST['phone']
-                            -->
-                            <select id="f-phone-code" name="phone_code" class="phone-code-select">
-                                <option value="">Loading…</option>
-                            </select>
-                            <input type="tel" id="f-phone" name="phone" class="phone-number-input" placeholder="Phone number" maxlength="15" autocomplete="tel-national">
-                        </div>
-                        <span class="error-msg" id="err-phone">Please enter a valid phone number (7–15 digits)</span>
-                    </div>
-
-                    <!-- Address Line 1 -->
-                    <div class="form-field">
-                        <label class="form-label">Address Line 1 <span class="text-red-400">*</span></label>
-                        <input type="text" id="f-addr1" name="address_line_1" class="form-input" placeholder="House / flat number, street name" autocomplete="address-line1">
-                        <span class="error-msg" id="err-addr1">Please enter your address</span>
-                    </div>
-
-                    <!-- Address Line 2 -->
-                    <div class="form-field">
-                        <label class="form-label">Address Line 2 <span style="font-size:8px;letter-spacing:0.1em;color:#bbb;font-weight:400;text-transform:none;">(optional)</span></label>
-                        <input type="text" id="f-addr2" name="address_line_2" class="form-input" placeholder="Apartment, suite, landmark…" autocomplete="address-line2">
-                    </div>
-
-                    <!-- City + State -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="form-field">
-                            <label class="form-label">City <span class="text-red-400">*</span></label>
-                           <input type="text" id="f-city" name="city"
-                           class="form-input" placeholder="City" autocomplete="address-level2">
-                            <span class="error-msg" id="err-city">Please enter your city</span>
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label">State / Province <span class="text-red-400">*</span></label>
-                           <input type="text" id="f-state" name="state"
-                           class="form-input" placeholder="State" autocomplete="address-level1">
-                            <span class="error-msg" id="err-state">Please enter your state</span>
-                        </div>
-                    </div>
-
-                    <!-- Postal + Country -->
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="form-field">
-                            <label class="form-label">Postal Code <span class="text-red-400">*</span></label>
-                            <input type="text" id="f-postal" name="postal_code" class="form-input" placeholder="Postal code" maxlength="10" autocomplete="postal-code">
-                            <span class="error-msg" id="err-postal">Please enter a valid postal code</span>
-                        </div>
-                        <div class="form-field">
-                            <label class="form-label">Country <span class="text-red-400">*</span></label>
-                            <div class="relative flex items-center">
-                                <select id="f-country" name="country" class="form-input pr-8">
-                                    <option value="">Select country…</option>
-                                </select>
-                                <span id="country-loading" class="spinner absolute right-0" style="display:none;"></span>
-                            </div>
-                            <span class="error-msg" id="err-country">Please select a country</span>
-                        </div>
-                    </div>
-
-                    <!-- Address Type -->
-                    <div class="form-field">
-                        <label class="form-label">Address Type</label>
-                        <div class="radio-group mt-2">
-                            <label class="radio-item">
-                                <input type="radio" name="address_type" value="Home" checked>
-                                <span class="radio-label">Home</span>
-                            </label>
-                            <label class="radio-item">
-                                <input type="radio" name="address_type" value="Work">
-                                <span class="radio-label">Work</span>
-                            </label>
-                            <label class="radio-item">
-                                <input type="radio" name="address_type" value="Other">
-                                <span class="radio-label">Other</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Set as Default -->
-                    <div class="form-field">
-                        <label class="check-item gap-3">
-                            <input type="checkbox" id="f-default" name="is_default" value="true">
-                            <span class="check-label">Set as default address</span>
-                        </label>
-                    </div>
-
-                </div>
-
-                <!-- Submit -->
-                <div class="pt-10 mt-4 border-t border-neutral-50">
-                    <button type="submit" class="btn-primary w-full py-5" style="border-radius:0;" id="submit-btn">Save Address</button>
-                    <button type="button" onclick="closeModal()" class="w-full mt-4 label-xs text-neutral-400 hover:text-black transition-colors py-2">Cancel</button>
-                </div>
-            </form>
-
+    <div class="modal-backdrop-side" onclick="closeModal()"></div>
+    <div class="modal-panel">
+        <div class="modal-top">
+            <div>
+                <span class="modal-micro-label">Account / Addresses</span>
+                <h2 class="modal-title" id="modal-title">Add New Address</h2>
+            </div>
+            <button onclick="closeModal()" class="modal-close">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
         </div>
-    </div>
-</div>
-
-<div id="EditaddressModal" class="fixed inset-0 z-[100] hidden">
-    <div class="absolute inset-0 bg-white/80 backdrop-blur-sm" onclick="closeEditModal()"></div>
-    <div class="absolute right-0 top-0 h-full w-full max-w-lg bg-white shadow-2xl">
-        <div class="p-10 md:p-14 h-full overflow-y-auto">
-            <header class="flex justify-between items-start mb-12">
-                <div>
-                    <p class="text-[10px] uppercase tracking-[0.2em] text-neutral-400 mb-2">Account / Addresses</p>
-                    <h2 class="text-2xl font-light text-neutral-900">Edit Address</h2>
-                </div>
-                <button onclick="closeEditModal()" class="text-neutral-400 hover:text-black">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-width="1.5"/></svg>
-                </button>
-            </header>
-
-            <form id="editAddressForm" method="POST">
+        <div class="modal-body">
+            <form id="addressForm" method="POST" action="" novalidate>
                 {% csrf_token %}
-                <div class="space-y-8">
-                    <div class="grid grid-cols-2 gap-6">
-                        <div class="flex flex-col gap-2">
-                            <label class="text-[11px] uppercase tracking-wider text-neutral-500">First Name</label>
-                            <input type="text" name="first_name" id="edit-first-name" class="border-b border-neutral-200 py-2 focus:border-black outline-none text-sm font-light">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <div class="form-field">
+                        <label class="form-label">First Name <span style="color:#B5291C;">*</span></label>
+                        <input type="text" id="f-first-name" name="first_name" class="form-input" placeholder="First name" autocomplete="given-name">
+                        <span class="error-msg" id="err-first-name">Please enter your first name</span>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Last Name <span style="color:#B5291C;">*</span></label>
+                        <input type="text" id="f-last-name" name="last_name" class="form-input" placeholder="Last name" autocomplete="family-name">
+                        <span class="error-msg" id="err-last-name">Please enter your last name</span>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Phone <span style="color:#B5291C;">*</span></label>
+                    <div class="phone-row" id="phone-row">
+                        <select id="f-phone-code" name="phone_code" class="phone-code-select"><option value="">Loading…</option></select>
+                        <input type="tel" id="f-phone" name="phone" class="phone-number-input" placeholder="Phone number" maxlength="15" autocomplete="tel-national">
+                    </div>
+                    <span class="error-msg" id="err-phone">Please enter a valid phone number (7–15 digits)</span>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Address Line 1 <span style="color:#B5291C;">*</span></label>
+                    <input type="text" id="f-addr1" name="address_line_1" class="form-input" placeholder="House / flat, street name" autocomplete="address-line1">
+                    <span class="error-msg" id="err-addr1">Please enter your address</span>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Address Line 2 <span style="font-size:8px;color:#9A9494;font-weight:300;text-transform:none;letter-spacing:0;">optional</span></label>
+                    <input type="text" id="f-addr2" name="address_line_2" class="form-input" placeholder="Apartment, landmark…" autocomplete="address-line2">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <div class="form-field">
+                        <label class="form-label">City <span style="color:#B5291C;">*</span></label>
+                        <input type="text" id="f-city" name="city" class="form-input" placeholder="City" autocomplete="address-level2">
+                        <span class="error-msg" id="err-city">Please enter your city</span>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">State <span style="color:#B5291C;">*</span></label>
+                        <input type="text" id="f-state" name="state" class="form-input" placeholder="State" autocomplete="address-level1">
+                        <span class="error-msg" id="err-state">Please enter your state</span>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <div class="form-field">
+                        <label class="form-label">Postal Code <span style="color:#B5291C;">*</span></label>
+                        <input type="text" id="f-postal" name="postal_code" class="form-input" placeholder="Postal code" maxlength="10" autocomplete="postal-code">
+                        <span class="error-msg" id="err-postal">Please enter a valid postal code</span>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Country <span style="color:#B5291C;">*</span></label>
+                        <div style="position:relative;display:flex;align-items:center;">
+                            <select id="f-country" name="country" class="form-input" style="padding-right:24px;"><option value="">Select country…</option></select>
+                            <span id="country-loading" class="spinner" style="position:absolute;right:0;display:none;"></span>
                         </div>
-                        <div class="flex flex-col gap-2">
-                            <label class="text-[11px] uppercase tracking-wider text-neutral-500">Last Name</label>
-                            <input type="text" name="last_name" id="edit-last-name" class="border-b border-neutral-200 py-2 focus:border-black outline-none text-sm font-light">
-                        </div>
+                        <span class="error-msg" id="err-country">Please select a country</span>
                     </div>
-
-                    <div class="flex flex-col gap-2 text-sm">
-                        <label class="text-[11px] uppercase tracking-wider text-neutral-500">Phone Number</label>
-                        <input type="tel" name="phone_number" id="edit-phone" class="border-b border-neutral-200 py-2 focus:border-black outline-none font-light">
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Address Type</label>
+                    <div class="radio-group" style="margin-top:6px;">
+                        <label class="radio-item"><input type="radio" name="address_type" value="Home" checked><span class="radio-label">Home</span></label>
+                        <label class="radio-item"><input type="radio" name="address_type" value="Work"><span class="radio-label">Work</span></label>
+                        <label class="radio-item"><input type="radio" name="address_type" value="Other"><span class="radio-label">Other</span></label>
                     </div>
-
-                    <div class="flex flex-col gap-2">
-                        <label class="text-[11px] uppercase tracking-wider text-neutral-500">Address Line 1</label>
-                        <input type="text" name="address_line1" id="edit-addr1" class="border-b border-neutral-200 py-2 focus:border-black outline-none text-sm font-light">
-                    </div>
-
-                    <div class="flex flex-col gap-2">
-                        <label class="text-[11px] uppercase tracking-wider text-neutral-500">Address Line 2</label>
-                        <input type="text" name="address_line2" id="edit-addr2" class="border-b border-neutral-200 py-2 focus:border-black outline-none text-sm font-light">
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-4 text-sm font-light">
-    <div class="flex flex-col gap-2">
-        <label class="text-[11px] uppercase tracking-wider text-neutral-500">City</label>
-        <input type="text" name="city" id="edit-city" class="border-b border-neutral-200 py-2 focus:border-black outline-none transition-all">
-        <span id="err-edit-city" class="text-[10px] text-red-500 mt-1 hidden"></span> </div>
-
-    <div class="flex flex-col gap-2">
-        <label class="text-[11px] uppercase tracking-wider text-neutral-500">State</label>
-        <input type="text" name="state" id="edit-state" class="border-b border-neutral-200 py-2 focus:border-black outline-none transition-all">
-        <span id="err-edit-state" class="text-[10px] text-red-500 mt-1 hidden"></span> </div>
-
-    <div class="flex flex-col gap-2">
-        <label class="text-[11px] uppercase tracking-wider text-neutral-500">Pin Code</label>
-        <input type="text" name="pin_code" id="edit-pin" class="border-b border-neutral-200 py-2 focus:border-black outline-none transition-all">
-        <span id="err-edit-pin" class="text-[10px] text-red-500 mt-1 hidden"></span> </div>
-</div>
-
-                    <div class="flex flex-col gap-2">
-                        <label class="text-[11px] uppercase tracking-wider text-neutral-500">Country</label>
-                        <select id="edit-country" name="country" class="w-full border-b border-neutral-200 py-2 focus:border-black outline-none bg-transparent text-sm font-light">
-                            <option value="">Select country…</option>
-                        </select>
-                    </div>
-
-                    <div class="flex flex-col gap-3">
-                        <label class="text-[11px] uppercase tracking-wider text-neutral-500">Type</label>
-                        <div class="flex gap-6">
-                            <label class="flex items-center gap-2 cursor-pointer text-xs font-light">
-                                <input type="radio" name="type" value="home" id="edit-type-home" class="w-4 h-4 accent-black"> Home
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer text-xs font-light">
-                                <input type="radio" name="type" value="work" id="edit-type-work" class="w-4 h-4 accent-black"> Work
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer text-xs font-light">
-                                <input type="radio" name="type" value="other" id="edit-type-other" class="w-4 h-4 accent-black"> Other
-                            </label>
-                        </div>
-                    </div>
-
-                    <label class="flex items-center gap-3 cursor-pointer pt-4">
-                        <input type="checkbox" name="is_default" id="edit-default" class="w-4 h-4 accent-black">
-                        <span class="text-[11px] uppercase tracking-wider text-neutral-500">Set as default address</span>
+                </div>
+                <div class="form-field">
+                    <label class="check-item" style="gap:12px;">
+                        <input type="checkbox" id="f-default" name="is_default" value="true">
+                        <span class="check-label">Set as default address</span>
                     </label>
                 </div>
-
-                <div class="mt-16 pt-8 border-t border-neutral-100">
-                    <button type="submit" class="w-full bg-black text-white py-4 text-[11px] uppercase tracking-[0.2em] hover:bg-neutral-800 transition-colors">
-                        Update Address
-                    </button>
-                </div>
             </form>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" form="addressForm" id="submit-btn" class="modal-btn-dark">Save Address</button>
+            <button type="button" onclick="closeModal()" class="modal-btn-cancel">Cancel</button>
         </div>
     </div>
 </div>
-<!-- ── Scripts ── -->
-<script>
-/* ============================================================
-   ADDRESS VALIDATION — SHARED ENGINE
-   Works identically for Add Modal (#addressForm)
-   and Edit Modal (#editAddressForm).
-   No external libraries. No alert(). No duplicated listeners.
-============================================================ */
 
-/* ─── Country list cache (fetched once) ─────────────────── */
+<!-- EDIT ADDRESS MODAL -->
+<div id="EditaddressModal">
+    <div class="modal-backdrop-side" onclick="closeEditModal()"></div>
+    <div class="modal-panel">
+        <div class="modal-top">
+            <div>
+                <span class="modal-micro-label">Account / Addresses</span>
+                <h2 class="modal-title">Edit Address</h2>
+            </div>
+            <button onclick="closeEditModal()" class="modal-close">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editAddressForm" method="POST">
+                {% csrf_token %}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                    <div class="form-field">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="first_name" id="edit-first-name" class="form-input" placeholder="First name">
+                        <span id="err-edit-first-name" class="error-msg"></span>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="last_name" id="edit-last-name" class="form-input" placeholder="Last name">
+                        <span id="err-edit-last-name" class="error-msg"></span>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Phone Number</label>
+                    <input type="tel" name="phone_number" id="edit-phone" class="form-input" placeholder="10-digit phone number">
+                    <span id="err-edit-phone" class="error-msg"></span>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Address Line 1</label>
+                    <input type="text" name="address_line1" id="edit-addr1" class="form-input" placeholder="House / flat, street name">
+                    <span id="err-edit-addr1" class="error-msg"></span>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Address Line 2 <span style="font-size:8px;color:#9A9494;font-weight:300;text-transform:none;letter-spacing:0;">optional</span></label>
+                    <input type="text" name="address_line2" id="edit-addr2" class="form-input" placeholder="Apartment, landmark…">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+                    <div class="form-field">
+                        <label class="form-label">City</label>
+                        <input type="text" name="city" id="edit-city" class="form-input" placeholder="City">
+                        <span id="err-edit-city" class="error-msg"></span>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">State</label>
+                        <input type="text" name="state" id="edit-state" class="form-input" placeholder="State">
+                        <span id="err-edit-state" class="error-msg"></span>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Pin Code</label>
+                        <input type="text" name="pin_code" id="edit-pin" class="form-input" placeholder="6-digit PIN">
+                        <span id="err-edit-pin" class="error-msg"></span>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Country</label>
+                    <select id="edit-country" name="country" class="form-input"><option value="">Select country…</option></select>
+                    <span id="err-edit-country" class="error-msg"></span>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Type</label>
+                    <div class="radio-group" style="margin-top:6px;">
+                        <label class="radio-item"><input type="radio" name="type" value="home" id="edit-type-home"><span class="radio-label">Home</span></label>
+                        <label class="radio-item"><input type="radio" name="type" value="work" id="edit-type-work"><span class="radio-label">Work</span></label>
+                        <label class="radio-item"><input type="radio" name="type" value="other" id="edit-type-other"><span class="radio-label">Other</span></label>
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label class="check-item" style="gap:12px;">
+                        <input type="checkbox" name="is_default" id="edit-default">
+                        <span class="check-label">Set as default address</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="submit" form="editAddressForm" class="modal-btn-dark">Update Address</button>
+            <button type="button" onclick="closeEditModal()" class="modal-btn-cancel">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<script id="django-messages" type="application/json">
+[{% if messages %}{% for message in messages %}{"message":"{{ message|escapejs }}","tags":"{{ message.tags }}"}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}]
+</script>
+
+<script>
+/* ── Country cache ── */
 let _countryCache = null;
 
-/* ─── Per-form validation state ─────────────────────────── */
+/* ── Per-form state ── */
 const formState = {
-  add: {
-    pinVerified: false,
-    officialCity: '',
-    officialState: '',
-    pinFetching: false,
-  },
-  edit: {
-    pinVerified: false,
-    officialCity: '',
-    officialState: '',
-    pinFetching: false,
-  },
+    add:  { pinVerified: false, officialCity: '', officialState: '', pinFetching: false },
+    edit: { pinVerified: false, officialCity: '', officialState: '', pinFetching: false },
 };
 
-/* ============================================================
-   UTILITY HELPERS
-============================================================ */
-
-/** Show an inline error message under a field */
+/* ── Field helpers ── */
 function showFieldError(inputEl, msgEl, message) {
-  if (!inputEl || !msgEl) return;
-  inputEl.classList.add('error');
-  msgEl.textContent = message;
-  msgEl.classList.add('show');        // works for add-modal style
-  msgEl.classList.remove('hidden');   // works for edit-modal style
-  msgEl.style.display = '';
+    if (!inputEl || !msgEl) return;
+    inputEl.classList.add('error');
+    msgEl.textContent = message;
+    msgEl.classList.add('show');
+    msgEl.style.display = '';
 }
 
-/** Clear a single field's error state */
 function clearFieldError(inputEl, msgEl) {
-  if (inputEl) inputEl.classList.remove('error', 'border-red-500');
-  if (msgEl) {
-    msgEl.classList.remove('show', 'block');
-    msgEl.classList.add('hidden');
-    msgEl.style.display = 'none';
-    msgEl.textContent = '';
-  }
+    if (inputEl) inputEl.classList.remove('error');
+    if (msgEl) { msgEl.classList.remove('show'); msgEl.style.display = 'none'; msgEl.textContent = ''; }
 }
 
-/** Clear ALL errors inside a form */
 function clearAllErrors(formEl) {
-  if (!formEl) return;
-  formEl.querySelectorAll('.error-msg, [id^="err-"]').forEach(el => {
-    el.classList.remove('show', 'block');
-    el.classList.add('hidden');
-    el.style.display = 'none';
-    el.textContent = '';
-  });
-  formEl.querySelectorAll('.error, .border-red-500').forEach(el => {
-    el.classList.remove('error', 'border-red-500');
-  });
-  formEl.querySelectorAll('.phone-row').forEach(el => {
-    el.classList.remove('error');
-  });
+    if (!formEl) return;
+    formEl.querySelectorAll('.error-msg').forEach(el => { el.classList.remove('show'); el.style.display = 'none'; el.textContent = ''; });
+    formEl.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+    formEl.querySelectorAll('.phone-row').forEach(el => el.classList.remove('error'));
 }
 
-/** Lock a text input (PIN-confirmed) */
 function lockField(el) {
-  if (!el) return;
-  el.readOnly = true;
-  el.style.backgroundColor = '#f5f5f5';
-  el.style.color = '#777';
-  el.style.borderBottomStyle = 'dashed';
-  el.style.cursor = 'default';
+    if (!el) return;
+    el.readOnly = true;
+    el.style.color = '#9A9494';
+    el.style.borderBottomStyle = 'dashed';
+    el.style.cursor = 'default';
 }
 
-/** Unlock a text input */
 function unlockField(el) {
-  if (!el) return;
-  el.readOnly = false;
-  el.style.backgroundColor = 'transparent';
-  el.style.color = '';
-  el.style.borderBottomStyle = '';
-  el.style.cursor = '';
+    if (!el) return;
+    el.readOnly = false;
+    el.style.color = '';
+    el.style.borderBottomStyle = '';
+    el.style.cursor = '';
 }
 
-/** Lock a <select> */
 function lockSelect(el) {
-  if (!el) return;
-  el.disabled = true;
-  el.style.backgroundColor = '#f5f5f5';
-  el.style.color = '#777';
-  el.style.cursor = 'default';
-  // Keep value accessible even when disabled
-  el.setAttribute('data-locked-value', el.value);
+    if (!el) return;
+    el.disabled = true;
+    el.style.color = '#9A9494';
+    el.style.cursor = 'default';
+    el.setAttribute('data-locked-value', el.value);
 }
 
-/** Unlock a <select> */
 function unlockSelect(el) {
-  if (!el) return;
-  el.disabled = false;
-  el.style.backgroundColor = 'transparent';
-  el.style.color = '';
-  el.style.cursor = '';
+    if (!el) return;
+    el.disabled = false;
+    el.style.color = '';
+    el.style.cursor = '';
 }
 
-/** Set <select> to a value by text match */
 function setSelectValue(selectEl, value) {
-  if (!selectEl || !value) return false;
-  const val = value.trim().toLowerCase();
-  for (let i = 0; i < selectEl.options.length; i++) {
-    if (selectEl.options[i].value.trim().toLowerCase() === val) {
-      selectEl.selectedIndex = i;
-      return true;
+    if (!selectEl || !value) return false;
+    const val = value.trim().toLowerCase();
+    for (let i = 0; i < selectEl.options.length; i++) {
+        if (selectEl.options[i].value.trim().toLowerCase() === val) { selectEl.selectedIndex = i; return true; }
     }
-  }
-  return false;
+    return false;
 }
 
-/* ============================================================
-   COUNTRY DATA — fetched once, shared between both modals
-============================================================ */
+/* ── Country data ── */
 async function fetchCountries() {
-  if (_countryCache) return _countryCache;
-
-  const codeSelect    = document.getElementById('f-phone-code');
-  const countrySelect = document.getElementById('f-country');
-  const spinner       = document.getElementById('country-loading');
-
-  if (spinner) spinner.style.display = 'inline-block';
-
-  try {
-    const res  = await fetch('https://restcountries.com/v3.1/all?fields=name,idd,flag,cca2');
-    const data = await res.json();
-
-    data.sort((a, b) => a.name.common.localeCompare(b.name.common));
-
-    const countries = data.map(c => {
-      const root   = c.idd?.root   || '';
-      const suffix = c.idd?.suffixes?.length === 1 ? c.idd.suffixes[0] : '';
-      return { name: c.name.common, dial: root + suffix, flag: c.flag || '' };
-    }).filter(c => c.dial);
-
-    const preferred = ['India','United States','United Kingdom','United Arab Emirates'];
-    const top  = countries.filter(c => preferred.includes(c.name))
-                          .sort((a, b) => preferred.indexOf(a.name) - preferred.indexOf(b.name));
-    const rest = countries.filter(c => !preferred.includes(c.name));
-    const final = [...top, ...rest];
-
-    _countryCache = final;
-
-    /* ── Populate Add-modal selects ── */
-    if (codeSelect) {
-      codeSelect.innerHTML = '';
-      final.forEach(c => {
-        const o = new Option(`${c.flag} ${c.dial} ${c.name}`, c.dial);
-        if (c.name === 'India') o.selected = true;
-        codeSelect.add(o);
-      });
-    }
-
-    if (countrySelect) {
-      countrySelect.innerHTML = '<option value="">Select country…</option>';
-      final.forEach(c => {
-        const o = new Option(`${c.flag} ${c.name}`, c.name);
-        if (c.name === 'India') o.selected = true;
-        countrySelect.add(o);
-      });
-    }
-
-    /* ── Populate Edit-modal country select ── */
-    const editCountry = document.getElementById('edit-country');
-    if (editCountry && editCountry.options.length <= 1) {
-      editCountry.innerHTML = '<option value="">Select country…</option>';
-      final.forEach(c => {
-        const o = new Option(`${c.flag} ${c.name}`, c.name);
-        editCountry.add(o);
-      });
-    }
-
-    return final;
-  } catch (e) {
-    /* Fallback list */
-    const fallback = [
-      { dial: '+91',  flag: '🇮🇳', name: 'India' },
-      { dial: '+1',   flag: '🇺🇸', name: 'United States' },
-      { dial: '+44',  flag: '🇬🇧', name: 'United Kingdom' },
-      { dial: '+971', flag: '🇦🇪', name: 'United Arab Emirates' },
-      { dial: '+61',  flag: '🇦🇺', name: 'Australia' },
-      { dial: '+49',  flag: '🇩🇪', name: 'Germany' },
-      { dial: '+33',  flag: '🇫🇷', name: 'France' },
-      { dial: '+81',  flag: '🇯🇵', name: 'Japan' },
-    ];
-    _countryCache = fallback;
-
-    if (codeSelect) {
-      codeSelect.innerHTML = '';
-      fallback.forEach(c => {
-        const o = new Option(`${c.flag} ${c.dial} ${c.name}`, c.dial);
-        if (c.name === 'India') o.selected = true;
-        codeSelect.add(o);
-      });
-    }
-    if (countrySelect) {
-      countrySelect.innerHTML = '<option value="">Select country…</option>';
-      fallback.forEach(c => {
-        const o = new Option(`${c.flag} ${c.name}`, c.name);
-        if (c.name === 'India') o.selected = true;
-        countrySelect.add(o);
-      });
-    }
-    const editCountry = document.getElementById('edit-country');
-    if (editCountry && editCountry.options.length <= 1) {
-      editCountry.innerHTML = '<option value="">Select country…</option>';
-      fallback.forEach(c => {
-        editCountry.add(new Option(`${c.flag} ${c.name}`, c.name));
-      });
-    }
-    return fallback;
-  } finally {
-    if (spinner) spinner.style.display = 'none';
-  }
-}
-
-/* ============================================================
-   PIN CODE VERIFICATION — shared logic
-   ctx: 'add' | 'edit'
-   ids: { pin, city, state, country, errPin, errCity, errState, errCountry }
-============================================================ */
-async function verifyPin(ctx, ids) {
-  const state      = formState[ctx];
-  const pinEl      = document.getElementById(ids.pin);
-  const cityEl     = document.getElementById(ids.city);
-  const stateEl    = document.getElementById(ids.state);
-  const countryEl  = document.getElementById(ids.country);
-  const errPinEl   = document.getElementById(ids.errPin);
-
-  if (!pinEl) return;
-
-  const pin = pinEl.value.trim();
-
-  /* If PIN is cleared → unlock everything */
-  if (pin.length === 0) {
-    state.pinVerified = false;
-    state.officialCity  = '';
-    state.officialState = '';
-    unlockField(cityEl);
-    unlockField(stateEl);
-    unlockSelect(countryEl);
-    clearFieldError(pinEl, errPinEl);
-    return;
-  }
-
-  /* Non-6-digit → just unlock (user still typing) */
-  if (pin.length !== 6) {
-    state.pinVerified = false;
-    state.officialCity  = '';
-    state.officialState = '';
-    unlockField(cityEl);
-    unlockField(stateEl);
-    unlockSelect(countryEl);
-    clearFieldError(pinEl, errPinEl);
-    return;
-  }
-
-  /* 6 digits — fetch */
-  if (state.pinFetching) return;
-  state.pinFetching = true;
-
-  // Give brief visual feedback
-  if (errPinEl) {
-    errPinEl.textContent = 'Verifying PIN…';
-    errPinEl.classList.remove('hidden');
-    errPinEl.style.display = '';
-    errPinEl.style.color = '#888';
-  }
-
-  try {
-    const res  = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
-    const data = await res.json();
-
-    if (data[0].Status === 'Success') {
-      const post = data[0].PostOffice[0];
-
-      state.officialCity  = post.District;
-      state.officialState = post.State;
-      state.pinVerified   = true;
-
-      /* Fill city & state */
-      if (cityEl)  cityEl.value  = state.officialCity;
-      if (stateEl) stateEl.value = state.officialState;
-
-      /* Force country = India */
-      if (countryEl) {
-        setSelectValue(countryEl, 'India');
-        lockSelect(countryEl);
-      }
-
-      lockField(cityEl);
-      lockField(stateEl);
-
-      /* Clear any stale PIN error */
-      clearFieldError(pinEl, errPinEl);
-    } else {
-      /* Invalid PIN */
-      state.pinVerified   = false;
-      state.officialCity  = '';
-      state.officialState = '';
-      unlockField(cityEl);
-      unlockField(stateEl);
-      unlockSelect(countryEl);
-
-      // Don't clear city/state — let user fill manually
-      showFieldError(pinEl, errPinEl, 'Invalid PIN code. Please enter a valid 6-digit Indian PIN.');
-    }
-  } catch (e) {
-    /* API down → don't block the user */
-    state.pinVerified   = false;
-    state.officialCity  = '';
-    state.officialState = '';
-    unlockField(cityEl);
-    unlockField(stateEl);
-    unlockSelect(countryEl);
-    if (errPinEl) {
-      errPinEl.textContent = 'Could not verify PIN (network error). You may continue manually.';
-      errPinEl.style.color = '#c0392b';
-      errPinEl.classList.remove('hidden');
-      errPinEl.style.display = '';
-    }
-  } finally {
-    state.pinFetching = false;
-    if (errPinEl) errPinEl.style.color = '';
-  }
-}
-
-/* ============================================================
-   FULL FORM VALIDATION — shared logic
-   Returns true if valid, false if not.
-   ctx: 'add' | 'edit'
-   ids: map of field → element IDs
-============================================================ */
-function validateAddress(ctx, ids) {
-  const formEl = document.getElementById(ids.form);
-  clearAllErrors(formEl);
-
-  const state = formState[ctx];
-  let ok = true;
-
-  function req(inputId, errId, message) {
-    const el    = document.getElementById(inputId);
-    const errEl = document.getElementById(errId);
-    if (!el) return;
-    if (!el.value.trim()) {
-      showFieldError(el, errEl, message);
-      ok = false;
-    }
-  }
-
-  function reqSelect(selectId, errId, message) {
-    const el    = document.getElementById(selectId);
-    const errEl = document.getElementById(errId);
-    if (!el) return;
-    const val = el.disabled ? (el.getAttribute('data-locked-value') || el.value) : el.value;
-    if (!val || val === '') {
-      showFieldError(el, errEl, message);
-      ok = false;
-    }
-  }
-
-  /* ── Required text fields ── */
-  req(ids.firstName,    ids.errFirstName,    'Please enter your first name.');
-  req(ids.lastName,     ids.errLastName,     'Please enter your last name.');
-  req(ids.addr1,        ids.errAddr1,        'Please enter your address.');
-  req(ids.city,         ids.errCity,         'Please enter your city.');
-  req(ids.stateField,   ids.errState,        'Please enter your state.');
-  req(ids.pin,          ids.errPin,          'Please enter your PIN code.');
-  reqSelect(ids.country, ids.errCountry,     'Please select a country.');
-
-  /* ── Phone number ── */
-  const phoneEl    = document.getElementById(ids.phone);
-  const errPhoneEl = document.getElementById(ids.errPhone);
-  if (phoneEl) {
-    const phoneVal = phoneEl.value.trim();
-    if (!phoneVal) {
-      showFieldError(phoneEl, errPhoneEl, 'Please enter your phone number.');
-      ok = false;
-    } else if (!/^\d{10}$/.test(phoneVal)) {
-      showFieldError(phoneEl, errPhoneEl, 'Phone number must be exactly 10 digits (numbers only).');
-      ok = false;
-    }
-  }
-
-  /* ── PIN must be exactly 6 digits ── */
-  const pinEl    = document.getElementById(ids.pin);
-  const errPinEl = document.getElementById(ids.errPin);
-  if (pinEl && pinEl.value.trim() && !/^\d{6}$/.test(pinEl.value.trim())) {
-    showFieldError(pinEl, errPinEl, 'PIN code must be exactly 6 digits.');
-    ok = false;
-  }
-
-  /* ── If PIN verified, city & state must match official values ── */
-  if (ok && state.pinVerified && state.officialCity) {
-    const cityEl    = document.getElementById(ids.city);
-    const errCityEl = document.getElementById(ids.errCity);
-    const stEl      = document.getElementById(ids.stateField);
-    const errStEl   = document.getElementById(ids.errState);
-
-    if (cityEl && cityEl.value.trim().toLowerCase() !== state.officialCity.toLowerCase()) {
-      showFieldError(cityEl, errCityEl, `City must match PIN: ${state.officialCity}`);
-      ok = false;
-    }
-    if (stEl && stEl.value.trim().toLowerCase() !== state.officialState.toLowerCase()) {
-      showFieldError(stEl, errStEl, `State must match PIN: ${state.officialState}`);
-      ok = false;
-    }
-  }
-
-  /* ── If country is not India but PIN is 6 digits → warn ── */
-  const countryEl   = document.getElementById(ids.country);
-  const errCountryEl = document.getElementById(ids.errCountry);
-  const pinVal      = pinEl ? pinEl.value.trim() : '';
-  const countryVal  = countryEl ? (countryEl.disabled ? (countryEl.getAttribute('data-locked-value') || countryEl.value) : countryEl.value) : '';
-
-  if (pinVal.length === 6 && countryVal && countryVal.toLowerCase() !== 'india') {
-    if (errCountryEl) {
-      showFieldError(countryEl, errCountryEl, 'A 6-digit PIN is valid only for India. Please select India as country or change the PIN.');
-      ok = false;
-    }
-  }
-
-  /* ── Address Type radio ── */
-  if (ids.addressTypeRadio) {
-    const radios = formEl ? formEl.querySelectorAll(`input[name="${ids.addressTypeRadio}"]`) : [];
-    const checked = Array.from(radios).some(r => r.checked);
-    if (!checked) {
-      /* Find a visible container to show error */
-      const container = radios.length > 0 ? radios[0].closest('.form-field, .flex') : null;
-      if (container) {
-        let errDiv = container.querySelector('.address-type-err');
-        if (!errDiv) {
-          errDiv = document.createElement('span');
-          errDiv.className = 'address-type-err error-msg show';
-          errDiv.style.cssText = 'font-size:9px;color:#c0392b;letter-spacing:0.05em;font-weight:500;display:block;margin-top:4px';
-          container.appendChild(errDiv);
+    if (_countryCache) return _countryCache;
+    const codeSelect    = document.getElementById('f-phone-code');
+    const countrySelect = document.getElementById('f-country');
+    const spinner       = document.getElementById('country-loading');
+    if (spinner) spinner.style.display = 'inline-block';
+    try {
+        const res  = await fetch('https://restcountries.com/v3.1/all?fields=name,idd,flag,cca2');
+        const data = await res.json();
+        data.sort((a, b) => a.name.common.localeCompare(b.name.common));
+        const countries = data.map(c => {
+            const root   = c.idd?.root   || '';
+            const suffix = c.idd?.suffixes?.length === 1 ? c.idd.suffixes[0] : '';
+            return { name: c.name.common, dial: root + suffix, flag: c.flag || '' };
+        }).filter(c => c.dial);
+        const preferred = ['India','United States','United Kingdom','United Arab Emirates'];
+        const top  = countries.filter(c => preferred.includes(c.name)).sort((a, b) => preferred.indexOf(a.name) - preferred.indexOf(b.name));
+        const rest = countries.filter(c => !preferred.includes(c.name));
+        const final = [...top, ...rest];
+        _countryCache = final;
+        if (codeSelect) {
+            codeSelect.innerHTML = '';
+            final.forEach(c => { const o = new Option(`${c.flag} ${c.dial} ${c.name}`, c.dial); if (c.name === 'India') o.selected = true; codeSelect.add(o); });
         }
-        errDiv.textContent = 'Please select an address type.';
-        errDiv.style.display = 'block';
-      }
-      ok = false;
+        [countrySelect, document.getElementById('edit-country')].forEach(sel => {
+            if (!sel) return;
+            sel.innerHTML = '<option value="">Select country…</option>';
+            final.forEach(c => { const o = new Option(`${c.flag} ${c.name}`, c.name); if (c.name === 'India') o.selected = true; sel.add(o); });
+        });
+        return final;
+    } catch (e) {
+        const fallback = [
+            { dial: '+91', flag: '🇮🇳', name: 'India' },
+            { dial: '+1',  flag: '🇺🇸', name: 'United States' },
+            { dial: '+44', flag: '🇬🇧', name: 'United Kingdom' },
+        ];
+        _countryCache = fallback;
+        if (codeSelect) { codeSelect.innerHTML = ''; fallback.forEach(c => { const o = new Option(`${c.flag} ${c.dial} ${c.name}`, c.dial); if (c.name === 'India') o.selected = true; codeSelect.add(o); }); }
+        [countrySelect, document.getElementById('edit-country')].forEach(sel => { if (!sel) return; sel.innerHTML = '<option value="">Select country…</option>'; fallback.forEach(c => sel.add(new Option(`${c.flag} ${c.name}`, c.name))); });
+        return fallback;
+    } finally {
+        if (spinner) spinner.style.display = 'none';
     }
-  }
-
-  return ok;
 }
 
-/* ============================================================
-   ADD MODAL — field IDs map
-============================================================ */
-const ADD_IDS = {
-  form:            'addressForm',
-  firstName:       'f-first-name',
-  errFirstName:    'err-first-name',
-  lastName:        'f-last-name',
-  errLastName:     'err-last-name',
-  phone:           'f-phone',
-  errPhone:        'err-phone',
-  addr1:           'f-addr1',
-  errAddr1:        'err-addr1',
-  city:            'f-city',
-  errCity:         'err-city',
-  stateField:      'f-state',
-  errState:        'err-state',
-  pin:             'f-postal',
-  errPin:          'err-postal',
-  country:         'f-country',
-  errCountry:      'err-country',
-  addressTypeRadio:'address_type',
-};
+/* ── PIN verification ── */
+async function verifyPin(ctx, ids) {
+    const state     = formState[ctx];
+    const pinEl     = document.getElementById(ids.pin);
+    const cityEl    = document.getElementById(ids.city);
+    const stateEl   = document.getElementById(ids.state);
+    const countryEl = document.getElementById(ids.country);
+    const errPinEl  = document.getElementById(ids.errPin);
+    if (!pinEl) return;
+    const pin = pinEl.value.trim();
+    if (pin.length === 0 || pin.length !== 6) {
+        state.pinVerified = false; state.officialCity = ''; state.officialState = '';
+        unlockField(cityEl); unlockField(stateEl); unlockSelect(countryEl);
+        clearFieldError(pinEl, errPinEl); return;
+    }
+    if (state.pinFetching) return;
+    state.pinFetching = true;
+    if (errPinEl) { errPinEl.textContent = 'Verifying PIN…'; errPinEl.classList.remove('hidden'); errPinEl.style.display = ''; errPinEl.style.color = '#888'; }
+    try {
+        const res  = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+        const data = await res.json();
+        if (data[0].Status === 'Success') {
+            const post = data[0].PostOffice[0];
+            state.officialCity = post.District; state.officialState = post.State; state.pinVerified = true;
+            if (cityEl) cityEl.value = state.officialCity;
+            if (stateEl) stateEl.value = state.officialState;
+            if (countryEl) { setSelectValue(countryEl, 'India'); lockSelect(countryEl); }
+            lockField(cityEl); lockField(stateEl);
+            clearFieldError(pinEl, errPinEl);
+        } else {
+            state.pinVerified = false; state.officialCity = ''; state.officialState = '';
+            unlockField(cityEl); unlockField(stateEl); unlockSelect(countryEl);
+            showFieldError(pinEl, errPinEl, 'Invalid PIN code. Please enter a valid 6-digit Indian PIN.');
+        }
+    } catch (e) {
+        state.pinVerified = false; state.officialCity = ''; state.officialState = '';
+        unlockField(cityEl); unlockField(stateEl); unlockSelect(countryEl);
+        if (errPinEl) { errPinEl.textContent = 'Could not verify PIN. You may continue manually.'; errPinEl.style.color = '#B5291C'; errPinEl.classList.remove('hidden'); errPinEl.style.display = ''; }
+    } finally {
+        state.pinFetching = false;
+        if (errPinEl) errPinEl.style.color = '';
+    }
+}
 
-/* ============================================================
-   EDIT MODAL — field IDs map
-============================================================ */
-const EDIT_IDS = {
-  form:            'editAddressForm',
-  firstName:       'edit-first-name',
-  errFirstName:    'err-edit-first-name',   // will create if missing
-  lastName:        'edit-last-name',
-  errLastName:     'err-edit-last-name',
-  phone:           'edit-phone',
-  errPhone:        'err-edit-phone',
-  addr1:           'edit-addr1',
-  errAddr1:        'err-edit-addr1',
-  city:            'edit-city',
-  errCity:         'err-edit-city',
-  stateField:      'edit-state',
-  errState:        'err-edit-state',
-  pin:             'edit-pin',
-  errPin:          'err-edit-pin',
-  country:         'edit-country',
-  errCountry:      'err-edit-country',
-  addressTypeRadio:'type',
-};
+/* ── Validation ── */
+const ADD_IDS = { form:'addressForm', firstName:'f-first-name', errFirstName:'err-first-name', lastName:'f-last-name', errLastName:'err-last-name', phone:'f-phone', errPhone:'err-phone', addr1:'f-addr1', errAddr1:'err-addr1', city:'f-city', errCity:'err-city', stateField:'f-state', errState:'err-state', pin:'f-postal', errPin:'err-postal', country:'f-country', errCountry:'err-country' };
+const EDIT_IDS = { form:'editAddressForm', firstName:'edit-first-name', errFirstName:'err-edit-first-name', lastName:'edit-last-name', errLastName:'err-edit-last-name', phone:'edit-phone', errPhone:'err-edit-phone', addr1:'edit-addr1', errAddr1:'err-edit-addr1', city:'edit-city', errCity:'err-edit-city', stateField:'edit-state', errState:'err-edit-state', pin:'edit-pin', errPin:'err-edit-pin', country:'edit-country', errCountry:'err-edit-country' };
 
-/* Auto-create missing error <span> elements for the edit modal */
+function validateAddress(ctx, ids) {
+    const formEl = document.getElementById(ids.form);
+    clearAllErrors(formEl);
+    const state = formState[ctx];
+    let ok = true;
+    function req(inputId, errId, message) {
+        const el = document.getElementById(inputId), errEl = document.getElementById(errId);
+        if (!el) return;
+        if (!el.value.trim()) { showFieldError(el, errEl, message); ok = false; }
+    }
+    function reqSelect(selectId, errId, message) {
+        const el = document.getElementById(selectId), errEl = document.getElementById(errId);
+        if (!el) return;
+        const val = el.disabled ? (el.getAttribute('data-locked-value') || el.value) : el.value;
+        if (!val || val === '') { showFieldError(el, errEl, message); ok = false; }
+    }
+    req(ids.firstName, ids.errFirstName, 'Please enter your first name.');
+    req(ids.lastName,  ids.errLastName,  'Please enter your last name.');
+    req(ids.addr1,     ids.errAddr1,     'Please enter your address.');
+    req(ids.city,      ids.errCity,      'Please enter your city.');
+    req(ids.stateField,ids.errState,     'Please enter your state.');
+    req(ids.pin,       ids.errPin,       'Please enter your PIN code.');
+    reqSelect(ids.country, ids.errCountry, 'Please select a country.');
+    const phoneEl = document.getElementById(ids.phone), errPhoneEl = document.getElementById(ids.errPhone);
+    if (phoneEl) {
+        const phoneVal = phoneEl.value.trim();
+        if (!phoneVal) { showFieldError(phoneEl, errPhoneEl, 'Please enter your phone number.'); ok = false; }
+        else if (!/^\d{10}$/.test(phoneVal)) { showFieldError(phoneEl, errPhoneEl, 'Phone number must be exactly 10 digits.'); ok = false; }
+    }
+    const pinEl = document.getElementById(ids.pin), errPinEl = document.getElementById(ids.errPin);
+    if (pinEl && pinEl.value.trim() && !/^\d{6}$/.test(pinEl.value.trim())) { showFieldError(pinEl, errPinEl, 'PIN code must be exactly 6 digits.'); ok = false; }
+    return ok;
+}
+
 function ensureEditErrorSpans() {
-  const fields = [
-    { inputId: 'edit-first-name', errId: 'err-edit-first-name' },
-    { inputId: 'edit-last-name',  errId: 'err-edit-last-name'  },
-    { inputId: 'edit-phone',      errId: 'err-edit-phone'      },
-    { inputId: 'edit-addr1',      errId: 'err-edit-addr1'      },
-    { inputId: 'edit-country',    errId: 'err-edit-country'    },
-  ];
-  fields.forEach(({ inputId, errId }) => {
-    if (document.getElementById(errId)) return;
-    const inp = document.getElementById(inputId);
-    if (!inp) return;
-    const span = document.createElement('span');
-    span.id        = errId;
-    span.className = 'text-xs hidden block mt-1';
-    span.style.cssText = 'font-size:9px;color:#c0392b;letter-spacing:0.05em;font-weight:500;display:none';
-    inp.parentNode.insertBefore(span, inp.nextSibling);
-  });
+    [['edit-first-name','err-edit-first-name'],['edit-last-name','err-edit-last-name'],['edit-phone','err-edit-phone'],['edit-addr1','err-edit-addr1'],['edit-country','err-edit-country']].forEach(([inputId, errId]) => {
+        if (document.getElementById(errId)) return;
+        const inp = document.getElementById(inputId);
+        if (!inp) return;
+        const span = document.createElement('span');
+        span.id = errId; span.className = 'error-msg';
+        inp.parentNode.insertBefore(span, inp.nextSibling);
+    });
 }
 
-/* ============================================================
-   MODAL — OPEN / CLOSE (original behaviour preserved)
-============================================================ */
+/* ── Modal controls ── */
 function openModal() {
-  document.getElementById('modal-title').textContent = 'Add New Address';
-  document.getElementById('submit-btn').textContent  = 'Save Address';
-
-  /* Reset state */
-  formState.add.pinVerified   = false;
-  formState.add.officialCity  = '';
-  formState.add.officialState = '';
-  formState.add.pinFetching   = false;
-
-  resetForm();
-  document.getElementById('addressModal').classList.add('open');
-  document.body.style.overflow = 'hidden';
+    formState.add = { pinVerified: false, officialCity: '', officialState: '', pinFetching: false };
+    document.getElementById('modal-title').textContent = 'Add New Address';
+    document.getElementById('submit-btn').textContent  = 'Save Address';
+    const formEl = document.getElementById('addressForm');
+    if (formEl) formEl.reset();
+    clearAllErrors(formEl);
+    unlockField(document.getElementById('f-city'));
+    unlockField(document.getElementById('f-state'));
+    unlockSelect(document.getElementById('f-country'));
+    const countryEl = document.getElementById('f-country');
+    if (countryEl) setSelectValue(countryEl, 'India');
+    document.getElementById('addressModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
-  document.getElementById('addressModal').classList.remove('open');
-  document.body.style.overflow = 'auto';
+    document.getElementById('addressModal').classList.remove('open');
+    document.body.style.overflow = '';
 }
 
-function resetForm() {
-  const formEl = document.getElementById('addressForm');
-  if (formEl) formEl.reset();
-  clearAllErrors(formEl);
-
-  /* Re-unlock city/state/country */
-  unlockField(document.getElementById('f-city'));
-  unlockField(document.getElementById('f-state'));
-  unlockSelect(document.getElementById('f-country'));
-
-  /* Re-default to India */
-  const countryEl = document.getElementById('f-country');
-  if (countryEl) setSelectValue(countryEl, 'India');
-  const codeEl = document.getElementById('f-phone-code');
-  if (codeEl) {
-    for (let i = 0; i < codeEl.options.length; i++) {
-      if (codeEl.options[i].textContent.includes('India')) { codeEl.selectedIndex = i; break; }
-    }
-  }
-}
-
-/* ─── Edit modal open ─── */
 async function openEditModal(data) {
-  ensureEditErrorSpans();
-
-  const modal     = document.getElementById('EditaddressModal');
-  const formEl    = document.getElementById('editAddressForm');
-  const countryEl = document.getElementById('edit-country');
-  const cityEl    = document.getElementById('edit-city');
-  const stateEl   = document.getElementById('edit-state');
-
-  /* Reset edit state */
-  formState.edit.pinVerified   = false;
-  formState.edit.officialCity  = '';
-  formState.edit.officialState = '';
-  formState.edit.pinFetching   = false;
-
-  clearAllErrors(formEl);
-
-  formEl.action = `/edit-user-address/${data.id}/`;
-
-  /* Fill fields */
-  document.getElementById('edit-first-name').value = data.first_name || '';
-  document.getElementById('edit-last-name').value  = data.last_name  || '';
-  document.getElementById('edit-phone').value      = data.phone      || '';
-  document.getElementById('edit-addr1').value      = data.addr1      || '';
-  document.getElementById('edit-addr2').value      = data.addr2      || '';
-  cityEl.value  = data.city   || '';
-  stateEl.value = data.state  || '';
-  document.getElementById('edit-pin').value = data.postal || '';
-
-  /* Ensure countries are loaded */
-  if (countryEl && countryEl.options.length <= 1) await fetchCountries();
-  if (countryEl) setSelectValue(countryEl, data.country || 'India');
-
-  /* Smart lock: if India + valid 6-digit PIN, treat as pre-verified */
-  const isIndia     = (data.country || '').toLowerCase() === 'india';
-  const pinStr      = String(data.postal || '');
-  const hasValidPin = /^\d{6}$/.test(pinStr);
-
-  if (isIndia && hasValidPin) {
-    formState.edit.pinVerified   = true;
-    formState.edit.officialCity  = data.city  || '';
-    formState.edit.officialState = data.state || '';
-    lockField(cityEl);
-    lockField(stateEl);
-    lockSelect(countryEl);
-  } else {
-    unlockField(cityEl);
-    unlockField(stateEl);
-    unlockSelect(countryEl);
-  }
-
-  /* Radios — normalize to lowercase so 'Home', 'home', 'HOME' all work */
-  const typeVal = (data.type || '').trim().toLowerCase();
-  ['home','work','other'].forEach(v => {
-    const r = document.getElementById('edit-type-' + v);
-    if (r) r.checked = (v === typeVal);
-  });
-  /* Fallback: if nothing matched (e.g. unexpected casing), default to home */
-  const anyChecked = ['home','work','other'].some(v => {
-    const r = document.getElementById('edit-type-' + v);
-    return r && r.checked;
-  });
-  if (!anyChecked) {
-    const homeR = document.getElementById('edit-type-home');
-    if (homeR) homeR.checked = true;
-  }
-
-  /* Default checkbox */
-  const defCb = document.getElementById('edit-default');
-  if (defCb) defCb.checked = !!data.is_default;
-
-  modal.classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
+    ensureEditErrorSpans();
+    const modal = document.getElementById('EditaddressModal');
+    const formEl = document.getElementById('editAddressForm');
+    const countryEl = document.getElementById('edit-country');
+    const cityEl    = document.getElementById('edit-city');
+    const stateEl   = document.getElementById('edit-state');
+    formState.edit = { pinVerified: false, officialCity: '', officialState: '', pinFetching: false };
+    clearAllErrors(formEl);
+    formEl.action = `/edit-user-address/${data.id}/`;
+    document.getElementById('edit-first-name').value = data.first_name || '';
+    document.getElementById('edit-last-name').value  = data.last_name  || '';
+    document.getElementById('edit-phone').value      = data.phone      || '';
+    document.getElementById('edit-addr1').value      = data.addr1      || '';
+    document.getElementById('edit-addr2').value      = data.addr2      || '';
+    cityEl.value  = data.city   || '';
+    stateEl.value = data.state  || '';
+    document.getElementById('edit-pin').value = data.postal || '';
+    if (countryEl && countryEl.options.length <= 1) await fetchCountries();
+    if (countryEl) setSelectValue(countryEl, data.country || 'India');
+    const isIndia = (data.country || '').toLowerCase() === 'india';
+    const hasValidPin = /^\d{6}$/.test(String(data.postal || ''));
+    if (isIndia && hasValidPin) {
+        formState.edit.pinVerified = true; formState.edit.officialCity = data.city || ''; formState.edit.officialState = data.state || '';
+        lockField(cityEl); lockField(stateEl); lockSelect(countryEl);
+    } else {
+        unlockField(cityEl); unlockField(stateEl); unlockSelect(countryEl);
+    }
+    ['home','work','other'].forEach(v => { const r = document.getElementById('edit-type-' + v); if (r) r.checked = (v === (data.type || '').trim().toLowerCase()); });
+    const anyChecked = ['home','work','other'].some(v => { const r = document.getElementById('edit-type-' + v); return r && r.checked; });
+    if (!anyChecked) { const r = document.getElementById('edit-type-home'); if (r) r.checked = true; }
+    const defCb = document.getElementById('edit-default');
+    if (defCb) defCb.checked = !!data.is_default;
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
 }
 
 function closeEditModal() {
-  const modal = document.getElementById('EditaddressModal');
-  if (modal) modal.classList.add('hidden');
-  document.body.style.overflow = 'auto';
+    const modal = document.getElementById('EditaddressModal');
+    if (modal) modal.classList.remove('open');
+    document.body.style.overflow = '';
 }
 
-/* ============================================================
-   DELETE OVERLAYS (unchanged)
-============================================================ */
-function confirmDelete(id) {
-  const o = document.getElementById(`delete-overlay-${id}`);
-  if (o) o.classList.add('visible');
-}
-function cancelDelete(id) {
-  const o = document.getElementById(`delete-overlay-${id}`);
-  if (o) o.classList.remove('visible');
-}
+/* ── Delete overlays ── */
+function confirmDelete(id) { const o = document.getElementById(`delete-overlay-${id}`); if (o) o.classList.add('visible'); }
+function cancelDelete(id)  { const o = document.getElementById(`delete-overlay-${id}`); if (o) o.classList.remove('visible'); }
 
-/* ============================================================
-   PROFILE COMPLETION ANIMATION (unchanged)
-============================================================ */
+/* ── Profile completion animation ── */
 function animateProfileCompletion() {
-  const section = document.getElementById('profile-completion-section');
-  if (!section) return;
-  const pct = parseInt(section.getAttribute('data-pct'), 10) || 0;
-
-  const fill    = document.getElementById('pc-progress-fill');
-  const counter = document.getElementById('pc-counter');
-  const ring    = document.getElementById('pc-ring-fill');
-  const badge   = document.getElementById('pc-badge');
-  if (!fill || !counter || !ring || !badge) return;
-
-  const C = 2 * Math.PI * 22;
-  requestAnimationFrame(() => {
-    fill.style.width = pct + '%';
-    ring.style.strokeDashoffset = C - (pct / 100) * C;
-  });
-
-  let t0 = null;
-  const dur = 1300;
-  function countUp(ts) {
-    if (!t0) t0 = ts;
-    const p = Math.min((ts - t0) / dur, 1);
-    const e = 1 - Math.pow(1 - p, 3);
-    counter.textContent = Math.round(e * pct) + '%';
-    if (p < 1) {
-      requestAnimationFrame(countUp);
-    } else {
-      if      (pct === 100) { badge.textContent = 'Complete';     badge.style.borderColor = '#111'; badge.style.color = '#111'; }
-      else if (pct >= 75)   { badge.textContent = 'Almost There'; }
-      else if (pct >= 50)   { badge.textContent = 'Half Way'; }
-      else                  { badge.textContent = 'In Progress';  }
+    const section = document.getElementById('profile-completion-section');
+    if (!section) return;
+    const pct  = parseInt(section.getAttribute('data-pct'), 10) || 0;
+    const fill = document.getElementById('pc-progress-fill');
+    const ctr  = document.getElementById('pc-counter');
+    const badge = document.getElementById('pc-badge');
+    if (!fill || !ctr || !badge) return;
+    requestAnimationFrame(() => { fill.style.width = pct + '%'; });
+    let t0 = null;
+    function countUp(ts) {
+        if (!t0) t0 = ts;
+        const p = Math.min((ts - t0) / 1300, 1);
+        const e = 1 - Math.pow(1 - p, 3);
+        ctr.textContent = Math.round(e * pct) + '%';
+        if (p < 1) { requestAnimationFrame(countUp); }
+        else {
+            if      (pct === 100) { badge.textContent = 'Complete';     badge.style.borderColor = '#0A0A0A'; badge.style.color = '#0A0A0A'; }
+            else if (pct >= 75)   { badge.textContent = 'Almost There'; }
+            else if (pct >= 50)   { badge.textContent = 'Half Way'; }
+            else                  { badge.textContent = 'In Progress'; }
+        }
     }
-  }
-  requestAnimationFrame(countUp);
+    requestAnimationFrame(countUp);
 }
 
-/* ============================================================
-   TOAST (unchanged)
-============================================================ */
+/* ── Toast ── */
 function showPillToast(message, tag) {
-  const container = document.getElementById('toast-container');
-  const isError   = tag.includes('error');
-  const icon      = isError ? '✕' : '✓';
-  const title     = isError ? 'ERROR' : 'SUCCESS';
-
-  const toast = document.createElement('div');
-  toast.className = `custom-pill-toast ${isError ? 'toast-error' : 'toast-success'}`;
-  toast.innerHTML = `
-    <div class="toast-left-content">
-      <div class="toast-icon-circle">${icon}</div>
-      <div class="toast-message-wrapper">
-        <span class="toast-main-text">${message}</span>
-        <span class="toast-sub-text">${title}</span>
-      </div>
-    </div>
-    <div class="toast-close-btn" onclick="this.parentElement.remove()">×</div>
-  `;
-  container.appendChild(toast);
-  setTimeout(() => toast.classList.add('show'), 100);
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 400);
-  }, 4000);
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    const isError = tag && tag.includes('error');
+    const toast = document.createElement('div');
+    toast.className = `custom-pill-toast ${isError ? 'toast-error' : 'toast-success'}`;
+    toast.innerHTML = `
+        <div class="toast-left-content">
+            <div class="toast-icon-circle">${isError ? '✕' : '✓'}</div>
+            <div class="toast-message-wrapper">
+                <div class="toast-main-text">${message}</div>
+                <div class="toast-sub-text">${isError ? 'Error' : 'Success'}</div>
+            </div>
+        </div>
+        <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>`;
+    container.appendChild(toast);
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 4000);
 }
 
-/* ============================================================
-   DOMContentLoaded — attach everything ONCE
-============================================================ */
+/* ── DOMContentLoaded ── */
 document.addEventListener('DOMContentLoaded', function () {
+    fetchCountries();
+    ensureEditErrorSpans();
+    setTimeout(animateProfileCompletion, 400);
 
-  /* ── Bootstrap ── */
-  fetchCountries();
-  ensureEditErrorSpans();
-  setTimeout(animateProfileCompletion, 400);
-
-  /* ── Toast from Django messages ── */
-  const msgScript = document.getElementById('django-messages');
-  if (msgScript) {
     try {
-      const msgs = JSON.parse(msgScript.textContent || '[]');
-      msgs.forEach(m => showPillToast(m.message, m.tags));
+        const msgs = JSON.parse(document.getElementById('django-messages').textContent || '[]');
+        msgs.forEach(m => showPillToast(m.message, m.tags));
     } catch (e) {}
-  }
 
-  /* ══════════════════════════════════════
-     ADD MODAL LISTENERS
-  ══════════════════════════════════════ */
+    /* ADD — PIN */
+    const addPin = document.getElementById('f-postal');
+    if (addPin) addPin.addEventListener('input', () => verifyPin('add', { pin:'f-postal', city:'f-city', state:'f-state', country:'f-country', errPin:'err-postal' }));
 
-  /* PIN input → live verify */
-  const addPin = document.getElementById('f-postal');
-  if (addPin) {
-    addPin.addEventListener('input', () => {
-      verifyPin('add', {
-        pin: 'f-postal', city: 'f-city', state: 'f-state',
-        country: 'f-country', errPin: 'err-postal',
-      });
+    /* ADD — phone digits only */
+    const addPhone = document.getElementById('f-phone');
+    if (addPhone) addPhone.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); clearFieldError(this, document.getElementById('err-phone')); });
+
+    /* ADD — country change */
+    const addCountry = document.getElementById('f-country');
+    if (addCountry) addCountry.addEventListener('change', function () {
+        if (!addCountry.disabled) { formState.add.pinVerified = false; formState.add.officialCity = ''; formState.add.officialState = ''; unlockField(document.getElementById('f-city')); unlockField(document.getElementById('f-state')); clearFieldError(document.getElementById('f-postal'), document.getElementById('err-postal')); }
     });
-  }
 
-  /* Phone — numbers only */
-  const addPhone = document.getElementById('f-phone');
-  if (addPhone) {
-    addPhone.addEventListener('input', function () {
-      this.value = this.value.replace(/\D/g, '').slice(0, 10);
-      const errEl = document.getElementById('err-phone');
-      clearFieldError(this, errEl);
+    /* ADD — live clear */
+    ['f-first-name','f-last-name','f-addr1','f-city','f-state'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', function () { clearFieldError(this, document.getElementById('err-' + id.replace('f-', ''))); });
     });
-  }
 
-  /* Country change → unlock city/state/reset pin verification */
-  const addCountry = document.getElementById('f-country');
-  if (addCountry) {
-    addCountry.addEventListener('change', function () {
-      if (!addCountry.disabled) {
-        formState.add.pinVerified   = false;
-        formState.add.officialCity  = '';
-        formState.add.officialState = '';
-        unlockField(document.getElementById('f-city'));
-        unlockField(document.getElementById('f-state'));
-        clearFieldError(document.getElementById('f-postal'), document.getElementById('err-postal'));
-      }
+    /* ADD — submit */
+    const addForm = document.getElementById('addressForm');
+    if (addForm) {
+        addForm.addEventListener('submit', function (e) {
+            addForm.querySelectorAll('select[disabled]').forEach(sel => {
+                const val = sel.getAttribute('data-locked-value') || sel.value;
+                const existing = addForm.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
+                if (existing) { existing.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); addForm.appendChild(h); }
+            });
+            if (!validateAddress('add', ADD_IDS)) { e.preventDefault(); const firstErr = addForm.querySelector('.error, .error-msg.show'); if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' }); }
+        });
+    }
+
+    /* EDIT — PIN */
+    const editPin = document.getElementById('edit-pin');
+    if (editPin) editPin.addEventListener('input', () => verifyPin('edit', { pin:'edit-pin', city:'edit-city', state:'edit-state', country:'edit-country', errPin:'err-edit-pin' }));
+
+    /* EDIT — phone digits only */
+    const editPhone = document.getElementById('edit-phone');
+    if (editPhone) editPhone.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); clearFieldError(this, document.getElementById('err-edit-phone')); });
+
+    /* EDIT — country change */
+    const editCountry = document.getElementById('edit-country');
+    if (editCountry) editCountry.addEventListener('change', function () {
+        if (!editCountry.disabled) { formState.edit.pinVerified = false; formState.edit.officialCity = ''; formState.edit.officialState = ''; unlockField(document.getElementById('edit-city')); unlockField(document.getElementById('edit-state')); clearFieldError(document.getElementById('edit-pin'), document.getElementById('err-edit-pin')); }
     });
-  }
 
-  /* Live clear on text input */
-  ['f-first-name','f-last-name','f-addr1','f-city','f-state'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('input', function () {
-      const errEl = document.getElementById(id.replace('f-', 'err-'));
-      clearFieldError(this, errEl);
+    /* EDIT — live clear */
+    ['edit-first-name','edit-last-name','edit-addr1','edit-city','edit-state'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', function () { clearFieldError(this, document.getElementById('err-' + id)); });
     });
-  });
 
-  /* Add form submit */
-  const addForm = document.getElementById('addressForm');
-  if (addForm) {
-    addForm.addEventListener('submit', function (e) {
+    /* EDIT — submit */
+    const editForm = document.getElementById('editAddressForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function (e) {
+            editForm.querySelectorAll('select[disabled]').forEach(sel => {
+                const val = sel.getAttribute('data-locked-value') || sel.value;
+                const existing = editForm.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
+                if (existing) { existing.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); editForm.appendChild(h); }
+            });
+            if (!validateAddress('edit', EDIT_IDS)) { e.preventDefault(); const firstErr = editForm.querySelector('.error, [id^="err-edit-"]:not(.hidden)'); if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' }); }
+        });
+    }
 
-      /* FIX: disabled <select> values are NOT sent by the browser.
-         Inject a hidden input for every disabled select so Django
-         always receives the value (same fix as edit modal). */
-      addForm.querySelectorAll('select[disabled]').forEach(function (sel) {
-        const existingHidden = addForm.querySelector(
-          'input[type="hidden"][name="' + sel.name + '"][data-mirror="1"]'
-        );
-        const val = sel.getAttribute('data-locked-value') || sel.value;
-        if (existingHidden) {
-          existingHidden.value = val;
-        } else {
-          const hidden = document.createElement('input');
-          hidden.type  = 'hidden';
-          hidden.name  = sel.name;
-          hidden.value = val;
-          hidden.setAttribute('data-mirror', '1');
-          addForm.appendChild(hidden);
-        }
-      });
-
-      if (!validateAddress('add', ADD_IDS)) {
-        e.preventDefault();
-        const firstErr = addForm.querySelector('.error, .error-msg.show');
-        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    });
-  }
-
-  /* ══════════════════════════════════════
-     EDIT MODAL LISTENERS
-  ══════════════════════════════════════ */
-
-  /* PIN input → live verify */
-  const editPin = document.getElementById('edit-pin');
-  if (editPin) {
-    editPin.addEventListener('input', () => {
-      verifyPin('edit', {
-        pin: 'edit-pin', city: 'edit-city', state: 'edit-state',
-        country: 'edit-country', errPin: 'err-edit-pin',
-      });
-    });
-  }
-
-  /* Phone — numbers only */
-  const editPhone = document.getElementById('edit-phone');
-  if (editPhone) {
-    editPhone.addEventListener('input', function () {
-      this.value = this.value.replace(/\D/g, '').slice(0, 10);
-      const errEl = document.getElementById('err-edit-phone');
-      if (errEl) clearFieldError(this, errEl);
-    });
-  }
-
-  /* Country change → unlock city/state/reset pin state */
-  const editCountry = document.getElementById('edit-country');
-  if (editCountry) {
-    editCountry.addEventListener('change', function () {
-      if (!editCountry.disabled) {
-        formState.edit.pinVerified   = false;
-        formState.edit.officialCity  = '';
-        formState.edit.officialState = '';
-        unlockField(document.getElementById('edit-city'));
-        unlockField(document.getElementById('edit-state'));
-        clearFieldError(document.getElementById('edit-pin'), document.getElementById('err-edit-pin'));
-      }
-    });
-  }
-
-  /* Live clear on edit text fields */
-  ['edit-first-name','edit-last-name','edit-addr1','edit-city','edit-state'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('input', function () {
-      const errId = 'err-' + id;
-      const errEl = document.getElementById(errId);
-      clearFieldError(this, errEl);
-    });
-  });
-
-  /* Edit form submit */
-  const editForm = document.getElementById('editAddressForm');
-  if (editForm) {
-    editForm.addEventListener('submit', function (e) {
-
-      /* ── FIX: disabled <select> values are NOT sent by the browser.
-         Before validation, inject a hidden input for every disabled
-         select so Django always receives the value. ── */
-      editForm.querySelectorAll('select[disabled]').forEach(function (sel) {
-        const existingHidden = editForm.querySelector(
-          `input[type="hidden"][name="${sel.name}"][data-mirror="1"]`
-        );
-        const val = sel.getAttribute('data-locked-value') || sel.value;
-        if (existingHidden) {
-          existingHidden.value = val;
-        } else {
-          const hidden = document.createElement('input');
-          hidden.type  = 'hidden';
-          hidden.name  = sel.name;
-          hidden.value = val;
-          hidden.setAttribute('data-mirror', '1');
-          editForm.appendChild(hidden);
-        }
-      });
-
-      /* Also mirror disabled text inputs (city / state when locked) */
-      editForm.querySelectorAll('input[readonly]').forEach(function (inp) {
-        if (!inp.name) return;
-        /* readonly inputs ARE submitted by the browser — nothing needed */
-      });
-
-      if (!validateAddress('edit', EDIT_IDS)) {
-        e.preventDefault();
-        const firstErr = editForm.querySelector('.error, [id^="err-edit-"]:not(.hidden)');
-        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    });
-  }
-
-  /* Escape key → close both modals */
-  document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') { closeModal(); closeEditModal(); }
-  });
+    /* Escape → close */
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeEditModal(); } });
 });
 </script>
 
- <script id="django-messages" type="application/json">
-    [
-        {% if messages %}
-            {% for message in messages %}
-                {
-                    "message": "{{ message|escapejs }}",
-                    "tags": "{{ message.tags }}"
-                }{% if not forloop.last %},{% endif %}
-            {% endfor %}
-        {% endif %}
-    ]
-  </script>
-</body>
-</html>
+{% endblock %}

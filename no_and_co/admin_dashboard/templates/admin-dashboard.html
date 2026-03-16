@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NO&CO Admin Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-outer: #1a1a1a;
+    --bg-main: #f5f4f0;
+    --bg-white: #ffffff;
+    --bg-card: #ffffff;
+    --sidebar-w: 180px;
+    --text-black: #111111;
+    --text-muted: #999999;
+    --text-label: #aaaaaa;
+    --border: #ebebeb;
+    --green: #4a7c59;
+    --green-light: #e8f0eb;
+    --red: #e05252;
+    --red-light: #fdeaea;
+    --accent-tag-green: #4a7c59;
+    --accent-tag-grey: #888;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg-outer);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* ── OUTER SHELL ── */
+  .shell {
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: var(--bg-outer);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* top label */
+  .shell-label {
+    color: #555;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    padding: 10px 16px 6px;
+    flex-shrink: 0;
+  }
+
+  /* inner white card */
+  .app {
+    flex: 1;
+    margin: 0 12px 12px;
+    background: var(--bg-main);
+    border-radius: 12px;
+    display: flex;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    flex-shrink: 0;
+    background: var(--bg-white);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 0 0;
+    overflow: hidden;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-black);
+    letter-spacing: 0.05em;
+    padding: 0 20px 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-section-label {
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    color: var(--text-label);
+    text-transform: uppercase;
+    padding: 20px 20px 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    font-size: 12.5px;
+    font-weight: 400;
+    color: #666;
+    cursor: pointer;
+    border-radius: 0;
+    transition: background 0.15s;
+    text-decoration: none;
+  }
+
+  .nav-item:hover { background: #f8f8f6; }
+
+  .nav-item.active {
+    background: #111;
+    color: #fff;
+    font-weight: 500;
+    border-radius: 0 6px 6px 0;
+    margin-right: 12px;
+  }
+
+  .nav-icon {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    opacity: 0.7;
+  }
+  .nav-item.active .nav-icon { opacity: 1; }
+
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: #ddd;
+    flex-shrink: 0;
+    object-fit: cover;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: #666;
+  }
+
+  .avatar-img {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #c5b99a, #a89070);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 11px; font-weight: 600;
+  }
+
+  .sidebar-user-name { font-size: 11.5px; font-weight: 600; color: var(--text-black); }
+  .sidebar-user-role { font-size: 9.5px; color: var(--text-muted); }
+
+  /* ── MAIN CONTENT ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    background: var(--bg-white);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .search-wrap {
+    flex: 1;
+    max-width: 240px;
+    position: relative;
+  }
+
+  .search-wrap svg {
+    position: absolute;
+    left: 10px; top: 50%;
+    transform: translateY(-50%);
+    color: #bbb;
+  }
+
+  .search-input {
+    width: 100%;
+    background: #f8f8f6;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 7px 12px 7px 30px;
+    font-size: 11.5px;
+    color: var(--text-black);
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+  }
+
+  .search-input::placeholder { color: #bbb; }
+
+  .topbar-spacer { flex: 1; }
+
+  .btn-sales-report {
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border: 1.5px solid #111;
+    background: transparent;
+    color: #111;
+    padding: 7px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+  }
+
+  .btn-sales-report:hover { background: #111; color: #fff; }
+
+  .topbar-icons { display: flex; align-items: center; gap: 12px; }
+
+  .icon-btn {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: #f5f5f3;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+
+  .notif-dot {
+    width: 7px; height: 7px;
+    background: var(--red);
+    border-radius: 50%;
+    position: absolute; top: 5px; right: 5px;
+    border: 1.5px solid white;
+  }
+
+  .user-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: #f5f5f3; border: none; cursor: pointer;
+    border-radius: 20px; padding: 4px 10px 4px 4px;
+  }
+
+  .user-btn-avatar {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: linear-gradient(135deg, #c5b99a, #a89070);
+  }
+
+  .user-btn-arrow { font-size: 10px; color: #999; }
+
+  /* CONTENT AREA */
+  .content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: #ddd transparent;
+  }
+
+  .content::-webkit-scrollbar { width: 4px; }
+  .content::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+  /* ── STAT CARDS ROW ── */
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .stat-card {
+    background: var(--bg-card);
+    border-radius: 10px;
+    padding: 14px 16px 12px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .stat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .stat-label {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-label);
+  }
+
+  .stat-icon { color: #ccc; }
+
+  .stat-value-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .stat-value {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-black);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .badge {
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 20px;
+  }
+
+  .badge-green { background: var(--green-light); color: var(--green); }
+  .badge-red { background: var(--red-light); color: var(--red); }
+  .badge-urgent { background: var(--red); color: #fff; font-size: 8px; letter-spacing: 0.06em; }
+
+  .sparkline { width: 100%; height: 36px; }
+
+  /* ── BOTTOM TWO COLUMNS ── */
+  .bottom-row {
+    display: grid;
+    grid-template-columns: 1fr 220px;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .left-col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+  .right-col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+
+  /* CHART CARD */
+  .chart-card {
+    background: var(--bg-card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 16px 18px 12px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-black);
+    font-family: 'Playfair Display', serif;
+  }
+
+  .card-subtitle {
+    font-size: 8.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-label);
+    margin-top: 2px;
+  }
+
+  .toggle-group {
+    display: flex;
+    background: #f5f5f3;
+    border-radius: 6px;
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .toggle-btn {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    background: transparent;
+    color: #999;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .toggle-btn.active { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+  .chart-wrap { flex: 1; min-height: 0; position: relative; }
+
+  /* TABLE CARD */
+  .table-card {
+    background: var(--bg-card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 16px 18px;
+    overflow: hidden;
+  }
+
+  .table-wrap { overflow-x: auto; margin-top: 12px; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  thead th {
+    font-size: 8.5px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-label);
+    text-align: left;
+    padding: 0 8px 8px 0;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody tr { border-bottom: 1px solid #f5f5f3; }
+  tbody tr:last-child { border-bottom: none; }
+
+  tbody td {
+    padding: 10px 8px 10px 0;
+    font-size: 11.5px;
+    color: var(--text-black);
+    vertical-align: middle;
+  }
+
+  .product-preview {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    background: #f5f5f3;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  .product-name { font-size: 12px; font-weight: 500; color: #111; }
+  .product-sku { font-size: 9px; color: #bbb; margin-top: 1px; }
+
+  .category-badge {
+    font-size: 9px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 20px;
+    background: #f0f0ee;
+    color: #555;
+    white-space: nowrap;
+  }
+
+  .revenue-val { font-size: 12px; font-weight: 600; color: #111; white-space: nowrap; }
+
+  /* INBOX CARD */
+  .inbox-card {
+    background: var(--bg-card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 16px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .card-header-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .view-all {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--red);
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .inbox-list { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+
+  .inbox-item { display: flex; align-items: center; gap: 10px; }
+
+  .inbox-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: #fff;
+  }
+
+  .inbox-name { font-size: 12px; font-weight: 500; color: #111; }
+  .inbox-time { font-size: 9.5px; color: #bbb; }
+
+  .inbox-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #111;
+    margin-left: auto;
+    flex-shrink: 0;
+  }
+
+  .inbox-dot.read { background: transparent; border: 1.5px solid #ddd; }
+
+  /* CATEGORY CARD */
+  .category-card {
+    background: var(--bg-card);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .cat-item { display: flex; flex-direction: column; gap: 5px; }
+
+  .cat-label-row {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .cat-name-row {
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .cat-icon { font-size: 11px; }
+  .cat-name { font-size: 12px; font-weight: 500; color: #111; }
+  .cat-pct { font-size: 12px; font-weight: 600; color: #111; }
+
+  .progress-bar {
+    height: 4px;
+    background: #f0f0ee;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #111;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+
+  .premium-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: #f8f8f6;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    margin-top: 2px;
+  }
+
+  .premium-left {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: #111;
+  }
+
+  .premium-arrow { font-size: 12px; color: #999; }
+
+  /* ── CHART SVG ── */
+  .chart-svg { width: 100%; height: 100%; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 1100px) {
+    :root { --sidebar-w: 160px; }
+    .stat-value { font-size: 18px; }
+  }
+
+  @media (max-width: 900px) {
+    .bottom-row { grid-template-columns: 1fr; }
+    .right-col { display: grid; grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 760px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+    :root { --sidebar-w: 0px; }
+    .sidebar { display: none; }
+    .shell-label { display: none; }
+    .app { margin: 0; border-radius: 0; }
+  }
+
+  @media (max-width: 500px) {
+    .stat-row { grid-template-columns: 1fr 1fr; }
+    .right-col { grid-template-columns: 1fr; }
+    .btn-sales-report { display: none; }
+    .content { padding: 12px 12px; gap: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+  <div class="shell-label">admin dashboard</div>
+
+  <div class="app">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="logo">NO&amp;CO</div>
+
+      <div class="nav-section-label">Management</div>
+
+      <a class="nav-item active" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/>
+          <rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/>
+        </svg>
+        Dashboard
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M3 2h10l1 10H2L3 2z"/><path d="M6 14a1 1 0 100-2 1 1 0 000 2z"/><path d="M11 14a1 1 0 100-2 1 1 0 000 2z"/>
+        </svg>
+        Orders
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+        </svg>
+        Outfits
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M2 4h12M2 8h8M2 12h5"/><path d="M12 7l2 3-2 3"/>
+        </svg>
+        Stylists
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M8 1l1.5 3 3.5.5-2.5 2.5.5 3.5L8 9l-3 1.5.5-3.5L3 4.5l3.5-.5z"/>
+        </svg>
+        Coupons
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
+        </svg>
+        Customers
+      </a>
+      <a class="nav-item" href="#">
+        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 8h6M5 5h3M5 11h4"/>
+        </svg>
+        Reviews
+      </a>
+
+      <div class="sidebar-footer">
+        <div class="avatar"><div class="avatar-img">AS</div></div>
+        <div>
+          <div class="sidebar-user-name">Abdulla Safwan</div>
+          <div class="sidebar-user-role">Global Admin</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="main">
+
+      <!-- TOPBAR -->
+      <div class="topbar">
+        <div class="search-wrap">
+          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3"/>
+          </svg>
+          <input class="search-input" type="text" placeholder="Search analytics...">
+        </div>
+        <div class="topbar-spacer"></div>
+        <button class="btn-sales-report">View Sales Report</button>
+        <div class="topbar-icons">
+          <button class="icon-btn">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M8 1a5 5 0 015 5v3l1.5 2H1.5L3 9V6a5 5 0 015-5z"/><path d="M6 13a2 2 0 004 0"/>
+            </svg>
+            <span class="notif-dot"></span>
+          </button>
+          <button class="user-btn">
+            <div class="user-btn-avatar"></div>
+            <span class="user-btn-arrow">▾</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CONTENT -->
+      <div class="content">
+
+        <!-- STAT CARDS -->
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Total Revenue</span>
+              <svg class="stat-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M2 6h12"/>
+              </svg>
+            </div>
+            <div class="stat-value-row">
+              <span class="stat-value">$45,231.89</span>
+              <span class="badge badge-green">+12.6%</span>
+            </div>
+            <svg class="sparkline" viewBox="0 0 120 36" fill="none">
+              <path d="M0 30 C10 28, 20 20, 30 22 C40 24, 50 15, 60 18 C70 21, 80 8, 90 10 C100 12, 110 4, 120 2" stroke="#111" stroke-width="1.5"/>
+            </svg>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Total Orders</span>
+              <svg class="stat-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M3 2h10l1 10H2L3 2z"/><path d="M6 14a1 1 0 100-2 1 1 0 000 2z"/><path d="M11 14a1 1 0 100-2 1 1 0 000 2z"/>
+              </svg>
+            </div>
+            <div class="stat-value-row">
+              <span class="stat-value">2,350</span>
+              <span class="badge badge-green">+6.2%</span>
+            </div>
+            <svg class="sparkline" viewBox="0 0 120 36" fill="none">
+              <path d="M0 28 C10 26, 20 22, 30 24 C40 26, 50 18, 60 20 C70 22, 80 14, 90 16 C100 18, 110 10, 120 8" stroke="#111" stroke-width="1.5"/>
+            </svg>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Pending Outfits</span>
+              <svg class="stat-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/>
+              </svg>
+            </div>
+            <div class="stat-value-row">
+              <span class="stat-value">48</span>
+              <span class="badge badge-urgent">Urgent</span>
+            </div>
+            <svg class="sparkline" viewBox="0 0 120 36" fill="none">
+              <path d="M0 16 C10 18, 20 12, 30 14 C40 16, 50 22, 60 20 C70 18, 80 24, 90 22 C100 20, 110 26, 120 28" stroke="#111" stroke-width="1.5"/>
+            </svg>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-header">
+              <span class="stat-label">Active Stylists</span>
+              <svg class="stat-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="6" cy="5" r="2.5"/><circle cx="11" cy="5" r="2.5"/><path d="M1 14c0-2.8 2.2-5 5-5"/>
+                <path d="M8.5 14c0-2.8 2.2-5 5-5" opacity="0.4"/>
+              </svg>
+            </div>
+            <div class="stat-value-row">
+              <span class="stat-value">12,234</span>
+              <span class="badge badge-green">+4.1%</span>
+            </div>
+            <svg class="sparkline" viewBox="0 0 120 36" fill="none">
+              <path d="M0 26 C10 24, 20 20, 30 18 C40 16, 50 14, 60 12 C70 10, 80 8, 90 7 C100 6, 110 4, 120 3" stroke="#111" stroke-width="1.5"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- BOTTOM ROW -->
+        <div class="bottom-row">
+
+          <!-- LEFT -->
+          <div class="left-col">
+
+            <!-- REVENUE CHART -->
+            <div class="chart-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Revenue Overview</div>
+                  <div class="card-subtitle">FY 2024 Performance</div>
+                </div>
+                <div class="toggle-group">
+                  <button class="toggle-btn active">Weekly</button>
+                  <button class="toggle-btn">Monthly</button>
+                </div>
+              </div>
+              <div class="chart-wrap">
+                <svg class="chart-svg" viewBox="0 0 520 180" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#111" stop-opacity="0.06"/>
+                      <stop offset="100%" stop-color="#111" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <!-- grid lines -->
+                  <line x1="0" y1="160" x2="520" y2="160" stroke="#f0f0ee" stroke-width="1"/>
+                  <line x1="0" y1="120" x2="520" y2="120" stroke="#f0f0ee" stroke-width="1"/>
+                  <line x1="0" y1="80" x2="520" y2="80" stroke="#f0f0ee" stroke-width="1"/>
+                  <line x1="0" y1="40" x2="520" y2="40" stroke="#f0f0ee" stroke-width="1"/>
+                  <!-- area fill -->
+                  <path d="M0 155 C30 152, 60 140, 90 138 C120 136, 150 128, 180 120 C210 112, 240 100, 270 95 C300 90, 330 75, 360 65 C390 55, 420 38, 450 30 C470 25, 490 18, 520 10 L520 160 L0 160 Z" fill="url(#chartGrad)"/>
+                  <!-- line -->
+                  <path d="M0 155 C30 152, 60 140, 90 138 C120 136, 150 128, 180 120 C210 112, 240 100, 270 95 C300 90, 330 75, 360 65 C390 55, 420 38, 450 30 C470 25, 490 18, 520 10" fill="none" stroke="#111" stroke-width="1.8"/>
+                  <!-- dots -->
+                  <circle cx="90" cy="138" r="3.5" fill="#fff" stroke="#111" stroke-width="1.5"/>
+                  <circle cx="180" cy="120" r="3.5" fill="#fff" stroke="#111" stroke-width="1.5"/>
+                  <circle cx="270" cy="95" r="3.5" fill="#fff" stroke="#111" stroke-width="1.5"/>
+                  <circle cx="360" cy="65" r="3.5" fill="#fff" stroke="#111" stroke-width="1.5"/>
+                  <circle cx="450" cy="30" r="3.5" fill="#fff" stroke="#111" stroke-width="1.5"/>
+                  <!-- x-axis labels -->
+                  <text x="0" y="176" font-size="9" fill="#bbb" font-family="DM Sans">JAN</text>
+                  <text x="90" y="176" font-size="9" fill="#bbb" font-family="DM Sans">MAR</text>
+                  <text x="185" y="176" font-size="9" fill="#bbb" font-family="DM Sans">MAY</text>
+                  <text x="280" y="176" font-size="9" fill="#bbb" font-family="DM Sans">JUL</text>
+                  <text x="375" y="176" font-size="9" fill="#bbb" font-family="DM Sans">SEP</text>
+                  <text x="468" y="176" font-size="9" fill="#bbb" font-family="DM Sans">NOV</text>
+                </svg>
+              </div>
+            </div>
+
+            <!-- TRENDING TABLE -->
+            <div class="table-card">
+              <div class="card-header">
+                <div>
+                  <div class="card-title">Trending Outfits</div>
+                  <div class="card-subtitle">Highest Conversion</div>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Preview</th>
+                      <th>Product Name</th>
+                      <th>Category</th>
+                      <th>Sales</th>
+                      <th>Revenue</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>
+                        <div class="product-preview">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5">
+                            <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
+                          </svg>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="product-name">Noir Essential Tee</div>
+                        <div class="product-sku">ID: NE-001</div>
+                      </td>
+                      <td><span class="category-badge">Aree Style</span></td>
+                      <td>342</td>
+                      <td><span class="revenue-val">₹1,95,390</span></td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="product-preview">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5">
+                            <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
+                          </svg>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="product-name">Signature Silk Shirt</div>
+                        <div class="product-sku">ID: SS-089</div>
+                      </td>
+                      <td><span class="category-badge">Old Money</span></td>
+                      <td>288</td>
+                      <td><span class="revenue-val">₹9,99,988</span></td>
+                    </tr>
+                    <tr>
+                      <td>
+                        <div class="product-preview" style="background:#e8f2e8;">
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4a7c59" stroke-width="1.5">
+                            <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
+                          </svg>
+                        </div>
+                      </td>
+                      <td>
+                        <div class="product-name">Heritage Brazil Jersey</div>
+                        <div class="product-sku">ID: HBJ-BLU</div>
+                      </td>
+                      <td><span class="category-badge">Sport</span></td>
+                      <td>245</td>
+                      <td><span class="revenue-val">₹2,90,999</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+          </div><!-- /left-col -->
+
+          <!-- RIGHT -->
+          <div class="right-col">
+
+            <!-- STYLIST INBOX -->
+            <div class="inbox-card">
+              <div class="card-header-row">
+                <div class="card-title">Stylist Inbox</div>
+                <a href="#" class="view-all">View All</a>
+              </div>
+              <div class="inbox-list">
+                <div class="inbox-item">
+                  <div class="inbox-avatar" style="background:#c5a882;">OM</div>
+                  <div>
+                    <div class="inbox-name">Olivia Martin</div>
+                    <div class="inbox-time">2m ago</div>
+                  </div>
+                  <span class="inbox-dot"></span>
+                </div>
+                <div class="inbox-item">
+                  <div class="inbox-avatar" style="background:#8ba8c5;">JL</div>
+                  <div>
+                    <div class="inbox-name">Jackson Lee</div>
+                    <div class="inbox-time">12m ago</div>
+                  </div>
+                  <span class="inbox-dot"></span>
+                </div>
+                <div class="inbox-item">
+                  <div class="inbox-avatar" style="background:#c5a8b8;">IN</div>
+                  <div>
+                    <div class="inbox-name">Isabella Nguyen</div>
+                    <div class="inbox-time">1h ago</div>
+                  </div>
+                  <span class="inbox-dot read"></span>
+                </div>
+                <div class="inbox-item">
+                  <div class="inbox-avatar" style="background:#a8b8c5;">WK</div>
+                  <div>
+                    <div class="inbox-name">William Kim</div>
+                    <div class="inbox-time">4h ago</div>
+                  </div>
+                  <span class="inbox-dot read"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- CATEGORY SPLIT -->
+            <div class="category-card">
+              <div>
+                <div class="card-title">Category Split</div>
+                <div class="card-subtitle">Revenue Share</div>
+              </div>
+
+              <div class="cat-item">
+                <div class="cat-label-row">
+                  <div class="cat-name-row">
+                    <span class="cat-icon">🏛</span>
+                    <span class="cat-name">Old Money</span>
+                  </div>
+                  <span class="cat-pct">45%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width:45%"></div></div>
+              </div>
+
+              <div class="cat-item">
+                <div class="cat-label-row">
+                  <div class="cat-name-row">
+                    <span class="cat-icon">✦</span>
+                    <span class="cat-name">Free Style</span>
+                  </div>
+                  <span class="cat-pct">28%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width:28%"></div></div>
+              </div>
+
+              <div class="cat-item">
+                <div class="cat-label-row">
+                  <div class="cat-name-row">
+                    <span class="cat-icon">⚽</span>
+                    <span class="cat-name">Jersey</span>
+                  </div>
+                  <span class="cat-pct">15%</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width:15%"></div></div>
+              </div>
+
+              <button class="premium-btn">
+                <span class="premium-left">
+                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M8 1l1.5 3 3.5.5-2.5 2.5.5 3.5L8 9l-3 1.5.5-3.5L3 4.5l3.5-.5z"/>
+                  </svg>
+                  Premium Insights
+                </span>
+                <span class="premium-arrow">›</span>
+              </button>
+            </div>
+
+          </div><!-- /right-col -->
+
+        </div><!-- /bottom-row -->
+
+      </div><!-- /content -->
+
+    </main>
+  </div><!-- /app -->
+</div><!-- /shell -->
+
+<script>
+  // Toggle Weekly/Monthly
+  document.querySelectorAll('.toggle-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
