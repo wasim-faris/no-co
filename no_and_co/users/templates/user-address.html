@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saved Addresses — Studio Archive</title>
+    <link href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-minimal/minimal.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
 
@@ -437,8 +439,7 @@
         .es-dot-6 { animation: orbitFade 2.4s 2.0s ease-in-out infinite; }
         .empty-text h2 { line-height: 1.2; }
 
-
-           .serif-font{font-family:'Playfair Display',serif}
+  .serif-font{font-family:'Playfair Display',serif}
 body{font-family:'Inter',sans-serif}
 .no-scrollbar::-webkit-scrollbar{display:none}
 
@@ -537,6 +538,38 @@ body{font-family:'Inter',sans-serif}
 .animate-slide-left {
     animation: slideLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+/* Modern Swal Customization */
+.swal-modern-popup {
+    border-radius: 0px !important; /* Sharp edges like H&M/Zara */
+    padding: 2rem !important;
+}
+
+.swal-modern-button {
+    background-color: #111 !important;
+    color: #fff !important;
+    padding: 12px 40px !important;
+    border: none !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    letter-spacing: 1.5px !important;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.swal-modern-button:hover {
+    background-color: #333 !important;
+}
+
+.form-input {
+    transition: background-color 0.3s ease, border 0.3s ease;
+}
+
+.form-input[readonly] {
+    color: #777;
+    border-bottom: 1px dashed #ccc !important; /* Visual hint it's locked */
+    cursor: default;
+}
     </style>
 </head>
 
@@ -551,7 +584,7 @@ body{font-family:'Inter',sans-serif}
         <div class="lg:sticky lg:top-36">
             <p class="label-xs text-neutral-400 mb-10">Account</p>
             <nav class="space-y-1">
-                <a href="#" class="sidebar-link flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 hover:text-black rounded-full group">
+                <a href="{% url "user-profile" request.user.id %}" class="sidebar-link flex items-center gap-4 px-5 py-3.5 text-[11px] uppercase tracking-widest text-neutral-500 hover:bg-neutral-50 hover:text-black rounded-full group">
                     <svg class="w-4 h-4 opacity-40 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h7"/></svg>
                     Overview
                 </a>
@@ -698,7 +731,7 @@ Default
         {% if not address.is_default %}
         <span class="dot-sep"></span>
 
-        <form method="POST" action="/set-default-address/{{ address.id }}/" style="display:inline;">
+        <form method="POST" action="{% url "user-address-set-default" address.id %}" style="display:inline;">
             {% csrf_token %}
             <button type="submit" class="action-btn">
                 Set as Default
@@ -1082,19 +1115,21 @@ No saved addresses yet.
                     </div>
 
                     <div class="grid grid-cols-3 gap-4 text-sm font-light">
-                        <div class="flex flex-col gap-2">
-                            <label class="text-[11px] uppercase tracking-wider text-neutral-500">City</label>
-                            <input type="text" name="city" id="edit-city" class="border-b border-neutral-200 py-2 focus:border-black outline-none">
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <label class="text-[11px] uppercase tracking-wider text-neutral-500">State</label>
-                            <input type="text" name="state" id="edit-state" class="border-b border-neutral-200 py-2 focus:border-black outline-none">
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <label class="text-[11px] uppercase tracking-wider text-neutral-500">Pin Code</label>
-                            <input type="text" name="pin_code" id="edit-pin" class="border-b border-neutral-200 py-2 focus:border-black outline-none">
-                        </div>
-                    </div>
+    <div class="flex flex-col gap-2">
+        <label class="text-[11px] uppercase tracking-wider text-neutral-500">City</label>
+        <input type="text" name="city" id="edit-city" class="border-b border-neutral-200 py-2 focus:border-black outline-none transition-all">
+        <span id="err-edit-city" class="text-[10px] text-red-500 mt-1 hidden"></span> </div>
+
+    <div class="flex flex-col gap-2">
+        <label class="text-[11px] uppercase tracking-wider text-neutral-500">State</label>
+        <input type="text" name="state" id="edit-state" class="border-b border-neutral-200 py-2 focus:border-black outline-none transition-all">
+        <span id="err-edit-state" class="text-[10px] text-red-500 mt-1 hidden"></span> </div>
+
+    <div class="flex flex-col gap-2">
+        <label class="text-[11px] uppercase tracking-wider text-neutral-500">Pin Code</label>
+        <input type="text" name="pin_code" id="edit-pin" class="border-b border-neutral-200 py-2 focus:border-black outline-none transition-all">
+        <span id="err-edit-pin" class="text-[10px] text-red-500 mt-1 hidden"></span> </div>
+</div>
 
                     <div class="flex flex-col gap-2">
                         <label class="text-[11px] uppercase tracking-wider text-neutral-500">Country</label>
@@ -1135,563 +1170,934 @@ No saved addresses yet.
 </div>
 <!-- ── Scripts ── -->
 <script>
+/* ============================================================
+   ADDRESS VALIDATION — SHARED ENGINE
+   Works identically for Add Modal (#addressForm)
+   and Edit Modal (#editAddressForm).
+   No external libraries. No alert(). No duplicated listeners.
+============================================================ */
 
+/* ─── Country list cache (fetched once) ─────────────────── */
+let _countryCache = null;
 
-var DEMO_ADDRESSES = {
-    1: {
-        first_name: 'Wasim', last_name: 'Faris',
-        phone_code: '+91',   phone: '9605505651',
-        address_line_1: 'No 21, Palm Street', address_line_2: '',
-        city: 'Calicut', state: 'Kerala', postal_code: '673001',
-        country: 'India', address_type: 'Home', is_default: true
-    },
-    2: {
-        first_name: 'Wasim', last_name: 'Faris',
-        phone_code: '+91',   phone: '9605505651',
-        address_line_1: 'Tech Park Building', address_line_2: '',
-        city: 'Kozhikode', state: 'Kerala', postal_code: '673002',
-        country: 'India', address_type: 'Work', is_default: false
-    }
+/* ─── Per-form validation state ─────────────────────────── */
+const formState = {
+  add: {
+    pinVerified: false,
+    officialCity: '',
+    officialState: '',
+    pinFetching: false,
+  },
+  edit: {
+    pinVerified: false,
+    officialCity: '',
+    officialState: '',
+    pinFetching: false,
+  },
 };
 
 /* ============================================================
-   COUNTRY DATA FETCH
+   UTILITY HELPERS
 ============================================================ */
-async function fetchCountries() {
-    var codeSelect    = document.getElementById('f-phone-code');
-    var countrySelect = document.getElementById('f-country');
-    var spinner       = document.getElementById('country-loading');
 
-    spinner.style.display = 'inline-block';
-
-    try {
-        var res  = await fetch('https://restcountries.com/v3.1/all?fields=name,idd,flag,cca2');
-        var data = await res.json();
-
-        data.sort(function(a, b) { return a.name.common.localeCompare(b.name.common); });
-
-        var countries = data.map(function(c) {
-            var root   = (c.idd && c.idd.root) ? c.idd.root : '';
-            var suffix = (c.idd && c.idd.suffixes && c.idd.suffixes.length === 1) ? c.idd.suffixes[0] : '';
-            return { name: c.name.common, dial: root + suffix || '', flag: c.flag || '' };
-        }).filter(function(c) { return c.dial; });
-
-        var preferred = ['India', 'United States', 'United Kingdom', 'United Arab Emirates'];
-        var top = [], rest = [];
-        countries.forEach(function(c) {
-            preferred.indexOf(c.name) !== -1 ? top.push(c) : rest.push(c);
-        });
-        top.sort(function(a, b) { return preferred.indexOf(a.name) - preferred.indexOf(b.name); });
-        var final = top.concat(rest);
-
-        codeSelect.innerHTML = '';
-        countrySelect.innerHTML = '<option value="">Select country…</option>';
-
-        final.forEach(function(c) {
-            var o1 = document.createElement('option');
-            o1.value = c.dial;
-            o1.textContent = c.flag + ' ' + c.dial + ' ' + c.name;
-            if (c.name === 'India') o1.selected = true;
-            codeSelect.appendChild(o1);
-
-            var o2 = document.createElement('option');
-            o2.value = c.name;
-            o2.textContent = c.flag + ' ' + c.name;
-            if (c.name === 'India') o2.selected = true;
-            countrySelect.appendChild(o2);
-        });
-
-        if (window._pendingCountry) { setSelectByValue(countrySelect, window._pendingCountry); window._pendingCountry = null; }
-        if (window._pendingDial)    { setSelectByValue(codeSelect, window._pendingDial);        window._pendingDial    = null; }
-
-    } catch(e) {
-        var fallback = [
-            { dial: '+91',  flag: '🇮🇳', name: 'India' },
-            { dial: '+1',   flag: '🇺🇸', name: 'United States' },
-            { dial: '+44',  flag: '🇬🇧', name: 'United Kingdom' },
-            { dial: '+971', flag: '🇦🇪', name: 'United Arab Emirates' },
-            { dial: '+61',  flag: '🇦🇺', name: 'Australia' },
-            { dial: '+49',  flag: '🇩🇪', name: 'Germany' },
-            { dial: '+33',  flag: '🇫🇷', name: 'France' },
-            { dial: '+81',  flag: '🇯🇵', name: 'Japan' },
-        ];
-        codeSelect.innerHTML = '';
-        countrySelect.innerHTML = '<option value="">Select country…</option>';
-        fallback.forEach(function(c) {
-            var o1 = document.createElement('option');
-            o1.value = c.dial; o1.textContent = c.flag + ' ' + c.dial + ' ' + c.name;
-            if (c.name === 'India') o1.selected = true;
-            codeSelect.appendChild(o1);
-
-            var o2 = document.createElement('option');
-            o2.value = c.name; o2.textContent = c.flag + ' ' + c.name;
-            if (c.name === 'India') o2.selected = true;
-            countrySelect.appendChild(o2);
-        });
-    } finally {
-        spinner.style.display = 'none';
-    }
+/** Show an inline error message under a field */
+function showFieldError(inputEl, msgEl, message) {
+  if (!inputEl || !msgEl) return;
+  inputEl.classList.add('error');
+  msgEl.textContent = message;
+  msgEl.classList.add('show');        // works for add-modal style
+  msgEl.classList.remove('hidden');   // works for edit-modal style
+  msgEl.style.display = '';
 }
 
-function setSelectByValue(el, val) {
-    for (var i = 0; i < el.options.length; i++) {
-        if (el.options[i].value === val) { el.selectedIndex = i; return; }
+/** Clear a single field's error state */
+function clearFieldError(inputEl, msgEl) {
+  if (inputEl) inputEl.classList.remove('error', 'border-red-500');
+  if (msgEl) {
+    msgEl.classList.remove('show', 'block');
+    msgEl.classList.add('hidden');
+    msgEl.style.display = 'none';
+    msgEl.textContent = '';
+  }
+}
+
+/** Clear ALL errors inside a form */
+function clearAllErrors(formEl) {
+  if (!formEl) return;
+  formEl.querySelectorAll('.error-msg, [id^="err-"]').forEach(el => {
+    el.classList.remove('show', 'block');
+    el.classList.add('hidden');
+    el.style.display = 'none';
+    el.textContent = '';
+  });
+  formEl.querySelectorAll('.error, .border-red-500').forEach(el => {
+    el.classList.remove('error', 'border-red-500');
+  });
+  formEl.querySelectorAll('.phone-row').forEach(el => {
+    el.classList.remove('error');
+  });
+}
+
+/** Lock a text input (PIN-confirmed) */
+function lockField(el) {
+  if (!el) return;
+  el.readOnly = true;
+  el.style.backgroundColor = '#f5f5f5';
+  el.style.color = '#777';
+  el.style.borderBottomStyle = 'dashed';
+  el.style.cursor = 'default';
+}
+
+/** Unlock a text input */
+function unlockField(el) {
+  if (!el) return;
+  el.readOnly = false;
+  el.style.backgroundColor = 'transparent';
+  el.style.color = '';
+  el.style.borderBottomStyle = '';
+  el.style.cursor = '';
+}
+
+/** Lock a <select> */
+function lockSelect(el) {
+  if (!el) return;
+  el.disabled = true;
+  el.style.backgroundColor = '#f5f5f5';
+  el.style.color = '#777';
+  el.style.cursor = 'default';
+  // Keep value accessible even when disabled
+  el.setAttribute('data-locked-value', el.value);
+}
+
+/** Unlock a <select> */
+function unlockSelect(el) {
+  if (!el) return;
+  el.disabled = false;
+  el.style.backgroundColor = 'transparent';
+  el.style.color = '';
+  el.style.cursor = '';
+}
+
+/** Set <select> to a value by text match */
+function setSelectValue(selectEl, value) {
+  if (!selectEl || !value) return false;
+  const val = value.trim().toLowerCase();
+  for (let i = 0; i < selectEl.options.length; i++) {
+    if (selectEl.options[i].value.trim().toLowerCase() === val) {
+      selectEl.selectedIndex = i;
+      return true;
     }
+  }
+  return false;
 }
 
 /* ============================================================
-   MODAL OPEN / CLOSE
+   COUNTRY DATA — fetched once, shared between both modals
+============================================================ */
+async function fetchCountries() {
+  if (_countryCache) return _countryCache;
+
+  const codeSelect    = document.getElementById('f-phone-code');
+  const countrySelect = document.getElementById('f-country');
+  const spinner       = document.getElementById('country-loading');
+
+  if (spinner) spinner.style.display = 'inline-block';
+
+  try {
+    const res  = await fetch('https://restcountries.com/v3.1/all?fields=name,idd,flag,cca2');
+    const data = await res.json();
+
+    data.sort((a, b) => a.name.common.localeCompare(b.name.common));
+
+    const countries = data.map(c => {
+      const root   = c.idd?.root   || '';
+      const suffix = c.idd?.suffixes?.length === 1 ? c.idd.suffixes[0] : '';
+      return { name: c.name.common, dial: root + suffix, flag: c.flag || '' };
+    }).filter(c => c.dial);
+
+    const preferred = ['India','United States','United Kingdom','United Arab Emirates'];
+    const top  = countries.filter(c => preferred.includes(c.name))
+                          .sort((a, b) => preferred.indexOf(a.name) - preferred.indexOf(b.name));
+    const rest = countries.filter(c => !preferred.includes(c.name));
+    const final = [...top, ...rest];
+
+    _countryCache = final;
+
+    /* ── Populate Add-modal selects ── */
+    if (codeSelect) {
+      codeSelect.innerHTML = '';
+      final.forEach(c => {
+        const o = new Option(`${c.flag} ${c.dial} ${c.name}`, c.dial);
+        if (c.name === 'India') o.selected = true;
+        codeSelect.add(o);
+      });
+    }
+
+    if (countrySelect) {
+      countrySelect.innerHTML = '<option value="">Select country…</option>';
+      final.forEach(c => {
+        const o = new Option(`${c.flag} ${c.name}`, c.name);
+        if (c.name === 'India') o.selected = true;
+        countrySelect.add(o);
+      });
+    }
+
+    /* ── Populate Edit-modal country select ── */
+    const editCountry = document.getElementById('edit-country');
+    if (editCountry && editCountry.options.length <= 1) {
+      editCountry.innerHTML = '<option value="">Select country…</option>';
+      final.forEach(c => {
+        const o = new Option(`${c.flag} ${c.name}`, c.name);
+        editCountry.add(o);
+      });
+    }
+
+    return final;
+  } catch (e) {
+    /* Fallback list */
+    const fallback = [
+      { dial: '+91',  flag: '🇮🇳', name: 'India' },
+      { dial: '+1',   flag: '🇺🇸', name: 'United States' },
+      { dial: '+44',  flag: '🇬🇧', name: 'United Kingdom' },
+      { dial: '+971', flag: '🇦🇪', name: 'United Arab Emirates' },
+      { dial: '+61',  flag: '🇦🇺', name: 'Australia' },
+      { dial: '+49',  flag: '🇩🇪', name: 'Germany' },
+      { dial: '+33',  flag: '🇫🇷', name: 'France' },
+      { dial: '+81',  flag: '🇯🇵', name: 'Japan' },
+    ];
+    _countryCache = fallback;
+
+    if (codeSelect) {
+      codeSelect.innerHTML = '';
+      fallback.forEach(c => {
+        const o = new Option(`${c.flag} ${c.dial} ${c.name}`, c.dial);
+        if (c.name === 'India') o.selected = true;
+        codeSelect.add(o);
+      });
+    }
+    if (countrySelect) {
+      countrySelect.innerHTML = '<option value="">Select country…</option>';
+      fallback.forEach(c => {
+        const o = new Option(`${c.flag} ${c.name}`, c.name);
+        if (c.name === 'India') o.selected = true;
+        countrySelect.add(o);
+      });
+    }
+    const editCountry = document.getElementById('edit-country');
+    if (editCountry && editCountry.options.length <= 1) {
+      editCountry.innerHTML = '<option value="">Select country…</option>';
+      fallback.forEach(c => {
+        editCountry.add(new Option(`${c.flag} ${c.name}`, c.name));
+      });
+    }
+    return fallback;
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+  }
+}
+
+/* ============================================================
+   PIN CODE VERIFICATION — shared logic
+   ctx: 'add' | 'edit'
+   ids: { pin, city, state, country, errPin, errCity, errState, errCountry }
+============================================================ */
+async function verifyPin(ctx, ids) {
+  const state      = formState[ctx];
+  const pinEl      = document.getElementById(ids.pin);
+  const cityEl     = document.getElementById(ids.city);
+  const stateEl    = document.getElementById(ids.state);
+  const countryEl  = document.getElementById(ids.country);
+  const errPinEl   = document.getElementById(ids.errPin);
+
+  if (!pinEl) return;
+
+  const pin = pinEl.value.trim();
+
+  /* If PIN is cleared → unlock everything */
+  if (pin.length === 0) {
+    state.pinVerified = false;
+    state.officialCity  = '';
+    state.officialState = '';
+    unlockField(cityEl);
+    unlockField(stateEl);
+    unlockSelect(countryEl);
+    clearFieldError(pinEl, errPinEl);
+    return;
+  }
+
+  /* Non-6-digit → just unlock (user still typing) */
+  if (pin.length !== 6) {
+    state.pinVerified = false;
+    state.officialCity  = '';
+    state.officialState = '';
+    unlockField(cityEl);
+    unlockField(stateEl);
+    unlockSelect(countryEl);
+    clearFieldError(pinEl, errPinEl);
+    return;
+  }
+
+  /* 6 digits — fetch */
+  if (state.pinFetching) return;
+  state.pinFetching = true;
+
+  // Give brief visual feedback
+  if (errPinEl) {
+    errPinEl.textContent = 'Verifying PIN…';
+    errPinEl.classList.remove('hidden');
+    errPinEl.style.display = '';
+    errPinEl.style.color = '#888';
+  }
+
+  try {
+    const res  = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
+    const data = await res.json();
+
+    if (data[0].Status === 'Success') {
+      const post = data[0].PostOffice[0];
+
+      state.officialCity  = post.District;
+      state.officialState = post.State;
+      state.pinVerified   = true;
+
+      /* Fill city & state */
+      if (cityEl)  cityEl.value  = state.officialCity;
+      if (stateEl) stateEl.value = state.officialState;
+
+      /* Force country = India */
+      if (countryEl) {
+        setSelectValue(countryEl, 'India');
+        lockSelect(countryEl);
+      }
+
+      lockField(cityEl);
+      lockField(stateEl);
+
+      /* Clear any stale PIN error */
+      clearFieldError(pinEl, errPinEl);
+    } else {
+      /* Invalid PIN */
+      state.pinVerified   = false;
+      state.officialCity  = '';
+      state.officialState = '';
+      unlockField(cityEl);
+      unlockField(stateEl);
+      unlockSelect(countryEl);
+
+      // Don't clear city/state — let user fill manually
+      showFieldError(pinEl, errPinEl, 'Invalid PIN code. Please enter a valid 6-digit Indian PIN.');
+    }
+  } catch (e) {
+    /* API down → don't block the user */
+    state.pinVerified   = false;
+    state.officialCity  = '';
+    state.officialState = '';
+    unlockField(cityEl);
+    unlockField(stateEl);
+    unlockSelect(countryEl);
+    if (errPinEl) {
+      errPinEl.textContent = 'Could not verify PIN (network error). You may continue manually.';
+      errPinEl.style.color = '#c0392b';
+      errPinEl.classList.remove('hidden');
+      errPinEl.style.display = '';
+    }
+  } finally {
+    state.pinFetching = false;
+    if (errPinEl) errPinEl.style.color = '';
+  }
+}
+
+/* ============================================================
+   FULL FORM VALIDATION — shared logic
+   Returns true if valid, false if not.
+   ctx: 'add' | 'edit'
+   ids: map of field → element IDs
+============================================================ */
+function validateAddress(ctx, ids) {
+  const formEl = document.getElementById(ids.form);
+  clearAllErrors(formEl);
+
+  const state = formState[ctx];
+  let ok = true;
+
+  function req(inputId, errId, message) {
+    const el    = document.getElementById(inputId);
+    const errEl = document.getElementById(errId);
+    if (!el) return;
+    if (!el.value.trim()) {
+      showFieldError(el, errEl, message);
+      ok = false;
+    }
+  }
+
+  function reqSelect(selectId, errId, message) {
+    const el    = document.getElementById(selectId);
+    const errEl = document.getElementById(errId);
+    if (!el) return;
+    const val = el.disabled ? (el.getAttribute('data-locked-value') || el.value) : el.value;
+    if (!val || val === '') {
+      showFieldError(el, errEl, message);
+      ok = false;
+    }
+  }
+
+  /* ── Required text fields ── */
+  req(ids.firstName,    ids.errFirstName,    'Please enter your first name.');
+  req(ids.lastName,     ids.errLastName,     'Please enter your last name.');
+  req(ids.addr1,        ids.errAddr1,        'Please enter your address.');
+  req(ids.city,         ids.errCity,         'Please enter your city.');
+  req(ids.stateField,   ids.errState,        'Please enter your state.');
+  req(ids.pin,          ids.errPin,          'Please enter your PIN code.');
+  reqSelect(ids.country, ids.errCountry,     'Please select a country.');
+
+  /* ── Phone number ── */
+  const phoneEl    = document.getElementById(ids.phone);
+  const errPhoneEl = document.getElementById(ids.errPhone);
+  if (phoneEl) {
+    const phoneVal = phoneEl.value.trim();
+    if (!phoneVal) {
+      showFieldError(phoneEl, errPhoneEl, 'Please enter your phone number.');
+      ok = false;
+    } else if (!/^\d{10}$/.test(phoneVal)) {
+      showFieldError(phoneEl, errPhoneEl, 'Phone number must be exactly 10 digits (numbers only).');
+      ok = false;
+    }
+  }
+
+  /* ── PIN must be exactly 6 digits ── */
+  const pinEl    = document.getElementById(ids.pin);
+  const errPinEl = document.getElementById(ids.errPin);
+  if (pinEl && pinEl.value.trim() && !/^\d{6}$/.test(pinEl.value.trim())) {
+    showFieldError(pinEl, errPinEl, 'PIN code must be exactly 6 digits.');
+    ok = false;
+  }
+
+  /* ── If PIN verified, city & state must match official values ── */
+  if (ok && state.pinVerified && state.officialCity) {
+    const cityEl    = document.getElementById(ids.city);
+    const errCityEl = document.getElementById(ids.errCity);
+    const stEl      = document.getElementById(ids.stateField);
+    const errStEl   = document.getElementById(ids.errState);
+
+    if (cityEl && cityEl.value.trim().toLowerCase() !== state.officialCity.toLowerCase()) {
+      showFieldError(cityEl, errCityEl, `City must match PIN: ${state.officialCity}`);
+      ok = false;
+    }
+    if (stEl && stEl.value.trim().toLowerCase() !== state.officialState.toLowerCase()) {
+      showFieldError(stEl, errStEl, `State must match PIN: ${state.officialState}`);
+      ok = false;
+    }
+  }
+
+  /* ── If country is not India but PIN is 6 digits → warn ── */
+  const countryEl   = document.getElementById(ids.country);
+  const errCountryEl = document.getElementById(ids.errCountry);
+  const pinVal      = pinEl ? pinEl.value.trim() : '';
+  const countryVal  = countryEl ? (countryEl.disabled ? (countryEl.getAttribute('data-locked-value') || countryEl.value) : countryEl.value) : '';
+
+  if (pinVal.length === 6 && countryVal && countryVal.toLowerCase() !== 'india') {
+    if (errCountryEl) {
+      showFieldError(countryEl, errCountryEl, 'A 6-digit PIN is valid only for India. Please select India as country or change the PIN.');
+      ok = false;
+    }
+  }
+
+  /* ── Address Type radio ── */
+  if (ids.addressTypeRadio) {
+    const radios = formEl ? formEl.querySelectorAll(`input[name="${ids.addressTypeRadio}"]`) : [];
+    const checked = Array.from(radios).some(r => r.checked);
+    if (!checked) {
+      /* Find a visible container to show error */
+      const container = radios.length > 0 ? radios[0].closest('.form-field, .flex') : null;
+      if (container) {
+        let errDiv = container.querySelector('.address-type-err');
+        if (!errDiv) {
+          errDiv = document.createElement('span');
+          errDiv.className = 'address-type-err error-msg show';
+          errDiv.style.cssText = 'font-size:9px;color:#c0392b;letter-spacing:0.05em;font-weight:500;display:block;margin-top:4px';
+          container.appendChild(errDiv);
+        }
+        errDiv.textContent = 'Please select an address type.';
+        errDiv.style.display = 'block';
+      }
+      ok = false;
+    }
+  }
+
+  return ok;
+}
+
+/* ============================================================
+   ADD MODAL — field IDs map
+============================================================ */
+const ADD_IDS = {
+  form:            'addressForm',
+  firstName:       'f-first-name',
+  errFirstName:    'err-first-name',
+  lastName:        'f-last-name',
+  errLastName:     'err-last-name',
+  phone:           'f-phone',
+  errPhone:        'err-phone',
+  addr1:           'f-addr1',
+  errAddr1:        'err-addr1',
+  city:            'f-city',
+  errCity:         'err-city',
+  stateField:      'f-state',
+  errState:        'err-state',
+  pin:             'f-postal',
+  errPin:          'err-postal',
+  country:         'f-country',
+  errCountry:      'err-country',
+  addressTypeRadio:'address_type',
+};
+
+/* ============================================================
+   EDIT MODAL — field IDs map
+============================================================ */
+const EDIT_IDS = {
+  form:            'editAddressForm',
+  firstName:       'edit-first-name',
+  errFirstName:    'err-edit-first-name',   // will create if missing
+  lastName:        'edit-last-name',
+  errLastName:     'err-edit-last-name',
+  phone:           'edit-phone',
+  errPhone:        'err-edit-phone',
+  addr1:           'edit-addr1',
+  errAddr1:        'err-edit-addr1',
+  city:            'edit-city',
+  errCity:         'err-edit-city',
+  stateField:      'edit-state',
+  errState:        'err-edit-state',
+  pin:             'edit-pin',
+  errPin:          'err-edit-pin',
+  country:         'edit-country',
+  errCountry:      'err-edit-country',
+  addressTypeRadio:'type',
+};
+
+/* Auto-create missing error <span> elements for the edit modal */
+function ensureEditErrorSpans() {
+  const fields = [
+    { inputId: 'edit-first-name', errId: 'err-edit-first-name' },
+    { inputId: 'edit-last-name',  errId: 'err-edit-last-name'  },
+    { inputId: 'edit-phone',      errId: 'err-edit-phone'      },
+    { inputId: 'edit-addr1',      errId: 'err-edit-addr1'      },
+    { inputId: 'edit-country',    errId: 'err-edit-country'    },
+  ];
+  fields.forEach(({ inputId, errId }) => {
+    if (document.getElementById(errId)) return;
+    const inp = document.getElementById(inputId);
+    if (!inp) return;
+    const span = document.createElement('span');
+    span.id        = errId;
+    span.className = 'text-xs hidden block mt-1';
+    span.style.cssText = 'font-size:9px;color:#c0392b;letter-spacing:0.05em;font-weight:500;display:none';
+    inp.parentNode.insertBefore(span, inp.nextSibling);
+  });
+}
+
+/* ============================================================
+   MODAL — OPEN / CLOSE (original behaviour preserved)
 ============================================================ */
 function openModal() {
-    document.getElementById('modal-title').textContent = 'Add New Address';
-    document.getElementById('submit-btn').textContent  = 'Save Address';
-    /*
-        Set the form action to your add-address URL here, e.g.:
-        document.getElementById('addressForm').action = '/add-address/';
-    */
-    resetForm();
-    document.getElementById('addressModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
+  document.getElementById('modal-title').textContent = 'Add New Address';
+  document.getElementById('submit-btn').textContent  = 'Save Address';
 
-function openEditModal(id) {
-    var addr = DEMO_ADDRESSES[id];
-    if (!addr) return;
+  /* Reset state */
+  formState.add.pinVerified   = false;
+  formState.add.officialCity  = '';
+  formState.add.officialState = '';
+  formState.add.pinFetching   = false;
 
-    document.getElementById('modal-title').textContent = 'Edit Address';
-    document.getElementById('submit-btn').textContent  = 'Update Address';
-    /*
-        Set the form action to your edit-address URL here, e.g.:
-        document.getElementById('addressForm').action = '/edit-address/' + id + '/';
-    */
-
-    resetForm();
-
-    document.getElementById('f-first-name').value = addr.first_name      || '';
-    document.getElementById('f-last-name').value  = addr.last_name        || '';
-    document.getElementById('f-addr1').value       = addr.address_line_1  || '';
-    document.getElementById('f-addr2').value       = addr.address_line_2  || '';
-    document.getElementById('f-city').value        = addr.city            || '';
-    document.getElementById('f-state').value       = addr.state           || '';
-    document.getElementById('f-postal').value      = addr.postal_code     || '';
-    document.getElementById('f-default').checked   = addr.is_default      || false;
-    document.getElementById('f-phone').value       = addr.phone           || '';
-
-    document.querySelectorAll('input[name="address_type"]').forEach(function(r) {
-        r.checked = (r.value === (addr.address_type || 'Home'));
-    });
-
-    var codeEl = document.getElementById('f-phone-code');
-    var countryEl = document.getElementById('f-country');
-
-    if (!setSelectByValueReturn(codeEl, addr.phone_code))    window._pendingDial    = addr.phone_code;
-    if (!setSelectByValueReturn(countryEl, addr.country))    window._pendingCountry = addr.country;
-
-    document.getElementById('addressModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-}
-
-/* Returns true if value was found and set */
-function setSelectByValueReturn(el, val) {
-    for (var i = 0; i < el.options.length; i++) {
-        if (el.options[i].value === val) { el.selectedIndex = i; return true; }
-    }
-    return false;
+  resetForm();
+  document.getElementById('addressModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
-    document.getElementById('addressModal').classList.remove('open');
-    document.body.style.overflow = 'auto';
+  document.getElementById('addressModal').classList.remove('open');
+  document.body.style.overflow = 'auto';
 }
 
 function resetForm() {
-    document.getElementById('addressForm').reset();
-    clearErrors();
-    var countryEl = document.getElementById('f-country');
-    setSelectByValue(countryEl, 'India');
-    var codeEl = document.getElementById('f-phone-code');
-    for (var j = 0; j < codeEl.options.length; j++) {
-        if (codeEl.options[j].textContent.includes('India')) { codeEl.selectedIndex = j; break; }
+  const formEl = document.getElementById('addressForm');
+  if (formEl) formEl.reset();
+  clearAllErrors(formEl);
+
+  /* Re-unlock city/state/country */
+  unlockField(document.getElementById('f-city'));
+  unlockField(document.getElementById('f-state'));
+  unlockSelect(document.getElementById('f-country'));
+
+  /* Re-default to India */
+  const countryEl = document.getElementById('f-country');
+  if (countryEl) setSelectValue(countryEl, 'India');
+  const codeEl = document.getElementById('f-phone-code');
+  if (codeEl) {
+    for (let i = 0; i < codeEl.options.length; i++) {
+      if (codeEl.options[i].textContent.includes('India')) { codeEl.selectedIndex = i; break; }
     }
+  }
 }
 
-/* ============================================================
-   DELETE CONFIRM OVERLAYS
-============================================================ */
-function confirmDelete(id) {
-    var o = document.getElementById('delete-overlay-' + id);
-    if (o) o.classList.add('visible');
-}
-function cancelDelete(id) {
-    var o = document.getElementById('delete-overlay-' + id);
-    if (o) o.classList.remove('visible');
-}
-
-/* ============================================================
-   CLIENT-SIDE VALIDATION
-============================================================ */
-function clearErrors() {
-    document.querySelectorAll('.error-msg').forEach(function(el) { el.classList.remove('show'); });
-    document.querySelectorAll('.form-input, .phone-row').forEach(function(el) { el.classList.remove('error'); });
-}
-
-function showError(fieldId, errId) {
-    var f = document.getElementById(fieldId), e = document.getElementById(errId);
-    if (f) f.classList.add('error');
-    if (e) e.classList.add('show');
-}
-
-function validateForm() {
-    clearErrors();
-    var ok = true;
-
-    if (!document.getElementById('f-first-name').value.trim()) { showError('f-first-name','err-first-name'); ok = false; }
-    if (!document.getElementById('f-last-name').value.trim())  { showError('f-last-name', 'err-last-name');  ok = false; }
-
-    var ph = document.getElementById('f-phone').value.trim().replace(/\D/g,'');
-    if (!ph || ph.length < 7 || ph.length > 15) {
-        document.getElementById('phone-row').classList.add('error');
-        document.getElementById('err-phone').classList.add('show');
-        ok = false;
-    }
-
-    if (!document.getElementById('f-addr1').value.trim()) { showError('f-addr1','err-addr1'); ok = false; }
-    if (!document.getElementById('f-city').value.trim())  { showError('f-city', 'err-city');  ok = false; }
-    if (!document.getElementById('f-state').value.trim()) { showError('f-state','err-state'); ok = false; }
-
-    var postal = document.getElementById('f-postal').value.trim();
-    if (!postal || !/\d/.test(postal)) {
-        showError('f-postal','err-postal');
-        document.getElementById('err-postal').textContent = (postal && !/\d/.test(postal))
-            ? 'Postal code must contain numbers' : 'Please enter a valid postal code';
-        ok = false;
-    }
-
-    if (!document.getElementById('f-country').value) { showError('f-country','err-country'); ok = false; }
-
-    return ok;
-}
-
-document.getElementById('addressForm').addEventListener('submit', function(e) {
-    if (!validateForm()) e.preventDefault();
-});
-
-/* Live clear on input */
-['f-first-name','f-last-name','f-addr1','f-city','f-state','f-postal','f-country'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (!el) return;
-    el.addEventListener('input', function() {
-        el.classList.remove('error');
-        var errEl = document.getElementById(id.replace('f-','err-'));
-        if (errEl) errEl.classList.remove('show');
-    });
-});
-
-document.getElementById('f-phone').addEventListener('input', function() {
-    document.getElementById('phone-row').classList.remove('error');
-    document.getElementById('err-phone').classList.remove('show');
-    this.value = this.value.replace(/[^\d]/g,'');
-});
-
-/* ============================================================
-   PROFILE COMPLETION ANIMATION
-============================================================ */
-function animateProfileCompletion() {
-    var section = document.getElementById('profile-completion-section');
-    if (!section) return;
-    var pct = parseInt(section.getAttribute('data-pct'), 10) || 0;
-
-    var fill    = document.getElementById('pc-progress-fill');
-    var counter = document.getElementById('pc-counter');
-    var ring    = document.getElementById('pc-ring-fill');
-    var badge   = document.getElementById('pc-badge');
-    if (!fill || !counter || !ring || !badge) return;
-
-    var C = 2 * Math.PI * 22;
-    requestAnimationFrame(function() {
-        fill.style.width = pct + '%';
-        ring.style.strokeDashoffset = C - (pct / 100) * C;
-    });
-
-    var dur = 1300, t0 = null;
-    function countUp(ts) {
-        if (!t0) t0 = ts;
-        var p = Math.min((ts - t0) / dur, 1);
-        var e = 1 - Math.pow(1 - p, 3);
-        counter.textContent = Math.round(e * pct) + '%';
-        if (p < 1) {
-            requestAnimationFrame(countUp);
-        } else {
-            if      (pct === 100) { badge.textContent = 'Complete';    badge.style.borderColor = '#111'; badge.style.color = '#111'; }
-            else if (pct >= 75)   { badge.textContent = 'Almost There'; }
-            else if (pct >= 50)   { badge.textContent = 'Half Way'; }
-            else                  { badge.textContent = 'In Progress'; }
-        }
-    }
-    requestAnimationFrame(countUp);
-}
-
-/* ============================================================
-   INIT
-============================================================ */
-document.addEventListener('DOMContentLoaded', function() {
-    fetchCountries();
-    setTimeout(animateProfileCompletion, 400);
-});
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeModal();
-});
-
-let correctCity = "";
-let correctState = "";
-
-document.getElementById("f-postal").addEventListener("blur", function(){
-
-    let pin = this.value;
-
-    fetch(`https://api.postalpincode.in/pincode/${pin}`)
-    .then(res => res.json())
-    .then(data => {
-
-        if(data[0].Status === "Success"){
-
-            let post = data[0].PostOffice[0];
-
-            correctCity = post.District;
-            correctState = post.State;
-
-            document.getElementById("f-city").value = correctCity;
-            document.getElementById("f-state").value = correctState;
-
-        } else {
-
-            alert("Invalid PIN code");
-
-        }
-
-    });
-
-});
-
-
-
-document.getElementById("addressForm").addEventListener("submit", function(e){
-
-    let city = document.getElementById("f-city").value.trim();
-    let state = document.getElementById("f-state").value.trim();
-
-    if(!correctCity || !correctState){
-        alert("Please enter a valid PIN code first");
-        e.preventDefault();
-        return;
-    }
-
-    if(city.toLowerCase() !== correctCity.toLowerCase() ||
-       state.toLowerCase() !== correctState.toLowerCase()){
-
-        alert("City or State does not match the PIN code");
-        e.preventDefault();
-    }
-
-});
-
-    document.addEventListener('DOMContentLoaded', function() {
-        {% if messages %}
-            {% for message in messages %}
-                // This function maps Django tags to your CSS classes
-                const tag = "{{ message.tags }}";
-                const msg = "{{ message }}";
-                showPillToast(msg, tag);
-            {% endfor %}
-        {% endif %}
-    });
-
-    function showPillToast(message, tag) {
-        const container = document.getElementById('toast-container');
-        const isError = tag.includes('error');
-        const icon = isError ? '✕' : '✓';
-        const title = isError ? 'ERROR' : 'SUCCESS';
-
-        const toast = document.createElement('div');
-        // Your CSS uses .custom-pill-toast and .toast-success/error
-        toast.className = `custom-pill-toast ${isError ? 'toast-error' : 'toast-success'}`;
-
-        toast.innerHTML = `
-            <div class="toast-left-content">
-                <div class="toast-icon-circle">${icon}</div>
-                <div class="toast-message-wrapper">
-                    <span class="toast-main-text">${title}</span>
-                    <span class="toast-sub-text">${message}</span>
-                </div>
-            </div>
-            <div class="toast-close-btn" onclick="this.parentElement.remove()">×</div>
-        `;
-
-        container.appendChild(toast);
-
-        // Trigger animation
-        setTimeout(() => toast.classList.add('show'), 100);
-
-        // Auto-remove
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 400);
-        }, 4000);
-    }
-
-/* ============================================================
-   EDIT ADDRESS MODAL
-============================================================ */
-
-let editPinVerified = false;
-
+/* ─── Edit modal open ─── */
 async function openEditModal(data) {
+  ensureEditErrorSpans();
 
-    const modal = document.getElementById('EditaddressModal');
-    const form = document.getElementById('editAddressForm');
-    const countrySelect = document.getElementById('edit-country');
+  const modal     = document.getElementById('EditaddressModal');
+  const formEl    = document.getElementById('editAddressForm');
+  const countryEl = document.getElementById('edit-country');
+  const cityEl    = document.getElementById('edit-city');
+  const stateEl   = document.getElementById('edit-state');
 
-    form.action = `/edit-user-address/${data.id}/`;
+  /* Reset edit state */
+  formState.edit.pinVerified   = false;
+  formState.edit.officialCity  = '';
+  formState.edit.officialState = '';
+  formState.edit.pinFetching   = false;
 
-    document.getElementById('edit-first-name').value = data.first_name || '';
-    document.getElementById('edit-last-name').value = data.last_name || '';
-    document.getElementById('edit-phone').value = data.phone || '';
-    document.getElementById('edit-addr1').value = data.addr1 || '';
-    document.getElementById('edit-addr2').value = data.addr2 || '';
-    document.getElementById('edit-city').value = data.city || '';
-    document.getElementById('edit-state').value = data.state || '';
-    document.getElementById('edit-pin').value = data.postal || '';
+  clearAllErrors(formEl);
 
-    editPinVerified = true; // existing address already valid
-    modal.classList.remove('hidden');
+  formEl.action = `/edit-user-address/${data.id}/`;
 
-    try {
-        if (countrySelect.options.length <= 1) {
-            const response = await fetch('https://restcountries.com/v3.1/all?fields=name');
-            const countries = await response.json();
-            countries.sort((a, b) => a.name.common.localeCompare(b.name.common));
+  /* Fill fields */
+  document.getElementById('edit-first-name').value = data.first_name || '';
+  document.getElementById('edit-last-name').value  = data.last_name  || '';
+  document.getElementById('edit-phone').value      = data.phone      || '';
+  document.getElementById('edit-addr1').value      = data.addr1      || '';
+  document.getElementById('edit-addr2').value      = data.addr2      || '';
+  cityEl.value  = data.city   || '';
+  stateEl.value = data.state  || '';
+  document.getElementById('edit-pin').value = data.postal || '';
 
-            countries.forEach(c => {
-                countrySelect.add(new Option(c.name.common, c.name.common));
-            });
-        }
+  /* Ensure countries are loaded */
+  if (countryEl && countryEl.options.length <= 1) await fetchCountries();
+  if (countryEl) setSelectValue(countryEl, data.country || 'India');
 
-        countrySelect.value = data.country || "";
+  /* Smart lock: if India + valid 6-digit PIN, treat as pre-verified */
+  const isIndia     = (data.country || '').toLowerCase() === 'india';
+  const pinStr      = String(data.postal || '');
+  const hasValidPin = /^\d{6}$/.test(pinStr);
 
-    } catch (e) {
-        console.error(e);
-    }
+  if (isIndia && hasValidPin) {
+    formState.edit.pinVerified   = true;
+    formState.edit.officialCity  = data.city  || '';
+    formState.edit.officialState = data.state || '';
+    lockField(cityEl);
+    lockField(stateEl);
+    lockSelect(countryEl);
+  } else {
+    unlockField(cityEl);
+    unlockField(stateEl);
+    unlockSelect(countryEl);
+  }
 
-    const typeValue = (data.type || '').trim().toLowerCase();
+  /* Radios — normalize to lowercase so 'Home', 'home', 'HOME' all work */
+  const typeVal = (data.type || '').trim().toLowerCase();
+  ['home','work','other'].forEach(v => {
+    const r = document.getElementById('edit-type-' + v);
+    if (r) r.checked = (v === typeVal);
+  });
+  /* Fallback: if nothing matched (e.g. unexpected casing), default to home */
+  const anyChecked = ['home','work','other'].some(v => {
+    const r = document.getElementById('edit-type-' + v);
+    return r && r.checked;
+  });
+  if (!anyChecked) {
+    const homeR = document.getElementById('edit-type-home');
+    if (homeR) homeR.checked = true;
+  }
 
-    document.getElementById('edit-type-home').checked = (typeValue === 'home');
-    document.getElementById('edit-type-work').checked = (typeValue === 'work');
-    document.getElementById('edit-type-other').checked = (typeValue === 'other');
+  /* Default checkbox */
+  const defCb = document.getElementById('edit-default');
+  if (defCb) defCb.checked = !!data.is_default;
 
-    document.getElementById('edit-default').checked = (data.is_default === true);
-
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
+  modal.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 
 function closeEditModal() {
-    document.getElementById('EditaddressModal').classList.add('hidden');
-    document.body.style.overflow = '';
+  const modal = document.getElementById('EditaddressModal');
+  if (modal) modal.classList.add('hidden');
+  document.body.style.overflow = 'auto';
 }
 
 /* ============================================================
-   EDIT PIN AUTO FILL
+   DELETE OVERLAYS (unchanged)
 ============================================================ */
-
-document.getElementById('edit-pin').addEventListener('input', async function(e) {
-
-    const pin = e.target.value.trim();
-    const cityInput = document.getElementById('edit-city');
-    const stateInput = document.getElementById('edit-state');
-
-    editPinVerified = false;
-
-    if (pin.length === 6) {
-
-        try {
-
-            const response = await fetch(`https://api.zippopotam.us/in/${pin}`);
-
-            if (!response.ok) {
-
-                toggleError("Invalid PIN Code", true);
-                cityInput.value = "";
-                stateInput.value = "";
-                return;
-
-            }
-
-            const data = await response.json();
-            const place = data.places[0];
-
-            cityInput.value = place['place name'];
-            stateInput.value = place['state'];
-
-            cityInput.readOnly = true;
-            stateInput.readOnly = true;
-
-            editPinVerified = true;
-
-            toggleError("", false);
-
-        } catch (error) {
-
-            console.error(error);
-            toggleError("PIN verification failed", true);
-
-        }
-
-    }
-
-});
+function confirmDelete(id) {
+  const o = document.getElementById(`delete-overlay-${id}`);
+  if (o) o.classList.add('visible');
+}
+function cancelDelete(id) {
+  const o = document.getElementById(`delete-overlay-${id}`);
+  if (o) o.classList.remove('visible');
+}
 
 /* ============================================================
-   EDIT FORM VALIDATION
+   PROFILE COMPLETION ANIMATION (unchanged)
 ============================================================ */
+function animateProfileCompletion() {
+  const section = document.getElementById('profile-completion-section');
+  if (!section) return;
+  const pct = parseInt(section.getAttribute('data-pct'), 10) || 0;
 
-document.getElementById('editAddressForm').addEventListener('submit', function(e) {
+  const fill    = document.getElementById('pc-progress-fill');
+  const counter = document.getElementById('pc-counter');
+  const ring    = document.getElementById('pc-ring-fill');
+  const badge   = document.getElementById('pc-badge');
+  if (!fill || !counter || !ring || !badge) return;
 
-    const phone = document.getElementById('edit-phone').value.replace(/\D/g, '');
-    const pin = document.getElementById('edit-pin').value.trim();
-    const addr1 = document.getElementById('edit-addr1').value.trim();
-    const city = document.getElementById('edit-city').value.trim();
+  const C = 2 * Math.PI * 22;
+  requestAnimationFrame(() => {
+    fill.style.width = pct + '%';
+    ring.style.strokeDashoffset = C - (pct / 100) * C;
+  });
 
-    if (!addr1) {
-        e.preventDefault();
-        toggleError("Address Line 1 is required", true);
-        return;
+  let t0 = null;
+  const dur = 1300;
+  function countUp(ts) {
+    if (!t0) t0 = ts;
+    const p = Math.min((ts - t0) / dur, 1);
+    const e = 1 - Math.pow(1 - p, 3);
+    counter.textContent = Math.round(e * pct) + '%';
+    if (p < 1) {
+      requestAnimationFrame(countUp);
+    } else {
+      if      (pct === 100) { badge.textContent = 'Complete';     badge.style.borderColor = '#111'; badge.style.color = '#111'; }
+      else if (pct >= 75)   { badge.textContent = 'Almost There'; }
+      else if (pct >= 50)   { badge.textContent = 'Half Way'; }
+      else                  { badge.textContent = 'In Progress';  }
     }
+  }
+  requestAnimationFrame(countUp);
+}
 
-    if (phone.length !== 10) {
+/* ============================================================
+   TOAST (unchanged)
+============================================================ */
+function showPillToast(message, tag) {
+  const container = document.getElementById('toast-container');
+  const isError   = tag.includes('error');
+  const icon      = isError ? '✕' : '✓';
+  const title     = isError ? 'ERROR' : 'SUCCESS';
+
+  const toast = document.createElement('div');
+  toast.className = `custom-pill-toast ${isError ? 'toast-error' : 'toast-success'}`;
+  toast.innerHTML = `
+    <div class="toast-left-content">
+      <div class="toast-icon-circle">${icon}</div>
+      <div class="toast-message-wrapper">
+        <span class="toast-main-text">${message}</span>
+        <span class="toast-sub-text">${title}</span>
+      </div>
+    </div>
+    <div class="toast-close-btn" onclick="this.parentElement.remove()">×</div>
+  `;
+  container.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 100);
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 4000);
+}
+
+/* ============================================================
+   DOMContentLoaded — attach everything ONCE
+============================================================ */
+document.addEventListener('DOMContentLoaded', function () {
+
+  /* ── Bootstrap ── */
+  fetchCountries();
+  ensureEditErrorSpans();
+  setTimeout(animateProfileCompletion, 400);
+
+  /* ── Toast from Django messages ── */
+  const msgScript = document.getElementById('django-messages');
+  if (msgScript) {
+    try {
+      const msgs = JSON.parse(msgScript.textContent || '[]');
+      msgs.forEach(m => showPillToast(m.message, m.tags));
+    } catch (e) {}
+  }
+
+  /* ══════════════════════════════════════
+     ADD MODAL LISTENERS
+  ══════════════════════════════════════ */
+
+  /* PIN input → live verify */
+  const addPin = document.getElementById('f-postal');
+  if (addPin) {
+    addPin.addEventListener('input', () => {
+      verifyPin('add', {
+        pin: 'f-postal', city: 'f-city', state: 'f-state',
+        country: 'f-country', errPin: 'err-postal',
+      });
+    });
+  }
+
+  /* Phone — numbers only */
+  const addPhone = document.getElementById('f-phone');
+  if (addPhone) {
+    addPhone.addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '').slice(0, 10);
+      const errEl = document.getElementById('err-phone');
+      clearFieldError(this, errEl);
+    });
+  }
+
+  /* Country change → unlock city/state/reset pin verification */
+  const addCountry = document.getElementById('f-country');
+  if (addCountry) {
+    addCountry.addEventListener('change', function () {
+      if (!addCountry.disabled) {
+        formState.add.pinVerified   = false;
+        formState.add.officialCity  = '';
+        formState.add.officialState = '';
+        unlockField(document.getElementById('f-city'));
+        unlockField(document.getElementById('f-state'));
+        clearFieldError(document.getElementById('f-postal'), document.getElementById('err-postal'));
+      }
+    });
+  }
+
+  /* Live clear on text input */
+  ['f-first-name','f-last-name','f-addr1','f-city','f-state'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', function () {
+      const errEl = document.getElementById(id.replace('f-', 'err-'));
+      clearFieldError(this, errEl);
+    });
+  });
+
+  /* Add form submit */
+  const addForm = document.getElementById('addressForm');
+  if (addForm) {
+    addForm.addEventListener('submit', function (e) {
+
+      /* FIX: disabled <select> values are NOT sent by the browser.
+         Inject a hidden input for every disabled select so Django
+         always receives the value (same fix as edit modal). */
+      addForm.querySelectorAll('select[disabled]').forEach(function (sel) {
+        const existingHidden = addForm.querySelector(
+          'input[type="hidden"][name="' + sel.name + '"][data-mirror="1"]'
+        );
+        const val = sel.getAttribute('data-locked-value') || sel.value;
+        if (existingHidden) {
+          existingHidden.value = val;
+        } else {
+          const hidden = document.createElement('input');
+          hidden.type  = 'hidden';
+          hidden.name  = sel.name;
+          hidden.value = val;
+          hidden.setAttribute('data-mirror', '1');
+          addForm.appendChild(hidden);
+        }
+      });
+
+      if (!validateAddress('add', ADD_IDS)) {
         e.preventDefault();
-        toggleError("Enter a valid 10 digit phone number", true);
-        return;
-    }
+        const firstErr = addForm.querySelector('.error, .error-msg.show');
+        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
 
-    if (pin.length !== 6) {
+  /* ══════════════════════════════════════
+     EDIT MODAL LISTENERS
+  ══════════════════════════════════════ */
+
+  /* PIN input → live verify */
+  const editPin = document.getElementById('edit-pin');
+  if (editPin) {
+    editPin.addEventListener('input', () => {
+      verifyPin('edit', {
+        pin: 'edit-pin', city: 'edit-city', state: 'edit-state',
+        country: 'edit-country', errPin: 'err-edit-pin',
+      });
+    });
+  }
+
+  /* Phone — numbers only */
+  const editPhone = document.getElementById('edit-phone');
+  if (editPhone) {
+    editPhone.addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '').slice(0, 10);
+      const errEl = document.getElementById('err-edit-phone');
+      if (errEl) clearFieldError(this, errEl);
+    });
+  }
+
+  /* Country change → unlock city/state/reset pin state */
+  const editCountry = document.getElementById('edit-country');
+  if (editCountry) {
+    editCountry.addEventListener('change', function () {
+      if (!editCountry.disabled) {
+        formState.edit.pinVerified   = false;
+        formState.edit.officialCity  = '';
+        formState.edit.officialState = '';
+        unlockField(document.getElementById('edit-city'));
+        unlockField(document.getElementById('edit-state'));
+        clearFieldError(document.getElementById('edit-pin'), document.getElementById('err-edit-pin'));
+      }
+    });
+  }
+
+  /* Live clear on edit text fields */
+  ['edit-first-name','edit-last-name','edit-addr1','edit-city','edit-state'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('input', function () {
+      const errId = 'err-' + id;
+      const errEl = document.getElementById(errId);
+      clearFieldError(this, errEl);
+    });
+  });
+
+  /* Edit form submit */
+  const editForm = document.getElementById('editAddressForm');
+  if (editForm) {
+    editForm.addEventListener('submit', function (e) {
+
+      /* ── FIX: disabled <select> values are NOT sent by the browser.
+         Before validation, inject a hidden input for every disabled
+         select so Django always receives the value. ── */
+      editForm.querySelectorAll('select[disabled]').forEach(function (sel) {
+        const existingHidden = editForm.querySelector(
+          `input[type="hidden"][name="${sel.name}"][data-mirror="1"]`
+        );
+        const val = sel.getAttribute('data-locked-value') || sel.value;
+        if (existingHidden) {
+          existingHidden.value = val;
+        } else {
+          const hidden = document.createElement('input');
+          hidden.type  = 'hidden';
+          hidden.name  = sel.name;
+          hidden.value = val;
+          hidden.setAttribute('data-mirror', '1');
+          editForm.appendChild(hidden);
+        }
+      });
+
+      /* Also mirror disabled text inputs (city / state when locked) */
+      editForm.querySelectorAll('input[readonly]').forEach(function (inp) {
+        if (!inp.name) return;
+        /* readonly inputs ARE submitted by the browser — nothing needed */
+      });
+
+      if (!validateAddress('edit', EDIT_IDS)) {
         e.preventDefault();
-        toggleError("PIN Code must be 6 digits", true);
-        return;
-    }
+        const firstErr = editForm.querySelector('.error, [id^="err-edit-"]:not(.hidden)');
+        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
 
-    if (!city) {
-        e.preventDefault();
-        toggleError("City could not be verified from PIN", true);
-        return;
-    }
-
-    if (!editPinVerified) {
-        e.preventDefault();
-        toggleError("Please verify PIN Code", true);
-        return;
-    }
-
+  /* Escape key → close both modals */
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { closeModal(); closeEditModal(); }
+  });
 });
 </script>
 

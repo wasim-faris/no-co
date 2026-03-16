@@ -5,7 +5,7 @@ from django.conf import settings
 class Addresses(models.Model):
     ADDRESS_TYPE = (
         ("home", "Home"),
-        ("work", "Hork"),
+        ("work", "Work"),
         ("other", "Other")
     )
 

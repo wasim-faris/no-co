@@ -11,5 +11,6 @@ urlpatterns = [
     path("cancel-email-verificatoin/<int:id>/", views.cancel_email_verification , name="cancel-email-verification"),
     path("email-resend-otp-verification/", views.email_resend_otp_verification , name="email-resend-otp-verification"),
     path("delete-user-address/<int:id>/", views.delete_user_address, name="delete-user-address"),
-    path("edit-user-address/<int:id>/", views.edit_user_address , name="edit-user-address")
+    path("edit-user-address/<int:id>/", views.edit_user_address , name="edit-user-address"),
+    path("user-address-set-default/<int:id>/", views.user_address_set_default , name='user-address-set-default')
 ]

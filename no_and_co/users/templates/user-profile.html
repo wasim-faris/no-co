@@ -338,6 +338,11 @@
 #timer-container{ transition:opacity .5s ease; }
 .hidden-resend{ display:none; }
 
+
+.input-error { border-color: #E24B4A; }
+.input-ok    { border-color: #639922; }
+.field-hint  { font-size: 12px; color: #E24B4A; display: block; margin-top: 4px; min-height: 16px; }
+#save-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     </style>
 </head>
 
@@ -814,35 +819,38 @@
             </header>
 
             <form action="{% url 'update-profile' request.user.id %}" method="POST" id="profileForm" class="space-y-10">
-                {% csrf_token %}
-                <div class="space-y-8">
-                    <div>
-                        <label class="label-xs text-neutral-400 mb-3 block">Full Name</label>
-                        <input type="text" name="username" value="{{ request.user.username }}"
-                            class="w-full border-b border-neutral-200 py-3 text-sm focus:outline-none focus:border-black transition-colors bg-transparent font-light">
-                    </div>
-                    <div>
-    <label class="label-xs text-neutral-400 mb-3 block">Email Address</label>
-    <input
-        type="email"
-        name="email"
-        value="{{ request.user.email }}"
-        required
-        class="w-full border-b border-neutral-200 py-3 text-sm focus:outline-none focus:border-black transition-colors bg-transparent font-light">
-</div>
-                    <div>
-                        <label class="label-xs text-neutral-400 mb-3 block">Phone Number</label>
-                        <input type="tel" id="phone" name="phone_number" value="{{ request.user.phone_number|default:'' }}"
-                            class="w-full border-b border-neutral-200 py-3 text-sm focus:outline-none focus:border-black transition-colors bg-transparent font-light">
-                        <input type="hidden" name="phone" id="phone_full">
-                        <p id="phone-error" class="text-red-500 label-xs">Please enter a valid phone number</p>
-                    </div>
-                </div>
-                <div class="pt-4">
-                    <button type="submit" class="btn-primary w-full py-5 rounded-none">Save Changes</button>
-                    <button type="button" onclick="toggleModal()" class="w-full mt-4 label-xs text-neutral-400 hover:text-black transition-colors">Cancel</button>
-                </div>
-            </form>
+    {% csrf_token %}
+    <div class="space-y-8">
+
+        <div>
+            <label class="label-xs text-neutral-400 mb-3 block">Full Name</label>
+            <input type="text" name="username" value="{{ request.user.username }}"
+                class="w-full border-b border-neutral-200 py-3 text-sm focus:outline-none focus:border-black transition-colors bg-transparent font-light">
+            <span id="hint-username" class="field-hint"></span>
+        </div>
+
+        <div>
+            <label class="label-xs text-neutral-400 mb-3 block">Email Address</label>
+            <input type="email" name="email" value="{{ request.user.email }}" required
+                class="w-full border-b border-neutral-200 py-3 text-sm focus:outline-none focus:border-black transition-colors bg-transparent font-light">
+            <span id="hint-email" class="field-hint"></span>
+        </div>
+
+        <div>
+            <label class="label-xs text-neutral-400 mb-3 block">Phone Number</label>
+            <input type="tel" id="phone" name="phone_number" value="{{ request.user.phone_number|default:'' }}"
+                class="w-full border-b border-neutral-200 py-3 text-sm focus:outline-none focus:border-black transition-colors bg-transparent font-light">
+            <input type="hidden" name="phone" id="phone_full">
+            <span id="hint-phone" class="field-hint"></span>
+            <p id="phone-error" class="text-red-500 label-xs" style="display:none;">Please enter a valid phone number</p>
+        </div>
+
+    </div>
+    <div class="pt-4">
+        <button type="submit" id="save-btn" class="btn-primary w-full py-5 rounded-none" disabled>Save Changes</button>
+        <button type="button" onclick="toggleModal()" class="w-full mt-4 label-xs text-neutral-400 hover:text-black transition-colors">Cancel</button>
+    </div>
+</form>
         </div>
     </div>
 </div>
@@ -1054,6 +1062,112 @@ document.addEventListener("DOMContentLoaded", function() {
     {% endif %}
 });
 
+// Accepts: .com .org .net .info (3+ chars)
+// Accepts: .co.uk .co.in (2-part)
+// Rejects: .co .ab .xy alone
+const USERNAME_RE = /^[a-zA-Z0-9_]{4,}$/;
+const EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+
+const rules = {
+  username: v => {
+    if (!v) return 'Username is required';
+    if (v.length < 4) return `${4 - v.length} more character(s) needed`;
+    if (!USERNAME_RE.test(v)) return 'Only letters, numbers, and _ allowed';
+    return null;
+  },
+  email: v => {
+    if (!v) return 'Email is required';
+    if (!EMAIL_RE.test(v)) return 'Enter a valid email address';
+    const parts = v.split('.');
+    const tld = parts[parts.length - 1];
+    if (tld.length < 3 && parts.length < 3) return 'Enter a complete email (e.g. example@gmail.com)';
+    return null;
+  },
+};
+
+const status = { username: false, email: false, phone: false };
+
+function updateButton() {
+  const btn = document.getElementById('save-btn');
+  if (btn) btn.disabled = !Object.values(status).every(Boolean);
+}
+
+// Call this every time modal opens to re-check pre-filled values
+function revalidateAll() {
+  ['username', 'email'].forEach(name => {
+    const input = document.querySelector(`[name="${name}"]`);
+    if (!input) return;
+    status[name] = rules[name](input.value.trim()) === null;
+  });
+  // Check phone via iti
+  status.phone = iti ? iti.isValidNumber() : false;
+  updateButton();
+}
+
+['username', 'email'].forEach(name => {
+  const input = document.querySelector(`[name="${name}"]`);
+  const hint  = document.getElementById(`hint-${name}`);
+  if (!input || !hint) return;
+
+  input.addEventListener('input', () => {
+    const err = rules[name](input.value.trim());
+    status[name] = !err;
+    input.classList.toggle('input-error', !!err);
+    input.classList.toggle('input-ok',    !err && !!input.value);
+    hint.textContent = err || '';
+    updateButton();
+  });
+});
+
+// Override toggleModal to revalidate when modal opens
+const _originalToggleModal = toggleModal;
+window.toggleModal = function() {
+  _originalToggleModal();
+  const modal = document.getElementById('editModal');
+  if (!modal.classList.contains('hidden')) {
+    // Modal just opened — revalidate pre-filled fields
+    setTimeout(revalidateAll, 50); // small delay so iti is ready
+  }
+};
+
+document.addEventListener('DOMContentLoaded', function () {
+  initPhoneInput();
+
+  // Phone live validation
+  const phoneInput = document.querySelector('#phone');
+  const phoneHint  = document.getElementById('hint-phone');
+
+  if (phoneInput && phoneHint) {
+    phoneInput.addEventListener('input', () => {
+      const valid = iti && iti.isValidNumber();
+      status.phone = valid;
+      phoneInput.classList.toggle('input-error', !valid && !!phoneInput.value);
+      phoneInput.classList.toggle('input-ok',     valid);
+      phoneHint.textContent = (!valid && phoneInput.value) ? 'Enter a valid phone number' : '';
+      updateButton();
+    });
+  }
+
+  // Form submit — set hidden phone field
+  const form     = document.querySelector('#profileForm');
+  const errorMsg = document.querySelector('#phone-error');
+
+  form.addEventListener('submit', function (e) {
+    const isValid  = iti.isValidNumber();
+    const rawValue = document.querySelector('#phone').value.replace(/\D/g, '');
+    if (isValid && rawValue.length >= 10 && rawValue.length <= 15) {
+      errorMsg.style.display = 'none';
+      document.querySelector('#phone_full').value = iti.getNumber();
+    } else {
+      e.preventDefault();
+      errorMsg.style.display = 'block';
+    }
+  });
+
+  document.querySelector('#phone').addEventListener('keypress', function (e) {
+    if (e.which < 48 || e.which > 57) e.preventDefault();
+  });
+});
 </script>
 <div id="toast-container" class="fixed top-10 left-1/2 -translate-x-1/2 flex flex-col gap-4 items-center">
 
