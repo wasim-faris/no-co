@@ -3,20 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Identity - NO & CO</title>
+    <title>Reset Password - NO & CO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
         .serif-font { font-family: 'Playfair Display', serif; }
-        /* Hide number input spinners */
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-            -webkit-appearance: none; margin: 0;
-        }
-        input[type=number] { -moz-appearance: textfield; }
 
-        /* The speech bubble shape for the icon */
+        /* The speech bubble shape for the toast icon */
         .icon-bubble {
             position: relative;
             border-radius: 50% 50% 50% 0;
@@ -27,7 +21,7 @@
         }
         .icon-bubble svg { transform: rotate(45deg); }
 
-        /* The Liquid/Blob background pattern */
+        /* The Liquid/Blob background pattern for toasts */
         .toast-pattern {
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23FFFFFF' fill-opacity='0.1' d='M44.7,-76.4C58.1,-69.2,69.2,-57.1,76.4,-43.3C83.7,-29.5,87.1,-14.8,86.4,-0.4C85.7,14,80.9,28,73.1,40.8C65.3,53.6,54.5,65.2,41.4,72.4C28.3,79.6,14.1,82.4,-0.7,83.5C-15.5,84.7,-31,84.2,-44.6,77.6C-58.2,71,-69.9,58.3,-77.3,44.1C-84.7,29.9,-87.8,14.2,-87.3,-1.3C-86.8,-16.8,-82.7,-32,-74.1,-44.5C-65.5,-57,-52.4,-66.8,-38.5,-73.6C-24.6,-80.4,-12.3,-84.2,1.2,-86.3C14.7,-88.4,29.4,-88.8,44.7,-76.4Z' transform='translate(160 100) scale(0.6)' /%3E%3C/svg%3E");
             background-position: right center;
@@ -52,7 +46,7 @@
                                 <svg class="w-5 h-5 text-[#1B5E20]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
                              {% endif %}
                         </div>
-                        <div class="flex flex-col py-2">
+                        <div class="flex flex-col py-2 text-left">
                             <span class="font-bold text-[15px] leading-tight">
                                 {% if message.tags == 'error' %}Oh Snap!{% else %}Success!{% endif %}
                             </span>
@@ -69,113 +63,71 @@
 
     <div class="bg-white w-full max-w-[480px] rounded-xl shadow-sm border border-gray-100 p-8 md:p-12 text-center">
 
-        <div class="mb-10">
+        <div class="flex justify-center mb-4 text-gray-800">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+        </div>
+
+        <div class="mb-8 text-center">
             <div class="serif-font text-xl tracking-widest font-bold uppercase text-[#1a1a1a]">
                 No <span class="text-lg">&</span> Co Admin Portal
             </div>
             <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-1">
-                Secure Access for Authorized Stylists and Personnel
+                Reset Password
             </p>
         </div>
 
-        <h1 class="serif-font text-2xl md:text-3xl font-semibold mb-3 text-[#1a1a1a]">
-            Verify Your Identity
-        </h1>
-
-        <p class="text-gray-500 text-sm leading-relaxed mb-8 px-4">
-            Enter the 6-digit code sent to your email.
+        <p class="text-gray-500 text-[11px] leading-relaxed mb-8 px-8">
+            Choose a new secure password for your account
         </p>
 
-        <form method="POST" id="otpForm">
+        <form method="POST" class="text-left">
             {% csrf_token %}
-            <input type="hidden" name="otp_code" id="otp_code_hidden">
 
-            <div class="flex gap-2 mb-6 justify-center" id="otpInputsContainer">
-                <input type="number" class="otp-field w-12 h-14 text-center text-xl font-semibold border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all" />
-                <input type="number" class="otp-field w-12 h-14 text-center text-xl font-semibold border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all" />
-                <input type="number" class="otp-field w-12 h-14 text-center text-xl font-semibold border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all" />
-                <input type="number" class="otp-field w-12 h-14 text-center text-xl font-semibold border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all" />
-                <input type="number" class="otp-field w-12 h-14 text-center text-xl font-semibold border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all" />
-                <input type="number" class="otp-field w-12 h-14 text-center text-xl font-semibold border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all" />
+            <div class="mb-4">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1" for="new_password">New Password</label>
+                <input id="new_password" name="new_password" type="password" placeholder="........" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all placeholder:text-gray-300" required>
             </div>
 
-            <div class="mb-10 text-center">
-                <div class="text-[11px] font-medium text-gray-400 uppercase tracking-widest mb-2">
-                    02:00 Remaining
-                </div>
-                <button type="button" class="text-red-500 font-semibold text-sm hover:underline">
-                    Resend Code
+            <div class="mb-4">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1" for="confirm_password">Confirm New Password</label>
+                <input id="confirm_password" name="confirm_password" type="password" placeholder="........" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-black transition-all placeholder:text-gray-300" required>
+            </div>
+
+            {% if passwords_mismatch %}
+            <div class="w-full bg-red-50 text-red-500 text-[9px] font-bold py-3 rounded-lg text-center uppercase tracking-widest mb-6">
+                Passwords Do Not Match
+            </div>
+            {% endif %}
+
+            <div class="space-y-3">
+                <button type="submit" class="w-full bg-[#111111] text-white py-4 rounded-lg font-medium text-xs uppercase tracking-widest hover:bg-black transition-colors">
+                    Save Changes
                 </button>
             </div>
+        </form>
 
-            <button
-                type="submit"
-                class="w-full bg-[#111111] text-white py-4 rounded-lg font-medium text-xs uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-black transition-colors"
-            >
-                Verify & Access Dashboard
-                <span>&rarr;</span>
+        <form method="POST" action="{% url "admin-cancel-reset-password" %}" class="mt-3">
+            {% csrf_token %}
+            <button type="submit" class="w-full border border-gray-100 text-gray-800 py-4 rounded-lg font-medium text-xs uppercase tracking-widest flex items-center justify-center hover:bg-gray-50 transition-colors">
+                Back to Login
             </button>
         </form>
 
     </div>
 
     <script>
-        // --- OTP Input Logic ---
-        const otpFields = document.querySelectorAll('.otp-field');
-        const hiddenInput = document.getElementById('otp_code_hidden');
-        const form = document.getElementById('otpForm');
-
-        function updateHiddenInput() {
-            let combinedCode = "";
-            otpFields.forEach(field => {
-                combinedCode += field.value;
-            });
-            hiddenInput.value = combinedCode;
-        }
-
-        otpFields.forEach((input, index) => {
-            if (index === 0) input.focus();
-
-            input.addEventListener('input', (e) => {
-                // Ensure only one digit
-                if (e.target.value.length > 1) {
-                    e.target.value = e.target.value.slice(0, 1);
-                }
-
-                updateHiddenInput();
-
-                // Auto-focus next
-                if (e.target.value && index < otpFields.length - 1) {
-                    otpFields[index + 1].focus();
-                }
-            });
-
-            input.addEventListener('keydown', (e) => {
-                if (e.key === "Backspace") {
-                    if (!input.value && index > 0) {
-                        otpFields[index - 1].focus();
-                    }
-                } else if (e.key === "ArrowLeft" && index > 0) {
-                    otpFields[index - 1].focus();
-                } else if (e.key === "ArrowRight" && index < otpFields.length - 1) {
-                    otpFields[index + 1].focus();
-                }
-            });
-        });
-
-        // Final sync on submit
-        form.addEventListener('submit', function() {
-            updateHiddenInput();
-        });
-
-        // --- Django Toast Animation Logic ---
+        // Handle Toast Animations for Django messages
         document.addEventListener('DOMContentLoaded', function() {
             const toasts = document.querySelectorAll('.toast-item');
             toasts.forEach((toast, index) => {
+                // Animate In
                 setTimeout(() => {
                     toast.classList.remove('translate-x-full');
                 }, 100 * (index + 1));
 
+                // Auto Remove after 5 seconds
                 setTimeout(() => {
                     toast.classList.add('opacity-0');
                     setTimeout(() => toast.remove(), 500);

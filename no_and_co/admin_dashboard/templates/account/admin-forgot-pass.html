@@ -77,13 +77,13 @@
             </button>
         </form>
 
-        <div class="mt-8 text-sm text-gray-500">
-            Didn't receive the code? <button class="text-red-500 font-medium hover:underline">Resend</button>
-        </div>
         <div class="border-t border-gray-100 mt-8 pt-6">
-            <a href="#" class="text-[10px] font-bold text-gray-800 uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-70 transition-opacity">
-                <span>&larr;</span> Back to Login
-            </a>
+            <form action="{% url 'admin-cancel-reset-password' %}" method="POST">
+                {% csrf_token %}
+                <button type="submit" class="w-full text-[10px] font-bold text-gray-800 uppercase tracking-widest flex items-center justify-center gap-2 hover:opacity-70 transition-opacity">
+                    <span>&larr;</span> Back to Login
+                </button>
+            </form>
         </div>
     </div>
 
@@ -104,6 +104,18 @@
                 }, 5000);
             });
         });
+
+    window.history.pushState(null, "", window.location.href);
+    window.onpopstate = function () {
+        window.location.replace("/admin-forgot-password/");
+    };
+
+    // Force reload if page comes from cache
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted) {
+            window.location.reload();
+        }
+    });
     </script>
 </body>
 </html>

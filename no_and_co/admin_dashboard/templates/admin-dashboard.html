@@ -1,1017 +1,453 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NO&CO Admin Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --bg-outer: #1a1a1a;
-    --bg-main: #f5f4f0;
-    --bg-white: #ffffff;
-    --bg-card: #ffffff;
-    --sidebar-w: 180px;
-    --text-black: #111111;
-    --text-muted: #999999;
-    --text-label: #aaaaaa;
-    --border: #ebebeb;
-    --green: #4a7c59;
-    --green-light: #e8f0eb;
-    --red: #e05252;
-    --red-light: #fdeaea;
-    --accent-tag-green: #4a7c59;
-    --accent-tag-grey: #888;
-  }
-
-  html, body {
-    width: 100%; height: 100%;
-    overflow: hidden;
-    background: var(--bg-outer);
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  /* ── OUTER SHELL ── */
-  .shell {
-    width: 100vw;
-    height: 100vh;
-    height: 100dvh;
-    background: var(--bg-outer);
-    display: flex;
-    flex-direction: column;
-  }
-
-  /* top label */
-  .shell-label {
-    color: #555;
-    font-size: 11px;
-    font-weight: 400;
-    letter-spacing: 0.04em;
-    padding: 10px 16px 6px;
-    flex-shrink: 0;
-  }
-
-  /* inner white card */
-  .app {
-    flex: 1;
-    margin: 0 12px 12px;
-    background: var(--bg-main);
-    border-radius: 12px;
-    display: flex;
-    overflow: hidden;
-    min-height: 0;
-  }
-
-  /* ── SIDEBAR ── */
-  .sidebar {
-    width: var(--sidebar-w);
-    flex-shrink: 0;
-    background: var(--bg-white);
-    border-right: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    padding: 24px 0 0;
-    overflow: hidden;
-  }
-
-  .logo {
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-black);
-    letter-spacing: 0.05em;
-    padding: 0 20px 24px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .nav-section-label {
-    font-size: 8.5px;
-    font-weight: 600;
-    letter-spacing: 0.15em;
-    color: var(--text-label);
-    text-transform: uppercase;
-    padding: 20px 20px 8px;
-  }
-
-  .nav-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 9px 20px;
-    font-size: 12.5px;
-    font-weight: 400;
-    color: #666;
-    cursor: pointer;
-    border-radius: 0;
-    transition: background 0.15s;
-    text-decoration: none;
-  }
-
-  .nav-item:hover { background: #f8f8f6; }
-
-  .nav-item.active {
-    background: #111;
-    color: #fff;
-    font-weight: 500;
-    border-radius: 0 6px 6px 0;
-    margin-right: 12px;
-  }
-
-  .nav-icon {
-    width: 14px;
-    height: 14px;
-    flex-shrink: 0;
-    opacity: 0.7;
-  }
-  .nav-item.active .nav-icon { opacity: 1; }
-
-  .sidebar-footer {
-    margin-top: auto;
-    padding: 16px 20px;
-    border-top: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .avatar {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    background: #ddd;
-    flex-shrink: 0;
-    object-fit: cover;
-    overflow: hidden;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 12px; font-weight: 600; color: #666;
-  }
-
-  .avatar-img {
-    width: 100%; height: 100%;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #c5b99a, #a89070);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 11px; font-weight: 600;
-  }
-
-  .sidebar-user-name { font-size: 11.5px; font-weight: 600; color: var(--text-black); }
-  .sidebar-user-role { font-size: 9.5px; color: var(--text-muted); }
-
-  /* ── MAIN CONTENT ── */
-  .main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    overflow: hidden;
-  }
-
-  /* TOP BAR */
-  .topbar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
-    background: var(--bg-white);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-
-  .search-wrap {
-    flex: 1;
-    max-width: 240px;
-    position: relative;
-  }
-
-  .search-wrap svg {
-    position: absolute;
-    left: 10px; top: 50%;
-    transform: translateY(-50%);
-    color: #bbb;
-  }
-
-  .search-input {
-    width: 100%;
-    background: #f8f8f6;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 7px 12px 7px 30px;
-    font-size: 11.5px;
-    color: var(--text-black);
-    font-family: 'DM Sans', sans-serif;
-    outline: none;
-  }
-
-  .search-input::placeholder { color: #bbb; }
-
-  .topbar-spacer { flex: 1; }
-
-  .btn-sales-report {
-    font-size: 9.5px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    border: 1.5px solid #111;
-    background: transparent;
-    color: #111;
-    padding: 7px 14px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-family: 'DM Sans', sans-serif;
-    white-space: nowrap;
-  }
-
-  .btn-sales-report:hover { background: #111; color: #fff; }
-
-  .topbar-icons { display: flex; align-items: center; gap: 12px; }
-
-  .icon-btn {
-    width: 30px; height: 30px;
-    border-radius: 50%;
-    background: #f5f5f3;
-    border: none;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    position: relative;
-  }
-
-  .notif-dot {
-    width: 7px; height: 7px;
-    background: var(--red);
-    border-radius: 50%;
-    position: absolute; top: 5px; right: 5px;
-    border: 1.5px solid white;
-  }
-
-  .user-btn {
-    display: flex; align-items: center; gap: 6px;
-    background: #f5f5f3; border: none; cursor: pointer;
-    border-radius: 20px; padding: 4px 10px 4px 4px;
-  }
-
-  .user-btn-avatar {
-    width: 22px; height: 22px; border-radius: 50%;
-    background: linear-gradient(135deg, #c5b99a, #a89070);
-  }
-
-  .user-btn-arrow { font-size: 10px; color: #999; }
-
-  /* CONTENT AREA */
-  .content {
-    flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 18px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    scrollbar-width: thin;
-    scrollbar-color: #ddd transparent;
-  }
-
-  .content::-webkit-scrollbar { width: 4px; }
-  .content::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
-
-  /* ── STAT CARDS ROW ── */
-  .stat-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-  }
-
-  .stat-card {
-    background: var(--bg-card);
-    border-radius: 10px;
-    padding: 14px 16px 12px;
-    border: 1px solid var(--border);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 0;
-  }
-
-  .stat-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .stat-label {
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-label);
-  }
-
-  .stat-icon { color: #ccc; }
-
-  .stat-value-row {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .stat-value {
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--text-black);
-    letter-spacing: -0.02em;
-    line-height: 1;
-  }
-
-  .badge {
-    font-size: 9px;
-    font-weight: 600;
-    padding: 2px 6px;
-    border-radius: 20px;
-  }
-
-  .badge-green { background: var(--green-light); color: var(--green); }
-  .badge-red { background: var(--red-light); color: var(--red); }
-  .badge-urgent { background: var(--red); color: #fff; font-size: 8px; letter-spacing: 0.06em; }
-
-  .sparkline { width: 100%; height: 36px; }
-
-  /* ── BOTTOM TWO COLUMNS ── */
-  .bottom-row {
-    display: grid;
-    grid-template-columns: 1fr 220px;
-    gap: 12px;
-    flex: 1;
-    min-height: 0;
-  }
-
-  .left-col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
-  .right-col { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
-
-  /* CHART CARD */
-  .chart-card {
-    background: var(--bg-card);
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    padding: 16px 18px 12px;
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .card-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 4px;
-  }
-
-  .card-title {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-black);
-    font-family: 'Playfair Display', serif;
-  }
-
-  .card-subtitle {
-    font-size: 8.5px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-label);
-    margin-top: 2px;
-  }
-
-  .toggle-group {
-    display: flex;
-    background: #f5f5f3;
-    border-radius: 6px;
-    padding: 2px;
-    gap: 2px;
-  }
-
-  .toggle-btn {
-    font-size: 10px;
-    font-weight: 500;
-    padding: 4px 10px;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    background: transparent;
-    color: #999;
-    font-family: 'DM Sans', sans-serif;
-  }
-
-  .toggle-btn.active { background: #fff; color: #111; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-
-  .chart-wrap { flex: 1; min-height: 0; position: relative; }
-
-  /* TABLE CARD */
-  .table-card {
-    background: var(--bg-card);
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    padding: 16px 18px;
-    overflow: hidden;
-  }
-
-  .table-wrap { overflow-x: auto; margin-top: 12px; }
-
-  table { width: 100%; border-collapse: collapse; }
-
-  thead th {
-    font-size: 8.5px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--text-label);
-    text-align: left;
-    padding: 0 8px 8px 0;
-    border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-
-  tbody tr { border-bottom: 1px solid #f5f5f3; }
-  tbody tr:last-child { border-bottom: none; }
-
-  tbody td {
-    padding: 10px 8px 10px 0;
-    font-size: 11.5px;
-    color: var(--text-black);
-    vertical-align: middle;
-  }
-
-  .product-preview {
-    width: 36px; height: 36px;
-    border-radius: 6px;
-    background: #f5f5f3;
-    display: flex; align-items: center; justify-content: center;
-    overflow: hidden;
-  }
-
-  .product-name { font-size: 12px; font-weight: 500; color: #111; }
-  .product-sku { font-size: 9px; color: #bbb; margin-top: 1px; }
-
-  .category-badge {
-    font-size: 9px;
-    font-weight: 500;
-    padding: 3px 8px;
-    border-radius: 20px;
-    background: #f0f0ee;
-    color: #555;
-    white-space: nowrap;
-  }
-
-  .revenue-val { font-size: 12px; font-weight: 600; color: #111; white-space: nowrap; }
-
-  /* INBOX CARD */
-  .inbox-card {
-    background: var(--bg-card);
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    padding: 16px;
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .card-header-row {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 14px;
-  }
-
-  .view-all {
-    font-size: 9px;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--red);
-    cursor: pointer;
-    text-decoration: none;
-  }
-
-  .inbox-list { display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
-
-  .inbox-item { display: flex; align-items: center; gap: 10px; }
-
-  .inbox-avatar {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 600; color: #fff;
-  }
-
-  .inbox-name { font-size: 12px; font-weight: 500; color: #111; }
-  .inbox-time { font-size: 9.5px; color: #bbb; }
-
-  .inbox-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: #111;
-    margin-left: auto;
-    flex-shrink: 0;
-  }
-
-  .inbox-dot.read { background: transparent; border: 1.5px solid #ddd; }
-
-  /* CATEGORY CARD */
-  .category-card {
-    background: var(--bg-card);
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .cat-item { display: flex; flex-direction: column; gap: 5px; }
-
-  .cat-label-row {
-    display: flex; align-items: center; justify-content: space-between;
-  }
-
-  .cat-name-row {
-    display: flex; align-items: center; gap: 6px;
-  }
-
-  .cat-icon { font-size: 11px; }
-  .cat-name { font-size: 12px; font-weight: 500; color: #111; }
-  .cat-pct { font-size: 12px; font-weight: 600; color: #111; }
-
-  .progress-bar {
-    height: 4px;
-    background: #f0f0ee;
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: #111;
-    border-radius: 2px;
-    transition: width 0.4s ease;
-  }
-
-  .premium-btn {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 10px 14px;
-    background: #f8f8f6;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    width: 100%;
-    font-family: 'DM Sans', sans-serif;
-    margin-top: 2px;
-  }
-
-  .premium-left {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 9.5px; font-weight: 600; letter-spacing: 0.08em;
-    text-transform: uppercase; color: #111;
-  }
-
-  .premium-arrow { font-size: 12px; color: #999; }
-
-  /* ── CHART SVG ── */
-  .chart-svg { width: 100%; height: 100%; }
-
-  /* ── RESPONSIVE ── */
-  @media (max-width: 1100px) {
-    :root { --sidebar-w: 160px; }
-    .stat-value { font-size: 18px; }
-  }
-
-  @media (max-width: 900px) {
-    .bottom-row { grid-template-columns: 1fr; }
-    .right-col { display: grid; grid-template-columns: 1fr 1fr; }
-  }
-
-  @media (max-width: 760px) {
-    .stat-row { grid-template-columns: repeat(2, 1fr); }
-    :root { --sidebar-w: 0px; }
-    .sidebar { display: none; }
-    .shell-label { display: none; }
-    .app { margin: 0; border-radius: 0; }
-  }
-
-  @media (max-width: 500px) {
-    .stat-row { grid-template-columns: 1fr 1fr; }
-    .right-col { grid-template-columns: 1fr; }
-    .btn-sales-report { display: none; }
-    .content { padding: 12px 12px; gap: 12px; }
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - NO & CO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .serif-font { font-family: 'Playfair Display', serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+
+        /* Dropdown Animation */
+        #profileDropdown {
+            transition: all 0.2s ease-out;
+            transform-origin: top right;
+        }
+        #profileDropdown.hidden {
+            display: none;
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        #profileDropdown.show {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .icon-bubble {
+            position: relative;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-bubble svg { transform: rotate(45deg); }
+
+        /* The Liquid/Blob background pattern for toasts */
+        .toast-pattern {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%23FFFFFF' fill-opacity='0.1' d='M44.7,-76.4C58.1,-69.2,69.2,-57.1,76.4,-43.3C83.7,-29.5,87.1,-14.8,86.4,-0.4C85.7,14,80.9,28,73.1,40.8C65.3,53.6,54.5,65.2,41.4,72.4C28.3,79.6,14.1,82.4,-0.7,83.5C-15.5,84.7,-31,84.2,-44.6,77.6C-58.2,71,-69.9,58.3,-77.3,44.1C-84.7,29.9,-87.8,14.2,-87.3,-1.3C-86.8,-16.8,-82.7,-32,-74.1,-44.5C-65.5,-57,-52.4,-66.8,-38.5,-73.6C-24.6,-80.4,-12.3,-84.2,1.2,-86.3C14.7,-88.4,29.4,-88.8,44.7,-76.4Z' transform='translate(160 100) scale(0.6)' /%3E%3C/svg%3E");
+            background-position: right center;
+            background-repeat: no-repeat;
+            background-size: contain;
+        }
+    </style>
 </head>
-<body>
+<body class="bg-[#F8F6F1] text-[#1a1a1a]">
 
-<div class="shell">
-  <div class="shell-label">admin dashboard</div>
-
-  <div class="app">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-      <div class="logo">NO&amp;CO</div>
-
-      <div class="nav-section-label">Management</div>
-
-      <a class="nav-item active" href="#">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/>
-          <rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/>
-        </svg>
-        Dashboard
-      </a>
-      <a class="nav-item" href="#">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M3 2h10l1 10H2L3 2z"/><path d="M6 14a1 1 0 100-2 1 1 0 000 2z"/><path d="M11 14a1 1 0 100-2 1 1 0 000 2z"/>
-        </svg>
-        Orders
-      </a>
-      <a class="nav-item" href="#">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
-        </svg>
-        Outfits
-      </a>
-      <a class="nav-item" href="#">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M2 4h12M2 8h8M2 12h5"/><path d="M12 7l2 3-2 3"/>
-        </svg>
-        Stylists
-      </a>
-      <a class="nav-item" href="#">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-          <path d="M8 1l1.5 3 3.5.5-2.5 2.5.5 3.5L8 9l-3 1.5.5-3.5L3 4.5l3.5-.5z"/>
-        </svg>
-        Coupons
-      </a>
-      <a class="nav-item" href="#">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-          <circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/>
-        </svg>
-        Customers
-      </a>
-      <a class="nav-item" href="#">
-        <svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-          <rect x="2" y="2" width="12" height="12" rx="2"/><path d="M5 8h6M5 5h3M5 11h4"/>
-        </svg>
-        Reviews
-      </a>
-
-      <div class="sidebar-footer">
-        <div class="avatar"><div class="avatar-img">AS</div></div>
-        <div>
-          <div class="sidebar-user-name">Abdulla Safwan</div>
-          <div class="sidebar-user-role">Global Admin</div>
-        </div>
-      </div>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main">
-
-      <!-- TOPBAR -->
-      <div class="topbar">
-        <div class="search-wrap">
-          <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="6.5" cy="6.5" r="4.5"/><path d="M10.5 10.5l3 3"/>
-          </svg>
-          <input class="search-input" type="text" placeholder="Search analytics...">
-        </div>
-        <div class="topbar-spacer"></div>
-        <button class="btn-sales-report">View Sales Report</button>
-        <div class="topbar-icons">
-          <button class="icon-btn">
-            <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path d="M8 1a5 5 0 015 5v3l1.5 2H1.5L3 9V6a5 5 0 015-5z"/><path d="M6 13a2 2 0 004 0"/>
-            </svg>
-            <span class="notif-dot"></span>
-          </button>
-          <button class="user-btn">
-            <div class="user-btn-avatar"></div>
-            <span class="user-btn-arrow">▾</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- CONTENT -->
-      <div class="content">
-
-        <!-- STAT CARDS -->
-        <div class="stat-row">
-          <div class="stat-card">
-            <div class="stat-header">
-              <span class="stat-label">Total Revenue</span>
-              <svg class="stat-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M2 6h12"/>
-              </svg>
-            </div>
-            <div class="stat-value-row">
-              <span class="stat-value">$45,231.89</span>
-              <span class="badge badge-green">+12.6%</span>
-            </div>
-            <svg class="sparkline" viewBox="0 0 120 36" fill="none">
-              <path d="M0 30 C10 28, 20 20, 30 22 C40 24, 50 15, 60 18 C70 21, 80 8, 90 10 C100 12, 110 4, 120 2" stroke="#111" stroke-width="1.5"/>
-            </svg>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-header">
-              <span class="stat-label">Total Orders</span>
-              <svg class="stat-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <path d="M3 2h10l1 10H2L3 2z"/><path d="M6 14a1 1 0 100-2 1 1 0 000 2z"/><path d="M11 14a1 1 0 100-2 1 1 0 000 2z"/>
-              </svg>
-            </div>
-            <div class="stat-value-row">
-              <span class="stat-value">2,350</span>
-              <span class="badge badge-green">+6.2%</span>
-            </div>
-            <svg class="sparkline" viewBox="0 0 120 36" fill="none">
-              <path d="M0 28 C10 26, 20 22, 30 24 C40 26, 50 18, 60 20 C70 22, 80 14, 90 16 C100 18, 110 10, 120 8" stroke="#111" stroke-width="1.5"/>
-            </svg>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-header">
-              <span class="stat-label">Pending Outfits</span>
-              <svg class="stat-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/>
-              </svg>
-            </div>
-            <div class="stat-value-row">
-              <span class="stat-value">48</span>
-              <span class="badge badge-urgent">Urgent</span>
-            </div>
-            <svg class="sparkline" viewBox="0 0 120 36" fill="none">
-              <path d="M0 16 C10 18, 20 12, 30 14 C40 16, 50 22, 60 20 C70 18, 80 24, 90 22 C100 20, 110 26, 120 28" stroke="#111" stroke-width="1.5"/>
-            </svg>
-          </div>
-
-          <div class="stat-card">
-            <div class="stat-header">
-              <span class="stat-label">Active Stylists</span>
-              <svg class="stat-icon" width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="6" cy="5" r="2.5"/><circle cx="11" cy="5" r="2.5"/><path d="M1 14c0-2.8 2.2-5 5-5"/>
-                <path d="M8.5 14c0-2.8 2.2-5 5-5" opacity="0.4"/>
-              </svg>
-            </div>
-            <div class="stat-value-row">
-              <span class="stat-value">12,234</span>
-              <span class="badge badge-green">+4.1%</span>
-            </div>
-            <svg class="sparkline" viewBox="0 0 120 36" fill="none">
-              <path d="M0 26 C10 24, 20 20, 30 18 C40 16, 50 14, 60 12 C70 10, 80 8, 90 7 C100 6, 110 4, 120 3" stroke="#111" stroke-width="1.5"/>
-            </svg>
-          </div>
-        </div>
-
-        <!-- BOTTOM ROW -->
-        <div class="bottom-row">
-
-          <!-- LEFT -->
-          <div class="left-col">
-
-            <!-- REVENUE CHART -->
-            <div class="chart-card">
-              <div class="card-header">
-                <div>
-                  <div class="card-title">Revenue Overview</div>
-                  <div class="card-subtitle">FY 2024 Performance</div>
-                </div>
-                <div class="toggle-group">
-                  <button class="toggle-btn active">Weekly</button>
-                  <button class="toggle-btn">Monthly</button>
-                </div>
-              </div>
-              <div class="chart-wrap">
-                <svg class="chart-svg" viewBox="0 0 520 180" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="#111" stop-opacity="0.06"/>
-                      <stop offset="100%" stop-color="#111" stop-opacity="0"/>
-                    </linearGradient>
-                  </defs>
-                  <!-- grid lines -->
-                  <line x1="0" y1="160" x2="520" y2="160" stroke="#f0f0ee" stroke-width="1"/>
-                  <line x1="0" y1="120" x2="520" y2="120" stroke="#f0f0ee" stroke-width="1"/>
-                  <line x1="0" y1="80" x2="520" y2="80" stroke="#f0f0ee" stroke-width="1"/>
-                  <line x1="0" y1="40" x2="520" y2="40" stroke="#f0f0ee" stroke-width="1"/>
-                  <!-- area fill -->
-                  <path d="M0 155 C30 152, 60 140, 90 138 C120 136, 150 128, 180 120 C210 112, 240 100, 270 95 C300 90, 330 75, 360 65 C390 55, 420 38, 450 30 C470 25, 490 18, 520 10 L520 160 L0 160 Z" fill="url(#chartGrad)"/>
-                  <!-- line -->
-                  <path d="M0 155 C30 152, 60 140, 90 138 C120 136, 150 128, 180 120 C210 112, 240 100, 270 95 C300 90, 330 75, 360 65 C390 55, 420 38, 450 30 C470 25, 490 18, 520 10" fill="none" stroke="#111" stroke-width="1.8"/>
-                  <!-- dots -->
-                  <circle cx="90" cy="138" r="3.5" fill="#fff" stroke="#111" stroke-width="1.5"/>
-                  <circle cx="180" cy="120" r="3.5" fill="#fff" stroke="#111" stroke-width="1.5"/>
-                  <circle cx="270" cy="95" r="3.5" fill="#fff" stroke="#111" stroke-width="1.5"/>
-                  <circle cx="360" cy="65" r="3.5" fill="#fff" stroke="#111" stroke-width="1.5"/>
-                  <circle cx="450" cy="30" r="3.5" fill="#fff" stroke="#111" stroke-width="1.5"/>
-                  <!-- x-axis labels -->
-                  <text x="0" y="176" font-size="9" fill="#bbb" font-family="DM Sans">JAN</text>
-                  <text x="90" y="176" font-size="9" fill="#bbb" font-family="DM Sans">MAR</text>
-                  <text x="185" y="176" font-size="9" fill="#bbb" font-family="DM Sans">MAY</text>
-                  <text x="280" y="176" font-size="9" fill="#bbb" font-family="DM Sans">JUL</text>
-                  <text x="375" y="176" font-size="9" fill="#bbb" font-family="DM Sans">SEP</text>
-                  <text x="468" y="176" font-size="9" fill="#bbb" font-family="DM Sans">NOV</text>
-                </svg>
-              </div>
-            </div>
-
-            <!-- TRENDING TABLE -->
-            <div class="table-card">
-              <div class="card-header">
-                <div>
-                  <div class="card-title">Trending Outfits</div>
-                  <div class="card-subtitle">Highest Conversion</div>
-                </div>
-              </div>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Preview</th>
-                      <th>Product Name</th>
-                      <th>Category</th>
-                      <th>Sales</th>
-                      <th>Revenue</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>
-                        <div class="product-preview">
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5">
-                            <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
-                          </svg>
+      <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast-item flex items-center justify-between min-w-[350px] p-2 rounded-full shadow-2xl transition-all duration-500 transform translate-x-full toast-pattern
+                    {% if message.tags == 'error' %}bg-[#8B0000]{% else %}bg-[#1B5E20]{% endif %} text-white"
+                >
+                    <div class="flex items-center gap-4">
+                        <div class="ml-1 w-11 h-11 bg-white icon-bubble shadow-md">
+                             {% if message.tags == 'error' %}
+                                <svg class="w-5 h-5 text-[#8B0000]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                             {% else %}
+                                <svg class="w-5 h-5 text-[#1B5E20]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                             {% endif %}
                         </div>
-                      </td>
-                      <td>
-                        <div class="product-name">Noir Essential Tee</div>
-                        <div class="product-sku">ID: NE-001</div>
-                      </td>
-                      <td><span class="category-badge">Aree Style</span></td>
-                      <td>342</td>
-                      <td><span class="revenue-val">₹1,95,390</span></td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <div class="product-preview">
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="1.5">
-                            <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
-                          </svg>
+                        <div class="flex flex-col py-2 text-left">
+                            <span class="font-bold text-[15px] leading-tight">
+                                {% if message.tags == 'error' %}Oh Snap!{% else %}Success!{% endif %}
+                            </span>
+                            <span class="text-[11px] opacity-80 font-medium">{{ message }}</span>
                         </div>
-                      </td>
-                      <td>
-                        <div class="product-name">Signature Silk Shirt</div>
-                        <div class="product-sku">ID: SS-089</div>
-                      </td>
-                      <td><span class="category-badge">Old Money</span></td>
-                      <td>288</td>
-                      <td><span class="revenue-val">₹9,99,988</span></td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <div class="product-preview" style="background:#e8f2e8;">
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#4a7c59" stroke-width="1.5">
-                            <path d="M20.38 3.46L16 2a4 4 0 01-8 0L3.62 3.46a2 2 0 00-1.34 2.23l.58 3.57a1 1 0 00.99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 002-2V10h2.15a1 1 0 00.99-.84l.58-3.57a2 2 0 00-1.34-2.23z"/>
-                          </svg>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="mr-2 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors border border-white/20">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="flex h-screen overflow-hidden">
+
+        <aside class="w-[280px] h-screen bg-white border-r border-gray-100 flex-shrink-0 flex flex-col justify-between">
+            <div class="p-8">
+                <div class="serif-font text-2xl tracking-widest font-bold mb-12 uppercase text-[#1a1a1a]">No <span class="text-xl">&</span> Co</div>
+
+                <nav class="space-y-3">
+                    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1 mb-4">Management</p>
+
+                    <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-black bg-gray-100 border-r-2 border-black font-semibold">
+                        <svg class="w-5 h-5 text-black" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                        <span class="text-sm">Dashboard</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        <span class="font-medium text-sm">Orders</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                        <span class="font-medium text-sm">Products</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                        <span class="font-medium text-sm">Categories</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                        <span class="font-medium text-sm">Coupons</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+                        <span class="font-medium text-sm">Offers</span>
+                    </a>
+                    <a href="{% url 'admin-user-management' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <span class="font-medium text-sm">Customers</span>
+                    </a>
+                    <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group">
+                        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        <span class="font-medium text-sm">Reviews</span>
+                    </a>
+                </nav>
+            </div>
+
+            <div class="p-6 border-t border-gray-100 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Julian Thorne" class="w-10 h-10 rounded-full object-cover">
+                    <div>
+                        <p class="font-semibold text-sm text-[#1a1a1a]">Julian Thorne</p>
+                        <p class="text-xs text-gray-500">julian@noandco.com</p>
+                    </div>
+                </div>
+                <button class="text-gray-400 hover:text-black">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+                </button>
+            </div>
+        </aside>
+
+        <main class="flex-grow flex flex-col overflow-hidden">
+
+            <header class="h-20 bg-[#F8F6F1] flex items-center justify-between px-10 flex-shrink-0">
+                <div class="relative w-72">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </span>
+                    <input type="text" placeholder="Search analytics..." class="w-full pl-10 pr-4 py-2 bg-white rounded-full border border-gray-100 text-xs focus:outline-none focus:ring-1 focus:ring-black">
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button class="bg-white px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider border border-gray-100 shadow-sm hover:bg-gray-50 transition-all">View Sales Report</button>
+                    <div class="relative">
+                        <button class="w-10 h-10 flex items-center justify-center bg-white rounded-full border border-gray-100 shadow-sm"><svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg></button>
+                        <span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                    </div>
+
+                    <div class="relative">
+                        <div id="profileTrigger" class="flex items-center gap-2 bg-white pl-1 pr-3 py-1 rounded-full border border-gray-100 shadow-sm cursor-pointer hover:bg-gray-50 transition-all">
+                            <img src="https://randomuser.me/api/portraits/men/32.jpg" class="w-8 h-8 rounded-full">
+                            <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
                         </div>
-                      </td>
-                      <td>
-                        <div class="product-name">Heritage Brazil Jersey</div>
-                        <div class="product-sku">ID: HBJ-BLU</div>
-                      </td>
-                      <td><span class="category-badge">Sport</span></td>
-                      <td>245</td>
-                      <td><span class="revenue-val">₹2,90,999</span></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+
+                        <div id="profileDropdown" class="hidden absolute right-0 mt-3 w-48 bg-white rounded-xl border border-gray-100 shadow-xl z-50 overflow-hidden">
+                            <div class="px-4 py-3 border-b border-gray-50">
+                                <p class="text-xs font-bold text-[#1a1a1a]">Julian Thorne</p>
+                                <p class="text-[10px] text-gray-400 truncate">Administrator</p>
+                            </div>
+                            <div class="py-1">
+                                <a href="#" class="flex items-center gap-3 px-4 py-2 text-[11px] font-semibold text-gray-600 hover:bg-gray-50 hover:text-black">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    View Profile
+                                </a>
+                                <button onclick="document.getElementById('logout-form').submit();" class="w-full flex items-center gap-3 px-4 py-2 text-[11px] font-semibold text-red-500 hover:bg-red-50 transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                    Sign Out
+                                </button>
+                                <form id="logout-form" action="{% url 'admin-logout' %}" method="POST" class="hidden">
+                                    {% csrf_token %}
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="flex-grow overflow-y-auto px-10 pb-10 custom-scrollbar">
+
+                <div class="grid grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Revenue</p>
+                                <h3 class="text-2xl font-bold serif-font">$45,231.89</h3>
+                            </div>
+                            <span class="p-2 bg-gray-50 rounded-lg"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">+12.5%</span>
+                        </div>
+                        <svg class="absolute bottom-0 left-0 w-full h-12 text-gray-100" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 20 Q 25 5 50 15 T 100 10 L 100 20 L 0 20" fill="currentColor"/></svg>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Orders</p>
+                                <h3 class="text-2xl font-bold serif-font">2,350</h3>
+                            </div>
+                            <span class="p-2 bg-gray-50 rounded-lg"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg></span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">+8.2%</span>
+                        </div>
+                        <svg class="absolute bottom-0 left-0 w-full h-12 text-gray-100" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 20 Q 20 15 40 18 T 100 5 L 100 20 L 0 20" fill="currentColor"/></svg>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pending Outfits</p>
+                                <h3 class="text-2xl font-bold serif-font">48</h3>
+                            </div>
+                            <span class="p-2 bg-red-50 rounded-lg"><svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.247 5.232l-7.446 9.88a.75.75 0 00.113 1.045l1.03 1.03a.75.75 0 001.045.113l9.88-7.446a.75.75 0 00.113-1.045l-1.03-1.03a.75.75 0 00-1.045-.113z"></path></svg></span>
+                        </div>
+                        <span class="bg-red-100 text-red-600 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Urgent</span>
+                        <svg class="absolute bottom-0 left-0 w-full h-12 text-red-50" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 Q 30 18 60 5 T 100 15 L 100 20 L 0 20" fill="currentColor"/></svg>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Active Stylists</p>
+                                <h3 class="text-2xl font-bold serif-font">12,234</h3>
+                            </div>
+                            <span class="p-2 bg-gray-50 rounded-lg"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></span>
+                        </div>
+                        <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">+4.1%</span>
+                        <svg class="absolute bottom-0 left-0 w-full h-12 text-gray-100" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 20 C 20 20 40 5 100 15 L 100 20 L 0 20" fill="currentColor"/></svg>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-8">
+
+                    <div class="col-span-2 space-y-8">
+
+                        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                            <div class="flex justify-between items-center mb-10">
+                                <div>
+                                    <h4 class="serif-font font-bold text-lg">Revenue Overview</h4>
+                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Ay 2024 Performance</p>
+                                </div>
+                                <div class="flex bg-gray-50 p-1 rounded-lg gap-1">
+                                    <button class="px-4 py-1.5 bg-white text-[10px] font-bold rounded-md shadow-sm">Weekly</button>
+                                    <button class="px-4 py-1.5 text-[10px] font-bold text-gray-400">Monthly</button>
+                                </div>
+                            </div>
+
+                            <div class="relative h-64 w-full">
+                                <div class="absolute inset-0 flex flex-col justify-between text-[10px] text-gray-300 font-bold">
+                                    <div class="border-b border-gray-50 pb-8 italic">80k</div>
+                                    <div class="border-b border-gray-50 pb-8 italic">60k</div>
+                                    <div class="border-b border-gray-50 pb-8 italic">40k</div>
+                                    <div class="border-b border-gray-50 pb-8 italic">20k</div>
+                                    <div class="italic">0k</div>
+                                </div>
+                                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1000 200">
+                                    <path d="M0 160 Q 150 150 250 120 T 450 100 T 650 60 T 850 40 L 1000 20" fill="none" stroke="black" stroke-width="2.5" />
+                                    <circle cx="250" cy="120" r="4" fill="white" stroke="black" stroke-width="2"/>
+                                    <circle cx="450" cy="100" r="4" fill="white" stroke="black" stroke-width="2"/>
+                                    <circle cx="650" cy="60" r="4" fill="white" stroke="black" stroke-width="2"/>
+                                </svg>
+                                <div class="absolute bottom-[-30px] w-full flex justify-between text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
+                                    <span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                            <h4 class="serif-font font-bold text-lg mb-1">Trending Outfits</h4>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-8">Highest Conversion</p>
+
+                            <div class="space-y-6">
+                                <div class="flex items-center justify-between group cursor-pointer">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-black transition-all">
+                                            <span class="text-xs group-hover:text-white">👕</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold">Noir Essential Tee</p>
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-tighter">ID: FLR-24-MIDI</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-50 px-3 py-1 rounded text-[10px] font-bold text-gray-500 uppercase">Street Style</div>
+                                    <p class="text-sm font-bold">342 Sales</p>
+                                    <p class="text-sm font-bold serif-font">₹ 1,95,390</p>
+                                </div>
+
+                                <div class="flex items-center justify-between group cursor-pointer">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-black transition-all">
+                                            <span class="text-xs group-hover:text-white">👔</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold">Signature Silk Shirt</p>
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-tighter">ID: LTH-JKT-01</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-50 px-3 py-1 rounded text-[10px] font-bold text-gray-500 uppercase">Old Money</div>
+                                    <p class="text-sm font-bold">288 Sales</p>
+                                    <p class="text-sm font-bold serif-font">₹ 9,99,988</p>
+                                </div>
+
+                                <div class="flex items-center justify-between group cursor-pointer">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-black transition-all">
+                                            <span class="text-xs group-hover:text-white">⚽</span>
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold">Heritage Brazil Jersey</p>
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-tighter">ID: DNM-SHT-BLU</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-gray-50 px-3 py-1 rounded text-[10px] font-bold text-gray-500 uppercase">Sport</div>
+                                    <p class="text-sm font-bold">245 Sales</p>
+                                    <p class="text-sm font-bold serif-font">₹ 2,90,999</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+
+                        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                            <div class="flex justify-between items-center mb-8">
+                                <h4 class="serif-font font-bold text-lg">Stylist Inbox</h4>
+                                <button class="text-red-500 text-[10px] font-bold uppercase tracking-widest">View All</button>
+                            </div>
+                            <div class="space-y-6">
+                                <div class="flex items-center gap-4">
+                                    <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                                    <div class="flex-grow">
+                                        <div class="flex justify-between"><p class="text-sm font-bold">Olivia Martin</p><span class="text-[10px] text-gray-300">2m ago</span></div>
+                                        <p class="text-[11px] text-gray-400 truncate">I've sent the new concepts...</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <img src="https://randomuser.me/api/portraits/men/85.jpg" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                                    <div class="flex-grow">
+                                        <div class="flex justify-between"><p class="text-sm font-bold">Jackson Lee</p><span class="text-[10px] text-gray-300">15m ago</span></div>
+                                        <p class="text-[11px] text-gray-400 truncate">Did you review the silk shirt?</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <img src="https://randomuser.me/api/portraits/women/71.jpg" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                                    <div class="flex-grow">
+                                        <div class="flex justify-between"><p class="text-sm font-bold">Isabella Nguyen</p><span class="text-[10px] text-gray-300">1h ago</span></div>
+                                        <p class="text-[11px] text-gray-400 truncate">Client wants a velvet option.</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                    <img src="https://randomuser.me/api/portraits/men/42.jpg" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
+                                    <div class="flex-grow">
+                                        <div class="flex justify-between"><p class="text-sm font-bold">William Kim</p><span class="text-[10px] text-gray-300">4h ago</span></div>
+                                        <p class="text-[11px] text-gray-400 truncate">Project update for summer.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                            <h4 class="serif-font font-bold text-lg mb-1">Category Split</h4>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-8">Revenue Share</p>
+
+                            <div class="space-y-6">
+                                <div>
+                                    <div class="flex justify-between text-[11px] font-bold mb-2"><span>💎 Old Money</span><span>45%</span></div>
+                                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-black h-full w-[45%]"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] font-bold mb-2"><span>✨ Free Style</span><span>28%</span></div>
+                                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-black h-full w-[28%]"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div class="flex justify-between text-[11px] font-bold mb-2"><span>⚽ Jersey</span><span>15%</span></div>
+                                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-black h-full w-[15%]"></div>
+                                    </div>
+                                </div>
+
+                                <button class="w-full mt-4 flex items-center justify-between px-4 py-3 bg-[#F8F6F1] rounded-xl group hover:bg-black transition-all">
+                                    <span class="text-[10px] font-bold uppercase tracking-widest group-hover:text-white">Premium Insights</span>
+                                    <svg class="w-3 h-3 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
             </div>
+        </main>
+    </div>
 
-          </div><!-- /left-col -->
+    <script>
+        const trigger = document.getElementById('profileTrigger');
+        const dropdown = document.getElementById('profileDropdown');
 
-          <!-- RIGHT -->
-          <div class="right-col">
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+            dropdown.classList.toggle('show');
+        });
 
-            <!-- STYLIST INBOX -->
-            <div class="inbox-card">
-              <div class="card-header-row">
-                <div class="card-title">Stylist Inbox</div>
-                <a href="#" class="view-all">View All</a>
-              </div>
-              <div class="inbox-list">
-                <div class="inbox-item">
-                  <div class="inbox-avatar" style="background:#c5a882;">OM</div>
-                  <div>
-                    <div class="inbox-name">Olivia Martin</div>
-                    <div class="inbox-time">2m ago</div>
-                  </div>
-                  <span class="inbox-dot"></span>
-                </div>
-                <div class="inbox-item">
-                  <div class="inbox-avatar" style="background:#8ba8c5;">JL</div>
-                  <div>
-                    <div class="inbox-name">Jackson Lee</div>
-                    <div class="inbox-time">12m ago</div>
-                  </div>
-                  <span class="inbox-dot"></span>
-                </div>
-                <div class="inbox-item">
-                  <div class="inbox-avatar" style="background:#c5a8b8;">IN</div>
-                  <div>
-                    <div class="inbox-name">Isabella Nguyen</div>
-                    <div class="inbox-time">1h ago</div>
-                  </div>
-                  <span class="inbox-dot read"></span>
-                </div>
-                <div class="inbox-item">
-                  <div class="inbox-avatar" style="background:#a8b8c5;">WK</div>
-                  <div>
-                    <div class="inbox-name">William Kim</div>
-                    <div class="inbox-time">4h ago</div>
-                  </div>
-                  <span class="inbox-dot read"></span>
-                </div>
-              </div>
-            </div>
+        // Close when clicking outside
+        window.addEventListener('click', () => {
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+                dropdown.classList.add('hidden');
+            }
+        });
 
-            <!-- CATEGORY SPLIT -->
-            <div class="category-card">
-              <div>
-                <div class="card-title">Category Split</div>
-                <div class="card-subtitle">Revenue Share</div>
-              </div>
+         if (window.history.replaceState) {
+        window.history.replaceState(null, null, window.location.href);
+    }
 
-              <div class="cat-item">
-                <div class="cat-label-row">
-                  <div class="cat-name-row">
-                    <span class="cat-icon">🏛</span>
-                    <span class="cat-name">Old Money</span>
-                  </div>
-                  <span class="cat-pct">45%</span>
-                </div>
-                <div class="progress-bar"><div class="progress-fill" style="width:45%"></div></div>
-              </div>
-
-              <div class="cat-item">
-                <div class="cat-label-row">
-                  <div class="cat-name-row">
-                    <span class="cat-icon">✦</span>
-                    <span class="cat-name">Free Style</span>
-                  </div>
-                  <span class="cat-pct">28%</span>
-                </div>
-                <div class="progress-bar"><div class="progress-fill" style="width:28%"></div></div>
-              </div>
-
-              <div class="cat-item">
-                <div class="cat-label-row">
-                  <div class="cat-name-row">
-                    <span class="cat-icon">⚽</span>
-                    <span class="cat-name">Jersey</span>
-                  </div>
-                  <span class="cat-pct">15%</span>
-                </div>
-                <div class="progress-bar"><div class="progress-fill" style="width:15%"></div></div>
-              </div>
-
-              <button class="premium-btn">
-                <span class="premium-left">
-                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8">
-                    <path d="M8 1l1.5 3 3.5.5-2.5 2.5.5 3.5L8 9l-3 1.5.5-3.5L3 4.5l3.5-.5z"/>
-                  </svg>
-                  Premium Insights
-                </span>
-                <span class="premium-arrow">›</span>
-              </button>
-            </div>
-
-          </div><!-- /right-col -->
-
-        </div><!-- /bottom-row -->
-
-      </div><!-- /content -->
-
-    </main>
-  </div><!-- /app -->
-</div><!-- /shell -->
-
-<script>
-  // Toggle Weekly/Monthly
-  document.querySelectorAll('.toggle-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted || window.performance.navigation.type === 2) {
+            window.location.reload();
+        }
     });
-  });
-</script>
+
+     // Handle Toast Animations for Django messages
+        document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.toast-item');
+            toasts.forEach((toast, index) => {
+                // Animate In
+                setTimeout(() => {
+                    toast.classList.remove('translate-x-full');
+                }, 100 * (index + 1));
+
+                // Auto Remove after 5 seconds
+                setTimeout(() => {
+                    toast.classList.add('opacity-0');
+                    setTimeout(() => toast.remove(), 500);
+                }, 5000);
+            });
+        });
+    </script>
+
 </body>
 </html>

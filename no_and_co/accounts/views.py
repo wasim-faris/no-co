@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import get_user_model
-from django.http import HttpResponse
 from django.contrib import messages
 import re
 from django.core.mail import send_mail
@@ -15,14 +14,23 @@ from datetime import timedelta
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
 from allauth.socialaccount.models import SocialAccount
+from django.contrib.auth.hashers import check_password
+from django.db.models import Q
+from django.contrib.auth.hashers import make_password
+
 email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 password_pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$"
 username_pattern = r"^[a-zA-Z0-9_]{4,20}$"
+
+
 User = get_user_model()
 
 
 @never_cache
 def signup(request):
+
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect("admin-dashboard")
 
     if request.user.is_authenticated:
         return redirect("home")
@@ -75,7 +83,7 @@ def signup(request):
             request.session["signup_values"] = {
                 "username": username,
                 "email": email,
-                "password": password,
+                "password": make_password(password)
             }
 
             otp = random.randint(100000, 999999)
@@ -106,6 +114,12 @@ def signup(request):
 @never_cache
 def login_user(request):
 
+    if request.session.get("created_at",0):
+        return redirect("signup-otp-verification")
+
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect("admin-dashboard")
+
     if request.user.is_authenticated:
         return redirect("home")
 
@@ -120,10 +134,26 @@ def login_user(request):
             messages.error(request, "All fields are required")
             return redirect("login")
 
-        user = authenticate(request, username=username, password=password)
+        user_obj = User.objects.filter(
+           Q(username=username)| Q(email= username)
+       ).first()
+
+        if user_obj:
+            user = authenticate(request, username=user_obj.username, password=password)
+        else:
+            messages.error(request, "user not found")
+            return redirect("login")
 
         if user is not None:
+            if user and user.is_superuser:
+                messages.error(request, "admin cant access in user dashboard")
+                return redirect("admin-login")
+            if user.is_blocked:
+                messages.error(request, "you are currently blocked")
+                return redirect("login")
             login(request, user)
+            request.session["login_attempt"] = 0
+
             messages.success(request, "login succesfuly")
             return redirect("home")
         else:
@@ -147,6 +177,7 @@ def signup_otp_verification(request):
         return redirect("home")
 
     otp_created_time = request.session.get("otp_created_time")
+
 
     remaining = 0
 
@@ -179,7 +210,7 @@ def signup_otp_verification(request):
 
 
             user = User.objects.create_user(username=username, email=email, password=password)
-
+            request.session.flush()
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
             messages.success(request, "Account created successfully")
@@ -211,7 +242,13 @@ def resend_otp_verification(request):
             otp = random.randint(100000, 999999)
             request.session["otp"] = otp
             request.session["otp_created_time"] = time.time()
-            email = request.session["signup_values"]["email"]
+            signup_data = request.session.get("signup_values")
+
+            if not signup_data:
+                messages.error(request, "Session expired")
+                return redirect("signup")
+
+            email = signup_data["email"]
 
             send_mail(
                 "Resend Email verification OTP",
@@ -260,6 +297,10 @@ def forgot_password(request):
             if SocialAccount.objects.filter(user=user, provider="google").exists():
                 messages.error(request, "This account uses Google Sign-In.")
                 return redirect("login")
+
+            if user.is_superuser:
+                messages.error(request, "Admin not allowed to use")
+                return redirect("forgot-password")
 
             last_token = PasswordResetToken.objects.filter(
                 user=user, is_used=False
@@ -324,7 +365,7 @@ def reset_link(request, uuid):
 
         return redirect("reset-password", uuid=uuid)
     except PasswordResetToken.DoesNotExist:
-        messages.error(request, "page not found")
+        messages.error(request, "linked already used before")
         return redirect("not-found")
 
 @never_cache
@@ -349,6 +390,12 @@ def reset_password(request, uuid):
             reset_password_user = PasswordResetToken.objects.get(
                 uuid_token=uuid, is_used=False
             )
+
+            current_password = reset_password_user.user.password
+
+            if check_password(new_password, current_password):
+                messages.error(request, "Cannot reuse old password")
+                return redirect("reset-password", uuid=uuid)
 
             reset_password_user.user.set_password(new_password)
             reset_password_user.is_used = True

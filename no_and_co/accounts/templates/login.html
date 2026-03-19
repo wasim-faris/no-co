@@ -15,7 +15,6 @@
 body{font-family:'Inter',sans-serif}
 .no-scrollbar::-webkit-scrollbar{display:none}
 
-/* --- DYNAMIC BLACK PILL TOAST (HUGS CONTENT) --- */
 #toast-container {
     position: fixed;
     top: 30px;
@@ -29,7 +28,7 @@ body{font-family:'Inter',sans-serif}
 }
 
 .custom-pill-toast {
-    width: max-content; /* Hugs the text */
+    width: max-content;
     max-width: 90vw;
     padding: 10px 22px 10px 14px;
     border-radius: 50px;
@@ -72,7 +71,7 @@ body{font-family:'Inter',sans-serif}
 .toast-message-wrapper {
     display: flex;
     flex-direction: column;
-    white-space: nowrap; /* Prevents text wrapping */
+    white-space: nowrap;
     margin-right: 15px;
 }
 
@@ -131,7 +130,7 @@ body{font-family:'Inter',sans-serif}
                         <p class="text-gray-400 text-[13px] font-light leading-relaxed">Sign in to your account for a personalized experience.</p>
                     </header>
 
-                    <form action="#" method="POST" class="space-y-8">
+                    <form action="#" method="POST" class="space-y-4">
                         {% csrf_token %}
                         <div class="space-y-6">
                             <div class="group">
@@ -146,17 +145,20 @@ body{font-family:'Inter',sans-serif}
                                     <a href="{% url "forgot-password" %}" class="text-[9px] text-gray-300 hover:text-black uppercase tracking-widest transition-colors">Forgot?</a>
                                 </div>
                                 <input type="password" id="password" name="password" placeholder="••••••••"
-                                       class="w-full border-b border-gray-200 bg-transparent py-2 pr-8 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
-                                <button type="button" onclick="togglePassword('password', this)" class="absolute right-0 bottom-2 text-gray-400 hover:text-black transition-colors">
-                                    <svg class="eye-closed w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L1 1m22 22L14.12 14.12"></path></svg>
-                                    <svg class="eye-open w-4 h-4 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path><circle cx="12" cy="12" r="2.5" stroke-width="1.2"></circle></svg>
+                                       class="w-full border-b border-gray-200 bg-transparent py-2 pr-12 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
+                                <button type="button" onclick="togglePassword('password', this)" class="absolute right-0 bottom-2 text-[9px] font-bold text-gray-400 hover:text-black uppercase tracking-tighter transition-colors">
+                                    Show
                                 </button>
                             </div>
                         </div>
 
-                        <button type="submit" class="btn-stable w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] active:scale-[0.99] transition-all duration-300">
+                        <button type="submit" class="btn-stable w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] active:scale-[0.99] transition-all duration-300 mt-4">
                             <span>Sign In</span>
                         </button>
+
+                        <div class="text-center py-0 my-0 leading-none">
+                            <span class="text-[9px] text-gray-300 uppercase tracking-[0.3em]">or</span>
+                        </div>
 
                         <a href="{% provider_login_url 'google' process='login' %}" class="w-full border border-gray-200 py-3 text-[10px] font-medium uppercase tracking-[0.15em] flex items-center justify-center space-x-3 hover:bg-gray-50 transition-all duration-300">
                             <svg width="14" height="14" viewBox="0 0 24 24">
@@ -230,35 +232,17 @@ body{font-family:'Inter',sans-serif}
         }
     }, 4000);
 }
-    (function() {
-        function initTippy() {
-            if (typeof tippy !== 'undefined') {
-                tippy('.info-icon', {
-                    content: (reference) => reference.getAttribute('data-tippy-content'),
-                    theme: 'minimal-dark',
-                    animation: 'shift-away',
-                    duration: 200,
-                    arrow: false,
-                    offset: [0, 8],
-                    zIndex: 99999,
-                    appendTo: document.body
-                });
-            } else {
-                setTimeout(initTippy, 500);
-            }
-        }
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initTippy);
-        } else {
-            initTippy();
-        }
-    })();
 
     function togglePassword(inputId, button) {
         const input = document.getElementById(inputId);
         if (input) {
-            input.type = input.type === 'password' ? 'text' : 'password';
-            button.style.opacity = input.type === 'text' ? '1' : '0.4';
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.textContent = 'Hide';
+            } else {
+                input.type = 'password';
+                button.textContent = 'Show';
+            }
         }
     }
 

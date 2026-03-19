@@ -9,35 +9,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         .serif-font{font-family:'Playfair Display',serif}
-        body{font-family:'Inter',sans-serif}
-        .no-scrollbar::-webkit-scrollbar{display:none}
+        body{font-family:'Inter',sans-serif; background-color: #f8f8f8;}
 
-        /* --- MODERN ANIMATIONS --- */
-        @keyframes fadeInMove {
-            from { opacity: 0; transform: translateY(15px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* --- ADVANCED ANIMATIONS --- */
+        @keyframes revealUp {
+            0% { opacity: 0; transform: translateY(30px) scale(0.98); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
         }
 
-        @keyframes softPulse {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.05); opacity: 0.8; }
-            100% { transform: scale(1); opacity: 1; }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
         }
 
-        .animate-fade-up {
-            animation: fadeInMove 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-            opacity: 0;
+        @keyframes grain {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-5%, -10%); }
+            30% { transform: translate(3%, -15%); }
+            50% { transform: translate(12%, 9%); }
+            70% { transform: translate(-10%, 10%); }
+            90% { transform: translate(15%, 5%); }
         }
 
+        .animate-reveal { animation: revealUp 1.2s cubic-bezier(0.19, 1, 0.22, 1) forwards; opacity: 0; }
         .delay-1 { animation-delay: 0.2s; }
         .delay-2 { animation-delay: 0.4s; }
         .delay-3 { animation-delay: 0.6s; }
 
-        .icon-pulse {
-            animation: softPulse 3s ease-in-out infinite;
+        .floating-icon { animation: float 4s ease-in-out infinite; }
+
+        /* Grainy Overlay for high-end feel */
+        .grain-bg::before {
+            content: "";
+            position: absolute;
+            top: -200%; left: -200%; width: 400%; height: 400%;
+            background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+            opacity: 0.04;
+            pointer-events: none;
+            animation: grain 8s steps(10) infinite;
         }
 
-        /* --- DYNAMIC BLACK PILL TOAST --- */
+        /* --- TOAST STYLING --- */
         #toast-container {
             position: fixed;
             top: 30px;
@@ -47,195 +59,127 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            pointer-events: none;
         }
 
         .custom-pill-toast {
             width: max-content;
-            max-width: 90vw;
             padding: 10px 22px 10px 14px;
             border-radius: 50px;
             display: flex;
             align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             opacity: 0;
             transform: translateY(-20px);
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: auto;
             background: #000;
             color: #fff;
         }
 
-        .custom-pill-toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .toast-left-content {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .toast-icon-circle {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
+        .custom-pill-toast.show { opacity: 1; transform: translateY(0); }
+        .toast-icon-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
         .toast-success .toast-icon-circle { background: #2F8D46; }
         .toast-error .toast-icon-circle { background: #E03B2A; }
-
-        .toast-message-wrapper {
-            display: flex;
-            flex-direction: column;
-            white-space: nowrap;
-            margin-right: 15px;
-        }
-
-        .toast-main-text {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            line-height: 1.2;
-        }
-
-        .toast-sub-text {
-            font-size: 9px;
-            opacity: 0.7;
-            margin-top: 1px;
-        }
-
-        .toast-close-btn {
-            cursor: pointer;
-            font-size: 16px;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-        }
-        .toast-close-btn:hover { opacity: 1; }
+        .toast-main-text { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
     </style>
 </head>
-<body class="bg-[#fcfcfc] h-screen flex items-center justify-center p-6">
+<body class="h-screen flex items-center justify-center p-6 overflow-hidden grain-bg">
 
 <div id="toast-container"></div>
 
-<div class="bg-white w-full max-w-[800px] aspect-[4/3] flex flex-col items-center justify-center relative shadow-sm border border-gray-50 overflow-hidden">
-
-    <div class="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none">
-        <div class="w-[500px] h-[500px] border border-black rounded-full icon-pulse"></div>
-    </div>
-
-    <div class="text-center px-8 md:px-20 z-10">
-
-        <div class="flex justify-center mb-8 icon-pulse">
-            <div class="relative">
-                <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+<main class="w-full max-w-[500px] text-center z-10">
+    <div class="mb-12 flex justify-center">
+        <div class="relative floating-icon">
+            <div class="absolute inset-0 bg-black/5 blur-3xl rounded-full scale-150"></div>
+            <div class="relative w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-gray-50">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
                     <polyline points="22,6 12,13 2,6"></polyline>
                 </svg>
-                <span class="absolute top-0 right-0 flex h-3 w-3">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-20"></span>
-                  <span class="relative inline-flex rounded-full h-3 w-3 bg-black"></span>
+                <span class="absolute -top-1 -right-1 flex h-4 w-4">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-black opacity-20"></span>
+                    <span class="relative inline-flex rounded-full h-4 w-4 bg-black border-2 border-white"></span>
                 </span>
             </div>
         </div>
-
-        <h1 class="text-3xl md:text-4xl font-black tracking-tighter mb-6 uppercase animate-fade-up delay-1">
-            Check your email!
-        </h1>
-
-        <p class="text-gray-400 text-[12px] md:text-[13px] font-light leading-relaxed mb-10 max-w-[400px] mx-auto animate-fade-up delay-2">
-            Thanks! An email was sent that will allow you to click on a link to reset your password. If you don't get the email, please contact support.
-        </p>
-
-        <div class="animate-fade-up delay-3">
-            <button class="w-full max-w-[300px] bg-black text-white py-4 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-[#333] transition-all duration-300 mb-6 active:scale-95">
-                Open Email Inbox
-            </button>
-
-            <p class="text-[10px] text-gray-400 uppercase tracking-widest">
-                <a href="{% url 'login' %}" class="text-black font-bold border-b border-black hover:border-transparent transition-colors pb-0.5">
-                    Back to Login
-                </a>
-            </p>
-        </div>
     </div>
 
-    <div class="absolute bottom-8 left-8 right-8 flex justify-between items-center text-[8px] text-gray-300 uppercase tracking-[0.2em]">
-        <p>Copyright 2026 | Privacy Policy</p>
-        <div class="flex gap-2 items-center">
-            <span class="w-1 h-1 bg-gray-300 rounded-full animate-bounce"></span>
-            <span class="w-1 h-1 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
-            <span class="w-1 h-1 bg-gray-300 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+    <h1 class="serif-font text-4xl md:text-5xl text-[#111] tracking-tight mb-6 animate-reveal delay-1">
+        Check your email
+    </h1>
+
+    <p class="text-gray-500 text-[14px] md:text-[15px] font-light leading-relaxed mb-12 max-w-[380px] mx-auto animate-reveal delay-2">
+        A secure link to reset your password has been sent to your inbox. Please follow the instructions to continue.
+    </p>
+
+    <div class="space-y-6 animate-reveal delay-3">
+        <button onclick="openMail()" class="group relative w-full bg-black text-white py-5 text-[11px] font-bold uppercase tracking-[0.3em] overflow-hidden transition-all hover:bg-[#222] active:scale-[0.98]">
+            <span class="relative z-10">Open Inbox</span>
+            <div class="absolute inset-0 w-full h-full bg-white/10 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-500"></div>
+        </button>
+
+        <div>
+            <a href="{% url 'login' %}" class="text-[10px] text-gray-400 uppercase tracking-[0.2em] hover:text-black transition-colors duration-300">
+                Wait, I remember my password. <span class="text-black font-bold border-b border-black/20 ml-1">Sign In</span>
+            </a>
         </div>
     </div>
+</main>
 
-</div>
-
-<script id="django-messages" type="application/json">
-[
-{% if messages %}
-{% for message in messages %}
-{
-"message": "{{ message|escapejs }}",
-"tags": "{{ message.tags }}"
-}{% if not forloop.last %},{% endif %}
-{% endfor %}
-{% endif %}
-]
-</script>
+<footer class="absolute bottom-10 w-full text-center animate-reveal delay-3" style="animation-delay: 1s;">
+    <p class="text-[9px] text-gray-300 uppercase tracking-[0.4em] mb-4">NØ&Co. Stockholm</p>
+    <div class="flex justify-center gap-3">
+        <div class="w-1 h-1 bg-black/10 rounded-full"></div>
+        <div class="w-1 h-1 bg-black/10 rounded-full"></div>
+        <div class="w-1 h-1 bg-black/10 rounded-full"></div>
+    </div>
+</footer>
 
 <script>
- function showToast(message, type = 'error') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
+    // Modern logic to attempt opening the mail client
+    function openMail() {
+        const mailWindow = window.open("https://mail.google.com/", "_blank");
+        if (!mailWindow) {
+            showToast("Mail client blocked. Please open manually.", "error");
+        }
+    }
 
-    const toast = document.createElement('div');
-    const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
-    toast.className = `custom-pill-toast ${toastClass}`;
+    function showToast(message, type = 'error') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `custom-pill-toast ${type === 'success' ? 'toast-success' : 'toast-error'}`;
 
-    const icon = type === 'success' ? '✓' : '✕';
-    const subtext = "Notification";
-
-    toast.innerHTML = `
-        <div class="toast-left-content">
-            <div class="toast-icon-circle">${icon}</div>
-            <div class="toast-message-wrapper">
-                <span class="toast-main-text">${message}</span>
-                <span class="toast-sub-text">${subtext}</span>
+        toast.innerHTML = `
+            <div class="flex items-center gap-3">
+                <div class="toast-icon-circle">${type === 'success' ? '✓' : '✕'}</div>
+                <div class="flex flex-col">
+                    <span class="toast-main-text">${message}</span>
+                </div>
             </div>
-        </div>
-        <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>
-    `;
+        `;
 
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-        if(toast.parentNode) {
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
             toast.classList.remove('show');
             setTimeout(() => toast.remove(), 400);
-        }
-    }, 4000);
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    const dataElement = document.getElementById('django-messages');
-    if (dataElement) {
-        try {
-            const messages = JSON.parse(dataElement.textContent);
-            messages.forEach(msg => {
-                const type = msg.tags.includes('success') ? 'success' : 'error';
-                showToast(msg.message, type);
-            });
-        } catch (e) {}
+        }, 4000);
     }
-});
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const dataElement = document.getElementById('django-messages');
+        if (dataElement) {
+            try {
+                const messages = JSON.parse(dataElement.textContent);
+                messages.forEach(msg => {
+                    showToast(msg.message, msg.tags.includes('success') ? 'success' : 'error');
+                });
+            } catch (e) {}
+        }
+    });
+</script>
+
+<script id="django-messages" type="application/json">
+    [{% if messages %}{% for message in messages %}{"message": "{{ message|escapejs }}", "tags": "{{ message.tags }}"}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}]
 </script>
 
 </body>

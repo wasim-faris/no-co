@@ -13,7 +13,6 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     update_at = models.DateTimeField(null=True, blank=True)
     is_blocked = models.BooleanField(default=False)
-    is_verified = models.BooleanField(default=False)
 
 class PasswordResetToken(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
