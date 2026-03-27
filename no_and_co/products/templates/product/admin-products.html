@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>NØ & CO | Products</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: {
+        serif: ['Playfair Display', 'serif'],
+        sans: ['Inter', 'sans-serif'],
+      },
+      colors: {
+        beige: '#F5F1EA',
+        card: '#FFFFFF',
+        border: '#E8E2D8',
+        muted: '#8C877F',
+        dark: '#111111',
+        tabGrey: '#7F8C9F'
+      }
+    }
+  }
+}
+</script>
+
+<style>
+  body { -webkit-font-smoothing: antialiased; }
+  table { border-collapse: collapse; }
+
+  /* Submenu slide animation */
+  .submenu {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.25s ease, opacity 0.2s ease;
+    opacity: 0;
+  }
+  .submenu.open {
+    max-height: 200px;
+    opacity: 1;
+  }
+
+  /* Chevron rotation */
+  .chevron {
+    transition: transform 0.22s ease;
+    flex-shrink: 0;
+  }
+  .chevron.rotated {
+    transform: rotate(180deg);
+  }
+
+  .page-btn { transition: all 0.2s ease; }
+
+    /* Toast */
+        .icon-bubble {
+            position: relative;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-bubble svg { transform: rotate(45deg); }
+
+        input:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0px 1000px #F5F1EB inset !important;
+            -webkit-text-fill-color: #3E3A37 !important;
+        }
+
+        @media (max-width: 768px) {
+            .image-section { display: none; }
+        }
+</style>
+
+</head>
+
+<body class="bg-beige font-sans text-dark flex h-screen">
+
+     <div id="toast-container" class="fixed top-8 right-8 z-50 flex flex-col gap-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast-item flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl transition-all duration-500 transform translate-x-full
+                    {% if message.tags == 'error' %}bg-[#3E3A37]{% else %}bg-[#5C554F]{% endif %} text-white"
+                >
+                    <div class="flex items-center gap-4">
+                        <div class="ml-1 w-10 h-10 bg-[#F5F1EB] icon-bubble">
+                             {% if message.tags == 'error' %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                             {% else %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                             {% endif %}
+                        </div>
+                        <div class="flex flex-col text-left">
+                            <span class="text-[11px] font-bold tracking-wider uppercase">
+                                {% if message.tags == 'error' %}Error{% else %}Notice{% endif %}
+                            </span>
+                            <span class="text-[10px] opacity-70">{{ message }}</span>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+<!-- ════════════════════════ SIDEBAR ════════════════════════ -->
+<aside class="w-[280px] h-screen bg-white border-r border-gray-100 flex-shrink-0 flex flex-col justify-between sticky top-0">
+  <div class="p-8">
+    <div class="mb-12">
+      <h1 class="text-2xl tracking-[0.2em] font-light uppercase text-[#1a1a1a]" style="font-family: 'Optima', 'Didot', 'Playfair Display', serif;">
+        NØ <span class="italic lowercase font-serif text-xl">&</span> CO
+      </h1>
+    </div>
+
+    <nav class="space-y-3">
+      <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-1 mb-4">Management</p>
+
+      <!-- Dashboard -->
+      <a href="{% url 'admin-dashboard' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+        <span class="font-medium text-sm">Dashboard</span>
+      </a>
+
+      <!-- Orders -->
+      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+        <span class="font-medium text-sm">Orders</span>
+      </a>
+
+      <!-- ── Products (with submenu) ── -->
+      <div>
+        <!-- Trigger row -->
+        <button
+          id="products-toggle"
+          onclick="toggleProducts()"
+          class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-white bg-[#1a1a1a] shadow-lg shadow-gray-200/50 font-semibold transition-all duration-300"
+        >
+          <svg class="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+          <span class="font-medium text-sm flex-1 text-left">Products</span>
+          <svg id="products-chevron" class="chevron w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <!-- Submenu -->
+        <div id="products-submenu" class="submenu open">
+          <div class="mt-1 ml-4 pl-5 border-l border-gray-100 space-y-0.5 py-1">
+
+            <!-- All Products -->
+            <a href="{% url 'admin-products' %}"
+              class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200
+                     {% if request.resolver_match.url_name == 'admin-products' %}
+                       text-black bg-gray-100
+                     {% else %}
+                       text-gray-500 hover:text-black hover:bg-gray-50
+                     {% endif %}">
+              <span class="w-1 h-1 rounded-full bg-current opacity-60 flex-shrink-0"></span>
+              All Products
+            </a>
+
+            <!-- Add Product -->
+            <a href="{% url 'add-product' %}"
+              class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200
+                     {% if request.resolver_match.url_name == 'add-product' %}
+                       text-black bg-gray-100
+                     {% else %}
+                       text-gray-500 hover:text-black hover:bg-gray-50
+                     {% endif %}">
+              <span class="w-1 h-1 rounded-full bg-current opacity-60 flex-shrink-0"></span>
+              Add Product
+            </a>
+
+          </div>
+        </div>
+      </div>
+      <!-- ── end Products ── -->
+
+      <!-- Categories -->
+      <a href="{% url 'admin-category' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+        <span class="text-sm">Categories</span>
+      </a>
+
+      <!-- Subcategories -->
+      <a href="{% url 'admin-subcategory' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 17V7m0 10l-4-4m4 4l4-4M3 12h18"></path></svg>
+        <span class="text-sm">Subcategories</span>
+      </a>
+
+      <!-- Coupons -->
+      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+        <span class="font-medium text-sm">Coupons</span>
+      </a>
+
+      <!-- Offers -->
+      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+        <span class="font-medium text-sm">Offers</span>
+      </a>
+
+      <!-- Customers -->
+      <a href="{% url 'admin-user-management' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+        <span class="font-medium text-sm">Customers</span>
+      </a>
+
+    </nav>
+  </div>
+
+  <!-- Sidebar footer -->
+  <div class="p-6 border-t border-gray-100 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Julian Thorne" class="w-10 h-10 rounded-full object-cover border border-gray-100">
+      <div>
+        <p class="font-bold text-sm text-[#1a1a1a]">Julian Thorne</p>
+        <p class="text-[11px] text-gray-400 font-medium">julian@noandco.com</p>
+      </div>
+    </div>
+    <button class="p-2 rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition-colors">
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+    </button>
+  </div>
+</aside>
+
+
+<!-- ════════════════════════ MAIN ════════════════════════ -->
+<main class="flex-1 p-10 overflow-auto">
+
+  <!-- ── Breadcrumb ── -->
+  <nav class="flex items-center gap-2 mb-6 text-[10px] font-bold tracking-[0.15em] uppercase text-muted">
+    <span>Product Management</span>
+    <svg class="w-3 h-3 opacity-40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <a href="{% url 'admin-products' %}" class="hover:text-dark transition-colors">Products</a>
+    <svg class="w-3 h-3 opacity-40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="text-dark">All Products</span>
+  </nav>
+
+  <!-- Page heading -->
+  <div class="flex justify-between items-center mb-8">
+    <div>
+      <h1 class="font-serif text-4xl">Products</h1>
+      <div class="w-12 h-[2px] bg-black mt-2"></div>
+    </div>
+    <a href="{% url 'add-product' %}" class="bg-black text-white px-6 py-3 rounded-lg text-sm font-medium inline-block hover:bg-[#222] transition-colors">
+      + Add Product
+    </a>
+  </div>
+
+  <!-- Stats row -->
+  <div class="grid grid-cols-4 gap-6 mb-8">
+
+    <div class="bg-card h-44 p-8 rounded-2xl border border-border shadow-sm flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <p class="text-[10px] font-bold text-muted tracking-[0.15em] uppercase">Total Products</p>
+        <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+      </div>
+      <h2 class="text-5xl font-medium font-serif leading-none">24</h2>
+    </div>
+
+    <div class="bg-card h-44 p-8 rounded-2xl border border-border shadow-sm flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <p class="text-[10px] font-bold text-muted tracking-[0.15em] uppercase">Active</p>
+        <div class="w-5 h-5 rounded-full border border-green-500 flex items-center justify-center">
+          <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+        </div>
+      </div>
+      <h2 class="text-5xl font-medium font-serif leading-none">18</h2>
+    </div>
+
+    <div class="bg-card h-44 p-8 rounded-2xl border border-border shadow-sm flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <p class="text-[10px] font-bold text-muted tracking-[0.15em] uppercase">Inactive</p>
+        <div class="w-5 h-5 rounded-full border border-red-200 flex items-center justify-center">
+          <svg class="w-3 h-3 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M18 12H6"></path></svg>
+        </div>
+      </div>
+      <h2 class="text-5xl font-medium font-serif leading-none text-[#D6CFC1]">6</h2>
+    </div>
+
+    <div class="bg-card h-44 p-8 rounded-2xl border border-border shadow-sm flex flex-col justify-between">
+      <div class="flex justify-between items-start">
+        <p class="text-[10px] font-bold text-muted tracking-[0.15em] uppercase">Out of Stock</p>
+        <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+      </div>
+      <h2 class="text-5xl font-medium font-serif leading-none text-red-400">2</h2>
+    </div>
+
+  </div>
+
+  <!-- Product table card -->
+<div class="bg-card rounded-xl border border-border overflow-hidden">
+
+  <!-- Table header / filters -->
+  <div class="flex justify-between items-center px-10 py-8">
+    <div class="flex items-center gap-10">
+      <span class="text-[11px] font-black tracking-[0.15em] text-black">PRODUCT DIRECTORY</span>
+      <div class="w-[1px] h-6 bg-gray-100"></div>
+      <div class="flex gap-6 text-[11px] font-bold tracking-widest items-center h-full">
+        <button class="text-black border-b-2 border-black pb-1 uppercase">Live</button>
+        <button class="text-tabGrey hover:text-black transition-colors uppercase">Archived</button>
+      </div>
+    </div>
+
+    <div class="relative w-80">
+      <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" stroke-width="2" stroke-linecap="round"/></svg>
+      <input type="text" placeholder="Search by name..."
+        class="w-full bg-[#F9F9F9] border border-[#F0F0F0] pl-12 pr-4 py-3 rounded-xl text-[13px] outline-none focus:border-black transition-all">
+    </div>
+  </div>
+
+  <!-- Table -->
+  <table class="w-full text-sm">
+    <thead class="text-muted text-[10px] font-bold uppercase tracking-widest">
+      <tr>
+        <th class="px-10 py-6 text-left">Image</th>
+        <th class="py-6 text-left">Name</th>
+        <th class="py-6 text-left">Category</th>
+        <th class="py-6 text-left">Subcategory</th>
+        <th class="py-6 text-left">Price</th>
+        <th class="py-6 text-left">Stock</th>
+        <th class="py-6 text-left">Status</th>
+        <th class="px-10 py-6 text-right">Actions</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% if product %}
+        {% for i in product %}
+          <tr class="hover:bg-beige/30 transition-colors group border-t border-gray-50">
+
+            <!-- Image -->
+            <td class="px-10 py-5">
+                {% if i.primary_img %}
+               <img src="{{ i.primary_img.0.image.url }}"
+                class="w-12 h-12 rounded-lg object-cover grayscale-[30%]">
+                {% else %}
+                No image
+                {% endif %}
+
+            </td>
+
+            <!-- Name -->
+            <td class="font-bold">{{ i.product_name }}</td>
+
+            <!-- Category -->
+            <td class="text-muted">{{ i.category.category_name }}</td>
+
+            <!-- Subcategory -->
+            <td class="text-muted">{{ i.subcategory.subcategory_name }}</td>
+
+            <!-- Price -->
+            <td class="font-bold tracking-tighter">
+              {% if i.variant_set.exists %}
+                {% with min_price=i.variant_set.all|dictsort:"price"|first %}
+                  ₹{{ min_price.price }}
+                {% endwith %}
+              {% else %}
+                <span class="text-muted font-normal">No price yet</span>
+              {% endif %}
+            </td>
+
+            <!-- Stock -->
+            <td>
+              {% if i.variant_set.exists %}
+                {% with variants=i.variant_set.all %}
+                  {% with total=i.total_stock %}
+                    {% if total == 0 %}
+                      <span class="text-red-500 font-bold">Out of stock</span>
+                    {% else %}
+                      <span class="font-bold">{{ total }}</span>
+                    {% endif %}
+                  {% endwith %}
+                {% endwith %}
+              {% else %}
+                <span class="text-muted font-normal">No stock</span>
+              {% endif %}
+            </td>
+
+            <!-- ✅ FIXED: Status — dynamic via Django template, no JS -->
+            <td>
+              {% if i.is_active %}
+                <span class="text-green-600 font-bold">Live</span>
+              {% else %}
+                <span class="text-gray-400 font-bold">Hidden</span>
+              {% endif %}
+            </td>
+
+            <!-- Actions -->
+            <td class="px-10 py-5 text-right">
+              <div class="flex justify-end items-center gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+
+                <a href="{% url "admin-product-details" i.id %}" class="text-gray-400 hover:text-black">
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+  </svg>
+</a>
+                <button class="text-gray-400 hover:text-black">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                </button>
+                <button class="text-gray-400 hover:text-red-500">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+            </td>
+
+          </tr>
+        {% endfor %}
+
+      {% else %}
+        <!-- Empty state -->
+        <tr class="border-t border-gray-50">
+          <td colspan="8" class="px-10 py-20 text-center">
+            <div class="flex flex-col items-center gap-3">
+              <svg class="w-10 h-10 text-gray-200" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+              </svg>
+              <p class="text-sm font-bold text-gray-400">No products found</p>
+              <p class="text-[12px] text-muted">Start by adding your first product</p>
+            </div>
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <!-- Pagination -->
+  <div class="flex justify-between items-center px-10 py-6 bg-white/50 border-t border-gray-50">
+    <span class="text-[10px] font-medium tracking-[0.05em] text-muted">Showing 1 to 2 of 2 items</span>
+
+    <div class="flex items-center gap-1">
+      <button class="page-btn px-3 py-2 text-[10px] font-bold tracking-widest text-muted hover:text-black border border-border bg-white opacity-0 pointer-events-none">
+        PREV
+      </button>
+      <button class="w-8 h-8 flex items-center justify-center bg-black text-white text-[11px] font-bold rounded">1</button>
+      <button class="page-btn px-3 py-2 text-[10px] font-bold tracking-widest text-muted hover:text-black border border-border bg-white opacity-0 pointer-events-none">
+        NEXT
+      </button>
+    </div>
+  </div>
+
+</div>
+
+</main>
+
+
+<script>
+  var submenu = document.getElementById('products-submenu');
+  var chevron = document.getElementById('products-chevron');
+
+  function toggleProducts() {
+    var isOpen = submenu.classList.contains('open');
+    if (isOpen) {
+      submenu.classList.remove('open');
+      chevron.classList.remove('rotated');
+    } else {
+      submenu.classList.add('open');
+      chevron.classList.add('rotated');
+    }
+  }
+
+  // Start with chevron pointing down (submenu is open by default)
+  chevron.classList.add('rotated');
+
+  document.addEventListener("DOMContentLoaded", function () {
+    const toasts = document.querySelectorAll(".toast-item");
+    toasts.forEach((toast, index) => {
+        setTimeout(() => {
+            toast.classList.remove("translate-x-full");
+        }, index * 200);
+    });
+  });
+
+  function showToast(message, status = 'success') {
+      const wrapper = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const statusColor = status === 'success' ? 'bg-noco-text' : 'bg-red-500';
+      toast.className = `toast-entry flex items-center justify-between bg-white border border-gray-100 shadow-[0_8px_20px_rgba(0,0,0,0.06)] rounded-lg min-w-[320px] overflow-hidden`;
+      toast.innerHTML = `
+          <div class="flex items-center gap-4 p-4 pr-6">
+              <div class="w-1 h-6 ${statusColor} rounded-full"></div>
+              <p class="text-noco-text text-[13px] font-medium tracking-tight">${message}</p>
+          </div>
+          <button onclick="this.parentElement.remove()" class="p-4 text-gray-300 hover:text-noco-text transition-colors">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+      `;
+      wrapper.appendChild(toast);
+      setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateX(20px)';
+          toast.style.transition = 'all 0.4s ease';
+          setTimeout(() => toast.remove(), 400);
+      }, 4000);
+  }
+</script>
+
+</body>
+</html>

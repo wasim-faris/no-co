@@ -26,7 +26,9 @@ urlpatterns = [
     path("", include("accounts.urls")),
     path("", include("users.urls")),
     path("", include("admin_dashboard.urls")),
-    path('accounts/', include('allauth.urls')),
+    path("accounts/", include('allauth.urls')),
+    path("", include("category.urls")),
+    path("", include("products.urls"))
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

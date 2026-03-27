@@ -152,7 +152,7 @@ def login_user(request):
                 messages.error(request, "you are currently blocked")
                 return redirect("login")
             login(request, user)
-            request.session["login_attempt"] = 0
+            request.session["login_attempts"] = 0
 
             messages.success(request, "login succesfuly")
             return redirect("home")

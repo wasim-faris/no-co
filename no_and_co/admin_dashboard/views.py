@@ -317,3 +317,4 @@ def admin_user_active_toggle(request,id):
         except User.DoesNotExist:
             messages.error(request, "user not found")
             return redirect("admin-user-management")
+

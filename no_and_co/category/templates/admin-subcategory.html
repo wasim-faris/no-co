@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NØ&CO | Subcategories</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'serif': ['"Playfair Display"', 'serif'],
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'noco-beige': '#F3F0EA',
+                        'noco-offwhite': '#FFFDF9',
+                        'noco-text': '#111111',
+                        'noco-subtext': '#767676',
+                        'noco-border': '#EAE5DB',
+                        'noco-accent': '#CFC4AD',
+                    },
+                    borderRadius: {
+                        'noco': '12px',
+                        'noco-sm': '8px'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .noco-scroll::-webkit-scrollbar { width: 4px; }
+        .noco-scroll::-webkit-scrollbar-thumb { background-color: #D1C9BC; border-radius: 10px; }
+        body { -webkit-font-smoothing: antialiased; }
+
+        /* Modal Animation */
+        .modal-overlay { transition: opacity 0.3s ease; }
+        .modal-container { transition: transform 0.3s ease, opacity 0.3s ease; }
+        .modal-hidden { opacity: 0; pointer-events: none; }
+        .modal-hidden .modal-container { transform: scale(0.95); opacity: 0; }
+
+        /* Toast */
+        .icon-bubble {
+            position: relative;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-bubble svg { transform: rotate(45deg); }
+
+        input:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0px 1000px #F5F1EB inset !important;
+            -webkit-text-fill-color: #3E3A37 !important;
+        }
+
+        @media (max-width: 768px) {
+            .image-section { display: none; }
+        }
+
+    </style>
+</head>
+<body class="bg-noco-offwhite text-noco-text flex h-screen overflow-hidden">
+
+     <div id="toast-container" class="fixed top-8 right-8 z-50 flex flex-col gap-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast-item flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl transition-all duration-500 transform translate-x-full
+                    {% if message.tags == 'error' %}bg-[#3E3A37]{% else %}bg-[#5C554F]{% endif %} text-white"
+                >
+                    <div class="flex items-center gap-4">
+                        <div class="ml-1 w-10 h-10 bg-[#F5F1EB] icon-bubble">
+                             {% if message.tags == 'error' %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                             {% else %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                             {% endif %}
+                        </div>
+                        <div class="flex flex-col text-left">
+                            <span class="text-[11px] font-bold tracking-wider uppercase">
+                                {% if message.tags == 'error' %}Error{% else %}Notice{% endif %}
+                            </span>
+                            <span class="text-[10px] opacity-70">{{ message }}</span>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <aside class="w-[280px] h-screen bg-white border-r border-gray-100 flex-shrink-0 flex flex-col justify-between">
+    <div class="p-8">
+        <div class="mb-12">
+            <h1 class="text-2xl tracking-[0.2em] font-light uppercase text-[#1a1a1a]" style="font-family: 'Optima', 'Didot', 'Playfair Display', serif;">
+                NØ <span class="italic lowercase font-serif text-xl">&</span> CO
+            </h1>
+        </div>
+
+        <nav class="space-y-3">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-1 mb-4">Management</p>
+
+            <a href="{% url 'admin-dashboard' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                <span class="font-medium text-sm">Dashboard</span>
+            </a>
+
+            <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                <span class="font-medium text-sm">Orders</span>
+            </a>
+
+            <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <span class="font-medium text-sm">Products</span>
+            </a>
+
+            <a href="{% url 'admin-category' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                <span class="text-sm">Categories</span>
+            </a>
+
+            <a href="{% url 'admin-subcategory' %}" class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-white bg-[#1a1a1a] shadow-lg shadow-gray-200/50 font-semibold transition-all duration-300">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 17V7m0 10l-4-4m4 4l4-4M3 12h18"></path></svg>
+                <span class="text-sm">Subcategories</span>
+            </a>
+
+            <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                <span class="font-medium text-sm">Coupons</span>
+            </a>
+
+            <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+                <span class="font-medium text-sm">Offers</span>
+            </a>
+
+            <a href="{% url 'admin-user-management' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <span class="font-medium text-sm">Customers</span>
+            </a>
+        </nav>
+    </div>
+    <div class="p-6 border-t border-gray-100 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Julian Thorne" class="w-10 h-10 rounded-full object-cover border border-gray-100">
+            <div>
+                <p class="font-bold text-sm text-[#1a1a1a]">Julian Thorne</p>
+                <p class="text-[11px] text-gray-400 font-medium">julian@noandco.com</p>
+            </div>
+        </div>
+        <button class="p-2 rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition-colors">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+        </button>
+    </div>
+</aside>
+
+    <main class="flex-1 bg-noco-beige p-10 overflow-y-auto noco-scroll">
+
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="font-serif text-4xl font-semibold tracking-tight">Subcategories</h2>
+                <div class="h-[2px] w-12 bg-noco-text mt-3"></div>
+            </div>
+            <button id="openModal" class="bg-noco-text text-white px-8 py-3.5 rounded-noco flex items-center gap-2 text-[13px] font-bold hover:bg-black transition-all">
+                <span class="text-lg">+</span> Add Subcategory
+            </button>
+        </header>
+
+        <section class="grid grid-cols-3 gap-6 mb-10">
+            <div class="bg-white p-8 rounded-noco shadow-sm border border-noco-border/50">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext block">Total Subcategories</span>
+                    <svg class="w-5 h-5 text-noco-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </div>
+                <span class="text-4xl font-serif font-semibold mt-4 block">{{subcategory_count}}</span>
+            </div>
+            <div class="bg-white p-8 rounded-noco shadow-sm border border-noco-border/50">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext block">Active</span>
+                    <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <span class="text-4xl font-serif font-semibold mt-4 block">{{active_subcategory}}</span>
+            </div>
+            <div class="bg-white p-8 rounded-noco shadow-sm border border-noco-border/50">
+                <div class="flex justify-between items-start">
+                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext block">Inactive</span>
+                    <svg class="w-5 h-5 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <span class="text-4xl font-serif font-semibold mt-4 block text-noco-accent">{{ inactive_subcategory}}</span>
+            </div>
+        </section>
+
+
+        <section class="bg-white rounded-noco shadow-sm border border-noco-border/60 overflow-hidden">
+            <div class="p-6 md:px-8 border-b border-noco-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/50">
+                <div class="flex items-center gap-8">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-noco-text">All subcategories</h3>
+                    <div class="flex gap-4 border-l border-noco-border pl-8">
+                        <a href="?status=live" class="text-[11px] font-bold uppercase tracking-wider {% if request.GET.status != 'archived' %}text-noco-text border-b-2 border-noco-text{% else %}text-noco-subtext hover:text-noco-text{% endif %} pb-1 transition-all">Live</a>
+                        <a href="?status=archived" class="text-[11px] font-bold uppercase tracking-wider {% if request.GET.status == 'archived' %}text-noco-text border-b-2 border-noco-text{% else %}text-noco-subtext hover:text-noco-text{% endif %} pb-1 transition-all">Archived</a>
+                    </div>
+                </div>
+                <!-- SEARCH: added id to form; input value set from search_query context var -->
+                <form method="GET" id="searchForm" class="relative w-full sm:w-80">
+                    {% if request.GET.status %}<input type="hidden" name="status" value="{{ request.GET.status }}">{% endif %}
+                    <svg class="w-4 h-4 text-noco-subtext absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg>
+                    <input id="searchInput" type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Search by name..." class="w-full bg-noco-beige/40 text-[13px] text-noco-text placeholder:text-noco-subtext pl-11 pr-4 py-3 rounded-noco-sm outline-none border border-transparent focus:border-noco-accent focus:bg-white transition-all">
+                </form>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[800px]">
+                    <thead>
+                        <tr class="text-left border-b border-noco-border">
+                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5">sl.no</th>
+                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5">subcategory name</th>
+                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5 text-center">category</th>
+                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5 text-center">products</th>
+                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5">status</th>
+                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5 text-right">action</th>
+                        </tr>
+                    </thead>
+                    <!-- SEARCH: id added so JS can swap contents -->
+                    <tbody id="categoryTableBody" class="divide-y divide-noco-border/40">
+                        {% for i in page_obj %}
+                        <tr class="hover:bg-noco-beige/20 transition-all group">
+                            <td class="text-[13px] text-noco-subtext px-8 py-6">{{ forloop.counter0|add:page_obj.start_index }}</td>
+                            <td class="px-8 py-6">
+                                <span class="text-[14px] font-semibold text-noco-text tracking-tight">{{i.subcategory_name}}</span>
+                            </td>
+                            <td class="text-[13px] font-medium text-noco-text px-8 py-6 text-center">{{ i.category }}</td>
+                            <td class="text-[13px] font-medium text-noco-text px-8 py-6 text-center">124</td>
+                            <td class="px-8 py-6">
+                               {% if i.is_deleted %}
+    <span class="text-red-500 text-xs font-bold">Archived</span>
+{% elif i.is_active %}
+    <span class="text-green-600 text-xs font-bold">Live</span>
+{% else %}
+    <span class="text-gray-500 text-xs font-bold">Hidden</span>
+{% endif %}
+                            </td>
+                            <td class="px-8 py-6 text-right">
+                                <div class="action-buttons flex items-center justify-end gap-5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                    {% if request.GET.status == 'archived' %}
+                                    <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="subcategory_id" value="{{i.id}}">
+                                        <input type="hidden" name="action" value="restore">
+                                        <button type="submit" class="text-blue-500 hover:text-blue-700 flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"></path></svg>
+                                            Restore
+                                        </button>
+                                    </form>
+                                    <button type="button" onclick="openPermanentDeleteModal('{{i.id}}', '{{i.subcategory_name}}')" class="text-red-400 hover:text-red-700 transition-colors">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+        <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path>
+    </svg>
+</button>
+
+                                    {% else %}
+                                    <button onclick="openEditModal('{{i.id}}', '{{i.subcategory_name}}', '{{i.category.id}}')" class="text-noco-subtext hover:text-noco-text transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
+                                    </button>
+                                    <button onclick="openDeleteModal('{{i.id}}', '{{i.subcategory_name}}')" class="text-red-300 hover:text-red-600">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path></svg>
+                                    </button>
+                                   <form method="POST">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="subcategory_id" value="{{i.id}}">
+                                        <input type="hidden" name="action" value="toggle">
+                                        <button type="submit" class="relative w-9 h-5 rounded-full p-1 transition-all {% if i.is_active %}bg-green-500{% else %}bg-gray-400{% endif %}">
+                                            <div class="w-3 h-3 bg-white rounded-full shadow-sm {{ i.is_active|yesno:'translate-x-4,translate-x-0' }} transition-transform"></div>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- SEARCH: id added so JS can swap pagination after search -->
+            <div id="paginationSection" class="p-8 border-t border-noco-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <p class="text-[12px] font-medium text-noco-subtext">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    <span class="mx-2">/</span> {{ page_obj.paginator.count }} Items total
+                </p>
+                <div class="flex items-center gap-2">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                       class="px-4 py-2 text-[12px] font-bold uppercase tracking-widest border border-noco-border rounded-noco-sm hover:bg-noco-beige transition-all">
+                        Prev
+                    </a>
+                    {% else %}
+                    <button class="px-4 py-2 text-[12px] font-bold uppercase tracking-widest border border-noco-border rounded-noco-sm opacity-30 cursor-not-allowed" disabled>Prev</button>
+                    {% endif %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
+                       class="px-4 py-2 text-[12px] font-bold uppercase tracking-widest bg-noco-text text-white rounded-noco-sm hover:shadow-md transition-all">
+                        Next
+                    </a>
+                    {% else %}
+                    <button class="px-4 py-2 text-[12px] font-bold uppercase tracking-widest bg-noco-text text-white rounded-noco-sm opacity-30 cursor-not-allowed" disabled>Next</button>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="modalOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center modal-overlay modal-hidden">
+        <div class="bg-white w-[500px] rounded-[24px] shadow-2xl modal-container overflow-hidden">
+            <div class="px-10 py-8 border-b border-noco-border flex justify-between items-center">
+                <div>
+                    <h3 class="font-serif text-2xl font-semibold tracking-tight">Add Subcategory</h3>
+                    <p class="text-[11px] text-noco-subtext uppercase tracking-widest mt-1">Create a new product group</p>
+                </div>
+                <button id="closeModal" class="text-noco-subtext hover:text-noco-text transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l18 18"></path></svg>
+                </button>
+            </div>
+
+            <form action="" method="POST" class="px-10 py-8 space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create">
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-noco-subtext ml-1">Parent Category</label>
+                    <select name="parent_category" required class="w-full bg-noco-beige/40 border border-noco-border rounded-noco px-4 py-3.5 text-sm outline-none focus:border-noco-accent transition-all appearance-none">
+                        <option value="" disabled selected>Select a main category</option>
+                        {% for i in category %}
+                        <option value="{{i.id}}" {% if not i.is_active %}disabled{% endif %}>
+    {{i.category_name}} {% if not i.is_active %}(Inactive){% endif %}
+</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-bold uppercase tracking-widest text-noco-subtext ml-1">Subcategory Name</label>
+                    <input type="text" name="subcategory_name" placeholder="e.g. Linen Shirts" required class="w-full bg-noco-beige/40 border border-noco-border rounded-noco px-4 py-3.5 text-sm outline-none focus:border-noco-accent transition-all placeholder:text-noco-subtext/50">
+                </div>
+
+                <div class="flex items-center justify-between p-4 bg-noco-beige/20 rounded-noco border border-noco-border/50">
+                    <div>
+                        <span class="text-xs font-bold text-noco-text">Activate Immediately</span>
+                        <p class="text-[10px] text-noco-subtext">Visible to customers upon creation</p>
+                    </div>
+                    <button type="button" id="modalToggle" class="w-10 h-5 bg-noco-text rounded-full p-1 relative transition-colors">
+                        <input type="hidden" name="is_active" value="true">
+                        <div class="w-3 h-3 bg-white rounded-full translate-x-5 transition-all"></div>
+                    </button>
+                </div>
+
+                <div class="pt-4 flex gap-3">
+                    <button type="button" id="cancelBtn" class="flex-1 px-6 py-4 rounded-noco border border-noco-border text-[12px] font-bold uppercase tracking-widest hover:bg-noco-beige transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 px-6 py-4 rounded-noco bg-noco-text text-white text-[12px] font-bold uppercase tracking-widest hover:bg-black shadow-lg shadow-noco-text/10 transition-all">Create Subcategory</button>
+                </div>
+            </form>
+        </div>
+    </div>
+<div id="deleteModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[110] flex items-center justify-center modal-overlay modal-hidden">
+        <div class="bg-white w-[400px] rounded-[24px] shadow-2xl modal-container p-10 text-center">
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </div>
+            <h3 class="font-serif text-2xl font-semibold mb-2">Archive Subcategory?</h3>
+            <p class="text-sm text-noco-subtext mb-8">This will move <span id="deleteItemName" class="font-bold text-noco-text"></span> to archives. It will no longer appear on the website.</p>
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="subcategory_id" id="deleteSubcatId">
+                <input type="hidden" name="action" value="delete">
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeDeleteModal()" class="flex-1 px-6 py-3.5 rounded-noco border border-noco-border text-[11px] font-bold uppercase tracking-widest">Keep It</button>
+                    <button type="submit" class="flex-1 px-6 py-3.5 rounded-noco bg-red-500 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-red-600 shadow-lg shadow-red-200">Archive</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="editModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[120] flex items-center justify-center modal-overlay modal-hidden">
+    <div class="bg-white w-[500px] rounded-[24px] shadow-2xl modal-container overflow-hidden">
+
+        <div class="px-10 py-8 border-b border-noco-border flex justify-between items-center">
+            <div>
+                <h3 class="font-serif text-2xl font-semibold tracking-tight">Edit Subcategory</h3>
+                <p class="text-[11px] text-noco-subtext uppercase tracking-widest mt-1">Update subcategory details</p>
+            </div>
+            <button onclick="closeEditModal()" class="text-noco-subtext hover:text-noco-text transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l18 18"></path>
+                </svg>
+            </button>
+        </div>
+
+        <form method="POST" class="px-10 py-8 space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="subcategory_id" id="editSubcatId">
+
+            <!-- Parent Category -->
+            <div class="space-y-2">
+                <label class="text-[10px] font-bold uppercase tracking-widest text-noco-subtext ml-1">Parent Category</label>
+                <select name="parent_category" id="editParentCategory" required class="w-full bg-noco-beige/40 border border-noco-border rounded-noco px-4 py-3.5 text-sm outline-none focus:border-noco-accent transition-all">
+                    {% for i in category %}
+                    <option value="{{i.id}}">{{i.category_name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Subcategory Name -->
+            <div class="space-y-2">
+                <label class="text-[10px] font-bold uppercase tracking-widest text-noco-subtext ml-1">Subcategory Name</label>
+                <input type="text" name="subcategory_name" id="editSubcatName" required
+                    class="w-full bg-noco-beige/40 border border-noco-border rounded-noco px-4 py-3.5 text-sm outline-none focus:border-noco-accent transition-all">
+            </div>
+
+            <!-- Buttons -->
+            <div class="pt-4 flex gap-3">
+                <button type="button" onclick="closeEditModal()" class="flex-1 px-6 py-4 rounded-noco border border-noco-border text-[12px] font-bold uppercase tracking-widest hover:bg-noco-beige transition-all">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 px-6 py-4 rounded-noco bg-noco-text text-white text-[12px] font-bold uppercase tracking-widest hover:bg-black shadow-lg transition-all">
+                    Update
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+<div id="permanentDeleteModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[130] flex items-center justify-center modal-overlay modal-hidden">
+    <div class="bg-white w-[400px] rounded-[24px] shadow-2xl modal-container p-10 text-center">
+
+        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6"></path>
+            </svg>
+        </div>
+
+        <h3 class="font-serif text-2xl font-semibold mb-2">Delete Permanently?</h3>
+        <p class="text-sm text-noco-subtext mb-8">
+            This will permanently delete
+            <span id="permanentDeleteName" class="font-bold text-noco-text"></span>.
+            This action cannot be undone.
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="subcategory_id" id="permanentDeleteId">
+            <input type="hidden" name="action" value="permanent_delete">
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closePermanentDeleteModal()" class="flex-1 px-6 py-3.5 rounded-noco border border-noco-border text-[11px] font-bold uppercase tracking-widest">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 px-6 py-3.5 rounded-noco bg-red-600 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-red-700 shadow-lg">
+                    Delete
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+    <script>
+        // Modal Logic
+        const modal = document.getElementById('modalOverlay');
+        const openBtn = document.getElementById('openModal');
+        const closeBtn = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+
+        const toggleModal = () => modal.classList.toggle('modal-hidden');
+
+        openBtn.addEventListener('click', toggleModal);
+        closeBtn.addEventListener('click', toggleModal);
+        cancelBtn.addEventListener('click', toggleModal);
+
+        // Close on clicking outside
+        modal.addEventListener('click', (e) => {
+            if(e.target === modal) toggleModal();
+        });
+
+        // Modal Status Toggle Logic
+        const modalToggle = document.getElementById('modalToggle');
+        const statusInput = modalToggle.querySelector('input');
+        const toggleDot = modalToggle.querySelector('div');
+
+        modalToggle.addEventListener('click', () => {
+            const isActive = toggleDot.classList.contains('translate-x-5');
+            if(isActive) {
+                toggleDot.classList.replace('translate-x-5', 'translate-x-0');
+                modalToggle.classList.replace('bg-noco-text', 'bg-gray-300');
+                statusInput.value = "false";
+            } else {
+                toggleDot.classList.replace('translate-x-0', 'translate-x-5');
+                modalToggle.classList.replace('bg-gray-300', 'bg-noco-text');
+                statusInput.value = "true";
+            }
+        });
+
+        // Table Toggle Logic
+        document.querySelectorAll('.rounded-full.p-1').forEach(btn => {
+            if(btn.id !== 'modalToggle') { // Skip the modal toggle
+                btn.addEventListener('click', function() {
+                    const dot = this.querySelector('div');
+                    const isActive = dot.classList.contains('translate-x-4');
+                    if(isActive) {
+                        dot.classList.replace('translate-x-4', 'translate-x-0');
+                        this.classList.replace('bg-noco-text', 'bg-gray-300');
+                    } else {
+                        dot.classList.replace('translate-x-0', 'translate-x-4');
+                        this.classList.replace('bg-gray-300', 'bg-noco-text');
+                    }
+                });
+            }
+        });
+
+        // Auto-slug Logic (Simple version for UI feel)
+        const nameInput = document.querySelector('input[name="subcategory_name"]');
+        const slugInput = document.querySelector('input[name="slug"]');
+        nameInput.addEventListener('input', (e) => {
+            slugInput.value = e.target.value.toLowerCase().split(' ').join('-');
+        });
+
+              document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.toast-item');
+            toasts.forEach((toast, index) => {
+                setTimeout(() => {
+                    toast.classList.remove('translate-x-full');
+                }, 100 * (index + 1));
+
+                setTimeout(() => {
+                    toast.classList.add('opacity-0');
+                    setTimeout(() => toast.remove(), 500);
+                }, 5000);
+            });
+        });
+
+        // Delete Modal Controls
+        function openDeleteModal(id, name) {
+            document.getElementById('deleteSubcatId').value = id;
+            document.getElementById('deleteItemName').innerText = name;
+            deleteModal.classList.remove('modal-hidden');
+        }
+        function closeDeleteModal() { deleteModal.classList.add('modal-hidden'); }
+
+        // Toast Auto-hide
+        document.addEventListener('DOMContentLoaded', () => {
+            const toasts = document.querySelectorAll('.toast-item');
+            toasts.forEach((toast, i) => {
+                setTimeout(() => toast.remove(), 4000 + (i * 500));
+            });
+        });
+
+        // Close on outside click
+       window.onclick = (e) => {
+    if(e.target === deleteModal) closeDeleteModal();
+    if(e.target === editModal) closeEditModal();
+    if(e.target === permanentDeleteModal) closePermanentDeleteModal();
+}
+
+const editModal = document.getElementById("editModal");
+
+function openEditModal(id, name, categoryId=null) {
+    document.getElementById("editSubcatId").value = id;
+    document.getElementById("editSubcatName").value = name;
+
+    if(categoryId){
+        document.getElementById("editParentCategory").value = categoryId;
+    }
+
+    editModal.classList.remove("modal-hidden");
+}
+
+function closeEditModal() {
+    editModal.classList.add("modal-hidden");
+}
+const permanentDeleteModal = document.getElementById("permanentDeleteModal");
+
+function openPermanentDeleteModal(id, name) {
+    document.getElementById("permanentDeleteId").value = id;
+    document.getElementById("permanentDeleteName").innerText = name;
+
+    permanentDeleteModal.classList.remove("modal-hidden");
+}
+
+function closePermanentDeleteModal() {
+    permanentDeleteModal.classList.add("modal-hidden");
+}
+    </script>
+</body>
+</html>
