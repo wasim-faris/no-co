@@ -1,619 +1,568 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NØ & CO | Product Detail</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: {
-        serif: ['Playfair Display', 'serif'],
-        sans:  ['Inter', 'sans-serif'],
-      },
-      colors: {
-        beige:   '#F5F1EA',
-        card:    '#FFFFFF',
-        border:  '#E8E2D8',
-        muted:   '#8C877F',
-        dark:    '#111111',
-        tabGrey: '#7F8C9F'
-      }
-    }
-  }
-}
-</script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F2F0E9; scroll-behavior: smooth; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .rounded-custom { border-radius: 24px; }
+        [x-cloak] { display: none !important; }
+        .glass-effect { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); }
 
-<style>
-  body { -webkit-font-smoothing: antialiased; }
-  table { border-collapse: collapse; }
-
-  /* Sidebar submenu */
-  .submenu {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.25s ease, opacity 0.2s ease;
-    opacity: 0;
-  }
-  .submenu.open { max-height: 200px; opacity: 1; }
-  .chevron { transition: transform 0.22s ease; flex-shrink: 0; }
-  .chevron.rotated { transform: rotate(180deg); }
-
-  /* Modal */
-  #variant-modal {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
-  }
-  #variant-modal.open {
-    opacity: 1;
-    pointer-events: all;
-  }
-  #variant-modal .modal-box {
-    transform: translateY(18px) scale(0.98);
-    transition: transform 0.28s cubic-bezier(0.34, 1.2, 0.64, 1);
-  }
-  #variant-modal.open .modal-box {
-    transform: translateY(0) scale(1);
-  }
-
-  /* Toggle switch */
-  .toggle-track {
-    width: 36px; height: 20px;
-    background: #E0DAD2;
-    border-radius: 999px;
-    position: relative;
-    cursor: pointer;
-    transition: background 0.2s;
-    flex-shrink: 0;
-  }
-  .toggle-track.on { background: #111; }
-  .toggle-thumb {
-    position: absolute;
-    top: 3px; left: 3px;
-    width: 14px; height: 14px;
-    border-radius: 50%;
-    background: #fff;
-    transition: left 0.2s;
-  }
-  .toggle-track.on .toggle-thumb { left: 19px; }
-
-  /* Read-only detail fields */
-  .detail-field {
-    background: #FAFAF8;
-    border: 1px solid #EEEAE2;
-    border-radius: 10px;
+.input-base {
+    width: 100%;
+    background-color: #f9fafb;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
     padding: 12px 16px;
-    font-size: 13px;
-    color: #111;
-    line-height: 1.6;
-    min-height: 44px;
-  }
-  .detail-label {
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #8C877F;
-    margin-bottom: 6px;
-  }
-
-  /* New: Product Media Styles - modern e-commerce admin */
-  .main-image-container {
-    background: #F9F9F7;
-    border-radius: 24px;
-    overflow: hidden;
-    height: 350px;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #EEEAE2;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-  }
-  .main-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-  }
-  .no-image-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 14px;
-    background: #F9F9F7;
-    color: #B8B2A8;
-    font-size: 13px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    width: 100%;
-    height: 100%;
-  }
-  .thumb-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-    margin-top: 18px;
-  }
-  .thumb-item {
-    aspect-ratio: 1 / 1;
-    border-radius: 16px;
-    overflow: hidden;
-    background: #F5F3EF;
-    border: 1px solid #EEEAE2;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .thumb-item:hover {
-    border-color: #111;
-    transform: scale(0.97);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-  }
-  .thumb-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  .thumb-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: 100%;
-    background: #F5F3EF;
-    color: #CBC3B5;
-    font-size: 9px;
-    font-weight: 500;
-  }
-
-  /* Accordion styles */
-  .accordion-body {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.35s ease, opacity 0.3s ease;
-    opacity: 0;
-  }
-  .accordion-body.open { max-height: 800px; opacity: 1; }
-  .acc-chevron { transition: transform 0.22s ease; }
-  .acc-chevron.open { transform: rotate(180deg); }
-
-  /* Variant badges */
-  .badge-active {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: #F0FFF4; color: #16A34A;
-    border: 1px solid #BBF7D0;
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 3px 10px; border-radius: 999px;
-  }
-  .badge-inactive {
-    display: inline-flex; align-items: center; gap: 5px;
-    background: #F9F9F9; color: #9CA3AF;
-    border: 1px solid #E5E7EB;
-    font-size: 10px; font-weight: 700;
-    letter-spacing: 0.08em; text-transform: uppercase;
-    padding: 3px 10px; border-radius: 999px;
-  }
-
-  /* Right column sticky */
-  .right-col {
-    position: sticky;
-    top: 85px;
-    max-height: calc(100vh - 110px);
-    overflow-y: auto;
-  }
-  .right-col::-webkit-scrollbar { width: 3px; }
-  .right-col::-webkit-scrollbar-track { background: transparent; }
-  .right-col::-webkit-scrollbar-thumb { background: #E8E2D8; border-radius: 99px; }
-
-  /* Form inputs */
-  select, input {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-  }
-  input:focus, select:focus {
+    font-size: 14px;
     outline: none;
-    border-color: #111 !important;
-  }
-</style>
+}
+        .cropper-container-wrapper {
+            max-height: 380px;
+            width: 100%;
+            max-width: 320px;
+            margin: 0 auto;
+            overflow: hidden;
+            background: #f9f9f7;
+            border-radius: 12px;
+            border: 1px solid #f1f1ef;
+        }
+        #cropper-image { display: block; max-width: 100%; }
+
+          /* Toast */
+        .icon-bubble {
+            position: relative;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-bubble svg { transform: rotate(45deg); }
+
+        input:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0px 1000px #F5F1EB inset !important;
+            -webkit-text-fill-color: #3E3A37 !important;
+        }
+
+        @media (max-width: 768px) {
+            .image-section { display: none; }
+        }
+    </style>
 </head>
+<body class="antialiased min-h-screen flex"
+    x-data="{
+        editMode: false,
+        variantModal: false,
+        deleteModal: false,
+        activeTab: 'details',
+        showToast: false,
+        toastMsg: '',
+        triggerToast(msg) { this.toastMsg = msg; this.showToast = true; setTimeout(() => this.showToast = false, 3000) },
 
-<body class="bg-beige font-sans text-dark flex h-screen overflow-hidden">
+        /* CATEGORY & SUBCATEGORY LOGIC */
+        selectedCategory: '{{ product.category.id|default:0 }}',
+        selectedSubcategory: '{{ product.subcategory.id|default:0 }}',
+        allSubcategories: [
+            {% for sub in subcategory %}
+            {
+                id: '{{ sub.id }}',
+                name: '{{ sub.subcategory_name|escapejs }}',
+                category_id: '{{ sub.category.id }}'
+            }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        ],
+        filteredSubcategories: [],
 
-<!-- ════════════════════════════════════
-     SIDEBAR (unchanged)
-════════════════════════════════════ -->
-<aside class="w-[280px] h-screen bg-white border-r border-gray-100 flex-shrink-0 flex flex-col justify-between sticky top-0 z-10">
-  <div class="p-8">
-    <div class="mb-12">
-      <h1 class="text-2xl tracking-[0.2em] font-light uppercase text-[#1a1a1a]"
-          style="font-family:'Optima','Didot','Playfair Display',serif;">
-        NØ <span class="italic lowercase font-serif text-xl">&</span> CO
-      </h1>
-    </div>
+        init() {
+            this.updateFilters();
+        },
 
-    <nav class="space-y-3">
-      <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-1 mb-4">Management</p>
+        updateFilters() {
+            this.filteredSubcategories = this.allSubcategories.filter(
+                sub => sub.category_id == this.selectedCategory
+            );
+        },
 
-      <a href="{% url 'admin-dashboard' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-        <span class="font-medium text-sm">Dashboard</span>
-      </a>
+        onCategoryChange(event) {
+            this.selectedCategory = event.target.value;
+            this.updateFilters();
+            this.selectedSubcategory = ''; // Reset on change
+        },
 
-      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-        <span class="font-medium text-sm">Orders</span>
-      </a>
+        /* IMAGE CROPPER LOGIC */
+        cropModal: false,
+        cropper: null,
+        tempImage: null,
 
-      <!-- Products (active) -->
-      <div>
-        <button id="products-toggle" onclick="toggleProducts()"
-                class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-white bg-[#1a1a1a] shadow-lg shadow-gray-200/50 font-semibold transition-all duration-300">
-          <svg class="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-          <span class="font-medium text-sm flex-1 text-left">Products</span>
-          <svg id="products-chevron" class="chevron w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-            <path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </button>
-        <div id="products-submenu" class="submenu open">
-          <div class="mt-1 ml-4 pl-5 border-l border-gray-100 space-y-0.5 py-1">
-            <a href="{% url 'admin-products' %}"
-               class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 text-gray-500 hover:text-black hover:bg-gray-50">
-              <span class="w-1 h-1 rounded-full bg-current opacity-60 flex-shrink-0"></span>All Products
-            </a>
-            <a href="{% url 'add-product' %}"
-               class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold transition-all duration-200 text-gray-500 hover:text-black hover:bg-gray-50">
-              <span class="w-1 h-1 rounded-full bg-current opacity-60 flex-shrink-0"></span>Add Product
-            </a>
-          </div>
-        </div>
-      </div>
+        handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                this.tempImage = e.target.result;
+                this.cropModal = true;
+                this.$nextTick(() => {
+                    const imageElement = document.getElementById('cropper-image');
+                    if (this.cropper) this.cropper.destroy();
+                    this.cropper = new Cropper(imageElement, {
+                        aspectRatio: 1,
+                        viewMode: 1,
+                        background: false
+                    });
+                });
+            };
+            reader.readAsDataURL(file);
+        },
 
-      <a href="{% url 'admin-category' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-        <span class="text-sm">Categories</span>
-      </a>
+        saveCroppedImage() {
+            if (!this.cropper) return;
+            const canvas = this.cropper.getCroppedCanvas({ width: 800, height: 800 });
+            canvas.toBlob((blob) => {
+                const file = new File([blob], 'product.jpg', { type: 'image/jpeg' });
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                document.getElementById('global-file-input').files = dataTransfer.files;
 
-      <a href="{% url 'admin-subcategory' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 17V7m0 10l-4-4m4 4l4-4M3 12h18"/></svg>
-        <span class="text-sm">Subcategories</span>
-      </a>
+                // Update UI preview
+                window.dispatchEvent(new CustomEvent('image-added', {
+                    detail: { url: URL.createObjectURL(file) }
+                }));
+                this.closeCropModal();
+            }, 'image/jpeg');
+        },
 
-      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/></svg>
-        <span class="font-medium text-sm">Coupons</span>
-      </a>
-
-      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"/></svg>
-        <span class="font-medium text-sm">Offers</span>
-      </a>
-
-      <a href="{% url 'admin-user-management' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-        <span class="font-medium text-sm">Customers</span>
-      </a>
-    </nav>
-  </div>
-
-  <div class="p-6 border-t border-gray-100 flex items-center justify-between gap-3">
-    <div class="flex items-center gap-3">
-      <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Julian Thorne"
-           class="w-10 h-10 rounded-full object-cover border border-gray-100">
-      <div>
-        <p class="font-bold text-sm text-[#1a1a1a]">Julian Thorne</p>
-        <p class="text-[11px] text-gray-400 font-medium">julian@noandco.com</p>
-      </div>
-    </div>
-    <button class="p-2 rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition-colors">
-      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/></svg>
-    </button>
-  </div>
-</aside>
-
-
-<!-- ════════════════════════════════════
-     MAIN
-════════════════════════════════════ -->
-<div class="flex-1 flex flex-col overflow-hidden">
-
-  <!-- Sticky top bar -->
-  <div class="flex-shrink-0 bg-beige/90 backdrop-blur-sm border-b border-border px-10 py-4 flex items-center justify-between z-20">
-    <nav class="flex items-center gap-2 text-[10px] font-bold tracking-[0.15em] uppercase text-muted">
-      <span>Product Management</span>
-      <svg class="w-3 h-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <a href="{% url 'admin-products' %}" class="hover:text-dark transition-colors">Products</a>
-      <svg class="w-3 h-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="text-dark">{{ product.product_name }}</span>
-    </nav>
-    <div class="flex items-center gap-3">
-      <a href="{% url 'admin-products' %}"
-         class="px-5 py-2.5 text-[11px] font-bold tracking-widest uppercase border border-border bg-white rounded-lg text-muted hover:text-dark hover:border-gray-300 transition-all">
-        ← Back
-      </a>
-      <a href=""
-         class="px-5 py-2.5 text-[11px] font-bold tracking-widest uppercase bg-black text-white rounded-lg hover:bg-[#222] transition-all">
-        Edit Product
-      </a>
-    </div>
-  </div>
-
-  <!-- Scrollable page body -->
-  <div class="flex-1 overflow-y-auto">
-    <div class="px-10 pt-8 pb-12 w-full">
-
-      <!-- Page heading -->
-      <div class="mb-7">
-        <h1 class="font-serif text-4xl">{{ product.product_name }}</h1>
-        <div class="w-12 h-[2px] bg-black mt-2"></div>
-      </div>
-
-      <!-- TWO-COLUMN GRID: 70% / 30% -->
-      <div class="grid grid-cols-3 gap-8 items-start w-full">
-
-        <!-- ─────────────────────────────────
-             LEFT COLUMN (2/3 = 66.6% ~ 70% visual)
-        ───────────────────────────────── -->
-        <div class="col-span-2 flex flex-col gap-6">
-
-          <!-- 1. PRODUCT MEDIA (BIG IMAGE + THUMBNAILS) -->
-          <div class="bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <p class="text-[11px] font-bold text-muted tracking-[0.14em] uppercase mb-4">Product Media</p>
-            {% with images=product.productimage_set.all %}
-              {% if images %}
-                {% with primary=images.0 %}
-                  <div class="main-image-container">
-                    <img src="{{ primary.image.url }}" alt="{{ product.product_name }}" class="main-image" id="main-product-img">
-                  </div>
-                {% endwith %}
-                {% if images|length > 1 %}
-                  <div class="thumb-grid">
-                    {% for img in images %}
-                      {% if forloop.counter <= 5 %}
-                        <div class="thumb-item" onclick="setMainImage('{{ img.image.url }}')">
-                          <img src="{{ img.image.url }}" alt="Thumbnail {{ forloop.counter }}" class="thumb-image">
+        closeCropModal() {
+            if (this.cropper) this.cropper.destroy();
+            this.cropModal = false;
+            this.tempImage = null;
+        }
+    }">
+ <div id="toast-container" class="fixed top-8 right-8 z-50 flex flex-col gap-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast-item flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl
+transition-all duration-500 ease-out transform translate-x-full opacity-0
+{% if message.tags == 'error' %}bg-[#3E3A37]{% else %}bg-[#5C554F]{% endif %} text-white"
+                >
+                    <div class="flex items-center gap-4">
+                        <div class="ml-1 w-10 h-10 bg-[#F5F1EB] icon-bubble">
+                             {% if message.tags == 'error' %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                             {% else %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                             {% endif %}
                         </div>
-                      {% endif %}
-                    {% endfor %}
-                  </div>
-                {% endif %}
-              {% else %}
-                <div class="main-image-container no-image-placeholder">
-                  <svg class="w-12 h-12 text-muted/50" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  <span class="text-[13px] font-medium">No Image Available</span>
+                        <div class="flex flex-col text-left">
+                            <span class="text-[11px] font-bold tracking-wider uppercase">
+                                {% if message.tags == 'error' %}Error{% else %}Notice{% endif %}
+                            </span>
+                            <span class="text-[10px] opacity-70">{{ message }}</span>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
                 </div>
-              {% endif %}
-            {% endwith %}
-          </div>
-
-          <!-- 2. BASIC INFORMATION CARD (product_name, category, subcategory in clean 2-col grid) -->
-          <div class="bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <p class="text-[11px] font-bold text-muted tracking-[0.14em] uppercase mb-5">Basic Information</p>
-            <div class="grid grid-cols-2 gap-5">
-              <div>
-                <p class="detail-label">Product Name</p>
-                <div class="detail-field">{{ product.product_name }}</div>
-              </div>
-              <div>
-                <p class="detail-label">Category</p>
-                <div class="detail-field">{{ product.category.category_name }}</div>
-              </div>
-              <div>
-                <p class="detail-label">Subcategory</p>
-                <div class="detail-field">{{ product.subcategory.subcategory_name }}</div>
-              </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <aside class="w-[280px] h-screen bg-white border-r border-gray-100 flex-shrink-0 flex flex-col justify-between sticky top-0 z-40">
+        <div class="p-8">
+            <div class="mb-12">
+                <h1 class="text-2xl tracking-[0.2em] font-light uppercase text-[#1a1a1a]" style="font-family: 'Optima', 'Didot', 'Playfair Display', serif;">
+                    NØ <span class="italic lowercase font-serif text-xl">&</span> CO
+                </h1>
             </div>
-          </div>
-
-          <!-- 3. DESCRIPTION CARD (description_fit) -->
-          {% if product.description_fit %}
-          <div class="bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <p class="text-[11px] font-bold text-muted tracking-[0.14em] uppercase mb-3">Description & Fit</p>
-            <div class="detail-field whitespace-pre-line">{{ product.description_fit|linebreaksbr }}</div>
-          </div>
-          {% endif %}
-
-          <!-- 4. MATERIALS CARD -->
-          {% if product.materials %}
-          <div class="bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <p class="text-[11px] font-bold text-muted tracking-[0.14em] uppercase mb-3">Materials</p>
-            <div class="detail-field whitespace-pre-line">{{ product.materials|linebreaksbr }}</div>
-          </div>
-          {% endif %}
-
-          <!-- 5. CARE GUIDE CARD -->
-          {% if product.care_guide %}
-          <div class="bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <p class="text-[11px] font-bold text-muted tracking-[0.14em] uppercase mb-3">Care Guide</p>
-            <div class="detail-field whitespace-pre-line">{{ product.care_guide|linebreaksbr }}</div>
-          </div>
-          {% endif %}
-
-          <!-- 6. DELIVERY & RETURNS CARD -->
-          {% if product.delivery_returns %}
-          <div class="bg-card rounded-2xl border border-border p-6 shadow-sm">
-            <p class="text-[11px] font-bold text-muted tracking-[0.14em] uppercase mb-3">Delivery & Returns</p>
-            <div class="detail-field whitespace-pre-line">{{ product.delivery_returns|linebreaksbr }}</div>
-          </div>
-          {% endif %}
-
-          <!-- 7. META INFO (small card) -->
-          <div class="bg-card rounded-2xl border border-border p-5 shadow-sm">
-            <div class="flex items-center justify-between text-xs text-muted/70">
-              <div class="flex gap-4">
-                {% if product.created_at %}
-                <span>Created: {{ product.created_at|date:"M d, Y" }}</span>
-                {% endif %}
-                {% if product.updated_at %}
-                <span>Updated: {{ product.updated_at|date:"M d, Y" }}</span>
-                {% endif %}
-              </div>
-            </div>
-          </div>
-
+            <nav class="space-y-3">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-1 mb-4">Management</p>
+                <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all">
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+                    <span class="font-medium text-sm">Dashboard</span>
+                </a>
+                <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-white bg-[#1a1a1a] shadow-lg shadow-black/5">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                    <span class="font-medium text-sm">Products</span>
+                </a>
+                <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group">
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    <span class="font-medium text-sm">Orders</span>
+                </a>
+            </nav>
         </div>
-        <!-- / left column -->
+        <div class="p-6 border-t border-gray-100 flex items-center gap-3">
+            <img src="https://ui-avatars.com/api/?name=Waseem&background=000&color=fff" class="w-10 h-10 rounded-full border border-gray-100">
+            <div>
+                <p class="font-bold text-sm text-[#1a1a1a]">Waseem</p>
+                <p class="text-[11px] text-gray-400 font-medium">Head Curator</p>
+            </div>
+        </div>
+    </aside>
 
-        <!-- ─────────────────────────────────
-             RIGHT COLUMN (1/3) — VARIANTS SECTION ONLY
-        ───────────────────────────────── -->
-        <div class="col-span-1 right-col">
-          <div class="bg-card rounded-2xl border border-border overflow-hidden shadow-sm">
-            <div class="px-6 pt-6 pb-5 border-b border-border">
-              <div class="flex items-start justify-between gap-3 mb-1">
-                <div>
-                  <p class="text-[11px] font-bold text-muted tracking-[0.14em] uppercase mb-1">Product Variants</p>
-                  <p class="text-[12px] text-muted">
-                    {% with count=product.variant_set.count %}
-                      {{ count }} variant{{ count|pluralize }} configured
+    <div class="flex-1 flex flex-col">
+        <form action="" method="POST" enctype="multipart/form-data" class="contents">
+            {% csrf_token %}
+
+            <header class="sticky top-0 z-30 glass-effect border-b border-gray-200/50 px-8 py-4">
+                <div class="max-w-6xl mx-auto flex justify-between items-center">
+                    <div>
+                        <nav class="flex items-center gap-2 text-[9px] uppercase tracking-[0.2em] font-bold text-gray-400 mb-1">
+                            <a href="#">Inventory</a> <span>/</span> <span class="text-black">Edit Item</span>
+                        </nav>
+                        <div class="flex items-center gap-3">
+                            <h1 class="font-serif text-2xl" x-text="editMode ? 'Editing Product' : '{{ product.name }}'">{{ product.name }}</h1>
+                            <div class="flex items-center gap-3">
+                                 <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                                 <span class="text-[10px] font-bold uppercase tracking-tighter text-gray-500">Live</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button
+    @click="handleQuickEditToggle($event)"
+    type="submit"
+    :class="editMode ? 'bg-black text-white' : 'bg-white text-black border-gray-200'"
+    class="px-6 py-2.5 text-[10px] uppercase tracking-widest font-bold border rounded-xl transition-all flex items-center gap-2 shadow-sm">
+    <span x-text="editMode ? 'Save Changes' : 'Quick Edit'"></span>
+</button>
+                        <div class="h-8 w-[1px] bg-gray-200 mx-2"></div>
+                        <button type="button" @click="deleteModal = true" class="p-2.5 rounded-xl border border-red-50 bg-red-50/30 text-red-500 hover:bg-red-50"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="max-w-6xl mx-auto px-8 py-10 w-full grid grid-cols-12 gap-8">
+                <div class="col-span-12 lg:col-span-8 space-y-8">
+                    <section class="grid grid-cols-4 gap-4">
+                        <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Total Stock</p>
+                            <p class="text-xl font-medium tracking-tight">842 <span class="text-xs text-gray-400">units</span></p>
+                        </div>
+                        <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Variants</p>
+                            <p class="text-xl font-medium tracking-tight">12 <span class="text-xs text-gray-400">SKUs</span></p>
+                        </div>
+                        <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Active Orders</p>
+                            <p class="text-xl font-medium tracking-tight">24</p>
+                        </div>
+                        <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+                            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Revenue (MoM)</p>
+                            <p class="text-xl font-medium tracking-tight text-green-600">₹4.2L</p>
+                        </div>
+                    </section>
+
+                    {% with first_image=product.productimage_set.all|first %}
+                    <section x-data="{
+                        activeImage: '{% if first_image %}{{ first_image.image.url }}{% else %}https://images.unsplash.com/photo-1521572163474-6864f9cf17ab{% endif %}',
+                        images: [
+                            {% for img in product.productimage_set.all %}
+                            {
+                                id: {{ img.id }},
+                                url: '{{ img.image.url }}',
+                                primary: {{ img.is_primary|yesno:'true,false' }}
+                            },
+                            {% empty %}
+                            { id: 1, url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab', primary: true }
+                            {% endfor %}
+                        ]
+                    }"
+                    @image-added.window="images.push({id: Date.now(), url: $event.detail.url, primary: false}); activeImage = $event.detail.url"
+                    class="bg-white rounded-[32px] shadow-sm border border-white overflow-hidden block">
+
+                        <div class="relative bg-[#F9F9F7] w-full max-w-xs mx-auto aspect-square group overflow-hidden block border border-gray-100 rounded-xl mt-6">
+                            <img :src="activeImage"
+                                 class="w-full h-full object-cover transition-all duration-300 hover:scale-[1.02] block">
+
+                            <div class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-6">
+                                <div class="flex gap-2 bg-white/90 backdrop-blur px-4 py-2 rounded-2xl shadow-xl">
+
+                                    <button type="button"
+                                            @click="$refs.fileInput.click()"
+                                            class="p-2 hover:bg-gray-100 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-black">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke-width="2"/>
+                                        </svg>
+                                        Replace
+                                    </button>
+
+                                    <div class="w-[1px] bg-gray-200"></div>
+
+                                    <button type="button"
+                                            class="p-2 text-red-500 hover:bg-red-50 rounded-lg">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-width="2"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-6 w-full max-w-xs mx-auto flex items-center gap-4 overflow-x-auto hide-scrollbar">
+                            <template x-for="img in images" :key="img.id">
+                                <div class="relative flex-shrink-0 group">
+                                    <button type="button" @click="activeImage = img.url"
+                                            :class="activeImage === img.url ? 'border-black ring-1 ring-black/5 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'"
+                                            class="w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300">
+                                        <img :src="img.url" class="w-full h-full object-cover">
+                                    </button>
+                                    <div x-show="img.primary"
+                                         class="absolute -top-1 -right-1 w-3 h-3 bg-black border-2 border-white rounded-full">
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div>
+                                <button type="button"
+                                        @click="$refs.fileInput.click()"
+                                        class="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-black hover:text-black transition-all">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 4v16m8-8H4" stroke-width="2"/>
+                                    </svg>
+                                    <span class="text-[8px] font-bold uppercase tracking-tighter">Add</span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
                     {% endwith %}
-                  </p>
-                </div>
-                <button
-                  id="open-modal-btn"
-                  onclick="openModal()"
-                  class="flex items-center gap-1.5 bg-black text-white px-4 py-2 rounded-lg text-[10px] font-bold tracking-widest uppercase hover:bg-[#222] transition-all flex-shrink-0 cursor-pointer">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  Add
-                </button>
-              </div>
-            </div>
 
-            {% if product.variant_set.exists %}
-            <div class="divide-y divide-gray-50">
-              {% for variant in product.variant_set.all %}
-              <div class="px-6 py-4 hover:bg-beige/30 transition-colors group">
-                <div class="flex items-center justify-between mb-2.5">
-                  <div class="flex items-center gap-2.5">
-                    <span class="w-4 h-4 rounded-full border border-border flex-shrink-0"
-                          style="background-color:{{ variant.color_hex|default:'#cccccc' }}"></span>
-                    <span class="font-semibold text-[13px]">{{ variant.color }}</span>
-                    <span class="inline-flex items-center justify-center w-7 h-7 rounded-md bg-[#F5F1EA] text-[11px] font-bold text-dark border border-border">
-                      {{ variant.size }}
-                    </span>
-                  </div>
-                  <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <a href="{% url 'edit-variant' variant.id %}"
-                       class="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-black hover:text-white text-gray-400 transition-all border border-gray-100">
-                      <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-                    </a>
-                    <form method="POST" action="" onsubmit="return confirm('Delete this variant?')">
-                      {% csrf_token %}
-                      <button type="submit"
-                              class="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-50 hover:bg-red-500 hover:text-white text-gray-400 transition-all border border-gray-100">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                      </button>
-                    </form>
-                  </div>
+                    <input type="file"
+                           name="image"
+                           id="global-file-input"
+                           x-ref="fileInput"
+                           class="hidden"
+                           accept="image/*"
+                           @change="handleFileSelect($event)">
+
+                    <div class="bg-white rounded-custom shadow-sm border border-white overflow-hidden">
+                        <div class="flex border-b border-gray-50">
+                            <button type="button" @click="activeTab = 'details'" :class="activeTab === 'details' ? 'border-black text-black' : 'border-transparent text-gray-400'" class="px-8 py-5 text-[10px] uppercase tracking-widest font-bold border-b-2 transition-all">Basic Info</button>
+                            <button type="button" @click="activeTab = 'logistics'" :class="activeTab === 'logistics' ? 'border-black text-black' : 'border-transparent text-gray-400'" class="px-8 py-5 text-[10px] uppercase tracking-widest font-bold border-b-2 transition-all">Care & Logistics</button>
+                        </div>
+
+                        <div class="p-8">
+                            <div x-show="activeTab === 'details'" class="space-y-8" x-transition>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                                    <div class="col-span-1 md:col-span-2 space-y-2">
+                                        <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Display Name</label>
+                                        <div x-show="!editMode" class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.product_name }}</div>
+                                        <input x-show="editMode" name="product_name" type="text" value="{{ product.product_name }}"
+                                               class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black transition-colors">
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Category</label>
+                                        <div x-show="!editMode" class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.category.category_name }}</div>
+                                        <div x-show="editMode" class="relative">
+                                            <select name="category" @change="onCategoryChange" x-model="selectedCategory" class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black transition-colors appearance-none pr-8">
+                                                {% for i in category %}
+                                                  <option value="{{i.id}}">{{i.category_name}}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <svg class="w-4 h-4 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path d="M19 9l-7 7-7-7" stroke-width="2"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Subcategory</label>
+                                        <div x-show="!editMode" class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.subcategory.subcategory_name }}</div>
+                                        <div x-show="editMode" class="relative">
+                                            <select name="subcategory" x-model="selectedSubcategory" class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black transition-colors appearance-none pr-8">
+                                                <option value="">Select Subcategory</option>
+                                                <template x-for="sub in filteredSubcategories" :key="sub.id">
+                                                    <option :value="sub.id" x-text="sub.name" :selected="sub.id == selectedSubcategory"></option>
+                                                </template>
+                                            </select>
+                                            <svg class="w-4 h-4 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path d="M19 9l-7 7-7-7" stroke-width="2"/>
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-span-1 md:col-span-2 space-y-2">
+                                        <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Materials</label>
+                                        <div x-show="!editMode" class="text-sm leading-relaxed text-gray-800 py-2 border-b border-transparent">{{ product.materials|default:'100% Cotton' }}</div>
+                                        <textarea name="materials" x-show="editMode" rows="2"
+                                                  class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black resize-none transition-colors">{{ product.materials }}</textarea>
+                                    </div>
+
+                                    <div class="col-span-1 md:col-span-2 space-y-2">
+                                        <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Description & Fit</label>
+                                        <div x-show="!editMode" class="text-sm leading-relaxed text-gray-800 py-2 border-b border-transparent">{{ product.description_fit|default:'Classic silhouette with a relaxed drape.' }}</div>
+                                        <textarea name="description_fit" x-show="editMode" rows="4"
+                                                  class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black resize-none transition-colors">{{ product.description_fit }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div x-show="activeTab === 'logistics'" class="space-y-8" x-transition>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Care Guide</label>
+                                        <div x-show="!editMode" class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.care_guide|default:'Hand wash cold. Do not bleach.' }}</div>
+                                        <textarea name="care_guide" x-show="editMode" rows="3"
+                                                  class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black resize-none transition-colors">{{ product.care_guide }}</textarea>
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Delivery & Returns</label>
+                                        <div x-show="!editMode" class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.delivery_returns|default:'Standard shipping 3-5 days.' }}</div>
+                                        <textarea name="delivery_returns" x-show="editMode" rows="3"
+                                                  class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black resize-none transition-colors">{{ product.delivery_returns }}</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="flex items-center gap-3 flex-wrap">
-                  <span class="font-bold text-[13px] tracking-tight">₹{{ variant.price }}</span>
-                  <span class="text-[11px] text-muted">·</span>
-                  <span class="text-[12px] font-medium
-                    {% if variant.stock == 0 %}text-red-500
-                    {% elif variant.stock <= 5 %}text-amber-500
-                    {% else %}text-dark{% endif %}">
-                    {{ variant.stock }} in stock
-                  </span>
-                  <span class="text-[11px] text-muted">·</span>
-                  {% if variant.is_active %}
-                    <span class="badge-active"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Active</span>
-                  {% else %}
-                    <span class="badge-inactive"><span class="w-1.5 h-1.5 rounded-full bg-gray-300"></span>Inactive</span>
-                  {% endif %}
-                </div>
-              </div>
-              {% endfor %}
-            </div>
-            {% else %}
-            <!-- Empty state with centered icon and text -->
-            <div class="flex flex-col items-center justify-center py-16 gap-3 px-6">
-              <div class="w-12 h-12 rounded-2xl bg-[#F5F1EA] flex items-center justify-center border border-border">
-                <svg class="w-5 h-5 text-muted" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"/></svg>
-              </div>
-              <div class="text-center">
-                <p class="text-[13px] font-bold text-gray-400 mb-1">No variants yet</p>
-                <p class="text-[11px] text-muted leading-relaxed">Click <span class="font-semibold text-dark">+ Add</span> above to create one</p>
-              </div>
-            </div>
-            {% endif %}
-          </div>
-        </div>
-      </div>
+
+                <aside class="col-span-12 lg:col-span-4 space-y-6">
+                    <section class="bg-white p-6 rounded-custom border border-white shadow-sm space-y-4">
+                        <div class="flex items-center justify-between" x-data="{ active: true }">
+                            <div>
+                                <p class="text-[11px] font-bold uppercase tracking-widest">Active Status</p>
+                                <p class="text-[10px] text-gray-400" x-text="active ? 'Currently Active' : 'Currently Inactive'"></p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-[10px] font-bold uppercase" :class="active ? 'text-black' : 'text-gray-400'" x-text="active ? 'Active' : 'Inactive'"></span>
+                                <button type="button" @click="active = !active"
+                                        :class="active ? 'bg-black' : 'bg-gray-300'"
+                                        class="w-12 h-6 rounded-full relative transition-colors duration-200 ease-in-out">
+                                    <span :class="active ? 'translate-x-6' : 'translate-x-1'"
+                                          class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform duration-200 ease-in-out shadow-sm"></span>
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="bg-white rounded-custom border border-white shadow-sm overflow-hidden flex flex-col max-h-[700px]">
+                        <div class="p-6 border-b border-gray-50 flex justify-between items-center bg-white sticky top-0 z-10">
+                            <h3 class="text-[11px] uppercase tracking-[0.2em] font-bold">Variant Hub</h3>
+                            <button type="button" @click="variantModal = true" class="px-4 py-2 bg-black text-white text-[9px] uppercase font-bold rounded-lg hover:bg-gray-800 transition-all">+ Add SKU</button>
+                        </div>
+
+                        <div class="p-4 space-y-3 overflow-y-auto hide-scrollbar flex-1">
+                            {% for variant in product.variants.all %}
+                            <div class="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 hover:border-black/20 hover:bg-white transition-all group relative">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <p class="text-[10px] font-bold uppercase tracking-tight">{{ variant.sku }}</p>
+                                        <div class="flex items-center gap-2 mt-1">
+                                            <span class="w-2.5 h-2.5 rounded-full border border-gray-200" style="background-color: {{ variant.color_hex|default:'#000' }}"></span>
+                                            <p class="text-[10px] text-gray-500 uppercase">{{ variant.color }} / {{ variant.size }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <p class="text-xs font-bold text-black">₹{{ variant.price }}</p>
+                                        <p class="text-[9px] font-bold uppercase mt-0.5 {% if variant.stock < 5 %}text-red-500{% else %}text-green-500{% endif %}">
+                                            {{ variant.stock }} In Stock
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="flex gap-2 pt-2 border-t border-gray-100 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button type="button" class="text-[8px] uppercase font-bold text-gray-400 hover:text-black transition-colors">Edit</button>
+                                    <button type="button" class="text-[8px] uppercase font-bold text-red-300 hover:text-red-500 transition-colors">Delete</button>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="py-10 text-center">
+                                <p class="text-xs text-gray-400 italic">No variants available.</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </section>
+                </aside>
+            </main>
+        </form>
     </div>
-  </div>
-</div>
 
-
-<!-- ════════════════════════════════════
-     ADD VARIANT MODAL (unchanged)
-════════════════════════════════════ -->
-<div id="variant-modal" class="fixed inset-0 z-[9999] flex items-center justify-center" aria-modal="true" role="dialog">
-  <div id="modal-backdrop" class="absolute inset-0 bg-black/20 backdrop-blur-[2px]"></div>
-  <div class="modal-box relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
-    <div class="flex items-center justify-between px-8 py-6 border-b border-border">
-      <div><h2 class="font-serif text-xl">Add Variant</h2><div class="w-8 h-[2px] bg-black mt-1.5"></div></div>
-      <button id="close-modal-btn" onclick="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition-all cursor-pointer" type="button"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round"/></svg></button>
+    <div x-show="showToast" x-cloak x-transition class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
+        <div class="bg-black text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4">
+            <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/></svg>
+            <span class="text-xs uppercase tracking-widest font-bold" x-text="toastMsg"></span>
+        </div>
     </div>
-    <form method="POST" action="">
-      {% csrf_token %}
-      <div class="px-8 py-6 space-y-5">
-        <div class="grid grid-cols-2 gap-4">
-          <div><p class="detail-label">Color</p><div class="relative"><select name="color" class="w-full bg-[#FAFAF8] border border-[#EEEAE2] rounded-[10px] px-4 py-3 text-[13px] outline-none focus:border-black pr-9 cursor-pointer"><option value="">Select</option><option>Black</option><option>White</option><option>Ivory</option><option>Navy</option><option>Beige</option><option>Sage</option><option>Terracotta</option><option>Charcoal</option></select><svg class="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg></div></div>
-          <div><p class="detail-label">Size</p><div class="relative"><select name="size" class="w-full bg-[#FAFAF8] border border-[#EEEAE2] rounded-[10px] px-4 py-3 text-[13px] outline-none focus:border-black pr-9 cursor-pointer"><option value="">Select</option><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>XXL</option><option>Free Size</option></select><svg class="w-3.5 h-3.5 absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg></div></div>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div><p class="detail-label">Price</p><div class="relative"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-[13px] text-muted">₹</span><input type="number" name="price" placeholder="0.00" min="0" step="0.01" class="w-full bg-[#FAFAF8] border border-[#EEEAE2] rounded-[10px] pl-8 pr-4 py-3 text-[13px] outline-none focus:border-black"></div></div>
-          <div><p class="detail-label">Stock</p><input type="number" name="stock" placeholder="0" min="0" class="w-full bg-[#FAFAF8] border border-[#EEEAE2] rounded-[10px] px-4 py-3 text-[13px] outline-none focus:border-black"></div>
-        </div>
-        <div class="flex items-center justify-between py-1"><div><p class="text-[12px] font-semibold text-dark">Active Status</p><p class="text-[11px] text-muted mt-0.5">Make this variant purchasable</p></div><div id="modal-toggle" class="toggle-track on" onclick="toggleModalStatus(this)" role="switch" aria-checked="true"><div class="toggle-thumb"></div><input type="hidden" name="is_active" id="modal-status-input" value="on"></div></div>
-      </div>
-      <div class="flex items-center justify-end gap-3 px-8 py-5 border-t border-border bg-[#FAFAF8]"><button type="button" onclick="closeModal()" class="px-5 py-2.5 text-[11px] font-bold tracking-widest uppercase border border-border bg-white rounded-lg text-muted hover:text-dark hover:border-gray-300">Cancel</button><button type="submit" class="px-6 py-2.5 text-[11px] font-bold tracking-widest uppercase bg-black text-white rounded-lg hover:bg-[#222]">Add Variant</button></div>
-    </form>
-  </div>
-</div>
 
+    <div x-show="deleteModal" x-cloak class="fixed inset-0 z-[100] flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" @click="deleteModal = false"></div>
+        <div class="relative bg-white w-full max-w-sm rounded-[32px] p-10 text-center shadow-2xl" x-transition>
+            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h3 class="text-xl font-semibold mb-2">Delete Product?</h3>
+            <p class="text-sm text-gray-400 mb-8">This action will move the product to archives.</p>
+            <div class="flex flex-col gap-3">
+                <button type="button" class="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold">Confirm</button>
+                <button type="button" @click="deleteModal = false" class="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div x-show="cropModal" x-cloak class="fixed inset-0 z-[110] flex items-center justify-center p-6">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" @click="closeCropModal"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl" x-transition>
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold">Fine Tune Image</h2>
+                <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Adjust to Square Aspect Ratio</p>
+            </div>
+
+            <div class="cropper-container-wrapper mb-8 flex items-center justify-center">
+                <img id="cropper-image" :src="tempImage" class="block w-full">
+            </div>
+
+            <div class="flex gap-4">
+                <button type="button" @click="closeCropModal" class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">Cancel</button>
+                <button type="button" @click="saveCroppedImage" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">Crop & Save</button>
+            </div>
+        </div>
+    </div>
 <script>
-  /* Sidebar */
-  var submenu = document.getElementById('products-submenu');
-  var chevron = document.getElementById('products-chevron');
-  function toggleProducts() {
-    var isOpen = submenu.classList.contains('open');
-    if (isOpen) { submenu.classList.remove('open'); chevron.classList.remove('rotated'); }
-    else { submenu.classList.add('open'); chevron.classList.add('rotated'); }
-  }
-  chevron.classList.add('rotated');
-
-  /* Modal */
-  var modal = document.getElementById('variant-modal');
-  var backdrop = document.getElementById('modal-backdrop');
-  function openModal() { modal.classList.add('open'); document.body.style.overflow = 'hidden'; }
-  function closeModal() { modal.classList.remove('open'); document.body.style.overflow = ''; }
-  backdrop.addEventListener('click', closeModal);
-  document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeModal(); });
-
-  function toggleModalStatus(el) {
-    el.classList.toggle('on');
-    document.getElementById('modal-status-input').value = el.classList.contains('on') ? 'on' : 'off';
-    el.setAttribute('aria-checked', el.classList.contains('on') ? 'true' : 'false');
-  }
-
-  // Thumbnail click handler updates main big image
-  function setMainImage(imgUrl) {
-    const mainContainer = document.querySelector('.main-image-container');
-    if (mainContainer) {
-      mainContainer.innerHTML = `<img src="${imgUrl}" alt="Main product view" class="main-image" id="main-product-img">`;
+     function showToast(message, status = 'success') {
+        const wrapper = document.getElementById('toast-wrapper');
+        const toast = document.createElement('div');
+        const statusColor = status === 'success' ? 'bg-noco-text' : 'bg-red-500';
+        toast.className = `toast-entry flex items-center justify-between bg-white border border-gray-100 shadow-[0_8px_20px_rgba(0,0,0,0.06)] rounded-lg min-w-[320px] overflow-hidden`;
+        toast.innerHTML = `
+            <div class="flex items-center gap-4 p-4 pr-6">
+                <div class="w-1 h-6 ${statusColor} rounded-full"></div>
+                <p class="text-noco-text text-[13px] font-medium tracking-tight">${message}</p>
+            </div>
+            <button onclick="this.parentElement.remove()" class="p-4 text-gray-300 hover:text-noco-text transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        `;
+        wrapper.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            toast.style.transition = 'all 0.4s ease';
+            setTimeout(() => toast.remove(), 400);
+        }, 4000);
     }
-  }
+
+document.addEventListener("DOMContentLoaded", () => {
+    const toasts = document.querySelectorAll(".toast-item");
+
+    toasts.forEach((toast, index) => {
+        setTimeout(() => {
+            toast.classList.remove("translate-x-full", "opacity-0");
+            toast.classList.add("translate-x-0", "opacity-100");
+        }, 100 * index); // small delay for each
+    });
+});
 </script>
+
 </body>
 </html>
