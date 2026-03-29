@@ -8,7 +8,7 @@ from django.utils import timezone
 def admin_category(request):
 
     page_number = request.GET.get("page")
-    search_query = request.POST.get("search","")
+    query = request.GET.get("q", "")
 
 
     if request.method == "POST":
@@ -63,25 +63,30 @@ def admin_category(request):
             return redirect("admin-category")
 
 
+    # Base Queryset
     status_filter = request.GET.get("status", "live")
-
     if status_filter == "archived":
-        category = Category.objects.filter(is_deleted=True).order_by("-id")
+        category_list = Category.objects.filter(is_deleted=True)
     else:
-        category = Category.objects.filter(is_deleted=False).order_by("-id")
+        category_list = Category.objects.filter(is_deleted=False)
 
-    if search_query:
-        category = category.filter(category_name__icontains=search_query)
+    # Search Logic
+    query = request.GET.get("q")
+    if query:
+        category_list = category_list.filter(Q(category_name__icontains=query))
 
-    category = category.order_by("-id")
+    category_list = category_list.order_by("-id")
 
-    paginator = Paginator(category, 3)
+    # Pagination
+    paginator = Paginator(category_list, 4)
     page_obj = paginator.get_page(page_number)
-    subcategory = Subcategory.objects.all()
-    subcategory_count = subcategory.filter(is_deleted=False).count()
-    count = category.count()
-    active_count = category.filter(is_active=True).count()
-    inactive_count = category.filter(is_active=False).count()
+
+    # Statistics (Total counts for the current status filter, or overall)
+    all_categories = Category.objects.filter(is_deleted=False)
+    count = all_categories.count()
+    active_count = all_categories.filter(is_active=True).count()
+    inactive_count = all_categories.filter(is_active=False).count()
+    subcategory_count = Subcategory.objects.filter(is_deleted=False).count()
 
     return render(
         request,
@@ -91,7 +96,7 @@ def admin_category(request):
             "count": count,
             "active_count": active_count,
             "inactive_count": inactive_count,
-            "search_query":search_query,
+            "search_query":query,
             "subcategory_count":subcategory_count
         },
     )
@@ -99,6 +104,7 @@ def admin_category(request):
 
 def admin_subcategory(request):
     page_number = request.GET.get("page")
+    query = request.GET.get("q", "")
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -183,13 +189,17 @@ def admin_subcategory(request):
     else:
         subcategory= Subcategory.objects.filter(is_deleted=False , category__is_deleted = False , category__is_active=True).order_by("-id")
 
-    # if search_query:
-    #     category = category.filter(category_name__icontains=search_query)
+    if query:
+        from django.db.models import Q
+        subcategory = subcategory.filter(
+            Q(subcategory_name__icontains=query) |
+            Q(category__category_name__icontains=query)
+        )
 
     subcategory = subcategory.order_by("-id")
 
     category = Category.objects.filter(is_deleted=False).order_by("-id")
-    paginator = Paginator(subcategory,3)
+    paginator = Paginator(subcategory, 4)
     page_obj = paginator.get_page(page_number)
 
 
@@ -200,6 +210,7 @@ def admin_subcategory(request):
     inactive_subcategory = live_subcategory.filter(is_active=False).count()
 
     return render(request, "admin-subcategory.html",{
+        "query": query,
         "category":category,
         "page_obj":page_obj,
         "subcategory_count": subcategory_count,

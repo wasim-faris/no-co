@@ -61,7 +61,6 @@
 </head>
 <body class="antialiased min-h-screen flex"
     x-data="{
-        editMode: false,
         variantModal: false,
         deleteModal: false,
         activeTab: 'details',
@@ -227,13 +226,10 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                         </div>
                     </div>
                     <div class="flex items-center gap-3">
-                        <button
-    @click="handleQuickEditToggle($event)"
-    type="submit"
-    :class="editMode ? 'bg-black text-white' : 'bg-white text-black border-gray-200'"
-    class="px-6 py-2.5 text-[10px] uppercase tracking-widest font-bold border rounded-xl transition-all flex items-center gap-2 shadow-sm">
-    <span x-text="editMode ? 'Save Changes' : 'Quick Edit'"></span>
-</button>
+                        <a href="{% url 'admin-edit-product' product.id %}"
+                           class="bg-black text-white px-6 py-2.5 text-[10px] uppercase tracking-widest font-bold border rounded-xl transition-all flex items-center gap-2 shadow-sm hover:bg-gray-900">
+                            Edit Product
+                        </a>
                         <div class="h-8 w-[1px] bg-gray-200 mx-2"></div>
                         <button type="button" @click="deleteModal = true" class="p-2.5 rounded-xl border border-red-50 bg-red-50/30 text-red-500 hover:bg-red-50"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
                     </div>
@@ -355,54 +351,27 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
 
                                     <div class="col-span-1 md:col-span-2 space-y-2">
                                         <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Display Name</label>
-                                        <div x-show="!editMode" class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.product_name }}</div>
-                                        <input x-show="editMode" name="product_name" type="text" value="{{ product.product_name }}"
-                                               class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black transition-colors">
+                                        <div class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.product_name }}</div>
                                     </div>
 
                                     <div class="space-y-2">
                                         <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Category</label>
-                                        <div x-show="!editMode" class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.category.category_name }}</div>
-                                        <div x-show="editMode" class="relative">
-                                            <select name="category" @change="onCategoryChange" x-model="selectedCategory" class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black transition-colors appearance-none pr-8">
-                                                {% for i in category %}
-                                                  <option value="{{i.id}}">{{i.category_name}}</option>
-                                                {% endfor %}
-                                            </select>
-                                            <svg class="w-4 h-4 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path d="M19 9l-7 7-7-7" stroke-width="2"/>
-                                            </svg>
-                                        </div>
+                                        <div class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.category.category_name }}</div>
                                     </div>
 
                                     <div class="space-y-2">
                                         <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Subcategory</label>
-                                        <div x-show="!editMode" class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.subcategory.subcategory_name }}</div>
-                                        <div x-show="editMode" class="relative">
-                                            <select name="subcategory" x-model="selectedSubcategory" class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black transition-colors appearance-none pr-8">
-                                                <option value="">Select Subcategory</option>
-                                                <template x-for="sub in filteredSubcategories" :key="sub.id">
-                                                    <option :value="sub.id" x-text="sub.name" :selected="sub.id == selectedSubcategory"></option>
-                                                </template>
-                                            </select>
-                                            <svg class="w-4 h-4 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path d="M19 9l-7 7-7-7" stroke-width="2"/>
-                                            </svg>
-                                        </div>
+                                        <div class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.subcategory.subcategory_name }}</div>
                                     </div>
 
                                     <div class="col-span-1 md:col-span-2 space-y-2">
                                         <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Materials</label>
-                                        <div x-show="!editMode" class="text-sm leading-relaxed text-gray-800 py-2 border-b border-transparent">{{ product.materials|default:'100% Cotton' }}</div>
-                                        <textarea name="materials" x-show="editMode" rows="2"
-                                                  class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black resize-none transition-colors">{{ product.materials }}</textarea>
+                                        <div class="text-sm leading-relaxed text-gray-800 py-2 border-b border-transparent">{{ product.materials|default:'100% Cotton' }}</div>
                                     </div>
 
                                     <div class="col-span-1 md:col-span-2 space-y-2">
                                         <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Description & Fit</label>
-                                        <div x-show="!editMode" class="text-sm leading-relaxed text-gray-800 py-2 border-b border-transparent">{{ product.description_fit|default:'Classic silhouette with a relaxed drape.' }}</div>
-                                        <textarea name="description_fit" x-show="editMode" rows="4"
-                                                  class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black resize-none transition-colors">{{ product.description_fit }}</textarea>
+                                        <div class="text-sm leading-relaxed text-gray-800 py-2 border-b border-transparent">{{ product.description_fit|default:'Classic silhouette with a relaxed drape.' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -411,16 +380,12 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div class="space-y-2">
                                         <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Care Guide</label>
-                                        <div x-show="!editMode" class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.care_guide|default:'Hand wash cold. Do not bleach.' }}</div>
-                                        <textarea name="care_guide" x-show="editMode" rows="3"
-                                                  class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black resize-none transition-colors">{{ product.care_guide }}</textarea>
+                                        <div class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.care_guide|default:'Hand wash cold. Do not bleach.' }}</div>
                                     </div>
 
                                     <div class="space-y-2">
                                         <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Delivery & Returns</label>
-                                        <div x-show="!editMode" class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.delivery_returns|default:'Standard shipping 3-5 days.' }}</div>
-                                        <textarea name="delivery_returns" x-show="editMode" rows="3"
-                                                  class="w-full bg-transparent border-b border-gray-200 focus:border-black outline-none text-sm py-2 text-black resize-none transition-colors">{{ product.delivery_returns }}</textarea>
+                                        <div class="text-sm text-gray-800 py-2 border-b border-transparent">{{ product.delivery_returns|default:'Standard shipping 3-5 days.' }}</div>
                                     </div>
                                 </div>
                             </div>

@@ -49,8 +49,22 @@ class Variant(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def generate_sku(self):
+        category = self.product.category.category_name[:2].upper()
+        product = self.product.product_name[:6].upper().replace(" ", "")
+        color = self.color[:3].upper()
+        size = self.size.upper()
+
+        return f"{category}-{product}-{color}-{size}"
+
+    def save(self, *args, **kwargs):
+        if not self.sku:
+            self.sku = self.generate_sku()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.product.product_name} - {self.size} - {self.color}"
+
 
 class ProductImage(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE)

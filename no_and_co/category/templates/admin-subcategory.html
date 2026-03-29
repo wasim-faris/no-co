@@ -210,7 +210,7 @@
                 <form method="GET" id="searchForm" class="relative w-full sm:w-80">
                     {% if request.GET.status %}<input type="hidden" name="status" value="{{ request.GET.status }}">{% endif %}
                     <svg class="w-4 h-4 text-noco-subtext absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg>
-                    <input id="searchInput" type="text" name="search" value="{{ search_query|default:'' }}" placeholder="Search by name..." class="w-full bg-noco-beige/40 text-[13px] text-noco-text placeholder:text-noco-subtext pl-11 pr-4 py-3 rounded-noco-sm outline-none border border-transparent focus:border-noco-accent focus:bg-white transition-all">
+                    <input id="searchInput" type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search by name..." class="w-full bg-noco-beige/40 text-[13px] text-noco-text placeholder:text-noco-subtext pl-11 pr-4 py-3 rounded-noco-sm outline-none border border-transparent focus:border-noco-accent focus:bg-white transition-all">
                 </form>
             </div>
 
@@ -227,7 +227,7 @@
                         </tr>
                     </thead>
                     <!-- SEARCH: id added so JS can swap contents -->
-                    <tbody id="categoryTableBody" class="divide-y divide-noco-border/40">
+                    <tbody id="subcategoryTableBody" class="divide-y divide-noco-border/40">
                         {% for i in page_obj %}
                         <tr class="hover:bg-noco-beige/20 transition-all group">
                             <td class="text-[13px] text-noco-subtext px-8 py-6">{{ forloop.counter0|add:page_obj.start_index }}</td>
@@ -288,30 +288,8 @@
             </div>
 
             <!-- SEARCH: id added so JS can swap pagination after search -->
-            <div id="paginationSection" class="p-8 border-t border-noco-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <p class="text-[12px] font-medium text-noco-subtext">
-                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-                    <span class="mx-2">/</span> {{ page_obj.paginator.count }} Items total
-                </p>
-                <div class="flex items-center gap-2">
-                    {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-                       class="px-4 py-2 text-[12px] font-bold uppercase tracking-widest border border-noco-border rounded-noco-sm hover:bg-noco-beige transition-all">
-                        Prev
-                    </a>
-                    {% else %}
-                    <button class="px-4 py-2 text-[12px] font-bold uppercase tracking-widest border border-noco-border rounded-noco-sm opacity-30 cursor-not-allowed" disabled>Prev</button>
-                    {% endif %}
-
-                    {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}"
-                       class="px-4 py-2 text-[12px] font-bold uppercase tracking-widest bg-noco-text text-white rounded-noco-sm hover:shadow-md transition-all">
-                        Next
-                    </a>
-                    {% else %}
-                    <button class="px-4 py-2 text-[12px] font-bold uppercase tracking-widest bg-noco-text text-white rounded-noco-sm opacity-30 cursor-not-allowed" disabled>Next</button>
-                    {% endif %}
-                </div>
+            <div id="paginationSection">
+                {% include 'admin_base/components/pagination.html' %}
             </div>
         </section>
     </main>
@@ -589,9 +567,68 @@ function openPermanentDeleteModal(id, name) {
     permanentDeleteModal.classList.remove("modal-hidden");
 }
 
-function closePermanentDeleteModal() {
-    permanentDeleteModal.classList.add("modal-hidden");
-}
+        function closePermanentDeleteModal() {
+            permanentDeleteModal.classList.add('modal-hidden');
+        }
+
+        // -------------------------------------------------------
+        // LIVE SEARCH — debounced fetch, replaces tbody + pagination only
+        // -------------------------------------------------------
+        (function () {
+            const searchInput = document.getElementById('searchInput');
+            const tableBody   = document.getElementById('subcategoryTableBody');
+            const pagination  = document.getElementById('paginationSection');
+            const searchForm  = document.getElementById('searchForm');
+            let debounceTimer = null;
+
+            if (!searchInput || !tableBody || !pagination || !searchForm) return;
+
+            function buildURL(query) {
+                const params = new URLSearchParams(window.location.search);
+                if (query) {
+                    params.set('q', query);
+                } else {
+                    params.delete('q');
+                }
+                params.delete('page'); // reset to page 1 on new search
+                return window.location.pathname + '?' + params.toString();
+            }
+
+            function doSearch(query) {
+                const url = buildURL(query);
+                // Update browser URL so pagination links rendered server-side stay correct
+                window.history.replaceState(null, '', url);
+
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (res) { return res.text(); })
+                    .then(function (html) {
+                        const doc = new DOMParser().parseFromString(html, 'text/html');
+                        const newBody = doc.getElementById('subcategoryTableBody');
+                        const newPagination = doc.getElementById('paginationSection');
+                        if (newBody) tableBody.innerHTML = newBody.innerHTML;
+                        if (newPagination) pagination.innerHTML = newPagination.innerHTML;
+                    })
+                    .catch(function () {
+                        // Fallback: normal form submit if fetch fails
+                        searchForm.submit();
+                    });
+            }
+
+            // Live search on keystroke with 300ms debounce
+            searchInput.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(function () {
+                    doSearch(searchInput.value.trim());
+                }, 300);
+            });
+
+            // Intercept Enter / form submit — no page reload
+            searchForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                clearTimeout(debounceTimer);
+                doSearch(searchInput.value.trim());
+            });
+        })();
     </script>
 </body>
 </html>
