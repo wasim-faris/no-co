@@ -66,6 +66,53 @@ def get_subcategories(request, category_id):
 
 def admin_product_details(request, id):
     product = get_object_or_404(Product, id=id)
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "add_variant":
+            Variant.objects.create(
+                product = product,
+                size = request.POST.get("size"),
+                color = request.POST.get("color"),
+                price = request.POST.get("price"),
+                stock = request.POST.get("stock"),
+                is_active = request.POST.get("is_active") == "true",
+                is_default = request.POST.get("is_default") == "true",
+            )
+            messages.success(request, "Product variant created")
+            return redirect("admin-product-details", id=product.id)
+
+        if action == "edit_variant":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant , id=variant_id)
+
+            variant.size = request.POST.get("size")
+            variant.price = request.POST.get("price")
+            variant.stock = request.POST.get("stock")
+            variant.color = request.POST.get("color")
+            variant.is_active = request.POST.get("is_active")=="true"
+            variant.is_default = request.POST.get("is_default") == "true"
+
+            variant.save()
+            messages.error(request, "Product edited succesfully")
+            return redirect("admin-product-details", id=product.id)
+
+        if action == "delete_variant":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant, id=variant_id)
+            variant.delete()
+            messages.success(request,"Product variant deleted succesfully")
+            return redirect("admin-product-details", id=product.id)
+
+        deleted_product = request.POST.get("deleted_product")
+        if deleted_product:
+            product.is_deleted = True
+            product.save()
+            messages.success(request, "Product moved to archives")
+            return redirect("admin-products")
+
+
     category = Category.objects.filter(is_deleted=False, is_active=True)
     subcategory = Subcategory.objects.filter(is_deleted=False, is_active=True)
 
@@ -84,7 +131,16 @@ def admin_product_management(request, id=None):
         product = None
 
     if request.method == "POST":
-        # AJAX IMAGE ACTIONS
+        # 1. Handle Delete Request FIRST
+        deleted_product = request.POST.get("deleted_product")
+        if deleted_product:
+            product_to_delete = get_object_or_404(Product, id=deleted_product)
+            product_to_delete.is_deleted = True
+            product_to_delete.save()
+            messages.success(request, "Product moved to archives")
+            return redirect("admin-products")
+
+        # 2. AJAX IMAGE ACTIONS (Delete / Upload)
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             action = request.POST.get("action")
             if action == "upload_image" and product:
@@ -109,6 +165,9 @@ def admin_product_management(request, id=None):
                             next_img.save()
                     return JsonResponse({"status": "success", "message": "Image deleted"})
             return JsonResponse({"status": "error", "message": "Invalid action"}, status=400)
+
+        # 3. Standard Form Image Upload (Create flow)
+        # Note: Handled after product creation below for new products
 
         # Standard Form Submit
         product_name = request.POST.get("name")
@@ -171,4 +230,4 @@ def admin_product_toggle(request, id):
     product.is_active = not product.is_active
     product.save()
     messages.success(request, f"Product {'active' if product.is_active else 'inactive'} successfully")
-    return redirect("admin-products")
+    return redirect("admin-product-details", id=product.id)
