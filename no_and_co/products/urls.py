@@ -10,5 +10,6 @@ urlpatterns = [
     path("add-product/", views.admin_product_management, name="add-product"),
 
     path("admin_soft_delete/<int:id>/", views.admin_soft_delete , name="admin-soft-delete"),
-    path("admin-product-toggle/<int:id>/", views.admin_product_toggle, name="admin-product-toggle")
+    path("admin-product-toggle/<int:id>/", views.admin_product_toggle, name="admin-product-toggle"),
+    path("admin-variants/<int:id>/", views.admin_variants, name="admin-variants"),
 ]

@@ -359,17 +359,23 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                 <div class="flex items-center justify-between">
                     <!-- Title -->
                     <div>
-                        <h1 class="text-4xl font-serif  text-gray-900">
+                        <h1 class="text-4xl font-serif text-gray-900">
                             {{ product.product_name }}
                         </h1>
                         <div class="w-12 h-[2px] bg-gray-900 mt-2"></div>
                     </div>
 
-                    <!-- Right Button -->
-                    <a href="{% url 'add-product' %}"
-                       class="px-6 py-3 bg-black text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm">
-                        + Add Product
-                    </a>
+                    <!-- Right Buttons -->
+                    <div class="flex items-center gap-3">
+                        <a href="{% url 'admin-variants' product.id %}"
+                           class="text-sm font-medium rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100 transition shadow-sm">
+                            View All Variants →
+                        </a>
+                        <a href="{% url 'add-product' %}"
+                           class="px-6 py-3 bg-black text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm">
+                            + Add Product
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -396,83 +402,59 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                         </div>
                     </section>
 
-                    {% with first_image=product.productimage_set.all|first %}
-                    <section x-data="{
-                        activeImage: '{% if first_image %}{{ first_image.image.url }}{% else %}https://images.unsplash.com/photo-1521572163474-6864f9cf17ab{% endif %}',
-                        images: [
-                            {% for img in product.productimage_set.all %}
-                            {
-                                id: {{ img.id }},
-                                url: '{{ img.image.url }}',
-                                primary: {{ img.is_primary|yesno:'true,false' }}
-                            },
-                            {% empty %}
-                            { id: 1, url: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab', primary: true }
-                            {% endfor %}
-                        ]
-                    }" @image-added.window="images.push({id: Date.now(), url: $event.detail.url, primary: false}); activeImage = $event.detail.url"
-                        class="bg-white rounded-[32px] shadow-sm border border-white overflow-hidden block">
-
-                        <div
-                            class="relative bg-[#F9F9F7] w-full max-w-xs mx-auto aspect-square group overflow-hidden block border border-gray-100 rounded-xl mt-6">
-                            <img :src="activeImage"
-                                class="w-full h-full object-cover transition-all duration-300 hover:scale-[1.02] block">
-
-                            <div
-                                class="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity flex items-end justify-center p-6">
-                                <div class="flex gap-2 bg-white/90 backdrop-blur px-4 py-2 rounded-2xl shadow-xl">
-
-                                    <button type="button" @click="$refs.fileInput.click()"
-                                        class="p-2 hover:bg-gray-100 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-black">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
-                                                stroke-width="2" />
-                                        </svg>
-                                        Replace
-                                    </button>
-
-                                    <div class="w-[1px] bg-gray-200"></div>
-
-                                    <button type="button" class="p-2 text-red-500 hover:bg-red-50 rounded-lg">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                stroke-width="2" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="p-6 w-full max-w-xs mx-auto flex items-center gap-4 overflow-x-auto hide-scrollbar">
-                            <template x-for="img in images" :key="img.id">
-                                <div class="relative flex-shrink-0 group">
-                                    <button type="button" @click="activeImage = img.url"
-                                        :class="activeImage === img.url ? 'border-black ring-1 ring-black/5 opacity-100' : 'border-transparent opacity-60 hover:opacity-100'"
-                                        class="w-20 h-20 rounded-xl overflow-hidden border-2 transition-all duration-300">
-                                        <img :src="img.url" class="w-full h-full object-cover">
-                                    </button>
-                                    <div x-show="img.primary"
-                                        class="absolute -top-1 -right-1 w-3 h-3 bg-black border-2 border-white rounded-full">
+                    <!-- Product Image Hierarchy (View Only) -->
+                    <section class="bg-white rounded-[32px] shadow-sm border border-white overflow-hidden p-6 space-y-8">
+                        {% with all_images=product.productimage_set.all %}
+                        {% with main_image=all_images|first %}
+                        <div class="flex flex-col items-center">
+                            <!-- Primary Highlight -->
+                            <div class="relative bg-[#fbfcfa] h-[300px] w-full rounded-2xl overflow-hidden flex items-center justify-center border border-gray-100 ring-1 ring-black/5 group cursor-pointer shadow-inner mb-6"
+                                 onclick="openLightbox('{{ main_image.image.url }}')">
+                                {% if main_image %}
+                                    <img src="{{ main_image.image.url }}" 
+                                         alt="{{ product.name }}" 
+                                         class="max-h-full max-w-full object-contain transition-all duration-700 group-hover:scale-[1.03]">
+                                    
+                                    <!-- Primary Label -->
+                                    <div class="absolute top-4 left-4">
+                                        <span class="text-[8px] bg-black text-white px-2.5 py-1 rounded-full font-black uppercase tracking-widest shadow-lg">Primary</span>
                                     </div>
-                                </div>
-                            </template>
 
-                            <div>
-                                <button type="button" @click="$refs.fileInput.click()"
-                                    class="w-20 h-20 rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-black hover:text-black transition-all">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path d="M12 4v16m8-8H4" stroke-width="2" />
-                                    </svg>
-                                    <span class="text-[8px] font-bold uppercase tracking-tighter">Add</span>
-                                </button>
+                                    <!-- Click to Zoom Tip -->
+                                    <div class="absolute bottom-4 right-4 bg-black/10 backdrop-blur-md px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <p class="text-[7px] text-white font-bold uppercase tracking-widest">Click to Zoom</p>
+                                    </div>
+                                {% else %}
+                                    <div class="text-center p-8 text-gray-300">
+                                        <svg class="mx-auto h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                        <p class="text-[10px] font-bold uppercase tracking-[0.2em]">No Image Available</p>
+                                    </div>
+                                {% endif %}
                             </div>
-                        </div>
-                    </section>
-                    {% endwith %}
 
-                    <input type="file" name="image" id="global-file-input" x-ref="fileInput" class="hidden"
-                        accept="image/*" @change="handleFileSelect($event)">
+                            <!-- Thumbnail Row (Max 3 more) -->
+                            {% if all_images|length > 1 %}
+                            <div class="flex flex-wrap items-center justify-center gap-3">
+                                {% for img in all_images|slice:"1:4" %}
+                                <div class="w-[80px] h-[80px] relative bg-gray-50 rounded-xl overflow-hidden border border-gray-100 group cursor-pointer hover:border-black/20 transition-all shadow-sm flex items-center justify-center p-1"
+                                     onclick="openLightbox('{{ img.image.url }}')">
+                                    <img src="{{ img.image.url }}" class="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100">
+                                    
+                                    {% if forloop.counter == 3 and all_images|length > 4 %}
+                                    <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
+                                        <span class="text-white font-black text-[10px] tracking-tighter cursor-zoom-in">+{{ all_images|length|add:"-4" }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endwith %}
+                        {% endwith %}
+                    </section>
 
                     <div class="bg-white rounded-custom shadow-sm border border-white overflow-hidden">
                         <div class="flex border-b border-gray-50">
@@ -575,7 +557,13 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                         class="bg-white rounded-custom border border-white shadow-sm overflow-hidden flex flex-col max-h-[700px]">
                         <div
                             class="p-6 border-b border-gray-50 flex justify-between items-center bg-white sticky top-0 z-10">
-                            <h3 class="text-[11px] uppercase tracking-[0.2em] font-bold">Variant Hub</h3>
+                            <div class="flex items-center gap-4">
+                                <h3 class="text-[11px] uppercase tracking-[0.2em] font-bold">Variant Hub</h3>
+                                <a href="{% url 'admin-variants' product.id %}" class="text-[9px] font-bold uppercase tracking-tight text-gray-300 hover:text-black transition-colors flex items-center gap-1">
+                                    View All
+                                    <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+                                </a>
+                            </div>
                             <button type="button" id="openVariantModal"
                                 class="px-4 py-2 bg-black text-white text-[9px] uppercase font-bold rounded-lg hover:bg-gray-800 transition-all">+
                                 Add Variant</button>
@@ -1041,6 +1029,49 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
             </div>
         </div>
     </div>
+    <!-- Image Lightbox Modal -->
+    <div id="imageLightbox" class="fixed inset-0 z-[250] flex items-center justify-center p-4 hidden">
+        <!-- Backdrop -->
+        <div onclick="closeLightbox()" class="absolute inset-0 bg-black/95 backdrop-blur-sm cursor-zoom-out"></div>
+        
+        <!-- Image Container -->
+        <div class="relative max-w-5xl max-h-[90vh] w-full h-full flex items-center justify-center pointer-events-none">
+            <img id="lightboxImage" src="" 
+                 class="max-w-full max-h-full object-contain shadow-2xl rounded-lg pointer-events-auto transition-all duration-300 transform scale-100">
+            
+            <!-- Close Button (Top Right) -->
+            <button onclick="closeLightbox()" class="absolute -top-12 right-0 p-2 text-white/50 hover:text-white transition-colors pointer-events-auto">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function openLightbox(src) {
+            const lightbox = document.getElementById('imageLightbox');
+            const img = document.getElementById('lightboxImage');
+            if (lightbox && img) {
+                img.src = src;
+                lightbox.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scroll
+            }
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('imageLightbox');
+            if (lightbox) {
+                lightbox.classList.add('hidden');
+                document.body.style.overflow = 'auto'; // Restore scroll
+            }
+        }
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    </script>
 </body>
 
 </html>

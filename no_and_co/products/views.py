@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product, Variant, ProductImage
+from .models import Product, Variant, ProductImage,VariantImage
 from category.models import Category, Subcategory
 from django.http import JsonResponse
 from django.contrib import messages
@@ -231,3 +231,44 @@ def admin_product_toggle(request, id):
     product.save()
     messages.success(request, f"Product {'active' if product.is_active else 'inactive'} successfully")
     return redirect("admin-product-details", id=product.id)
+
+def admin_variants(request, id):
+    product = get_object_or_404(Product, id=id)
+    variants = product.variants.all().order_by('-is_default', '-id')
+
+    if request.method == "POST":
+        print(request.POST)
+        
+        action = request.POST.get("action")
+
+        if action == "add_variant_page":
+            variant = Variant.objects.create(
+            product = product,
+            size = request.POST.get("size"),
+            color = request.POST.get("color"),
+            stock = request.POST.get("stock"),
+            price = request.POST.get("price"),
+            is_active = request.POST.get("is_active") == "true",
+            is_default = request.POST.get("is_default")== "true",
+
+            )
+
+            for i in range(1,5):
+                image = request.FILES.get(f'image_{i}')
+
+                if image:
+                    VariantImage.objects.create(
+                        variant = variant,
+                        image=image,
+                        is_primary = (i==1)
+                    )
+            messages.success(request, "Product variant created successfully")
+            return redirect("admin-variants", id=product.id)
+
+    context = {
+        "product": product,
+        "variants": variants,
+        "total_variants": variants.count(),
+        "active_variants": variants.filter(is_active=True).count(),
+    }
+    return render(request, "variant/admin-variants.html", context)
