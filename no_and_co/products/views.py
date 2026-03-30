@@ -309,6 +309,19 @@ def admin_variants(request, id):
                 messages.success(request, "Product update successfully")
                 return redirect("admin-variants", id=product.id)
 
+
+    status = request.GET.get("status")
+    stock = request.GET.get("stock")
+
+    if status == "active":
+        variants = variants.filter(is_active=True)
+
+    elif status == "inactive":
+        variants = variants.filter(is_active=False)
+
+    if stock == "low":
+        variants = variants.filter(stock__lte=5)
+
     total_variants = variants.count()
     active_variants = variants.filter(is_active=True).count()
 
