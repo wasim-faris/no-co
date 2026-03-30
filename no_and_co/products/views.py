@@ -231,33 +231,50 @@ def admin_product_toggle(request, id):
     product.is_active = not product.is_active
     product.save()
     messages.success(request, f"Product {'active' if product.is_active else 'inactive'} successfully")
-    return redirect("admin-product-details", id=product.id)
+    return redirect(request.META.get('HTTP_REFERER'))
 
 def admin_variants(request, id):
+
     product = get_object_or_404(Product, id=id)
-    variants = product.variants.all().order_by('-is_default', '-id')
-
     if request.method == "POST":
-        print(request.POST)
-        print("FILES:", request.FILES)
-
+        print("POST HIT")
+        print("ACTION:", request.POST.get("action"))
         action = request.POST.get("action")
 
         if action == "add_variant":
+            images = []
+
+            for i in range(1,5):
+                img = request.FILES.get(f"image_{i}")
+                if img:
+                    images.append(img)
+
+            if len(images) == 0:
+                messages.error(request, "At least one image is required for the variant.")
+                return redirect("admin-variants", id=product.id)
+
+            size = request.POST.get("size")
+            color = request.POST.get("color")
+            stock = request.POST.get("stock")
+            price = request.POST.get("price")
+            is_active = request.POST.get("is_active") == "true" if "is_active" in request.POST else True
+            is_default = request.POST.get("is_default") == "true"
+
+            if is_default:
+                Variant.objects.filter(is_default = True , product = product).update(is_default = False)
+
             variant = Variant.objects.create(
             product = product,
-            size = request.POST.get("size"),
-            color = request.POST.get("color"),
-            stock = request.POST.get("stock"),
-            price = request.POST.get("price"),
-            is_active = request.POST.get("is_active") == "true",
-            is_default = request.POST.get("is_default")== "true",
-
+            size =  size,
+            color = color,
+            stock = stock,
+            price = price,
+            is_active = is_active,
+            is_default = is_default,
             )
 
             for i in range(1,5):
                 image = request.FILES.get(f'image_{i}')
-
                 if image:
                     VariantImage.objects.create(
                         variant = variant,
@@ -267,12 +284,25 @@ def admin_variants(request, id):
             messages.success(request, "Product variant created successfully")
             return redirect("admin-variants", id=product.id)
 
+        if action == "set_default_variant":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant,id=variant_id)
+
+            Variant.objects.filter(is_default = True , product = variant.product).update(is_default = False)
+
+            variant.is_default = True
+            variant.save()
+
+            messages.success(request, "Default variant updated")
+            return redirect("admin-variants", id=product.id)
+
         if action == "edit_variant":
             size = request.POST.get("size")
             color = request.POST.get("color")
             stock = request.POST.get("stock")
             price = request.POST.get("price")
-            is_active = request.POST.get("is_active")== "true"
+            if "is_active" in request.POST:
+                variant.is_active = request.POST.get("is_active") == "true"
             is_default = request.POST.get("is_default")=="true"
             variant_id = request.POST.get("variant_id")
 
@@ -323,19 +353,22 @@ def admin_variants(request, id):
 
         if action == "toggle_variant":
             variant_id = request.POST.get("variant_id")
-            variant = get_object_or_404(Variant, id=variant_id)
-            if variant.is_active:
-                variant.is_active = False
-                variant.save()
-                messages.success(request, "Product update succesfully")
-                return redirect("admin-variants", id=product.id)
-            else:
-                variant.is_active = True
-                variant.save()
-                messages.success(request, "Product update successfully")
-                return redirect("admin-variants", id=product.id)
+        
+            # 🔥 GET CURRENT VALUE DIRECTLY FROM DB
+            current_status = Variant.objects.values_list("is_active", flat=True).get(id=variant_id)
+        
+            # 🔥 TOGGLE
+            new_status = not current_status
+        
+            # 🔥 UPDATE DIRECTLY
+            Variant.objects.filter(id=variant_id).update(is_active=new_status)
+        
+            print("DEBUG:", variant_id, "OLD:", current_status, "NEW:", new_status)
+        
+            messages.success(request, "Variant status updated successfully")
+            return redirect("admin-variants", id=product.id)
 
-
+    variants = product.variants.all().order_by('-is_default', '-id')
     q = request.GET.get("q")
     if q:
         variants = variants.filter(
@@ -370,7 +403,7 @@ def admin_variants(request, id):
         "active_variants": active_variants,
     }
 
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, "partials/variant_rows.html", context)
+    # if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+    #     return render(request, "partials/variant_rows.html", context)
 
     return render(request, "variant/admin-variants.html", context)

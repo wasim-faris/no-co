@@ -50,17 +50,23 @@ class Variant(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def generate_sku(self):
-        category = self.product.category.category_name[:2].upper()
-        product = self.product.product_name[:6].upper().replace(" ", "")
-        color = self.color[:3].upper()
-        size = self.size.upper()
+        import random
 
-        return f"{category}-{product}-{color}-{size}"
+        while True:
+            category = self.product.category.category_name[:2].upper()
+            product = self.product.product_name[:6].upper().replace(" ", "")
+            color = self.color[:3].upper()
+            size = self.size.upper()
+
+            sku = f"{category}-{product}-{color}-{size}-{random.randint(100,999)}"
+
+            if not Variant.objects.filter(sku=sku).exists():
+                return sku
 
     def save(self, *args, **kwargs):
         if not self.sku:
             self.sku = self.generate_sku()
-        super().save(*args, **kwargs)
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.product.product_name} - {self.size} - {self.color}"

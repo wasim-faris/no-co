@@ -321,7 +321,6 @@ tailwind.config = {
       <table class="min-w-[1040px] w-full table-fixed">
         <thead class="bg-white border-b border-gray-50">
           <tr class="text-left text-[10px] font-black uppercase tracking-widest text-gray-400">
-            <th class="w-[60px] px-4 py-6 text-center">Default</th>
             <th class="w-[250px] px-6 py-6 border-l border-gray-50">Variants</th>
             <th class="w-[150px] px-6 py-6 text-center border-l border-gray-50">SKU</th>
             <th class="w-[120px] px-6 py-6 text-center border-l border-gray-50">Price</th>
@@ -453,27 +452,41 @@ tailwind.config = {
     function loadVariantImages(images, type) {
         // Reset all slots first
         for (let i = 1; i <= 4; i++) {
-            clearVariantImage(i, type);
-            // Ensure delete flag is false on load
+            // UI Reset
+            const previewContainer = document.getElementById(`${type}-preview-container-${i}`);
+            const uploadIcon = document.getElementById(`${type}-upload-icon-${i}`);
+            const imgId = type === 'edit' ? `edit-image-${i}` : `add-preview-img-${i}`;
+            const previewImg = document.getElementById(imgId);
+            const input = document.querySelector(type === 'edit' ? `#editVariantModal input[name="image_${i}"]` : `input[name="image_${i}"]`);
+
+            if (input) input.value = "";
+            if (previewImg) previewImg.src = "";
+            if (previewContainer) previewContainer.classList.add('hidden');
+            if (uploadIcon) uploadIcon.classList.remove('hidden');
+
+            // Reset deletion flag to false
             const delInput = document.querySelector(`input[name="delete_image_${i}"]`);
             if (delInput) delInput.value = "false";
         }
 
-        // Fill slots with existing images
-        images.forEach((img, index) => {
-            const i = index + 1;
-            if (i > 4) return;
+        // Fill slots with existing images if any provided
+        if (images && images.length > 0) {
+            images.forEach((img, index) => {
+                const i = index + 1;
+                if (i > 4) return;
 
-            const previewContainer = document.getElementById(`${type}-preview-container-${i}`);
-            const previewImg = document.getElementById(`${type}-preview-img-${i}`);
-            const uploadIcon = document.getElementById(`${type}-upload-icon-${i}`);
+                const previewContainer = document.getElementById(`${type}-preview-container-${i}`);
+                const imgId = type === 'edit' ? `edit-image-${i}` : `add-preview-img-${i}`;
+                const previewImg = document.getElementById(imgId);
+                const uploadIcon = document.getElementById(`${type}-upload-icon-${i}`);
 
-            if (previewImg && previewContainer && uploadIcon) {
-                previewImg.src = img.url;
-                previewContainer.classList.remove('hidden');
-                uploadIcon.classList.add('hidden');
-            }
-        });
+                if (previewImg && previewContainer && uploadIcon && img) {
+                    previewImg.src = img.url || img; // Handle object or string
+                    previewContainer.classList.remove('hidden');
+                    uploadIcon.classList.add('hidden');
+                }
+            });
+        }
     }
 
     function previewVariantImage(input, index, type) {
@@ -481,12 +494,13 @@ tailwind.config = {
             const reader = new FileReader();
             reader.onload = function(e) {
                 const previewContainer = document.getElementById(`${type}-preview-container-${index}`);
-                const previewImg = document.getElementById(`${type}-preview-img-${index}`);
+                const imgId = type === 'edit' ? `edit-image-${index}` : `add-preview-img-${index}`;
+                const previewImg = document.getElementById(imgId);
                 const uploadIcon = document.getElementById(`${type}-upload-icon-${index}`);
 
-                previewImg.src = e.target.result;
-                previewContainer.classList.remove('hidden');
-                uploadIcon.classList.add('hidden');
+                if (previewImg) previewImg.src = e.target.result;
+                if (previewContainer) previewContainer.classList.remove('hidden');
+                if (uploadIcon) uploadIcon.classList.add('hidden');
 
                 // If editing, clear deletion flag since we've uploaded a new one
                 if (type === 'edit') {
@@ -501,13 +515,16 @@ tailwind.config = {
     function clearVariantImage(index, type) {
         const previewContainer = document.getElementById(`${type}-preview-container-${index}`);
         const uploadIcon = document.getElementById(`${type}-upload-icon-${index}`);
-        // Scoped selector to avoid global conflicts and fix invalid :input syntax
+        const imgId = type === 'edit' ? `edit-image-${index}` : `add-preview-img-${index}`;
+        const previewImg = document.getElementById(imgId);
+
         const selector = type === 'edit'
             ? `#editVariantModal input[name="image_${index}"]`
-            : `input[name="image_${index}"]`;
-        const input = document.querySelector(selector);
+            : `.variantModal input[name="image_${index}"]`; // Use class or tag context if not in edit modal
+        const input = document.querySelector(selector) || document.querySelector(`input[name="image_${index}"]`);
 
-        if (input) input.value = ""; // clear file input
+        if (input) input.value = "";
+        if (previewImg) previewImg.src = "";
         if (previewContainer) previewContainer.classList.add('hidden');
         if (uploadIcon) uploadIcon.classList.remove('hidden');
 
@@ -640,34 +657,9 @@ tailwind.config = {
         modal.querySelector("#edit-is-active").checked = (data.active === "true");
         modal.querySelector("#edit-is-default").checked = (data.default === "true");
 
-        // Clear previous grid previews first
-        for (let i = 1; i <= 4; i++) {
-            const previewContainer = document.getElementById(`edit-preview-container-${i}`);
-            const uploadIcon = document.getElementById(`edit-upload-icon-${i}`);
-            const input = modal.querySelector(`input[name="image_${i}"]`);
-
-            if (input) input.value = "";
-            if (previewContainer) previewContainer.classList.add('hidden');
-            if (uploadIcon) uploadIcon.classList.remove('hidden');
-
-            const delInput = modal.querySelector(`input[name="delete_image_${i}"]`);
-            if (delInput) delInput.value = "false";
-        }
-
-        // Image Selection (Index Mapping) (Issue 5 & 6)
-        const images = [data.image1, data.image2, data.image3, data.image4];
-        images.forEach((img, index) => {
-            const i = index + 1;
-            const preview = document.getElementById(`edit-image-${i}`);
-            const previewContainer = document.getElementById(`edit-preview-container-${i}`);
-            const uploadIcon = document.getElementById(`edit-upload-icon-${i}`);
-
-            if (img && preview && previewContainer && uploadIcon) {
-                preview.src = img;
-                previewContainer.classList.remove("hidden");
-                uploadIcon.classList.add("hidden");
-            }
-        });
+        // Reset and Load Images using the consolidated function
+        const images = [data.image1, data.image2, data.image3, data.image4].filter(Boolean);
+        loadVariantImages(images, 'edit');
 
         // Show Modal (Issue 1)
         modal.classList.remove("hidden");
