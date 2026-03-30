@@ -238,10 +238,10 @@ def admin_variants(request, id):
 
     if request.method == "POST":
         print(request.POST)
-        
+
         action = request.POST.get("action")
 
-        if action == "add_variant_page":
+        if action == "add_variant":
             variant = Variant.objects.create(
             product = product,
             size = request.POST.get("size"),
@@ -265,10 +265,61 @@ def admin_variants(request, id):
             messages.success(request, "Product variant created successfully")
             return redirect("admin-variants", id=product.id)
 
+        if action == "edit_variant":
+            size = request.POST.get("size")
+            color = request.POST.get("color")
+            stock = request.POST.get("stock")
+            price = request.POST.get("price")
+            is_active = request.POST.get("is_active")== "true"
+            is_default = request.POST.get("is_default")=="true"
+            variant_id = request.POST.get("variant_id")
+
+            variant = get_object_or_404(Variant, id=variant_id)
+
+            if variant.is_default:
+                Variant.objects.filter(product = variant.product.id, is_default = True).exclude(id=variant.id).update(is_default = False)
+
+            variant.size = size
+            variant.color = color
+            variant.stock = stock
+            variant.price = price
+            variant.is_active = is_active
+            variant.is_default = is_default
+
+            variant.save()
+
+        if action == "delete_variant":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant , id=variant_id)
+            variant.delete()
+            messages.success(request,"Variant deleted successfully")
+            return redirect("admin-variants", id=product.id)
+
+        if action == "toggle_variant":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant, id=variant_id)
+            if variant.is_active:
+                variant.is_active = False
+                variant.save()
+                messages.success(request, "Product update succesfully")
+                return redirect("admin-variants", id=product.id)
+            else:
+                variant.is_active = True
+                variant.save()
+                messages.success(request, "Product update successfully")
+                return redirect("admin-variants", id=product.id)
+
+    total_variants = variants.count()
+    active_variants = variants.filter(is_active=True).count()
+
+    paginator = Paginator(variants, 4)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
     context = {
         "product": product,
-        "variants": variants,
-        "total_variants": variants.count(),
-        "active_variants": variants.filter(is_active=True).count(),
+        "variants": page_obj,
+        "page_obj": page_obj,
+        "total_variants": total_variants,
+        "active_variants": active_variants,
     }
     return render(request, "variant/admin-variants.html", context)

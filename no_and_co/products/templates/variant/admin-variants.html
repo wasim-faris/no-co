@@ -72,6 +72,19 @@ tailwind.config = {
     background-color: #1a1a1a;
     border-color: #1a1a1a;
   }
+
+  /* Toast styles from product details */
+  .icon-bubble {
+    position: relative;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-bubble svg {
+    transform: rotate(45deg);
+  }
 </style>
 
 </head>
@@ -176,7 +189,50 @@ tailwind.config = {
 </aside>
 
 <!-- ════════════════════════ MAIN CONTENT ════════════════════════ -->
-<main class="flex-1 overflow-auto bg-[#F5F1EA] px-12 py-10">
+<main class="flex-1 overflow-auto bg-[#F5F1EA] px-12 py-10 relative">
+
+  <!-- Toast Wrapper (Copied from product details) -->
+  <div id="toast-wrapper" class="fixed top-8 right-8 z-[200] flex flex-col gap-4 pointer-events-none">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="toast-item flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl pointer-events-auto
+                    transition-all duration-500 ease-out transform
+                    {% if message.tags == 'error' %}bg-[#3E3A37]{% else %}bg-[#5C554F]{% endif %} text-white"
+             x-data="{ show: false }"
+             x-init="setTimeout(() => show = true, 100); setTimeout(() => show = false, 4000)"
+             x-show="show"
+             x-transition:enter="translate-x-full opacity-0"
+             x-transition:enter-end="translate-x-0 opacity-100"
+             x-transition:leave="translate-x-0 opacity-100"
+             x-transition:leave-end="translate-x-full opacity-0">
+            <div class="flex items-center gap-4">
+                <div class="ml-1 w-10 h-10 bg-[#F5F1EA] icon-bubble flex-shrink-0">
+                    {% if message.tags == 'error' %}
+                    <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                        <path d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    {% else %}
+                    <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                        <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="flex flex-col text-left">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">
+                        {% if message.tags == 'error' %}Error{% else %}Notice{% endif %}
+                    </span>
+                    <span class="text-[10px] opacity-70">{{ message }}</span>
+                </div>
+            </div>
+            <button @click="show = false" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
 
   <!-- Breadcrumbs -->
   <nav class="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex gap-3 items-center mb-6">
@@ -234,7 +290,7 @@ tailwind.config = {
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg>
         Filter
       </button>
-      <button @click="variantModal = true" class="h-12 px-8 bg-[#1a1a1a] text-white rounded-2xl shadow-xl shadow-gray-200 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2">
+      <button @click="variantModal = true; loadVariantImages([], 'add');" class="h-12 px-8 bg-[#1a1a1a] text-white rounded-2xl shadow-xl shadow-gray-200 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
         Add Variant
       </button>
@@ -243,79 +299,105 @@ tailwind.config = {
 
   <!-- Variant Table Card -->
   <div class="bg-white rounded-[32px] shadow-sm border border-white overflow-hidden mb-6">
-    <table class="w-full">
-      <thead class="bg-white border-b border-gray-50">
-        <tr>
-          <th class="px-8 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-400">Default</th>
-          <th class="px-6 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-400">Variants</th>
-          <th class="px-6 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">SKU</th>
-          <th class="px-6 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Price</th>
-          <th class="px-6 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Status</th>
-          <th class="px-6 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Stock</th>
-          <th class="px-6 py-6 text-left text-[10px] font-black uppercase tracking-widest text-gray-400 text-center whitespace-nowrap">Stock Status</th>
-          <th class="px-8 py-6 text-right text-[10px] font-black uppercase tracking-widest text-gray-400">Actions</th>
-        </tr>
-      </thead>
+    <div class="overflow-x-auto">
+      <table class="min-w-[1040px] w-full table-fixed">
+        <thead class="bg-white border-b border-gray-50">
+          <tr class="text-left text-[10px] font-black uppercase tracking-widest text-gray-400">
+            <th class="w-[60px] px-4 py-6 text-center">Default</th>
+            <th class="w-[250px] px-6 py-6 border-l border-gray-50">Variants</th>
+            <th class="w-[150px] px-6 py-6 text-center border-l border-gray-50">SKU</th>
+            <th class="w-[120px] px-6 py-6 text-center border-l border-gray-50">Price</th>
+            <th class="w-[120px] px-6 py-6 text-center border-l border-gray-50">Status</th>
+            <th class="w-[100px] px-6 py-6 text-center border-l border-gray-50">Stock</th>
+            <th class="w-[140px] px-6 py-6 text-center border-l border-gray-50 whitespace-nowrap">Stock Status</th>
+            <th class="w-[180px] px-6 py-6 text-right border-l border-gray-50">Actions</th>
+          </tr>
+        </thead>
 
       <tbody class="divide-y divide-gray-50">
         {% for variant in variants %}
-        <tr class="hover:bg-beige/20 transition-all group">
-          <td class="px-8 py-6">
+        <tr class="hover:bg-beige/20 transition-all border-t border-gray-50">
+          <td class="w-[60px] px-4 py-6 text-center align-middle">
             <div class="flex items-center justify-center">
               <input type="radio" name="default_variant" {% if variant.is_default %}checked{% endif %} class="w-4 h-4 accent-black cursor-pointer border-gray-300">
             </div>
           </td>
-          <td class="px-6 py-6">
-            <div class="flex items-center gap-4">
-              <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center border border-gray-100 shadow-inner">
-                <div class="w-3 h-3 rounded-full border border-gray-200" style="background-color: {{ variant.color|lower }};"></div>
+          <td class="w-[250px] px-6 py-6 border-l border-gray-50 align-middle">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center border border-gray-100 shadow-inner overflow-hidden flex-shrink-0">
+                {% if variant.images.all %}
+                  <img src="{{ variant.images.all.0.image.url }}" class="w-full h-full object-cover">
+                {% else %}
+                  <div class="w-full h-full bg-gray-200"></div>
+                {% endif %}
               </div>
-              <div>
-                <div class="flex items-center gap-2 mb-0.5">
-                  <p class="text-[13px] font-bold text-[#1a1a1a]">{{ variant.color }}</p>
+              <div class="flex flex-col min-w-0 leading-tight">
+                <div class="flex items-center gap-2 mb-0.5 whitespace-nowrap">
+                  <p class="text-[13px] font-bold text-[#1a1a1a] truncate">{{ variant.color }}</p>
                   {% if variant.is_default %}
-                  <span class="px-2 py-0.5 bg-gray-100 rounded text-[7px] font-black uppercase tracking-widest text-gray-500">Default</span>
+                  <span class="px-2 py-0.5 bg-gray-100 rounded text-[7px] font-black uppercase tracking-widest text-gray-500 flex-shrink-0">Default</span>
                   {% endif %}
                 </div>
-                <p class="text-[10px] font-bold text-gray-400 uppercase">{{ variant.color }} • {{ variant.size }} • {{ product.materials|default:"Silk" }}</p>
+                <p class="text-[10px] font-bold text-gray-400 uppercase truncate">{{ variant.color }} • {{ variant.size }}</p>
               </div>
             </div>
           </td>
-          <td class="px-6 py-6 text-center">
+          <td class="w-[150px] px-6 py-6 text-center border-l border-gray-50 align-middle">
             <p class="text-[9px] font-bold uppercase tracking-widest text-gray-400 leading-tight">{{ variant.sku }}</p>
           </td>
-          <td class="px-6 py-6 text-center">
+          <td class="w-[120px] px-6 py-6 text-center border-l border-gray-50 align-middle">
             <span class="text-[13px] font-bold tracking-tight">₹{{ variant.price }}</span>
           </td>
-          <td class="px-6 py-6 text-center">
+          <td class="w-[120px] px-6 py-6 text-center border-l border-gray-50 align-middle">
             {% if variant.is_active %}
                 <span class="px-3 py-1 bg-gray-100 rounded-full text-[9px] font-black uppercase tracking-widest text-dark">Active</span>
             {% else %}
                 <span class="px-3 py-1 bg-red-50 text-red-300 rounded-full text-[9px] font-black uppercase tracking-widest">Inactive</span>
             {% endif %}
           </td>
-          <td class="px-6 py-6 text-center whitespace-nowrap">
+          <td class="w-[100px] px-6 py-6 text-center border-l border-gray-50 align-middle">
             <span class="text-[13px] font-bold">{{ variant.stock }}</span>
           </td>
-          <td class="px-6 py-6 text-center">
+          <td class="w-[140px] px-6 py-6 text-center border-l border-gray-50 whitespace-nowrap align-middle">
             <div class="flex flex-col items-center">
                 {% if variant.stock > 5 %}
-                    <span class="text-[8px] text-green-500 font-black uppercase tracking-[0.2em] mb-0.5">In</span>
-                    <span class="text-[9px] text-green-500 font-bold uppercase tracking-widest">Stock</span>
+                    <span class="text-[8px] text-green-500 font-black uppercase tracking-[0.2em] mb-0.5">In Stock</span>
                 {% else %}
-                    <span class="text-[8px] text-[#d97706] font-black uppercase tracking-[0.2em] mb-0.5 opacity-60">Low</span>
-                    <span class="text-[9px] text-[#d97706] font-bold uppercase tracking-widest">Stock</span>
+                    <span class="text-[8px] text-[#d97706] font-black uppercase tracking-[0.2em] mb-0.5 opacity-60">Low Stock</span>
                 {% endif %}
             </div>
           </td>
-          <td class="px-8 py-6 text-right">
-            <div class="flex items-center justify-end gap-2">
-                <button @click="editVariantModal = true; editData = { id: '{{ variant.id }}', color: '{{ variant.color }}', size: '{{ variant.size }}', price: '{{ variant.price }}', stock: '{{ variant.stock }}', active: {{ variant.is_active|lower }}, default: {{ variant.is_default|lower }} }"
-                        class="p-2 text-gray-300 hover:text-black transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+          <td class="w-[180px] px-6 py-6 text-right border-l border-gray-50 align-middle">
+            <div class="flex items-center justify-end gap-4">
+                <button
+                class="editVariantBtn p-2 text-gray-300 hover:text-black transition-all flex items-center justify-center"
+                data-id="{{ variant.id }}"
+                data-size="{{ variant.size }}"
+                data-color="{{ variant.color }}"
+                data-price="{{ variant.price }}"
+                data-stock="{{ variant.stock }}"
+                data-active="{{ variant.is_active|lower }}"
+                data-default="{{ variant.is_default|lower }}"
+                {% for img in variant.images.all|slice:":4" %}
+                data-image{{ forloop.counter }}="{{ img.image.url }}"
+                {% endfor %}
+                >
+                    ✏️
                 </button>
+               <form method="POST" action="" class="flex items-center justify-center">
+    {% csrf_token %}
+
+    <input type="hidden" name="action" value="toggle_variant">
+    <input type="hidden" name="variant_id" value="{{ variant.id }}">
+
+    <button type="submit" class="flex items-center justify-center p-1 transition-all hover:opacity-80">
+        <div class="w-10 h-5 flex items-center rounded-full transition-all duration-300 {% if variant.is_active %} bg-green-500 {% else %} bg-gray-300 {% endif %}">
+            <div class="w-4 h-4 bg-white rounded-full shadow-md transform transition-all duration-300 {% if variant.is_active %} translate-x-5 {% else %} translate-x-1 {% endif %}"></div>
+        </div>
+    </button>
+</form>
                 <button @click="deleteVariantModal = true; deleteId = '{{ variant.id }}'"
-                        class="p-2 text-gray-300 hover:text-red-500 transition-all">
+                        class="p-2 text-gray-300 hover:text-red-500 transition-all flex items-center justify-center">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                 </button>
             </div>
@@ -330,21 +412,14 @@ tailwind.config = {
         {% endfor %}
       </tbody>
     </table>
+  </div>
 
     <!-- Pagination -->
     <div class="px-10 py-6 border-t border-gray-50 flex items-center justify-between">
-      <p class="text-xs font-bold text-gray-400">Showing {{ variants|length }} variants</p>
+      <p class="text-xs font-bold text-gray-400">Showing {{ page_obj.start_index|default:0 }}–{{ page_obj.end_index|default:0 }} of {{ page_obj.paginator.count }} variants</p>
 
-      <div class="flex items-center gap-1">
-        <button class="p-2 text-gray-300 hover:text-black transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
-        </button>
-        <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-black text-white text-xs font-black">1</button>
-        <button class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-white text-xs font-black transition-all">2</button>
-        <button class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:bg-white text-xs font-black transition-all">3</button>
-        <button class="p-2 text-gray-300 hover:text-black transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
-        </button>
+      <div id="paginationSection">
+        {% include 'admin_base/components/pagination.html' %}
       </div>
     </div>
   </div>
@@ -370,14 +445,14 @@ tailwind.config = {
       <div class="p-8 max-h-[70vh] overflow-y-auto hide-scrollbar">
         <form method="POST" action="" enctype="multipart/form-data" class="space-y-6">
           {% csrf_token %}
-          <input type="hidden" name="action" value="add_variant_page">
+          <input type="hidden" name="action" value="add_variant">
 
           <!-- Image Upload Grid (4 Slots) -->
           <div class="space-y-3">
               <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Variant Images (Max 4)</label>
               <div class="grid grid-cols-4 gap-4">
                   {% for i in "1234"|make_list %}
-                  <div class="relative aspect-square group">
+                  <div class="relative w-20 h-20 group">
                       <label class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer overflow-hidden transition-all bg-[#f9fafb]">
                           <input type="file" name="image_{{ i }}" class="hidden" accept="image/*" onchange="previewVariantImage(this, {{ i }}, 'add')">
                           <div id="add-preview-container-{{ i }}" class="hidden w-full h-full">
@@ -451,6 +526,32 @@ tailwind.config = {
 
   <!-- JS Scripts -->
   <script>
+    function loadVariantImages(images, type) {
+        // Reset all slots first
+        for (let i = 1; i <= 4; i++) {
+            clearVariantImage(i, type);
+            // Ensure delete flag is false on load
+            const delInput = document.querySelector(`input[name="delete_image_${i}"]`);
+            if (delInput) delInput.value = "false";
+        }
+
+        // Fill slots with existing images
+        images.forEach((img, index) => {
+            const i = index + 1;
+            if (i > 4) return;
+
+            const previewContainer = document.getElementById(`${type}-preview-container-${i}`);
+            const previewImg = document.getElementById(`${type}-preview-img-${i}`);
+            const uploadIcon = document.getElementById(`${type}-upload-icon-${i}`);
+
+            if (previewImg && previewContainer && uploadIcon) {
+                previewImg.src = img.url;
+                previewContainer.classList.remove('hidden');
+                uploadIcon.classList.add('hidden');
+            }
+        });
+    }
+
     function previewVariantImage(input, index, type) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -462,6 +563,12 @@ tailwind.config = {
                 previewImg.src = e.target.result;
                 previewContainer.classList.remove('hidden');
                 uploadIcon.classList.add('hidden');
+
+                // If editing, clear deletion flag since we've uploaded a new one
+                if (type === 'edit') {
+                    const delInput = document.querySelector(`input[name="delete_image_${index}"]`);
+                    if (delInput) delInput.value = "false";
+                }
             };
             reader.readAsDataURL(input.files[0]);
         }
@@ -470,18 +577,28 @@ tailwind.config = {
     function clearVariantImage(index, type) {
         const previewContainer = document.getElementById(`${type}-preview-container-${index}`);
         const uploadIcon = document.getElementById(`${type}-upload-icon-${index}`);
-        const input = document.querySelector(`input[name="image_${index}"]`);
+        // Scoped selector to avoid global conflicts and fix invalid :input syntax
+        const selector = type === 'edit'
+            ? `#editVariantModal input[name="image_${index}"]`
+            : `input[name="image_${index}"]`;
+        const input = document.querySelector(selector);
 
-        input.value = ""; // clear file input
-        previewContainer.classList.add('hidden');
-        uploadIcon.classList.remove('hidden');
+        if (input) input.value = ""; // clear file input
+        if (previewContainer) previewContainer.classList.add('hidden');
+        if (uploadIcon) uploadIcon.classList.remove('hidden');
+
+        // If editing, mark for deletion
+        if (type === 'edit') {
+            const delInput = document.querySelector(`input[name="delete_image_${index}"]`);
+            if (delInput) delInput.value = "true";
+        }
     }
   </script>
 
   <!-- ════════════════════════ EDIT VARIANT MODAL ════════════════════════ -->
-  <div x-show="editVariantModal" x-cloak class="fixed inset-0 z-[160] flex items-center justify-center p-6">
-    <div @click="editVariantModal = false" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-    <div class="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl" x-transition>
+  <div id="editVariantModal" class="fixed inset-0 z-[160] flex items-center justify-center p-6 hidden">
+    <div id="editModalOverlay" class="absolute inset-0 bg-black/60 backdrop-blur-md cursor-pointer"></div>
+    <div class="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl">
       <!-- Header -->
       <div class="p-8 pb-4 border-b border-gray-50 bg-white sticky top-0 z-10">
         <h3 class="text-2xl font-serif text-gray-900 mb-1">Edit Variant</h3>
@@ -490,22 +607,28 @@ tailwind.config = {
 
       <!-- Form Body -->
       <div class="p-8 max-h-[70vh] overflow-y-auto hide-scrollbar">
-        <form method="POST" action="{% url 'admin-product-details' product.id %}" enctype="multipart/form-data" class="space-y-6">
+        <form method="POST" action="" enctype="multipart/form-data" class="space-y-6">
           {% csrf_token %}
           <input type="hidden" name="action" value="edit_variant">
-          <input type="hidden" name="variant_id" :value="editData.id">
+          <input type="hidden" name="variant_id" id="edit-variant-id">
 
-          <!-- Image Upload Grid (4 Slots) -->
-          <div class="space-y-3">
+          <!-- Hidden inputs for image deletion tracking -->
+          <input type="hidden" name="delete_image_1" value="false">
+          <input type="hidden" name="delete_image_2" value="false">
+          <input type="hidden" name="delete_image_3" value="false">
+          <input type="hidden" name="delete_image_4" value="false">
+
+          <!-- Image Upload Grid (4 Slots) (Issue 5 & 6) -->
+          <div class="space-y-3 mb-6">
               <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Variant Images (Max 4)</label>
               <div class="grid grid-cols-4 gap-4">
                   {% for i in "1234"|make_list %}
-                  <div class="relative aspect-square group">
+                  <div class="relative w-20 h-20 group">
                       <label class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer overflow-hidden transition-all bg-[#f9fafb]">
                           <input type="file" name="image_{{ i }}" class="hidden" accept="image/*" onchange="previewVariantImage(this, {{ i }}, 'edit')">
                           <div id="edit-preview-container-{{ i }}" class="hidden w-full h-full">
-                              <img id="edit-preview-img-{{ i }}" class="object-cover w-full h-full">
-                              <button type="button" @click.prevent="clearVariantImage({{ i }}, 'edit')" class="absolute top-1 right-1 w-5 h-5 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black transition-all">
+                              <img id="edit-image-{{ i }}" class="object-cover w-full h-full">
+                              <button type="button" onclick="clearVariantImage({{ i }}, 'edit')" class="absolute top-1 right-1 w-5 h-5 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black transition-all">
                                   <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
                               </button>
                           </div>
@@ -521,22 +644,22 @@ tailwind.config = {
           <div class="grid grid-cols-2 gap-6">
             <div class="space-y-2">
               <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Size</label>
-              <input type="text" name="size" :value="editData.size" required
+              <input type="text" name="size" id="edit-size" required
                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
             </div>
             <div class="space-y-2">
               <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Color</label>
-              <input type="text" name="color" :value="editData.color" required
+              <input type="text" name="color" id="edit-color" required
                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
             </div>
             <div class="space-y-2">
               <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Price</label>
-              <input type="number" name="price" step="0.01" :value="editData.price" required
+              <input type="number" name="price" id="edit-price" step="0.01" required
                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
             </div>
             <div class="space-y-2">
               <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Stock</label>
-              <input type="number" name="stock" :value="editData.stock" required
+              <input type="number" name="stock" id="edit-stock" required
                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
             </div>
           </div>
@@ -546,7 +669,7 @@ tailwind.config = {
             <label class="flex items-center gap-3 cursor-pointer">
               <div class="relative">
                 <input type="hidden" name="is_active" value="false">
-                <input type="checkbox" name="is_active" value="true" class="sr-only peer" :checked="editData.active">
+                <input type="checkbox" name="is_active" id="edit-is-active" value="true" class="sr-only peer">
                 <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-black transition duration-300"></div>
                 <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
               </div>
@@ -555,7 +678,7 @@ tailwind.config = {
             <label class="flex items-center gap-3 cursor-pointer">
               <div class="relative">
                 <input type="hidden" name="is_default" value="false">
-                <input type="checkbox" name="is_default" value="true" class="sr-only peer" :checked="editData.default">
+                <input type="checkbox" name="is_default" id="edit-is-default" value="true" class="sr-only peer">
                 <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-black transition duration-300"></div>
                 <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
               </div>
@@ -563,14 +686,76 @@ tailwind.config = {
             </label>
           </div>
 
-          <div class="flex gap-4 pt-4">
-            <button type="button" @click="editVariantModal = false" class="flex-1 py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-100 transition-all">Cancel</button>
+          <div class="flex gap-4 pt-6">
+            <button type="button" id="closeEditVariantModalBtn" class="flex-1 py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-100 transition-all">Cancel</button>
             <button type="submit" class="flex-1 py-4 bg-black text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-800 transition-all shadow-xl">Save Changes</button>
           </div>
         </form>
       </div>
     </div>
   </div>
+
+  <!-- Vanilla JS Refactor: Event Delegation (Issue 1-6 & 8) -->
+  <script>
+    document.addEventListener("click", function(e) {
+        const btn = e.target.closest(".editVariantBtn");
+        if (!btn) return;
+
+        console.log("Edit clicked", btn.dataset.id); // Issue 8
+        const data = btn.dataset;
+        const modal = document.getElementById("editVariantModal");
+
+        // Basic fields (Scoped to modal)
+        modal.querySelector("#edit-variant-id").value = data.id || "";
+        modal.querySelector("#edit-size").value = data.size || "";
+        modal.querySelector("#edit-color").value = data.color || "";
+        modal.querySelector("#edit-price").value = data.price || "";
+        modal.querySelector("#edit-stock").value = data.stock || "";
+
+        // Toggles (Scoped to modal)
+        modal.querySelector("#edit-is-active").checked = (data.active === "true");
+        modal.querySelector("#edit-is-default").checked = (data.default === "true");
+
+        // Clear previous grid previews first
+        for (let i = 1; i <= 4; i++) {
+            const previewContainer = document.getElementById(`edit-preview-container-${i}`);
+            const uploadIcon = document.getElementById(`edit-upload-icon-${i}`);
+            const input = modal.querySelector(`input[name="image_${i}"]`);
+
+            if (input) input.value = "";
+            if (previewContainer) previewContainer.classList.add('hidden');
+            if (uploadIcon) uploadIcon.classList.remove('hidden');
+
+            const delInput = modal.querySelector(`input[name="delete_image_${i}"]`);
+            if (delInput) delInput.value = "false";
+        }
+
+        // Image Selection (Index Mapping) (Issue 5 & 6)
+        const images = [data.image1, data.image2, data.image3, data.image4];
+        images.forEach((img, index) => {
+            const i = index + 1;
+            const preview = document.getElementById(`edit-image-${i}`);
+            const previewContainer = document.getElementById(`edit-preview-container-${i}`);
+            const uploadIcon = document.getElementById(`edit-upload-icon-${i}`);
+
+            if (img && preview && previewContainer && uploadIcon) {
+                preview.src = img;
+                previewContainer.classList.remove("hidden");
+                uploadIcon.classList.add("hidden");
+            }
+        });
+
+        // Show Modal (Issue 1)
+        modal.classList.remove("hidden");
+    });
+
+    // Dedicated Close Handlers
+    document.addEventListener("click", function(e) {
+        if (e.target.id === "closeEditVariantModalBtn" || e.target.id === "editModalOverlay") {
+            document.getElementById("editVariantModal").classList.add("hidden");
+        }
+    });
+  </script>
 
   <!-- ════════════════════════ DELETE VARIANT MODAL ════════════════════════ -->
   <div x-show="deleteVariantModal" x-cloak class="fixed inset-0 z-[170] flex items-center justify-center p-6">
@@ -582,10 +767,10 @@ tailwind.config = {
       <h3 class="text-2xl font-serif text-gray-900 mb-2">Delete Variant</h3>
       <p class="text-sm text-gray-500 mb-8 tracking-tight">Are you sure you want to delete this variant? This action cannot be undone.</p>
 
-      <form method="POST" action="{% url 'admin-product-details' product.id %}">
+      <form method="POST" action="">
         {% csrf_token %}
         <input type="hidden" name="action" value="delete_variant">
-        <input type="hidden" name="variant_id" :value="deleteId">
+        <input type="hidden" name="variant_id" x-bind:value="deleteId">
         <div class="flex gap-4">
           <button type="button" @click="deleteVariantModal = false" class="flex-1 py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-100 transition-all">Cancel</button>
           <button type="submit" class="flex-1 py-4 bg-red-500 text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-red-600 transition-all shadow-xl">Delete</button>
