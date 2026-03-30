@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.contrib import messages
 from django.db.models import Min, Sum, Prefetch, Q
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 def admin_products(request):
     status = request.GET.get("status")
@@ -238,6 +239,7 @@ def admin_variants(request, id):
 
     if request.method == "POST":
         print(request.POST)
+        print("FILES:", request.FILES)
 
         action = request.POST.get("action")
 
@@ -277,7 +279,7 @@ def admin_variants(request, id):
             variant = get_object_or_404(Variant, id=variant_id)
 
             if variant.is_default:
-                Variant.objects.filter(product = variant.product.id, is_default = True).exclude(id=variant.id).update(is_default = False)
+                Variant.objects.filter(product = variant.product, is_default = True).exclude(id=variant.id).update(is_default = False)
 
             variant.size = size
             variant.color = color
@@ -287,6 +289,30 @@ def admin_variants(request, id):
             variant.is_default = is_default
 
             variant.save()
+
+            # Use the related_name 'images' consistently
+            existing_images = variant.images.all().order_by("id")
+
+            for i in range(1, 5):
+                delete_flag = request.POST.get(f"delete_image_{i}") == "true"
+                new_image = request.FILES.get(f"image_{i}")
+
+        # Get the specific image at this index if it exists
+                current_img_obj = existing_images[i-1] if i <= existing_images.count() else None
+
+                if delete_flag and current_img_obj:
+                    current_img_obj.delete()
+                elif new_image:
+                    if current_img_obj:
+                        current_img_obj.delete() # Replace old with new
+                    VariantImage.objects.create(
+                        variant=variant,
+                        image=new_image,
+                        is_primary=(i == 1)
+                    )
+
+            messages.success(request, "Product edited successfully")
+            return redirect("admin-variants", id=product.id)
 
         if action == "delete_variant":
             variant_id = request.POST.get("variant_id")
@@ -309,6 +335,14 @@ def admin_variants(request, id):
                 messages.success(request, "Product update successfully")
                 return redirect("admin-variants", id=product.id)
 
+
+    q = request.GET.get("q")
+    if q:
+        variants = variants.filter(
+            Q(sku__icontains=q) |
+            Q(color__icontains=q) |
+            Q(size__icontains=q)
+        )
 
     status = request.GET.get("status")
     stock = request.GET.get("stock")
@@ -335,4 +369,8 @@ def admin_variants(request, id):
         "total_variants": total_variants,
         "active_variants": active_variants,
     }
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, "partials/variant_rows.html", context)
+
     return render(request, "variant/admin-variants.html", context)
