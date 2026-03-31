@@ -671,6 +671,22 @@ tailwind.config = {
             document.getElementById("editVariantModal").classList.add("hidden");
         }
     });
+
+    function openEditVariantModal(variant) {
+    document.getElementById('edit-variant-id').value = variant.id;
+
+    document.getElementById('edit-size').value = variant.size;
+    document.getElementById('edit-color').value = variant.color;
+    document.getElementById('edit-price').value = variant.price;
+    document.getElementById('edit-stock').value = variant.stock;
+
+    // 🔥 THIS IS THE FIX
+    document.getElementById('edit-is-active').checked = variant.is_active;
+    document.getElementById('edit-is-default').checked = variant.is_default;
+
+    // open modal
+    document.getElementById('editVariantModal').classList.remove('hidden');
+}
   </script>
 
   <!-- ════════════════════════ DELETE VARIANT MODAL ════════════════════════ -->

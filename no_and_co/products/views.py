@@ -299,17 +299,16 @@ def admin_variants(request, id):
         if action == "edit_variant":
             size = request.POST.get("size")
             color = request.POST.get("color")
-            stock = request.POST.get("stock")
-            price = request.POST.get("price")
-            if "is_active" in request.POST:
-                variant.is_active = request.POST.get("is_active") == "true"
-            is_default = request.POST.get("is_default")=="true"
+            stock = request.POST.get("stock",0)
+            price = request.POST.get("price",0)
+            is_active = request.POST.get("is_active") == "true"
             variant_id = request.POST.get("variant_id")
-
             variant = get_object_or_404(Variant, id=variant_id)
 
-            if variant.is_default:
-                Variant.objects.filter(product = variant.product, is_default = True).exclude(id=variant.id).update(is_default = False)
+            is_default = request.POST.get("is_default") == "true" if "is_default" in request.POST else variant.is_default
+
+            if is_default:
+                Variant.objects.filter(product=variant.product).exclude(id=variant.id).update(is_default=False)
 
             variant.size = size
             variant.color = color
@@ -317,6 +316,8 @@ def admin_variants(request, id):
             variant.price = price
             variant.is_active = is_active
             variant.is_default = is_default
+            print(variant.is_default)
+            print(variant.is_active)
 
             variant.save()
 
@@ -334,7 +335,7 @@ def admin_variants(request, id):
                     current_img_obj.delete()
                 elif new_image:
                     if current_img_obj:
-                        current_img_obj.delete() # Replace old with new
+                        current_img_obj.delete()
                     VariantImage.objects.create(
                         variant=variant,
                         image=new_image,
@@ -348,27 +349,26 @@ def admin_variants(request, id):
             variant_id = request.POST.get("variant_id")
             variant = get_object_or_404(Variant , id=variant_id)
             variant.delete()
+
             messages.success(request,"Variant deleted successfully")
             return redirect("admin-variants", id=product.id)
 
         if action == "toggle_variant":
             variant_id = request.POST.get("variant_id")
-        
-            # 🔥 GET CURRENT VALUE DIRECTLY FROM DB
+
             current_status = Variant.objects.values_list("is_active", flat=True).get(id=variant_id)
-        
-            # 🔥 TOGGLE
+
             new_status = not current_status
-        
-            # 🔥 UPDATE DIRECTLY
+
             Variant.objects.filter(id=variant_id).update(is_active=new_status)
-        
+
             print("DEBUG:", variant_id, "OLD:", current_status, "NEW:", new_status)
-        
+
             messages.success(request, "Variant status updated successfully")
             return redirect("admin-variants", id=product.id)
 
-    variants = product.variants.all().order_by('-is_default', '-id')
+    variants = Variant.objects.all().order_by('-is_default', '-id')
+
     q = request.GET.get("q")
     if q:
         variants = variants.filter(
@@ -403,7 +403,7 @@ def admin_variants(request, id):
         "active_variants": active_variants,
     }
 
-    # if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-    #     return render(request, "partials/variant_rows.html", context)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, "partials/variant_rows.html", context)
 
     return render(request, "variant/admin-variants.html", context)

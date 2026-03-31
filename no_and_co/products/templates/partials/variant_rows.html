@@ -1,5 +1,5 @@
 {% for variant in variants %}
-<tr class="hover:bg-beige/20 transition-all border-t border-gray-50 h-[70px]">
+<tr class="hover:bg-beige/20 transition-all border-t border-gray-50 h-[70px] {% if variant.is_default %}bg-gray-50/50 border-l-4 border-l-black{% endif %}">
 
   <td class="w-[250px] px-6 py-3 border-l border-gray-50 align-middle">
     <div class="flex items-center gap-3">
@@ -14,7 +14,7 @@
         <div class="flex items-center gap-2 mb-0.5 whitespace-nowrap">
           <p class="text-[13px] font-bold text-[#1a1a1a] truncate">{{ variant.color }}</p>
           {% if variant.is_default %}
-          <span class="px-2 py-0.5 bg-gray-100 rounded text-[7px] font-black uppercase tracking-widest text-gray-500 flex-shrink-0">Default</span>
+          <span class="px-2 py-0.5 bg-black text-white rounded text-[7px] font-black uppercase tracking-widest flex-shrink-0">Default</span>
           {% endif %}
         </div>
         <p class="text-[10px] font-bold text-gray-400 uppercase truncate">{{ variant.color }} • {{ variant.size }}</p>
@@ -70,26 +70,21 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536M9 11l6.364-6.364a2 2 0 112.828 2.828L11.828 13.828A4 4 0 019.828 15H8v-1.828a4 4 0 011.172-2.829L9 11z"/>
         </svg>
       </button>
-<form method="POST" action="" class="flex items-center m-0">
-  {% csrf_token %}
-  <input type="hidden" name="action" value="toggle_variant">
-  <input type="hidden" name="variant_id" value="{{ variant.id }}">
 
-  <button type="submit" class="flex items-center justify-center">
+      <form method="POST" action="" class="flex items-center m-0">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="toggle_variant">
+        <input type="hidden" name="variant_id" value="{{ variant.id }}">
 
-    <!-- TRACK -->
-    <div class="w-11 h-6 flex items-center rounded-full transition-all duration-300
-        {% if variant.is_active %}bg-green-500{% else %}bg-gray-300{% endif %}">
-
-        <!-- BALL -->
-        <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-all duration-300
-            {% if variant.is_active %}translate-x-5{% else %}translate-x-1{% endif %}">
-        </div>
-
-    </div>
-
-  </button>
-</form>
+        <button type="submit" class="flex items-center justify-center">
+          <div class="w-11 h-6 flex items-center rounded-full transition-all duration-300
+              {% if variant.is_active %}bg-green-500{% else %}bg-gray-300{% endif %}">
+              <div class="w-5 h-5 bg-white rounded-full shadow-md transform transition-all duration-300
+                  {% if variant.is_active %}translate-x-5{% else %}translate-x-1{% endif %}">
+              </div>
+          </div>
+        </button>
+      </form>
 
       <button @click="deleteVariantModal = true; deleteId = '{{ variant.id }}'"
               class="w-7 h-7 flex items-center justify-center text-gray-300 hover:text-red-500 transition-all">
