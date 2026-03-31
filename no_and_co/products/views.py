@@ -84,25 +84,35 @@ def admin_product_details(request, id):
             messages.success(request, "Product variant created")
             return redirect("admin-product-details", id=product.id)
 
-        # if action == "edit_variant":
-        #     variant_id = request.POST.get("variant_id")
-        #     variant = get_object_or_404(Variant , id=variant_id)
+        if action == "edit_variant":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant , id=variant_id)
+            size = request.POST.get("size")
+            price = request.POST.get("price")
+            stock = request.POST.get("stock")
+            color = request.POST.get("color")
+            is_active = request.POST.get("is_active") == "true"
+            is_default = request.POST.get("is_default") == "true"
 
-        #     variant.size = request.POST.get("size")
-        #     variant.price = request.POST.get("price")
-        #     variant.stock = request.POST.get("stock")
-        #     variant.color = request.POST.get("color")
-        #     variant.is_active = request.POST.get("is_active")=="true"
-        #     variant.is_default = request.POST.get("is_default") == "true"
+            if is_default:
+                Variant.objects.filter(is_default = True , product = variant.product).update(is_default = False)
 
-        #     variant.save()
-        #     messages.error(request, "Product edited succesfully")
-        #     return redirect("admin-product-details", id=product.id)
+            variant.size = size
+            variant.price = price
+            variant.stock = stock
+            variant.color = color
+            variant.is_active = is_active
+            variant.is_default = is_default
+
+            variant.save()
+            messages.success(request, "Product edited succesfully")
+            return redirect("admin-product-details", id=product.id)
 
         if action == "delete_variant":
             variant_id = request.POST.get("variant_id")
             variant = get_object_or_404(Variant, id=variant_id)
-            variant.delete()
+            variant.is_deleted = True
+            variant.save()
             messages.success(request,"Product variant deleted succesfully")
             return redirect("admin-product-details", id=product.id)
 
@@ -259,7 +269,7 @@ def admin_variants(request, id):
                 is_active=is_active,
                 is_default=is_default
             )
-            
+
             # Handle Images
             primary_val = request.POST.get("primary_image", "new_0")
             for i in range(4):
@@ -379,9 +389,11 @@ def admin_variants(request, id):
     status = request.GET.get("status")
     if status == "archived":
         variants = variants.filter(is_deleted=True)
+    elif status == "low_stock":
+        variants = variants.filter(is_deleted=False, stock__lte=5)
     else:
         variants = variants.filter(is_deleted=False)
-        
+
         if status == "active":
             variants = variants.filter(is_active=True)
         elif status == "inactive":
@@ -390,6 +402,7 @@ def admin_variants(request, id):
     all_variants = Variant.objects.filter(product=product, is_deleted=False)
     active_count = all_variants.filter(is_active=True).count()
     inactive_count = all_variants.filter(is_active=False).count()
+    total_count = all_variants.count()
 
     paginator = Paginator(variants, 4)
     page_obj = paginator.get_page(request.GET.get("page"))
@@ -400,6 +413,7 @@ def admin_variants(request, id):
         "page_obj": page_obj,
         "active_count": active_count,
         "inactive_count": inactive_count,
+        "total_count":total_count
     }
 
     return render(request, "variant/admin-variants.html", context)
