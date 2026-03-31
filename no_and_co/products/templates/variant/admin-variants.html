@@ -610,7 +610,7 @@ tailwind.config = {
             <label class="flex items-center gap-3 cursor-pointer">
               <div class="relative">
                 <input type="hidden" name="is_active" value="false">
-                <input type="checkbox" name="is_active" id="edit-is-active" value="true" class="sr-only peer">
+                <input type="checkbox" name="is_active" id="edit-is-active" value="true" class="sr-only peer" checked>
                 <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-black transition duration-300"></div>
                 <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
               </div>
@@ -654,8 +654,11 @@ tailwind.config = {
         modal.querySelector("#edit-stock").value = data.stock || "";
 
         // Toggles (Scoped to modal)
-        modal.querySelector("#edit-is-active").checked = (data.active === "true");
-        modal.querySelector("#edit-is-default").checked = (data.default === "true");
+        const isActive = String(data.active || "false").toLowerCase() === "true";
+        const isDefault = String(data.default || "false").toLowerCase() === "true";
+
+        modal.querySelector("#edit-is-active").checked = isActive;
+        modal.querySelector("#edit-is-default").checked = isDefault;
 
         // Reset and Load Images using the consolidated function
         const images = [data.image1, data.image2, data.image3, data.image4].filter(Boolean);
@@ -680,9 +683,7 @@ tailwind.config = {
     document.getElementById('edit-price').value = variant.price;
     document.getElementById('edit-stock').value = variant.stock;
 
-    // 🔥 THIS IS THE FIX
-    document.getElementById('edit-is-active').checked = variant.is_active;
-    document.getElementById('edit-is-default').checked = variant.is_default;
+    // Checkbox assignment handled purely by event delegation to avoid duplicate conflict
 
     // open modal
     document.getElementById('editVariantModal').classList.remove('hidden');

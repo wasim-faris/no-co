@@ -618,8 +618,8 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                                         data-color="{{ variant.color }}"
                                         data-price="{{ variant.price }}"
                                         data-stock="{{ variant.stock }}"
-                                        data-active="{{ variant.is_active|lower }}"
-                                        data-default="{{ variant.is_default|lower }}">
+                                        data-active="{{ variant.is_active|yesno:'true,false' }}"
+                                        data-default="{{ variant.is_default|yesno:'true,false' }}">
                                         Edit
                                     </button>
                                     <button type="button"
@@ -889,7 +889,7 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                         <label class="flex items-center gap-3 cursor-pointer">
                             <div class="relative">
                                 <input type="hidden" name="is_active" value="false">
-                                <input type="checkbox" name="is_active" id="edit-is-active" value="true" class="sr-only peer">
+                                <input type="checkbox" name="is_active" id="edit-is-active" value="true" class="sr-only peer" checked>
                                 <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-black transition duration-300"></div>
                                 <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
                             </div>
@@ -975,11 +975,14 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                     if (el) el.value = val;
                 }
 
-                const activeToggle = document.getElementById('edit-is-active');
-                if (activeToggle) activeToggle.checked = (data.active === 'true');
+                const isActive = String(data.active || "false").toLowerCase() === "true";
+                const isDefault = String(data.default || "false").toLowerCase() === "true";
                 
-                const defaultToggle = document.getElementById('edit-is-default');
-                if (defaultToggle) defaultToggle.checked = (data.default === 'true');
+                const modal = document.getElementById('editVariantModal');
+                if (modal) {
+                    modal.querySelector("#edit-is-active").checked = isActive;
+                    modal.querySelector("#edit-is-default").checked = isDefault;
+                }
             }
 
             // --- DELETE VARIANT ---

@@ -60,8 +60,8 @@
         data-color="{{ variant.color }}"
         data-price="{{ variant.price }}"
         data-stock="{{ variant.stock }}"
-        data-active="{{ variant.is_active|lower }}"
-        data-default="{{ variant.is_default|lower }}"
+        data-active="{{ variant.is_active|yesno:'true,false' }}"
+        data-default="{{ variant.is_default|yesno:'true,false' }}"
         {% for img in variant.images.all|slice:":4" %}
         data-image{{ forloop.counter }}="{{ img.image.url }}"
         {% endfor %}

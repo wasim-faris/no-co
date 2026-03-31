@@ -92,8 +92,8 @@ def admin_product_details(request, id):
             variant.price = request.POST.get("price")
             variant.stock = request.POST.get("stock")
             variant.color = request.POST.get("color")
-            variant.is_active = request.POST.get("is_active")=="true"
-            variant.is_default = request.POST.get("is_default") == "true"
+            variant.is_active = "true" in request.POST.getlist("is_active")
+            variant.is_default = "true" in request.POST.getlist("is_default")
 
             variant.save()
             messages.error(request, "Product edited succesfully")
@@ -295,17 +295,24 @@ def admin_variants(request, id):
 
             messages.success(request, "Default variant updated")
             return redirect("admin-variants", id=product.id)
-
         if action == "edit_variant":
-            size = request.POST.get("size")
-            color = request.POST.get("color")
-            stock = request.POST.get("stock",0)
-            price = request.POST.get("price",0)
-            is_active = request.POST.get("is_active") == "true"
+            print("=== FULL POST DATA ===")
+            print(dict(request.POST))
+            print("is_active raw:", request.POST.getlist("is_active"))
+            print("is_default raw:", request.POST.getlist("is_default"))
+            print("is_active get:", request.POST.get("is_active"))
+            print("is_default get:", request.POST.get("is_default"))
             variant_id = request.POST.get("variant_id")
             variant = get_object_or_404(Variant, id=variant_id)
 
-            is_default = request.POST.get("is_default") == "true" if "is_default" in request.POST else variant.is_default
+            size = request.POST.get("size")
+            color = request.POST.get("color")
+            stock = request.POST.get("stock", 0)
+            price = request.POST.get("price", 0)
+
+            # Use same logic as add_variant — consistent and correct
+            is_active = request.POST.get("is_active") == "true"
+            is_default = request.POST.get("is_default") == "true"
 
             if is_default:
                 Variant.objects.filter(product=variant.product).exclude(id=variant.id).update(is_default=False)
@@ -316,9 +323,6 @@ def admin_variants(request, id):
             variant.price = price
             variant.is_active = is_active
             variant.is_default = is_default
-            print(variant.is_default)
-            print(variant.is_active)
-
             variant.save()
 
             # Use the related_name 'images' consistently
