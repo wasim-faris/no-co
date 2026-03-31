@@ -1,103 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>NØ & CO | Variant Management</title>
-
-<script src="https://cdn.tailwindcss.com"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-<script>
-tailwind.config = {
-  theme: {
-    extend: {
-      fontFamily: {
-        serif: ['Playfair Display', 'serif'],
-        sans: ['Inter', 'sans-serif'],
-      },
-      colors: {
-        beige: '#F5F1EA',
-        card: '#FFFFFF',
-        border: '#E8E2D8',
-        muted: '#8C877F',
-        dark: '#111111',
-        tabGrey: '#7F8C9F'
-      }
-    }
-  }
-}
-</script>
-
-<style>
-  body { -webkit-font-smoothing: antialiased; }
-  table { border-collapse: collapse; }
-
-  [x-cloak] { display: none !important; }
-
-  /* Submenu slide animation */
-  .submenu {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.25s ease, opacity 0.2s ease;
-    opacity: 0;
-  }
-  .submenu.open {
-    max-height: 200px;
-    opacity: 1;
-  }
-
-  /* Chevron rotation */
-  .chevron {
-    transition: transform 0.22s ease;
-    flex-shrink: 0;
-  }
-  .chevron.rotated {
-    transform: rotate(180deg);
-  }
-
-  .status-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 9999px;
-    font-size: 9px;
-    font-weight: 900;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    text-align: center;
-  }
-
-  input[type="radio"]:checked {
-    background-color: #1a1a1a;
-    border-color: #1a1a1a;
-  }
-
-  /* Toast styles from product details */
-  .icon-bubble {
-    position: relative;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .icon-bubble svg {
-    transform: rotate(45deg);
-  }
-</style>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variant Management - NØ & CO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f1eb;
+        }
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .icon-bubble {
+            position: relative;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-bubble svg { transform: rotate(45deg); }
+        .rounded-custom {
+            border-radius: 24px;
+        }
+    </style>
 </head>
+<body class="antialiased min-h-screen flex">
 
-<body class="bg-beige font-sans text-dark flex h-screen" x-data="{
-    variantModal: false,
-    editVariantModal: false,
-    deleteVariantModal: false,
-    deleteId: null,
-    editData: { id: null, color: '', size: '', price: '', stock: '', active: true, default: false }
-}">
-
-<!-- ════════════════════════ SIDEBAR ════════════════════════ -->
+<!-- SIDEBAR -->
 <aside class="w-[280px] h-screen bg-white border-r border-gray-100 flex-shrink-0 flex flex-col justify-between sticky top-0">
   <div class="p-8">
     <div class="mb-12">
@@ -108,643 +42,742 @@ tailwind.config = {
 
     <nav class="space-y-3">
       <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-1 mb-4">Management</p>
-
-      <!-- Dashboard -->
-      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+      <a href="{% url 'admin-dashboard' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 transition-all">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z"></path></svg>
         <span class="font-medium text-sm">Dashboard</span>
       </a>
-
-      <!-- Orders -->
-      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-        <span class="font-medium text-sm">Orders</span>
+      <a href="{% url 'admin-products' %}" class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-white bg-[#1a1a1a] shadow-lg font-semibold transition-all">
+        <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+        <span class="font-medium text-sm">Products</span>
       </a>
-
-      <!-- Products -->
-      <div x-data="{ open: true }">
-        <button @click="open = !open" class="w-full flex items-center gap-3.5 px-4 py-3 rounded-xl text-white bg-[#1a1a1a] shadow-lg shadow-gray-200/50 font-semibold transition-all duration-300">
-          <svg class="w-5 h-5 text-gray-300 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-          <span class="font-medium text-sm flex-1 text-left">Products</span>
-          <svg :class="open ? 'rotated' : ''" class="chevron w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </button>
-
-        <div x-show="open" class="mt-1 ml-4 pl-5 border-l border-gray-100 space-y-0.5 py-1">
-          <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-black bg-gray-100">
-            <span class="w-1 h-1 rounded-full bg-current opacity-60 flex-shrink-0"></span>
-            All Products
-          </a>
-          <a href="#" class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13px] font-semibold text-gray-500 hover:text-black hover:bg-gray-50 transition-all duration-200">
-            <span class="w-1 h-1 rounded-full bg-current opacity-60 flex-shrink-0"></span>
-            Add Product
-          </a>
-        </div>
-      </div>
-
-      <!-- Categories -->
-      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
-        <span class="text-sm">Categories</span>
-      </a>
-
-      <!-- Coupons -->
-      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
-        <span class="font-medium text-sm">Coupons</span>
-      </a>
-
-      <!-- Offers -->
-      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
-        <span class="font-medium text-sm">Offers</span>
-      </a>
-
-      <!-- Customers -->
-      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-        <span class="font-medium text-sm">Customers</span>
-      </a>
-
-      <!-- Reviews -->
-      <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-        <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.382-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
-        <span class="font-medium text-sm">Reviews</span>
-      </a>
+      <!-- Add other sidebar links if needed -->
     </nav>
-  </div>
-
-  <!-- Sidebar footer -->
-  <div class="p-6 border-t border-gray-100 flex items-center justify-between gap-3">
-    <div class="flex items-center gap-3">
-      <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Julian" alt="Julian Thorne" class="w-10 h-10 rounded-full object-cover border border-gray-100 bg-beige">
-      <div>
-        <p class="font-bold text-sm text-[#1a1a1a]">Julian Thorne</p>
-        <p class="text-[11px] text-gray-400 font-medium whitespace-nowrap">julian@noandco.com</p>
-      </div>
-    </div>
-    <button class="p-2 rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition-colors">
-      <svg class="w-5 h-5 md:block hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
-    </button>
   </div>
 </aside>
 
-<!-- ════════════════════════ MAIN CONTENT ════════════════════════ -->
-<main class="flex-1 overflow-auto bg-[#F5F1EA] px-12 py-10 relative">
-
-  <!-- Toast Wrapper (Copied from product details) -->
-  <div id="toast-wrapper" class="fixed top-8 right-8 z-[200] flex flex-col gap-4 pointer-events-none">
-    {% if messages %}
-      {% for message in messages %}
-        <div class="toast-item flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl pointer-events-auto
-                    transition-all duration-500 ease-out transform
+<!-- MAIN CONTENT -->
+<main class="flex-1 overflow-y-auto bg-[#f5f1eb]">
+    <div class="max-w-7xl mx-auto p-12">
+        <!-- Messages -->
+        <!-- Messages -->
+     <div id="toast-container" class="fixed top-8 right-8 z-50 flex flex-col gap-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast-item flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl transition-all duration-500 transform translate-x-full
                     {% if message.tags == 'error' %}bg-[#3E3A37]{% else %}bg-[#5C554F]{% endif %} text-white"
-             x-data="{ show: false }"
-             x-init="setTimeout(() => show = true, 100); setTimeout(() => show = false, 4000)"
-             x-show="show"
-             x-transition:enter="translate-x-full opacity-0"
-             x-transition:enter-end="translate-x-0 opacity-100"
-             x-transition:leave="translate-x-0 opacity-100"
-             x-transition:leave-end="translate-x-full opacity-0">
-            <div class="flex items-center gap-4">
-                <div class="ml-1 w-10 h-10 bg-[#F5F1EA] icon-bubble flex-shrink-0">
-                    {% if message.tags == 'error' %}
-                    <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                        <path d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
+                >
+                    <div class="flex items-center gap-4">
+                        <div class="ml-1 w-10 h-10 bg-[#F5F1EB] icon-bubble">
+                             {% if message.tags == 'error' %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                             {% else %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                             {% endif %}
+                        </div>
+                        <div class="flex flex-col text-left">
+                            <span class="text-[11px] font-bold tracking-wider uppercase">
+                                {% if message.tags == 'error' %}Error{% else %}Notice{% endif %}
+                            </span>
+                            <span class="text-[10px] opacity-70">{{ message }}</span>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+        <!-- Breadcrumb -->
+        <nav class="text-[10px] sm:text-xs uppercase tracking-widest text-[#8a8a8a] flex gap-3 items-center mb-8 font-bold font-sans">
+            <span>PRODUCT MANAGEMENT</span> 
+            <span>&gt;</span>
+            <a href="{% url 'admin-products' %}" class="hover:text-black transition">PRODUCTS</a> 
+            <span>&gt;</span>
+            <span class="text-[#8a8a8a]">{{ product.product_name|default:"WASEEM FARIS" }}</span>
+            <span>&gt;</span>
+            <span class="text-black">VARIANTS</span>
+        </nav>
+
+        <!-- Page Title -->
+        <div class="mb-10">
+            <h1 class="text-4xl font-serif text-[#1a1a1a] mb-2 tracking-tight">Variant Management</h1>
+            <p class="text-sm text-gray-500 font-sans">Configure and manage product SKU variations</p>
+        </div>
+
+        <!-- Header Card -->
+        <div class="bg-white rounded-[32px] p-8 mb-12 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-wrap items-center justify-between border border-gray-50">
+            <!-- Left: Product Info -->
+            <div class="flex items-center gap-6">
+                <!-- Product Image -->
+                <div class="w-32 h-32 rounded-2xl bg-[#f5f1eb] overflow-hidden flex-shrink-0 flex items-center justify-center border border-gray-100 p-2">
+                    {% if product.images.first %}
+                        <img src="{{ product.images.first.image.url }}" alt="{{ product.product_name }}" class="w-full h-full object-cover rounded-xl">
                     {% else %}
-                    <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-                        <path d="M5 13l4 4L19 7"></path>
-                    </svg>
+                       <!-- Fallback Icon if no image -->
+                        <div class="w-full h-full bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col items-center justify-center p-2">
+                             <div class="w-16 h-2 bg-gray-100 rounded mb-4"></div>
+                             <div class="w-full h-1 bg-gray-50 rounded mb-1"></div>
+                             <div class="w-full h-1 bg-gray-50 rounded mb-1"></div>
+                             <div class="w-full h-1 bg-gray-50 rounded mb-1"></div>
+                        </div>
                     {% endif %}
                 </div>
-                <div class="flex flex-col text-left">
-                    <span class="text-[11px] font-bold tracking-wider uppercase">
-                        {% if message.tags == 'error' %}Error{% else %}Notice{% endif %}
-                    </span>
-                    <span class="text-[10px] opacity-70">{{ message }}</span>
+                <!-- Details -->
+                <div class="flex flex-col">
+                    <h2 class="text-3xl font-bold text-gray-900 mb-1 tracking-tight">{{ product.product_name|default:"waseem faris" }}</h2>
+                    <p class="text-[10px] uppercase tracking-widest text-[#8a8a8a] font-bold mt-2">
+                        {% if product.category %}{{ product.category.category_name }}{% else %}LUXE COLLECTION{% endif %} / {% if product.subcategory %}{{ product.subcategory.subcategory_name }}{% else %}KIDS{% endif %}
+                    </p>
                 </div>
             </div>
-            <button @click="show = false" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
-                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-            </button>
+            
+            <!-- Right: Stats -->
+            <div class="flex items-center gap-16 mr-8">
+                <div class="text-center">
+                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-3">TOTAL VARIANTS</p>
+                    <p class="text-4xl font-serif text-[#1a1a1a]">{{ variants|length|default:1 }}</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-3">ACTIVE</p>
+                    <p class="text-4xl font-serif text-[#1a1a1a]">
+                        {% if active_count < 10 %}0{{ active_count }}{% else %}{{ active_count }}{% endif %}
+                    </p>
+                </div>
+            </div>
         </div>
-      {% endfor %}
-    {% endif %}
-  </div>
 
-  <!-- Breadcrumbs -->
-  <nav class="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 flex gap-3 items-center mb-6">
-    <span>PRODUCT MANAGEMENT</span>
-    <span>&gt;</span>
-    <a href="{% url 'admin-products' %}" class="hover:text-black transition-colors">PRODUCTS</a>
-    <span>&gt;</span>
-    <a href="{% url 'admin-product-details' product.id %}" class="hover:text-black transition-colors">{{ product.product_name }}</a>
-    <span>&gt;</span>
-    <span class="text-black group">VARIANTS</span>
-  </nav>
+        <!-- Search + Action Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <!-- Search Input -->
+            <form method="GET" class="flex-1 max-w-[400px] relative" onsubmit="event.preventDefault();">
+                <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <input type="text" id="searchInput" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search SKU or attribute..." class="w-full pl-12 pr-6 py-4 bg-white border border-transparent rounded-[20px] text-sm shadow-[0_2px_10px_rgb(0,0,0,0.02)] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] transition-all placeholder:text-gray-300 font-medium text-gray-700">
+            </form>
 
-  <!-- Header -->
-  <header class="mb-10">
-    <h1 class="text-4xl font-serif font-semibold text-[#1a1a1a] mb-2">Variant Management</h1>
-    <p class="text-sm text-gray-500 font-medium tracking-tight">Configure and manage product SKU variations</p>
-  </header>
-
-  <!-- Product Summary Card -->
-  <section class="bg-white rounded-[32px] p-8 mb-10 shadow-sm border border-white flex items-center justify-between">
-    <div class="flex items-center gap-6">
-      <div class="w-20 h-20 rounded-2xl bg-beige overflow-hidden p-1 border border-gray-100/50">
-        {% with main_img=product.productimage_set.filter.is_primary.first|default:product.productimage_set.first %}
-        <img src="{{ main_img.image.url|default:'https://images.unsplash.com/photo-1595777457583-95e059d581b8?q=80&w=260&auto=format&fit=crop' }}" class="w-full h-full object-cover rounded-xl grayscale-[20%]">
-        {% endwith %}
-      </div>
-      <div>
-        <h2 class="text-2xl font-bold text-[#1a1a1a] mb-1">{{ product.product_name }}</h2>
-        <p class="text-[11px] uppercase font-black tracking-[0.15em] text-gray-400">LUXE COLLECTION / {{ product.category.category_name }}</p>
-      </div>
-    </div>
-
-    <div class="flex gap-16 mr-10">
-      <div class="text-center">
-        <p class="text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 mb-2">Total Variants</p>
-        <p class="text-4xl font-serif font-medium text-[#1a1a1a]">{{ total_variants }}</p>
-      </div>
-      <div class="text-center">
-        <p class="text-[10px] font-black uppercase tracking-[0.15em] text-gray-400 mb-2">Active</p>
-        <p class="text-4xl font-serif font-medium text-[#1a1a1a]">{{ active_variants|stringformat:"02d" }}</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Action Bar -->
-  <div class="flex items-center justify-between mb-6">
-    <div class="relative w-[450px]">
-      <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-      <input type="text" id="live-search-input" placeholder="Search SKU or attribute..."
-             class="w-full h-12 bg-white rounded-2xl pl-12 pr-4 text-sm font-medium border-transparent focus:border-black transition-all outline-none shadow-sm placeholder:text-gray-300">
-    </div>
-
-    <div class="flex items-center gap-3">
-      <div class="relative" x-data="{ open: false }">
-        <button @click="open = !open" class="h-12 px-6 bg-white rounded-2xl border border-gray-100 shadow-sm flex items-center gap-2 text-xs font-black uppercase tracking-widest hover:bg-gray-50 transition-all">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"/></svg>
-          Filter
-        </button>
-
-        <!-- Dropdown Menu -->
-        <div x-show="open" @click.away="open = false"
-             x-transition:enter="transition ease-out duration-200"
-             x-transition:enter-start="opacity-0 translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-150"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 translate-y-2"
-             class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-lg border border-gray-100 z-50 py-2"
-             style="display: none;">
-          <a href="?status=all" class="block px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black hover:bg-gray-50 transition-colors">All Variants</a>
-          <a href="?status=active" class="block px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black hover:bg-gray-50 transition-colors">Active</a>
-          <a href="?status=inactive" class="block px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black hover:bg-gray-50 transition-colors">Inactive</a>
-          <a href="?stock=low" class="block px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-black hover:bg-gray-50 transition-colors">Low Stock</a>
+            <div class="flex items-center gap-4">
+                <form method="GET" class="inline-block relative">
+                    {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+                    <select name="status" onchange="this.form.submit()" class="appearance-none px-8 py-4 bg-white border border-transparent rounded-[20px] text-xs font-bold uppercase tracking-widest text-[#1a1a1a] shadow-[0_2px_10px_rgb(0,0,0,0.02)] focus:outline-none focus:ring-2 focus:ring-[#1a1a1a] transition-all cursor-pointer pr-12">
+                        <option value="all" {% if request.GET.status == 'all' or not request.GET.status %}selected{% endif %}>ALL</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>ACTIVE</option>
+                        <option value="inactive" {% if request.GET.status == 'inactive' %}selected{% endif %}>INACTIVE</option>
+                        <option value="archived" {% if request.GET.status == 'archived' %}selected{% endif %}>ARCHIVED</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-[#1a1a1a]">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </form>
+                <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="flex items-center gap-2 px-8 py-4 bg-[#1a1a1a] text-white rounded-[20px] shadow-[0_8px_20px_rgb(26,26,26,0.2)] text-xs font-bold uppercase tracking-widest hover:bg-black transition-colors transform hover:-translate-y-0.5">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    ADD VARIANT
+                </button>
+            </div>
         </div>
-      </div>
-      <button @click="variantModal = true; loadVariantImages([], 'add');" class="h-12 px-8 bg-[#1a1a1a] text-white rounded-2xl shadow-xl shadow-gray-200 text-xs font-black uppercase tracking-widest hover:opacity-90 transition-all flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-        Add Variant
-      </button>
-    </div>
-  </div>
-
-  <!-- Variant Table Card -->
-  <div class="bg-white rounded-[32px] shadow-sm border border-white overflow-hidden mb-6">
-    <div class="overflow-x-auto">
-      <table class="min-w-[1040px] w-full table-fixed">
-        <thead class="bg-white border-b border-gray-50">
-          <tr class="text-left text-[10px] font-black uppercase tracking-widest text-gray-400">
-            <th class="w-[250px] px-6 py-6 border-l border-gray-50">Variants</th>
-            <th class="w-[150px] px-6 py-6 text-center border-l border-gray-50">SKU</th>
-            <th class="w-[120px] px-6 py-6 text-center border-l border-gray-50">Price</th>
-            <th class="w-[120px] px-6 py-6 text-center border-l border-gray-50">Status</th>
-            <th class="w-[100px] px-6 py-6 text-center border-l border-gray-50">Stock</th>
-            <th class="w-[140px] px-6 py-6 text-center border-l border-gray-50 whitespace-nowrap">Stock Status</th>
-            <th class="w-[180px] px-6 py-6 text-right border-l border-gray-50">Actions</th>
-          </tr>
-        </thead>
-
-      <tbody class="divide-y divide-gray-50">
-        {% include "partials/variant_rows.html" %}
-      </tbody>
-    </table>
-  </div>
-
-    <!-- Pagination -->
-    <div class="px-10 py-6 border-t border-gray-50 flex items-center justify-between">
-      <p class="text-xs font-bold text-gray-400">Showing {{ page_obj.start_index|default:0 }}–{{ page_obj.end_index|default:0 }} of {{ page_obj.paginator.count }} variants</p>
-
-      <div id="paginationSection">
-        {% include 'admin_base/components/pagination.html' %}
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom corner button -->
-  <div class="fixed bottom-10 right-10 flex">
-    <button class="w-12 h-12 bg-white rounded-full shadow-2xl flex items-center justify-center text-dark hover:scale-110 transition-all border border-gray-100">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-    </button>
-  </div>
-
-  <!-- ════════════════════════ ADD VARIANT MODAL ════════════════════════ -->
-  <div x-show="variantModal" x-cloak class="fixed inset-0 z-[150] flex items-center justify-center p-6">
-    <div @click="variantModal = false" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-    <div class="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl" x-transition>
-      <!-- Header -->
-      <div class="p-8 pb-4 border-b border-gray-50 bg-white sticky top-0 z-10">
-        <h3 class="text-2xl font-serif text-gray-900 mb-1">Add New Variant</h3>
-        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Create a new product variant</p>
-      </div>
-
-      <!-- Form Body -->
-      <div class="p-8 max-h-[70vh] overflow-y-auto hide-scrollbar">
-        <form method="POST" action="" enctype="multipart/form-data" class="space-y-6">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="add_variant">
-
-          <!-- Image Upload Grid (4 Slots) -->
-          <div class="space-y-3">
-              <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Variant Images (Max 4)</label>
-              <div class="grid grid-cols-4 gap-4">
-                  {% for i in "1234"|make_list %}
-                  <div class="relative w-20 h-20 group">
-                      <label class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer overflow-hidden transition-all bg-[#f9fafb]">
-                          <input type="file" name="image_{{ i }}" class="hidden" accept="image/*" onchange="previewVariantImage(this, {{ i }}, 'add')">
-                          <div id="add-preview-container-{{ i }}" class="hidden w-full h-full">
-                              <img id="add-preview-img-{{ i }}" class="object-cover w-full h-full">
-                              <button type="button" @click.prevent="clearVariantImage({{ i }}, 'add')" class="absolute top-1 right-1 w-5 h-5 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black transition-all">
-                                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                              </button>
-                          </div>
-                          <div id="add-upload-icon-{{ i }}" class="flex flex-col items-center gap-1 opacity-100 transition-opacity">
-                              <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2"/></svg>
-                          </div>
-                      </label>
-                  </div>
-                  {% endfor %}
-              </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-6">
-            <div class="space-y-2">
-              <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Size</label>
-              <input type="text" name="size" placeholder="e.g. M, L, XL" required
-                class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Color</label>
-              <input type="text" name="color" placeholder="e.g. Red, Black" required
-                class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Price</label>
-              <input type="number" name="price" step="0.01" placeholder="0.00" required
-                class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Stock</label>
-              <input type="number" name="stock" placeholder="0" required
-                class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
-            </div>
-          </div>
-
-          <!-- Options -->
-          <div class="flex items-center gap-10 py-2">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <div class="relative">
-                <input type="hidden" name="is_active" value="false">
-                <input type="checkbox" name="is_active" value="true" class="sr-only peer" checked>
-                <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-black transition duration-300"></div>
-                <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
-              </div>
-              <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Active</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <div class="relative">
-                <input type="hidden" name="is_default" value="false">
-                <input type="checkbox" name="is_default" value="true" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-black transition duration-300"></div>
-                <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
-              </div>
-              <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Default Variant</span>
-            </label>
-          </div>
-
-          <div class="flex gap-4 pt-4">
-            <button type="button" @click="variantModal = false" class="flex-1 py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-100 transition-all">Cancel</button>
-            <button type="submit" class="flex-1 py-4 bg-black text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-800 transition-all shadow-xl">Save Variant</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- JS Scripts -->
-  <script>
-    function loadVariantImages(images, type) {
-        // Reset all slots first
-        for (let i = 1; i <= 4; i++) {
-            // UI Reset
-            const previewContainer = document.getElementById(`${type}-preview-container-${i}`);
-            const uploadIcon = document.getElementById(`${type}-upload-icon-${i}`);
-            const imgId = type === 'edit' ? `edit-image-${i}` : `add-preview-img-${i}`;
-            const previewImg = document.getElementById(imgId);
-            const input = document.querySelector(type === 'edit' ? `#editVariantModal input[name="image_${i}"]` : `input[name="image_${i}"]`);
-
-            if (input) input.value = "";
-            if (previewImg) previewImg.src = "";
-            if (previewContainer) previewContainer.classList.add('hidden');
-            if (uploadIcon) uploadIcon.classList.remove('hidden');
-
-            // Reset deletion flag to false
-            const delInput = document.querySelector(`input[name="delete_image_${i}"]`);
-            if (delInput) delInput.value = "false";
-        }
-
-        // Fill slots with existing images if any provided
-        if (images && images.length > 0) {
-            images.forEach((img, index) => {
-                const i = index + 1;
-                if (i > 4) return;
-
-                const previewContainer = document.getElementById(`${type}-preview-container-${i}`);
-                const imgId = type === 'edit' ? `edit-image-${i}` : `add-preview-img-${i}`;
-                const previewImg = document.getElementById(imgId);
-                const uploadIcon = document.getElementById(`${type}-upload-icon-${i}`);
-
-                if (previewImg && previewContainer && uploadIcon && img) {
-                    previewImg.src = img.url || img; // Handle object or string
-                    previewContainer.classList.remove('hidden');
-                    uploadIcon.classList.add('hidden');
-                }
-            });
-        }
-    }
-
-    function previewVariantImage(input, index, type) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const previewContainer = document.getElementById(`${type}-preview-container-${index}`);
-                const imgId = type === 'edit' ? `edit-image-${index}` : `add-preview-img-${index}`;
-                const previewImg = document.getElementById(imgId);
-                const uploadIcon = document.getElementById(`${type}-upload-icon-${index}`);
-
-                if (previewImg) previewImg.src = e.target.result;
-                if (previewContainer) previewContainer.classList.remove('hidden');
-                if (uploadIcon) uploadIcon.classList.add('hidden');
-
-                // If editing, clear deletion flag since we've uploaded a new one
-                if (type === 'edit') {
-                    const delInput = document.querySelector(`input[name="delete_image_${index}"]`);
-                    if (delInput) delInput.value = "false";
-                }
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-
-    function clearVariantImage(index, type) {
-        const previewContainer = document.getElementById(`${type}-preview-container-${index}`);
-        const uploadIcon = document.getElementById(`${type}-upload-icon-${index}`);
-        const imgId = type === 'edit' ? `edit-image-${index}` : `add-preview-img-${index}`;
-        const previewImg = document.getElementById(imgId);
-
-        const selector = type === 'edit'
-            ? `#editVariantModal input[name="image_${index}"]`
-            : `.variantModal input[name="image_${index}"]`; // Use class or tag context if not in edit modal
-        const input = document.querySelector(selector) || document.querySelector(`input[name="image_${index}"]`);
-
-        if (input) input.value = "";
-        if (previewImg) previewImg.src = "";
-        if (previewContainer) previewContainer.classList.add('hidden');
-        if (uploadIcon) uploadIcon.classList.remove('hidden');
-
-        // If editing, mark for deletion
-        if (type === 'edit') {
-            const delInput = document.querySelector(`input[name="delete_image_${index}"]`);
-            if (delInput) delInput.value = "true";
-        }
-    }
-  </script>
-
-  <!-- ════════════════════════ EDIT VARIANT MODAL ════════════════════════ -->
-  <div id="editVariantModal" class="fixed inset-0 z-[160] flex items-center justify-center p-6 hidden">
-    <div id="editModalOverlay" class="absolute inset-0 bg-black/60 backdrop-blur-md cursor-pointer"></div>
-    <div class="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl">
-      <!-- Header -->
-      <div class="p-8 pb-4 border-b border-gray-50 bg-white sticky top-0 z-10">
-        <h3 class="text-2xl font-serif text-gray-900 mb-1">Edit Variant</h3>
-        <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Update variant details</p>
-      </div>
-
-      <!-- Form Body -->
-      <div class="p-8 max-h-[70vh] overflow-y-auto hide-scrollbar">
-        <form method="POST" action="" enctype="multipart/form-data" class="space-y-6">
-          {% csrf_token %}
-          <input type="hidden" name="action" value="edit_variant">
-          <input type="hidden" name="variant_id" id="edit-variant-id">
-
-          <!-- Hidden inputs for image deletion tracking -->
-          <input type="hidden" name="delete_image_1" value="false">
-          <input type="hidden" name="delete_image_2" value="false">
-          <input type="hidden" name="delete_image_3" value="false">
-          <input type="hidden" name="delete_image_4" value="false">
-
-          <!-- Image Upload Grid (4 Slots) (Issue 5 & 6) -->
-          <div class="space-y-3 mb-6">
-              <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Variant Images (Max 4)</label>
-              <div class="grid grid-cols-4 gap-4">
-                  {% for i in "1234"|make_list %}
-                  <div class="relative w-20 h-20 group">
-                      <label class="w-full h-full flex flex-col items-center justify-center border-2 border-dashed border-gray-100 rounded-xl hover:bg-gray-50 cursor-pointer overflow-hidden transition-all bg-[#f9fafb]">
-                          <input type="file" name="image_{{ i }}" class="hidden" accept="image/*" onchange="previewVariantImage(this, {{ i }}, 'edit')">
-                          <div id="edit-preview-container-{{ i }}" class="hidden w-full h-full">
-                              <img id="edit-image-{{ i }}" class="object-cover w-full h-full">
-                              <button type="button" onclick="clearVariantImage({{ i }}, 'edit')" class="absolute top-1 right-1 w-5 h-5 bg-black/50 text-white rounded-full flex items-center justify-center hover:bg-black transition-all">
-                                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                              </button>
-                          </div>
-                          <div id="edit-upload-icon-{{ i }}" class="flex flex-col items-center gap-1 opacity-100 transition-opacity">
-                              <svg class="w-5 h-5 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4" stroke-width="2"/></svg>
-                          </div>
-                      </label>
-                  </div>
-                  {% endfor %}
-              </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-6">
-            <div class="space-y-2">
-              <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Size</label>
-              <input type="text" name="size" id="edit-size" required
-                class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Color</label>
-              <input type="text" name="color" id="edit-color" required
-                class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Price</label>
-              <input type="number" name="price" id="edit-price" step="0.01" required
-                class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
-            </div>
-            <div class="space-y-2">
-              <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Stock</label>
-              <input type="number" name="stock" id="edit-stock" required
-                class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-1 focus:ring-black outline-none transition-all">
-            </div>
-          </div>
-
-          <!-- Options -->
-          <div class="flex items-center gap-10 py-2">
-            <label class="flex items-center gap-3 cursor-pointer">
-              <div class="relative">
-                <input type="hidden" name="is_active" value="false">
-                <input type="checkbox" name="is_active" id="edit-is-active" value="true" class="sr-only peer" checked>
-                <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-black transition duration-300"></div>
-                <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
-              </div>
-              <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Active</span>
-            </label>
-            <label class="flex items-center gap-3 cursor-pointer">
-              <div class="relative">
-                <input type="hidden" name="is_default" value="false">
-                <input type="checkbox" name="is_default" id="edit-is-default" value="true" class="sr-only peer">
-                <div class="w-11 h-6 bg-gray-200 rounded-full peer-checked:bg-black transition duration-300"></div>
-                <div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-5"></div>
-              </div>
-              <span class="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Default Variant</span>
-            </label>
-          </div>
-
-          <div class="flex gap-4 pt-6">
-            <button type="button" id="closeEditVariantModalBtn" class="flex-1 py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-100 transition-all">Cancel</button>
-            <button type="submit" class="flex-1 py-4 bg-black text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-800 transition-all shadow-xl">Save Changes</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Vanilla JS Refactor: Event Delegation (Issue 1-6 & 8) -->
-  <script>
-    document.addEventListener("click", function(e) {
-        const btn = e.target.closest(".editVariantBtn");
-        if (!btn) return;
-
-        console.log("Edit clicked", btn.dataset.id); // Issue 8
-        const data = btn.dataset;
-        const modal = document.getElementById("editVariantModal");
-
-        // Basic fields (Scoped to modal)
-        modal.querySelector("#edit-variant-id").value = data.id || "";
-        modal.querySelector("#edit-size").value = data.size || "";
-        modal.querySelector("#edit-color").value = data.color || "";
-        modal.querySelector("#edit-price").value = data.price || "";
-        modal.querySelector("#edit-stock").value = data.stock || "";
-
-        // Toggles (Scoped to modal)
-        const isActive = String(data.active || "false").toLowerCase() === "true";
-        const isDefault = String(data.default || "false").toLowerCase() === "true";
-
-        modal.querySelector("#edit-is-active").checked = isActive;
-        modal.querySelector("#edit-is-default").checked = isDefault;
-
-        // Reset and Load Images using the consolidated function
-        const images = [data.image1, data.image2, data.image3, data.image4].filter(Boolean);
-        loadVariantImages(images, 'edit');
-
-        // Show Modal (Issue 1)
-        modal.classList.remove("hidden");
-    });
-
-    // Dedicated Close Handlers
-    document.addEventListener("click", function(e) {
-        if (e.target.id === "closeEditVariantModalBtn" || e.target.id === "editModalOverlay") {
-            document.getElementById("editVariantModal").classList.add("hidden");
-        }
-    });
-
-    function openEditVariantModal(variant) {
-    document.getElementById('edit-variant-id').value = variant.id;
-
-    document.getElementById('edit-size').value = variant.size;
-    document.getElementById('edit-color').value = variant.color;
-    document.getElementById('edit-price').value = variant.price;
-    document.getElementById('edit-stock').value = variant.stock;
-
-    // Checkbox assignment handled purely by event delegation to avoid duplicate conflict
-
-    // open modal
-    document.getElementById('editVariantModal').classList.remove('hidden');
-}
-  </script>
-
-  <!-- ════════════════════════ DELETE VARIANT MODAL ════════════════════════ -->
-  <div x-show="deleteVariantModal" x-cloak class="fixed inset-0 z-[170] flex items-center justify-center p-6">
-    <div @click="deleteVariantModal = false" class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-    <div class="relative bg-white w-full max-w-sm rounded-[32px] p-10 text-center shadow-2xl" x-transition>
-      <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-      </div>
-      <h3 class="text-2xl font-serif text-gray-900 mb-2">Delete Variant</h3>
-      <p class="text-sm text-gray-500 mb-8 tracking-tight">Are you sure you want to delete this variant? This action cannot be undone.</p>
-
-      <form method="POST" action="">
-        {% csrf_token %}
-        <input type="hidden" name="action" value="delete_variant">
-        <input type="hidden" name="variant_id" x-bind:value="deleteId">
-        <div class="flex gap-4">
-          <button type="button" @click="deleteVariantModal = false" class="flex-1 py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-100 transition-all">Cancel</button>
-          <button type="submit" class="flex-1 py-4 bg-red-500 text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-red-600 transition-all shadow-xl">Delete</button>
+        
+        <!-- Live / Archive Tabs -->
+        <div class="flex gap-8 px-4 mb-2 border-b border-gray-100">
+            <a href="?status=live" class="text-[11px] font-bold uppercase tracking-wider {% if request.GET.status != 'archived' %}text-[#1a1a1a] border-b-2 border-[#1a1a1a]{% else %}text-gray-400 hover:text-gray-600 border-b-2 border-transparent{% endif %} pb-3 transition-all">Live</a>
+            <a href="?status=archived" class="text-[11px] font-bold uppercase tracking-wider {% if request.GET.status == 'archived' %}text-[#1a1a1a] border-b-2 border-[#1a1a1a]{% else %}text-gray-400 hover:text-gray-600 border-b-2 border-transparent{% endif %} pb-3 transition-all">Archived</a>
         </div>
-      </form>
-    </div>
-  </div>
 
+        <!-- Variants Table Container -->
+        <div class="bg-white rounded-[32px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] mb-8 overflow-hidden border border-gray-50">
+            
+            <!-- Table content -->
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[900px]">
+                    <thead class="text-[10px] font-bold uppercase tracking-widest text-[#8a8a8a] border-b border-gray-50 bg-white">
+                        <tr>
+                            <th class="px-8 py-6 w-12 text-center"></th> <!-- Radio for Default -->
+                            <th class="px-4 py-6">VARIANTS</th>
+                            <th class="px-4 py-6">SKU</th>
+                            <th class="px-4 py-6">PRICE</th>
+                            <th class="px-4 py-6">STATUS</th>
+                            <th class="px-4 py-6">STOCK</th>
+                            <th class="px-4 py-6">STOCK STATUS</th>
+                            <th class="px-8 py-6 text-right">ACTIONS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50 text-sm">
+                        {% for variant in variants %}
+                        <tr class="hover:bg-gray-50/50 transition-colors group">
+                            <!-- Default Radio Button -->
+                            <td class="px-8 py-6 w-12 text-center align-middle">
+                                {% if request.GET.status != 'archived' %}
+                                    {% if variant.is_default %}
+                                        <div class="w-5 h-5 rounded-full border-[6px] border-[#1a1a1a] bg-white mx-auto shadow-sm"></div>
+                                    {% else %}
+                                        <form method="POST" action="" class="inline-block" title="Set as default">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="set_default">
+                                            <input type="hidden" name="variant_id" value="{{ variant.id }}">
+                                            <button type="submit" class="w-5 h-5 rounded-full border border-gray-200 bg-white hover:border-gray-400 hover:bg-gray-50 mx-auto transition-all inline-block align-middle"></button>
+                                        </form>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="w-5 h-5 mx-auto opacity-30 bg-gray-200 rounded-full"></div>
+                                {% endif %}
+                            </td>
+                            
+                            <!-- Variant Info (Color dot + Name + Size) -->
+                            <td class="px-4 py-6 align-middle">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center p-2 flex-shrink-0">
+                                       <span class="w-full h-full rounded shadow-sm opacity-90" style="background-color: {{ variant.color }};"></span>
+                                    </div>
+                                    <div class="flex flex-col justify-center">
+                                        <span class="font-bold text-gray-900 text-[15px] mb-1 leading-none tracking-tight">{{ variant.color|title }}</span>
+                                        <span class="text-[9px] uppercase font-bold tracking-widest text-[#8a8a8a]">{{ variant.color|upper }} + {{ variant.size|upper }}</span>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- SKU -->
+                            <td class="px-4 py-6 align-middle">
+                                <span class="text-[10px] font-bold text-[#8a8a8a] uppercase tracking-widest">{{ variant.sku|default:"KI-WASEEM-GRE-M-470" }}</span>
+                            </td>
+
+                            <!-- Price -->
+                            <td class="px-4 py-6 align-middle">
+                                <span class="font-bold text-gray-900 text-[15px]">₹{{ variant.price }}</span>
+                            </td>
+
+                            <!-- Status Badge -->
+                            <td class="px-4 py-6 align-middle">
+                                {% if variant.is_active %}
+                                    <span class="px-4 py-1.5 bg-[#f5f5f5] text-[#1a1a1a] rounded-full text-[9px] font-bold uppercase tracking-widest inline-block shadow-sm">Active</span>
+                                {% else %}
+                                    <span class="px-4 py-1.5 bg-red-50 text-red-500 rounded-full text-[9px] font-bold uppercase tracking-widest inline-block shadow-sm">Inactive</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Stock -->
+                            <td class="px-4 py-6 align-middle">
+                                <span class="font-bold text-[15px] text-gray-900">{{ variant.stock }}</span>
+                            </td>
+
+                            <!-- Stock Status Logic -->
+                            <td class="px-4 py-6 align-middle">
+                                {% if variant.stock > 5 %}
+                                    <span class="text-[9px] font-bold uppercase tracking-widest text-[#10b981]">IN STOCK</span>
+                                {% else %}
+                                    <span class="text-[9px] font-bold uppercase tracking-widest text-orange-500">LOW STOCK</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
+                            <td class="px-8 py-6 text-right align-middle">
+                                <div class="flex justify-end items-center gap-6">
+                                    {% if request.GET.status == 'archived' %}
+                                        <button type="button" onclick="openConfirmModal('{{ variant.id }}', 'restore')" class="text-blue-500 hover:text-blue-700 transition-colors p-2 rounded-lg hover:bg-blue-50 font-bold text-[11px] uppercase tracking-widest" title="Restore Variant">
+                                            Restore
+                                        </button>
+                                        <button type="button" onclick="openConfirmModal('{{ variant.id }}', 'permanent_delete')" class="text-red-400 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50 font-bold text-[11px] uppercase tracking-widest" title="Delete Permanently">
+                                            Delete Permanently
+                                        </button>
+                                    {% else %}
+                                        <button type="button"
+                                            class="edit-btn text-gray-300 hover:text-[#1a1a1a] transition-colors p-2 rounded-lg hover:bg-gray-50"
+                                            title="Edit Variant"
+                                            data-id="{{ variant.id }}"
+                                            data-size="{{ variant.size }}"
+                                            data-color="{{ variant.color }}"
+                                            data-price="{{ variant.price }}"
+                                            data-stock="{{ variant.stock }}"
+                                            data-active="{{ variant.is_active }}"
+                                            data-default="{{ variant.is_default }}"
+                                            data-images='[{% for img in variant.images.all %}{"id": {{ img.id }}, "url": "{{ img.image.url|escapejs }}", "is_primary": {{ img.is_primary|yesno:"true,false" }}}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                        </button>
+
+                                        <!-- Switch Toggle for Active/Inactive -->
+                                        <form method="POST" action="" class="inline-flex items-center m-0 p-0" title="Toggle Status">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="toggle_variant">
+                                            <input type="hidden" name="variant_id" value="{{ variant.id }}">
+                                            
+                                            <label class="relative inline-flex items-center cursor-pointer m-0">
+                                                <input type="checkbox" onChange="this.form.submit()" class="sr-only peer" {% if variant.is_active %}checked{% endif %}>
+                                                <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#10b981] shadow-inner"></div>
+                                            </label>
+                                        </form>
+
+                                        <!-- Soft Delete Button -->
+                                        <button type="button" onclick="openConfirmModal('{{ variant.id }}', 'archive')" class="text-red-300 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-50" title="Archive Variant">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                        </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="px-8 py-16 text-center">
+                                <div class="flex flex-col items-center justify-center text-[#8a8a8a]">
+                                    <svg class="w-12 h-12 mb-4 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                                    <p class="text-sm font-medium text-gray-500">No variants found matching your criteria.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Container -->
+            <div id="paginationSection">
+                {% include 'admin_base/components/pagination.html' %}
+            </div>
+            
+        </div>
+    </div>
 </main>
 
+<!-- ADD MODAL -->
+<div id="addModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('addModal')"></div>
+    <div class="relative bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl z-10 transition-all transform scale-100 opacity-100 duration-300">
+        <div class="p-8 border-b border-gray-50 pb-6">
+            <h3 class="text-3xl font-serif text-gray-900 mb-1">Add Variant</h3>
+            <p class="text-[10px] uppercase tracking-widest text-[#8a8a8a] font-bold">CREATE A NEW PRODUCT VARIANT</p>
+        </div>
+        <form method="POST" action="" class="p-8 space-y-6" enctype="multipart/form-data" id="addForm" novalidate onsubmit="return validateForm('add', event)">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_variant">
+
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-3">Variant Images (Max 4) *</label>
+                <input type="hidden" name="primary_image" id="add_primary_image" value="new_0">
+                <p id="add-image-error" class="text-red-500 text-[10px] mb-3 font-bold uppercase tracking-widest hidden">At least one image is required</p>
+                <div class="grid grid-cols-4 gap-4" id="add-image-grid">
+                    {% for i in "0123"|make_list %}
+                    <div class="relative w-full aspect-square rounded-2xl border-2 border-dashed border-gray-100 bg-[#f9fafb] hover:bg-gray-50 transition-all flex items-center justify-center cursor-pointer overflow-hidden group shadow-sm" id="add-slot-{{ i }}">
+                        <input type="file" name="image_{{ i }}" id="add-img-input-{{ i }}" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImage(this, 'add', {{ i }})">
+                        <svg class="w-6 h-6 text-gray-300 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        
+                        <div id="add-preview-container-{{ i }}" class="hidden absolute inset-0 bg-white z-20">
+                            <img id="add-preview-{{ i }}" src="" class="w-full h-full object-cover">
+                            <button type="button" onclick="removeImage('add', {{ i }})" class="absolute top-2 right-2 w-6 h-6 bg-black/60 hover:bg-black text-white rounded-full flex items-center justify-center transition-colors z-30 shadow-md">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                            <label class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/70 px-2 py-1 rounded-full cursor-pointer hover:bg-black transition-colors z-30 text-white shadow-xl text-[9px] font-bold tracking-widest whitespace-nowrap">
+                                <input type="radio" name="add_primary_radio" id="add-radio-{{ i }}" onchange="setPrimary('add', 'new_{{ i }}')" value="new_{{ i }}" class="w-3 h-3 text-white border-gray-300 focus:ring-black cursor-pointer" {% if i == '0' %}checked{% endif %}>
+                                PRIMARY
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Size</label>
+                    <input type="text" name="size" id="add-size" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    <p id="add-size-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color</label>
+                    <input type="text" name="color" id="add-color" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    <p id="add-color-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Price</label>
+                    <input type="number" step="0.01" name="price" id="add-price" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    <p id="add-price-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Stock</label>
+                    <input type="number" name="stock" id="add-stock" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    <p id="add-stock-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                </div>
+            </div>
+
+            <div class="flex gap-8 pt-2">
+                <label class="relative inline-flex items-center cursor-pointer m-0">
+                    <input type="checkbox" name="is_active" value="true" checked class="sr-only peer">
+                    <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1a1a1a] shadow-inner"></div>
+                    <span class="ml-3 text-xs font-bold uppercase tracking-widest text-[#8a8a8a]">Active</span>
+                </label>
+                <label class="relative inline-flex items-center cursor-pointer m-0">
+                    <input type="checkbox" name="is_default" value="true" class="sr-only peer">
+                    <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1a1a1a] shadow-inner"></div>
+                    <span class="ml-3 text-xs font-bold uppercase tracking-widest text-[#8a8a8a]">Default Variant</span>
+                </label>
+            </div>
+
+            <div class="flex gap-4 pt-4">
+                <button type="button" onclick="closeModal('addModal')" class="flex-1 py-4 bg-[#f9fafb] text-gray-500 rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-100 transition-colors shadow-sm">Cancel</button>
+                <button type="submit" id="add-submit-btn" class="flex-1 py-4 bg-black text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-800 transition-colors shadow-lg">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" onclick="closeModal('editModal')"></div>
+    <div class="relative bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl z-10 transition-all transform scale-100 opacity-100 duration-300">
+        <div class="p-8 border-b border-gray-50 pb-6">
+            <h3 class="text-3xl font-serif text-gray-900 mb-1">Edit Variant</h3>
+            <p class="text-[10px] uppercase tracking-widest text-[#8a8a8a] font-bold">UPDATE VARIANT DETAILS</p>
+        </div>
+        <form method="POST" action="" class="p-8 space-y-6" id="editForm" enctype="multipart/form-data" novalidate onsubmit="return validateForm('edit', event)">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit_variant">
+            <input type="hidden" name="variant_id" id="edit-id">
+
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-3">Variant Images (Max 4) *</label>
+                <input type="hidden" name="primary_image" id="edit_primary_image" value="">
+                <p id="edit-image-error" class="text-red-500 text-[10px] mb-3 font-bold uppercase tracking-widest hidden">At least one image is required</p>
+                <div id="edit-deleted-images-container"></div>
+                <div class="grid grid-cols-4 gap-4" id="edit-image-grid">
+                    {% for i in "0123"|make_list %}
+                    <div class="relative w-full aspect-square rounded-2xl border-2 border-dashed border-gray-100 bg-[#f9fafb] hover:bg-gray-50 transition-all flex items-center justify-center cursor-pointer overflow-hidden group shadow-sm" id="edit-slot-{{ i }}">
+                        <input type="file" name="image_{{ i }}" id="edit-img-input-{{ i }}" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer z-10" onchange="previewImage(this, 'edit', {{ i }})">
+                        <svg class="w-6 h-6 text-gray-300 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                        
+                        <div id="edit-preview-container-{{ i }}" class="hidden absolute inset-0 bg-white z-20">
+                            <img id="edit-preview-{{ i }}" src="" class="w-full h-full object-cover">
+                            <button type="button" onclick="removeImage('edit', {{ i }})" class="absolute top-2 right-2 w-6 h-6 bg-black/60 hover:bg-black text-white rounded-full flex items-center justify-center transition-colors z-30 shadow-md">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                            </button>
+                            <label class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-black/70 px-2 py-1 rounded-full cursor-pointer hover:bg-black transition-colors z-30 text-white shadow-xl text-[9px] font-bold tracking-widest whitespace-nowrap">
+                                <input type="radio" name="edit_primary_radio" id="edit-radio-{{ i }}" onchange="setPrimary('edit', 'new_' + {{ i }})" value="new_{{ i }}" class="w-3 h-3 text-white border-gray-300 focus:ring-black cursor-pointer">
+                                PRIMARY
+                            </label>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Size</label>
+                    <input type="text" name="size" id="edit-size" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    <p id="edit-size-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color</label>
+                    <input type="text" name="color" id="edit-color" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    <p id="edit-color-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Price</label>
+                    <input type="number" step="0.01" name="price" id="edit-price" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    <p id="edit-price-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                </div>
+                <div>
+                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Stock</label>
+                    <input type="number" name="stock" id="edit-stock" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    <p id="edit-stock-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                </div>
+            </div>
+
+            <div class="flex gap-8 pt-2">
+                <label class="relative inline-flex items-center cursor-pointer m-0">
+                    <input type="checkbox" name="is_active" id="edit-active" value="true" class="sr-only peer">
+                    <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1a1a1a] shadow-inner"></div>
+                    <span class="ml-3 text-xs font-bold uppercase tracking-widest text-[#8a8a8a]">Active</span>
+                </label>
+                <label class="relative inline-flex items-center cursor-pointer m-0">
+                    <input type="checkbox" name="is_default" id="edit-default" value="true" class="sr-only peer">
+                    <div class="w-12 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#1a1a1a] shadow-inner"></div>
+                    <span class="ml-3 text-xs font-bold uppercase tracking-widest text-[#8a8a8a]">Default Variant</span>
+                </label>
+            </div>
+
+            <div class="flex gap-4 pt-4">
+                <button type="button" onclick="closeModal('editModal')" class="flex-1 py-4 bg-[#f9fafb] text-gray-500 rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-100 transition-colors shadow-sm">Cancel</button>
+                <button type="submit" id="edit-submit-btn" class="flex-1 py-4 bg-black text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold hover:bg-gray-800 transition-colors shadow-lg">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div id="confirmModal" class="fixed inset-0 z-[60] flex items-center justify-center p-6 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onclick="closeModal('confirmModal')"></div>
+    <div class="relative bg-white w-full max-w-[420px] rounded-[24px] overflow-hidden shadow-2xl z-10 transition-all transform scale-100 opacity-100 duration-300 p-8 text-center">
+        
+        <div id="confirm-icon-bg" class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        </div>
+
+        <h3 id="confirm-title" class="text-2xl font-serif text-gray-900 mb-2">Archive Variant</h3>
+        <p id="confirm-message" class="text-[13px] text-[#8a8a8a] mb-8 leading-relaxed">Are you sure you want to archive this variant? It will be hidden from the storefront.</p>
+
+        <form method="POST" id="confirmForm">
+            {% csrf_token %}
+            <input type="hidden" name="action" id="confirm-action" value="delete_variant">
+            <input type="hidden" name="variant_id" id="confirm-id">
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal('confirmModal')" class="flex-1 py-3.5 bg-[#f9fafb] border border-gray-100 text-gray-600 rounded-xl text-[11px] uppercase tracking-widest font-bold hover:bg-gray-50 transition-colors shadow-sm">Cancel</button>
+                <button type="submit" id="confirm-submit-btn" class="flex-1 py-3.5 bg-red-500 text-white rounded-xl text-[11px] uppercase tracking-widest font-bold hover:bg-red-600 transition-colors shadow-md">Confirm</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('live-search-input');
-    const tableBody = document.querySelector('tbody.divide-y.divide-gray-50');
-    let debounceTimer;
+    function closeModal(id) {
+        document.getElementById(id).classList.add('hidden');
+    }
 
-    if (searchInput && tableBody) {
-        searchInput.addEventListener('input', function() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                const query = this.value.trim();
+   document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.edit-btn');
+    if (!btn) return;
+
+    const modal = document.getElementById('editModal');
+
+    document.getElementById("edit-id").value = btn.getAttribute("data-id");
+    document.getElementById("edit-size").value = btn.getAttribute("data-size");
+    document.getElementById("edit-color").value = btn.getAttribute("data-color");
+    document.getElementById("edit-price").value = btn.getAttribute("data-price").replace(",", ".");
+    document.getElementById("edit-stock").value = btn.getAttribute("data-stock");
+
+    document.getElementById("edit-active").checked = (btn.getAttribute("data-active") === "True");
+    document.getElementById("edit-default").checked = (btn.getAttribute("data-default") === "True");
+
+    // Handle Images
+    const imagesData = JSON.parse(btn.getAttribute("data-images") || "[]");
+    
+    document.getElementById("edit-deleted-images-container").innerHTML = "";
+    document.getElementById("edit_primary_image").value = "";
+    
+    for (let i = 0; i < 4; i++) {
+        const previewContainer = document.getElementById(`edit-preview-container-${i}`);
+        const imgEl = document.getElementById(`edit-preview-${i}`);
+        const inputEl = document.getElementById(`edit-img-input-${i}`);
+        const radioEl = document.getElementById(`edit-radio-${i}`);
+        
+        inputEl.value = "";
+        
+        if (i < imagesData.length) {
+            const img = imagesData[i];
+            imgEl.src = img.url;
+            previewContainer.classList.remove('hidden');
+            
+            radioEl.value = `existing_${img.id}`;
+            radioEl.onchange = () => setPrimary('edit', `existing_${img.id}`);
+            
+            if (img.is_primary) {
+                radioEl.checked = true;
+                setPrimary('edit', `existing_${img.id}`);
+            }
+            
+            previewContainer.dataset.existingId = img.id;
+        } else {
+            previewContainer.classList.add('hidden');
+            imgEl.src = "";
+            previewContainer.dataset.existingId = "";
+            radioEl.value = `new_${i}`;
+            radioEl.onchange = () => setPrimary('edit', `new_${i}`);
+            radioEl.checked = false;
+        }
+    }
+
+    modal.classList.remove('hidden');
+});
+
+function previewImage(input, modalType, index) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById(`${modalType}-preview-${index}`).src = e.target.result;
+            document.getElementById(`${modalType}-preview-container-${index}`).classList.remove('hidden');
+            
+            let radioEl = document.getElementById(`${modalType}-radio-${index}`);
+
+            if(radioEl) {
+                radioEl.value = `new_${index}`;
+                radioEl.onchange = () => setPrimary(modalType, `new_${index}`);
+                if (!document.getElementById(`${modalType}_primary_image`).value) {
+                     radioEl.checked = true;
+                     setPrimary(modalType, `new_${index}`);
+                }
+            }
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function removeImage(modalType, index) {
+    const container = document.getElementById(`${modalType}-preview-container-${index}`);
+    const existingId = container.dataset.existingId;
+    
+    if (existingId) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = `delete_image_${existingId}`;
+        input.value = "true";
+        document.getElementById(`${modalType}-deleted-images-container`)?.appendChild(input);
+        
+        container.dataset.existingId = "";
+    }
+    
+    document.getElementById(`${modalType}-img-input-${index}`).value = "";
+    document.getElementById(`${modalType}-preview-${index}`).src = "";
+    container.classList.add('hidden');
+    
+    const radioEl = document.getElementById(`${modalType}-radio-${index}`);
+    if(radioEl) {
+       radioEl.value = `new_${index}`;
+       radioEl.onchange = () => setPrimary(modalType, `new_${index}`);
+    }
+
+    const primaryInput = document.getElementById(`${modalType}_primary_image`);
+    if ((existingId && primaryInput.value === `existing_${existingId}`) || primaryInput.value === `new_${index}`) {
+         primaryInput.value = "";
+         if(radioEl) radioEl.checked = false;
+         
+         const nextVisibleRadio = Array.from(document.querySelectorAll(`input[name="${modalType}_primary_radio"]`))
+             .find(r => !r.closest('.hidden'));
+         if(nextVisibleRadio) {
+             nextVisibleRadio.checked = true;
+             setPrimary(modalType, nextVisibleRadio.value);
+         }
+    }
+}
+
+function setPrimary(modalType, val) {
+    document.getElementById(`${modalType}_primary_image`).value = val;
+}
+
+function validateForm(modalType, e) {
+    if (e) e.preventDefault();
+    let isValid = true;
+    
+    // Clear old errors
+    const errorIds = [`${modalType}-image-error`, `${modalType}-size-error`, `${modalType}-color-error`, `${modalType}-price-error`, `${modalType}-stock-error`];
+    errorIds.forEach(id => {
+        let el = document.getElementById(id);
+        if(el) el.classList.add('hidden');
+    });
+
+    let hasImage = false;
+    for (let i = 0; i < 4; i++) {
+        const container = document.getElementById(`${modalType}-preview-container-${i}`);
+        if (!container.classList.contains('hidden')) {
+            hasImage = true;
+            break;
+        }
+    }
+    if (!hasImage) {
+        let err = document.getElementById(`${modalType}-image-error`);
+        if(err) err.classList.remove('hidden');
+        isValid = false;
+    }
+
+    const fields = ['size', 'color', 'price', 'stock'];
+    fields.forEach(f => {
+        let el = document.getElementById(`${modalType}-${f}`);
+        if(el && !el.value.trim()) {
+            let err = document.getElementById(`${modalType}-${f}-error`);
+            if(err) err.classList.remove('hidden');
+            isValid = false;
+        }
+    });
+
+    if (isValid) {
+        let btn = document.getElementById(`${modalType}-submit-btn`);
+        if(btn) {
+            btn.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Processing...`;
+            btn.disabled = true;
+            btn.classList.add('opacity-80', 'cursor-not-allowed');
+        }
+        document.getElementById(`${modalType}Form`).submit();
+    }
+    return false;
+}
+
+function openConfirmModal(id, actionType) {
+    document.getElementById("confirm-id").value = id;
+    let modalTitle = document.getElementById("confirm-title");
+    let modalMsg = document.getElementById("confirm-message");
+    let modalAction = document.getElementById("confirm-action");
+    let modalBtn = document.getElementById("confirm-submit-btn");
+    let iconBg = document.getElementById("confirm-icon-bg");
+
+    if (actionType === 'archive') {
+        modalTitle.innerText = "Archive Variant";
+        modalMsg.innerText = "Are you sure you want to archive this variant? It will be hidden from the storefront.";
+        modalAction.value = "delete_variant";
+        modalBtn.className = "flex-1 py-3.5 bg-red-500 text-white rounded-xl text-[11px] uppercase tracking-widest font-bold hover:bg-red-600 transition-colors shadow-md";
+        modalBtn.innerText = "Archive";
+        iconBg.className = "w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6";
+    } else if (actionType === 'restore') {
+        modalTitle.innerText = "Restore Variant";
+        modalMsg.innerText = "Do you want to restore this variant? It will be restored offline (inactive).";
+        modalAction.value = "restore_variant";
+        modalBtn.className = "flex-1 py-3.5 bg-black text-white rounded-xl text-[11px] uppercase tracking-widest font-bold hover:bg-gray-800 transition-colors shadow-md";
+        modalBtn.innerText = "Restore";
+        iconBg.className = "w-16 h-16 bg-gray-100 text-black rounded-full flex items-center justify-center mx-auto mb-6";
+    } else if (actionType === 'permanent_delete') {
+        modalTitle.innerText = "Delete Permanently";
+        modalMsg.innerText = "This action cannot be undone. Are you absolutely sure?";
+        modalAction.value = "permanent_delete_variant";
+        modalBtn.className = "flex-1 px-4 py-3.5 bg-red-600 text-white rounded-xl text-[11px] uppercase tracking-widest font-bold hover:bg-red-700 transition-colors shadow-md whitespace-nowrap";
+        modalBtn.innerText = "Confirm Delete";
+        iconBg.className = "w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6";
+    }
+
+    document.getElementById("confirmModal").classList.remove('hidden');
+}
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === "Escape") {
+        ['addModal', 'editModal', 'confirmModal'].forEach(id => {
+            let modal = document.getElementById(id);
+            if (modal && !modal.classList.contains('hidden')) {
+                closeModal(id);
+            }
+        });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Toast initialization
+    const toasts = document.querySelectorAll('.toast-item');
+    toasts.forEach((toast, index) => {
+        setTimeout(() => {
+            toast.classList.remove('translate-x-full');
+        }, 100 * (index + 1));
+
+        setTimeout(() => {
+            toast.classList.add('opacity-0');
+            setTimeout(() => toast.remove(), 500);
+        }, 5000);
+    });
+
+    // Debounced Live Search initialization
+    const searchInput = document.querySelector("#searchInput");
+    let searchTimeout;
+    if (searchInput) {
+        searchInput.addEventListener("input", function() {
+            clearTimeout(searchTimeout);
+            const query = this.value;
+            searchTimeout = setTimeout(() => {
                 const url = new URL(window.location.href);
-
-                if (query) url.searchParams.set('q', query);
-                else url.searchParams.delete('q');
-
-                url.searchParams.delete('page');
-                window.history.replaceState(null, '', url);
-
-                fetch(url.toString(), {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(response => response.text())
-                .then(html => {
-                    tableBody.innerHTML = html;
-                })
-                .catch(error => console.error('Live search error:', error));
-            }, 300);
+                if (query) {
+                    url.searchParams.set("q", query);
+                } else {
+                    url.searchParams.delete("q");
+                }
+                url.searchParams.delete("page");
+                window.location.href = url.toString();
+            }, 500);
         });
     }
 });
 </script>
+
 </body>
 </html>

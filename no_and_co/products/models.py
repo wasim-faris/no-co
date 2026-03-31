@@ -67,7 +67,8 @@ class Variant(models.Model):
     def save(self, *args, **kwargs):
         if not self.sku:
             self.sku = self.generate_sku()
-            super().save(*args, **kwargs)
+
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.product.product_name} - {self.size} - {self.color}"
@@ -77,8 +78,6 @@ class ProductImage(models.Model):
     product = models.ForeignKey('Product', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='products/')
     is_primary = models.BooleanField(default=False)
-
-from django.db import models
 
 class VariantImage(models.Model):
     variant = models.ForeignKey(
