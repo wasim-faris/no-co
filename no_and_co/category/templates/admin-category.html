@@ -6,44 +6,17 @@
     <title>NØ&CO | Categories</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'serif': ['"Playfair Display"', 'serif'],
-                        'sans': ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        'noco-beige': '#F3F0EA',
-                        'noco-offwhite': '#FFFDF9',
-                        'noco-text': '#111111',
-                        'noco-subtext': '#767676',
-                        'noco-muted': '#D1C9BC',
-                        'noco-border': '#EAE5DB',
-                        'noco-accent': '#CFC4AD',
-                    },
-                    borderRadius: {
-                        'noco': '12px',
-                        'noco-sm': '8px'
-                    }
-                }
-            }
-        }
-    </script>
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        .noco-scroll::-webkit-scrollbar { width: 4px; height: 4px; }
-        .noco-scroll::-webkit-scrollbar-thumb { background-color: #D1C9BC; border-radius: 10px; }
-
-        @media (max-width: 1024px) {
-            #sidebar { width: 88px; padding-left: 1rem; padding-right: 1rem; }
-            #sidebar .brand-name, #sidebar .mgmt-label, #sidebar .nav-text, #sidebar .user-info { display: none; }
-            #sidebar .nav-item { justify-content: center; border-radius: 50%; width: 48px; height: 48px; padding: 0; margin: 0 auto; }
-            #sidebar .user-block { justify-content: center; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f1eb;
+            scroll-behavior: smooth;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
-  /* Toast */
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .rounded-custom { border-radius: 24px; }
+        /* Toast */
         .icon-bubble {
             position: relative;
             border-radius: 50% 50% 50% 0;
@@ -62,10 +35,9 @@
         @media (max-width: 768px) {
             .image-section { display: none; }
         }
-
     </style>
 </head>
-<body class="bg-noco-offwhite font-sans text-noco-text flex w-full min-h-screen">
+<body class="antialiased min-h-screen flex">
 
      <div id="toast-container" class="fixed top-8 right-8 z-50 flex flex-col gap-4">
         {% if messages %}
@@ -163,196 +135,192 @@
     </div>
 </aside>
 
-    <main class="flex-1 bg-noco-beige transition-all duration-300 ease-in-out p-6 md:p-8 lg:p-10 noco-scroll overflow-y-auto h-screen relative">
+    <div class="flex-1 flex flex-col">
 
-        <header class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
-            <div>
-                <h2 class="font-serif text-4xl font-semibold text-noco-text tracking-tight">Categories</h2>
-                <p class="text-noco-subtext text-xs mt-1 uppercase tracking-widest font-medium">Inventory Overview</p>
-            </div>
-            <button onclick="openModal('addCategoryModal')" class="bg-noco-text text-noco-offwhite px-8 py-3 rounded-noco flex items-center gap-2 text-[13px] font-bold hover:shadow-lg hover:bg-black transition-all self-start sm:self-auto">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"></path></svg>
-                Add Category
-            </button>
-        </header>
+        <!-- Header Area (matches product details) -->
+        <div class="px-8 pt-6 pb-4 bg-[#f5f1eb]">
+            <!-- Breadcrumb -->
+            <nav class="text-xs uppercase tracking-widest text-gray-400 flex gap-3 items-center mb-4">
+                <span>CATEGORY MANAGEMENT</span>
+                <span>&gt;</span>
+                <span class="text-gray-900 font-semibold">CATEGORIES</span>
+            </nav>
 
-          <div class="grid grid-cols-4 gap-6 mb-8">
-
-  <div class="bg-white h-44 p-8 rounded-2xl border border-border shadow-sm flex flex-col justify-between">
-    <div class="flex justify-between items-start">
-      <p class="text-[10px] font-bold text-muted tracking-[0.15em] uppercase">Total category</p>
-      <svg class="w-4 h-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
-    </div>
-    <h2 class="text-5xl font-medium font-serif leading-none">{{count}}</h2>
-  </div>
-
-  <div class="bg-white h-44 p-8 rounded-2xl border border-border shadow-sm flex flex-col justify-between">
-    <div class="flex justify-between items-start">
-      <p class="text-[10px] font-bold text-muted tracking-[0.15em] uppercase">subcategories</p>
-      <div class="w-5 h-5 rounded-full border border-green-500 flex items-center justify-center">
-        <svg class="w-3 h-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
-      </div>
-    </div>
-    <h2 class="text-5xl font-medium font-serif leading-none">{{subcategory_count}}</h2>
-  </div>
-
-  <div class="bg-white h-44 p-8 rounded-2xl border border-border shadow-sm flex flex-col justify-between">
-    <div class="flex justify-between items-start">
-      <p class="text-[10px] font-bold text-muted tracking-[0.15em] uppercase">active</p>
-      <div class="w-5 h-5 rounded-full border border-red-200 flex items-center justify-center">
-        <svg class="w-3 h-3 text-red-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M18 12H6"></path></svg>
-      </div>
-    </div>
-    <h2 class="text-5xl font-medium font-serif leading-none text-[#D6CFC1]">{{active_count}}</h2>
-  </div>
-
-  <div class="bg-white h-44 p-8 rounded-2xl border border-border shadow-sm flex flex-col justify-between">
-    <div class="flex justify-between items-start">
-      <p class="text-[10px] font-bold text-muted tracking-[0.15em] uppercase">inactive</p>
-      <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-    </div>
-    <h2 class="text-5xl font-medium font-serif leading-none text-red-400">{{inactive_count}}</h2>
-  </div>
-
-</div>
-
-        <section class="bg-white rounded-noco shadow-sm border border-noco-border/60 overflow-hidden">
-            <div class="p-6 md:px-8 border-b border-noco-border flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/50">
-                <div class="flex items-center gap-8">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-noco-text">Category Directory</h3>
-                    <div class="flex gap-4 border-l border-noco-border pl-8">
-                        <a href="?status=live" class="text-[11px] font-bold uppercase tracking-wider {% if request.GET.status != 'archived' %}text-noco-text border-b-2 border-noco-text{% else %}text-noco-subtext hover:text-noco-text{% endif %} pb-1 transition-all">Live</a>
-                        <a href="?status=archived" class="text-[11px] font-bold uppercase tracking-wider {% if request.GET.status == 'archived' %}text-noco-text border-b-2 border-noco-text{% else %}text-noco-subtext hover:text-noco-text{% endif %} pb-1 transition-all">Archived</a>
-                    </div>
+            <!-- Title + Action -->
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-4xl font-serif text-gray-900">
+                        Categories
+                    </h1>
+                    <div class="w-12 h-[2px] bg-gray-900 mt-2"></div>
                 </div>
-                <!-- SEARCH: added id to form; input value set from search_query context var -->
-                <form method="GET" id="searchForm" class="relative w-full sm:w-80">
+                <button onclick="openModal('addCategoryModal')" class="px-6 py-3 bg-black text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                    Add Category
+                </button>
+            </div>
+        </div>
+
+        <main class="max-w-6xl mx-auto px-8 py-8 w-full space-y-6 overflow-y-auto hide-scrollbar" style="max-height: calc(100vh - 120px);">
+
+            <!-- Stats Row -->
+            <section class="grid grid-cols-4 gap-4">
+                <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+                    <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Total Categories</p>
+                    <p class="text-xl font-medium tracking-tight">{{count}}</p>
+                </div>
+                <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+                    <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Subcategories</p>
+                    <p class="text-xl font-medium tracking-tight">{{subcategory_count}}</p>
+                </div>
+                <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+                    <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Active</p>
+                    <p class="text-xl font-medium tracking-tight">{{active_count}}</p>
+                </div>
+                <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+                    <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Inactive</p>
+                    <p class="text-xl font-medium tracking-tight text-red-400">{{inactive_count}}</p>
+                </div>
+            </section>
+
+            <!-- Search + Filter Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <form method="GET" id="searchForm" class="flex-1 max-w-[360px] relative" onsubmit="event.preventDefault();">
                     {% if request.GET.status %}<input type="hidden" name="status" value="{{ request.GET.status }}">{% endif %}
-                    <svg class="w-4 h-4 text-noco-subtext absolute left-4 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path></svg>
-                    <input id="searchInput" type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search by name..." class="w-full bg-noco-beige/40 text-[13px] text-noco-text placeholder:text-noco-subtext pl-11 pr-4 py-3 rounded-noco-sm outline-none border border-transparent focus:border-noco-accent focus:bg-white transition-all">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                    <input id="searchInput" type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search by name..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition-all placeholder:text-gray-300 font-medium text-gray-700">
                     <button type="submit" class="hidden"></button>
                 </form>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[800px]">
-                    <thead>
-                        <tr class="text-left border-b border-noco-border">
-                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5">Index</th>
-                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5">Label</th>
-                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5 text-center">Sub-Items</th>
-                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5 text-center">Unit Count</th>
-                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5">Visibility</th>
-                            <th class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext px-8 py-5 text-right">Options</th>
-                        </tr>
-                    </thead>
-                    <!-- SEARCH: id added so JS can swap contents -->
-                    <tbody id="categoryTableBody" class="divide-y divide-noco-border/40">
-                        {% for i in page_obj %}
-                        <tr class="hover:bg-noco-beige/20 transition-all group">
-                            <td class="text-[13px] text-noco-subtext px-8 py-6">{{ forloop.counter0|add:page_obj.start_index }}</td>
-                            <td class="px-8 py-6">
-                                <span class="text-[14px] font-semibold text-noco-text tracking-tight">{{i.category_name}}</span>
-                            </td>
-                            <td class="text-[13px] font-medium text-noco-text px-8 py-6 text-center">{{i.subcategories.count }}</td>
-                            <td class="text-[13px] font-medium text-noco-text px-8 py-6 text-center">124</td>
-                            <td class="px-8 py-6">
-                               {% if i.is_deleted %}
-    <span class="text-red-500 text-xs font-bold">Archived</span>
-{% elif i.is_active %}
-    <span class="text-green-600 text-xs font-bold">Live</span>
-{% else %}
-    <span class="text-gray-500 text-xs font-bold">Hidden</span>
-{% endif %}
-                            </td>
-                            <td class="px-8 py-6 text-right">
-                                <div class="action-buttons flex items-center justify-end gap-5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                    {% if request.GET.status == 'archived' %}
-                                    <form method="POST">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="category_id" value="{{i.id}}">
-                                        <input type="hidden" name="action" value="restore">
-                                        <button type="submit" class="text-blue-500 hover:text-blue-700 flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"></path></svg>
-                                            Restore
-                                        </button>
-                                    </form>
-                                    <button type="button" onclick="openCategoryPermanentDeleteModal('{{i.id}}', '{{i.category_name}}')" class="text-red-400 hover:text-red-700 transition-colors">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-        <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path>
-    </svg>
-</button>
+            <!-- Live / Archive Tabs -->
+            <div class="flex gap-6 px-2 border-b border-gray-100">
+                <a href="?status=live" class="text-[10px] font-bold uppercase tracking-widest {% if request.GET.status != 'archived' %}text-black border-b-2 border-black{% else %}text-gray-400 hover:text-gray-600 border-b-2 border-transparent{% endif %} pb-3 transition-all">Live</a>
+                <a href="?status=archived" class="text-[10px] font-bold uppercase tracking-widest {% if request.GET.status == 'archived' %}text-black border-b-2 border-black{% else %}text-gray-400 hover:text-gray-600 border-b-2 border-transparent{% endif %} pb-3 transition-all">Archived</a>
+            </div>
+
+            <!-- Table Container -->
+            <div class="bg-white rounded-custom shadow-sm overflow-hidden border border-white">
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead class="text-[9px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 bg-white">
+                            <tr>
+                                <th class="px-5 py-3">Index</th>
+                                <th class="px-3 py-3">Label</th>
+                                <th class="px-3 py-3 text-center">Sub-Items</th>
+                                <th class="px-3 py-3 text-center">Unit Count</th>
+                                <th class="px-3 py-3">Visibility</th>
+                                <th class="px-5 py-3 text-right">Options</th>
+                            </tr>
+                        </thead>
+                        <!-- SEARCH: id added so JS can swap contents -->
+                        <tbody id="categoryTableBody" class="divide-y divide-gray-50 text-sm">
+                            {% for i in page_obj %}
+                            <tr class="hover:bg-gray-50/50 transition-colors group">
+                                <td class="px-5 py-3 text-[13px] text-gray-400 align-middle">{{ forloop.counter0|add:page_obj.start_index }}</td>
+                                <td class="px-3 py-3 align-middle">
+                                    <span class="font-bold text-gray-900 text-[13px] tracking-tight">{{i.category_name}}</span>
+                                </td>
+                                <td class="px-3 py-3 text-[13px] font-medium text-gray-900 text-center align-middle">{{i.subcategories.count }}</td>
+                                <td class="px-3 py-3 text-[13px] font-medium text-gray-900 text-center align-middle">124</td>
+                                <td class="px-3 py-3 align-middle">
+                                   {% if i.is_deleted %}
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-500">Archived</span>
+                                    {% elif i.is_active %}
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-green-50 text-green-600">Live</span>
                                     {% else %}
-                                    <button onclick="openEditModal('{{i.id}}', '{{i.category_name}}')" class="text-noco-subtext hover:text-noco-text transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
-                                    </button>
-                                    <button onclick="openDeleteModal('{{i.id}}', '{{i.category_name}}')" class="text-red-300 hover:text-red-600 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path></svg>
-                                    </button>
-                                   <form method="POST">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="category_id" value="{{i.id}}">
-                                        <input type="hidden" name="action" value="toggle">
-                                        <button type="submit" class="relative w-9 h-5 rounded-full p-1 transition-all {% if i.is_active %}bg-green-500{% else %}bg-gray-400{% endif %}">
-                                            <div class="w-3 h-3 bg-white rounded-full shadow-sm {{ i.is_active|yesno:'translate-x-4,translate-x-0' }} transition-transform"></div>
-                                        </button>
-                                    </form>
+                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500">Hidden</span>
                                     {% endif %}
-                                </div>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                                <td class="px-5 py-3 text-right align-middle">
+                                    <div class="action-buttons flex items-center justify-end gap-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                        {% if request.GET.status == 'archived' %}
+                                        <form method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="category_id" value="{{i.id}}">
+                                            <input type="hidden" name="action" value="restore">
+                                            <button type="submit" class="text-gray-400 hover:text-black transition-colors text-[9px] font-bold uppercase tracking-tight hover:underline underline-offset-2">
+                                                Restore
+                                            </button>
+                                        </form>
+                                        <button type="button" onclick="openCategoryPermanentDeleteModal('{{i.id}}', '{{i.category_name}}')" class="text-red-300 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                                <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path>
+                                            </svg>
+                                        </button>
+                                        {% else %}
+                                        <button onclick="openEditModal('{{i.id}}', '{{i.category_name}}')" class="text-gray-300 hover:text-black transition-colors p-1.5 rounded-lg hover:bg-gray-50">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
+                                        </button>
+                                        <button onclick="openDeleteModal('{{i.id}}', '{{i.category_name}}')" class="text-red-200 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path></svg>
+                                        </button>
+                                       <form method="POST">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="category_id" value="{{i.id}}">
+                                            <input type="hidden" name="action" value="toggle">
+                                            <label class="relative inline-flex items-center cursor-pointer m-0">
+                                                <input type="checkbox" onChange="this.form.submit()" class="sr-only peer" {% if i.is_active %}checked{% endif %}>
+                                                <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black shadow-inner"></div>
+                                            </label>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div id="paginationSection">
+                    {% include 'admin_base/components/pagination.html' %}
+                </div>
             </div>
 
-            <!-- Pagination -->
-            <div id="paginationSection">
-                {% include 'admin_base/components/pagination.html' %}
-            </div>
-        </section>
+        </main>
+    </div>
 
-        <div id="toast-wrapper" class="fixed top-8 right-8 z-[100] flex flex-col gap-3"></div>
+    <div id="toast-wrapper" class="fixed top-8 right-8 z-[100] flex flex-col gap-3"></div>
 
-    </main>
-
-<div id="addCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] hidden transition-all duration-300">
-    <div class="bg-white w-[480px] rounded-noco shadow-2xl p-10 relative animate-in fade-in zoom-in duration-200">
-        <button onclick="closeModal('addCategoryModal')" class="absolute top-6 right-6 text-noco-subtext hover:text-noco-text transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-
-        <div class="mb-8">
-            <h2 class="font-serif text-3xl font-semibold text-noco-text">Add Category</h2>
-            <div class="h-[2px] w-12 bg-noco-text mt-3"></div>
+<div id="addCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeModal('addCategoryModal')"></div>
+    <div class="relative bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl z-10">
+        <div class="p-8 pb-4 border-b border-gray-50 bg-white">
+            <h3 class="text-2xl font-serif text-gray-900 mb-1">Add Category</h3>
+            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Create a new product category</p>
         </div>
 
-        <form id="addCategoryForm" class="space-y-8" method="POST">
+        <form id="addCategoryForm" class="p-8 space-y-6" method="POST">
             {% csrf_token %}
               <input type="hidden" name="action" value="create">
             <div>
-                <label class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext block mb-3">Category Name</label>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Category Name</label>
                 <input type="text" placeholder="e.g. MENS" name="category_name" required
-                       class="w-full bg-noco-beige/30 border border-noco-border rounded-noco-sm px-4 py-3.5 text-sm focus:outline-none focus:border-noco-accent transition-all">
+                       class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
             </div>
 
             <input type="hidden" name="is_active" id="isActiveInput" value="true">
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100">
                 <div>
-                    <p class="text-sm font-bold text-noco-text">Active Status</p>
-                    <p class="text-[11px] text-noco-subtext mt-1">Set category as visible to customers</p>
+                    <p class="text-xs font-bold text-gray-900">Active Status</p>
+                    <p class="text-[10px] text-gray-400 mt-0.5">Set category as visible to customers</p>
                 </div>
-                <button type="button" id="modalToggle" class="relative w-10 h-6 bg-noco-text rounded-full p-1 transition-all">
-                    <div class="dot w-4 h-4 bg-white rounded-full shadow-sm translate-x-4 transition-transform"></div>
+                <button type="button" id="modalToggle" class="relative w-12 h-6 bg-black rounded-full transition-colors duration-200 ease-in-out">
+                    <span class="dot absolute top-1 w-4 h-4 bg-white rounded-full translate-x-6 transition-transform duration-200 ease-in-out shadow-sm"></span>
                 </button>
             </div>
 
-            <div class="flex items-center gap-3 pt-4">
-                <button type="button" onclick="closeModal('addCategoryModal')" class="flex-1 bg-noco-beige text-noco-text font-bold text-[12px] uppercase tracking-widest py-4 rounded-noco-sm hover:bg-noco-muted transition-all">
+            <div class="flex gap-4 pt-2">
+                <button type="button" onclick="closeModal('addCategoryModal')" class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 bg-noco-text text-white font-bold text-[12px] uppercase tracking-widest py-4 rounded-noco-sm hover:bg-black hover:shadow-lg transition-all">
+                <button type="submit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">
                     Save Category
                 </button>
             </div>
@@ -360,32 +328,29 @@
     </div>
 </div>
 
-<div id="editCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] hidden transition-all duration-300">
-    <div class="bg-white w-[480px] rounded-noco shadow-2xl p-10 relative animate-in fade-in zoom-in duration-200">
-        <button onclick="closeModal('editCategoryModal')" class="absolute top-6 right-6 text-noco-subtext hover:text-noco-text transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-
-        <div class="mb-8">
-            <h2 class="font-serif text-3xl font-semibold text-noco-text">Edit Category</h2>
-            <div class="h-[2px] w-12 bg-noco-text mt-3"></div>
+<div id="editCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeModal('editCategoryModal')"></div>
+    <div class="relative bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl z-10">
+        <div class="p-8 pb-4 border-b border-gray-50 bg-white">
+            <h3 class="text-2xl font-serif text-gray-900 mb-1">Edit Category</h3>
+            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Update category details</p>
         </div>
 
-        <form id="editCategoryForm" class="space-y-8" method="POST">
+        <form id="editCategoryForm" class="p-8 space-y-6" method="POST">
             {% csrf_token %}
                 <input type="hidden" name="action" value="edit">
             <input type="hidden" name="category_id" id="editCategoryId">
             <div>
-                <label class="text-[10px] font-bold uppercase tracking-[0.2em] text-noco-subtext block mb-3">Category Name</label>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Category Name</label>
                 <input type="text" id="editCategoryName" name="category_name" required
-                       class="w-full bg-noco-beige/30 border border-noco-border rounded-noco-sm px-4 py-3.5 text-sm focus:outline-none focus:border-noco-accent transition-all">
+                       class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
             </div>
 
-            <div class="flex items-center gap-3 pt-4">
-                <button type="button" onclick="closeModal('editCategoryModal')" class="flex-1 bg-noco-beige text-noco-text font-bold text-[12px] uppercase tracking-widest py-4 rounded-noco-sm hover:bg-noco-muted transition-all">
+            <div class="flex gap-4 pt-2">
+                <button type="button" onclick="closeModal('editCategoryModal')" class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 bg-noco-text text-white font-bold text-[12px] uppercase tracking-widest py-4 rounded-noco-sm hover:bg-black hover:shadow-lg transition-all">
+                <button type="submit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">
                     Update
                 </button>
             </div>
@@ -393,43 +358,41 @@
     </div>
 </div>
 
-<div id="deleteCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] hidden transition-all duration-300">
-    <div class="bg-white w-[400px] rounded-noco shadow-2xl p-10 relative text-center animate-in fade-in zoom-in duration-200">
+<div id="deleteCategoryModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeModal('deleteCategoryModal')"></div>
+    <div class="relative bg-white w-full max-w-sm rounded-[32px] p-10 text-center shadow-2xl z-10">
         <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"></path></svg>
         </div>
 
-        <h2 class="font-serif text-2xl font-semibold text-noco-text mb-2">Delete Category?</h2>
-        <p class="text-noco-subtext text-sm mb-8">Are you sure you want to delete <span id="deleteCategoryName" class="font-bold text-noco-text"></span>? This action can be reversed in the Archived section.</p>
+        <h3 class="text-xl font-semibold mb-2">Delete Category?</h3>
+        <p class="text-sm text-gray-400 mb-8">Are you sure you want to delete <span id="deleteCategoryName" class="font-bold text-gray-900"></span>? This action can be reversed in the Archived section.</p>
 
         <form id="deleteCategoryForm" method="POST">
             {% csrf_token %}
              <input type="hidden" name="action" value="delete">
             <input type="hidden" name="category_id" id="deleteCategoryId">
-            <div class="flex items-center gap-3">
-                <button type="button" onclick="closeModal('deleteCategoryModal')" class="flex-1 bg-noco-beige text-noco-text font-bold text-[11px] uppercase tracking-widest py-3.5 rounded-noco-sm hover:bg-noco-muted transition-all">
-                    No, Cancel
-                </button>
-                <button type="submit" class="flex-1 bg-red-600 text-white font-bold text-[11px] uppercase tracking-widest py-3.5 rounded-noco-sm hover:bg-red-700 transition-all">
-                    Yes, Delete
-                </button>
+            <div class="flex flex-col gap-3">
+                <button type="submit" class="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold mb-2">Confirm</button>
+                <button type="button" onclick="closeModal('deleteCategoryModal')" class="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold">Cancel</button>
             </div>
         </form>
     </div>
 </div>
-<div id="categoryPermanentDeleteModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[130] flex items-center justify-center hidden">
-    <div class="bg-white w-[400px] rounded-[24px] shadow-2xl modal-container p-10 text-center">
 
+<div id="categoryPermanentDeleteModal" class="fixed inset-0 z-[130] flex items-center justify-center p-6 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeCategoryPermanentDeleteModal()"></div>
+    <div class="relative bg-white w-full max-w-sm rounded-[32px] p-10 text-center shadow-2xl z-10">
         <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7"></path>
             </svg>
         </div>
 
-        <h3 class="font-serif text-2xl font-semibold mb-2">Delete Category?</h3>
-        <p class="text-sm text-noco-subtext mb-8">
+        <h3 class="text-xl font-semibold mb-2">Delete Category?</h3>
+        <p class="text-sm text-gray-400 mb-8">
             This will permanently delete
-            <span id="categoryDeleteName" class="font-bold text-noco-text"></span>.
+            <span id="categoryDeleteName" class="font-bold text-gray-900"></span>.
             This cannot be undone.
         </p>
 
@@ -438,13 +401,9 @@
             <input type="hidden" name="category_id" id="categoryDeleteId">
             <input type="hidden" name="action" value="permanent_delete_category">
 
-            <div class="flex gap-3">
-                <button type="button" onclick="closeCategoryPermanentDeleteModal()" class="flex-1 px-6 py-3.5 rounded-noco border border-noco-border text-[11px] font-bold uppercase tracking-widest">
-                    Cancel
-                </button>
-                <button type="submit" class="flex-1 px-6 py-3.5 rounded-noco bg-red-600 text-white text-[11px] font-bold uppercase tracking-widest hover:bg-red-700">
-                    Delete
-                </button>
+            <div class="flex flex-col gap-3">
+                <button type="submit" class="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold mb-2">Delete</button>
+                <button type="button" onclick="closeCategoryPermanentDeleteModal()" class="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold">Cancel</button>
             </div>
         </form>
     </div>
@@ -495,13 +454,6 @@
         openModal('deleteCategoryModal');
     }
 
-    window.onclick = function(event) {
-        if (event.target.classList.contains('fixed')) {
-            event.target.classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-    }
-
     const modalToggle = document.getElementById("modalToggle");
     const modalDot = modalToggle.querySelector(".dot");
     const isActiveInput = document.getElementById("isActiveInput");
@@ -510,16 +462,16 @@
     modalToggle.addEventListener("click", () => {
         modalIsActive = !modalIsActive;
         if (modalIsActive) {
-            modalToggle.classList.add("bg-noco-text");
-            modalToggle.classList.remove("bg-noco-muted");
-            modalDot.classList.add("translate-x-4");
-            modalDot.classList.remove("translate-x-0");
+            modalToggle.classList.add("bg-black");
+            modalToggle.classList.remove("bg-gray-300");
+            modalDot.classList.add("translate-x-6");
+            modalDot.classList.remove("translate-x-1");
             isActiveInput.value = "true";
         } else {
-            modalToggle.classList.remove("bg-noco-text");
-            modalToggle.classList.add("bg-noco-muted");
-            modalDot.classList.remove("translate-x-4");
-            modalDot.classList.add("translate-x-0");
+            modalToggle.classList.remove("bg-black");
+            modalToggle.classList.add("bg-gray-300");
+            modalDot.classList.remove("translate-x-6");
+            modalDot.classList.add("translate-x-1");
             isActiveInput.value = "false";
         }
     });

@@ -28,6 +28,12 @@ class Product(models.Model):
     def __str__(self):
         return self.product_name
 
+class Size(models.Model):
+    name = models.CharField(max_length=10)
+
+    def __str__(self):
+        return self.name
+
 class Variant(models.Model):
     product = models.ForeignKey(
         Product,
@@ -37,7 +43,7 @@ class Variant(models.Model):
 
     sku = models.CharField(max_length=100, unique=True)
 
-    size = models.CharField(max_length=50)
+    size = models.ForeignKey(Size, on_delete=models.CASCADE)
     color = models.CharField(max_length=50)
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -57,7 +63,7 @@ class Variant(models.Model):
             category = self.product.category.category_name[:2].upper()
             product = self.product.product_name[:6].upper().replace(" ", "")
             color = self.color[:3].upper()
-            size = self.size.upper()
+            size = self.size.name.upper()   # ✅ FIXED
 
             sku = f"{category}-{product}-{color}-{size}-{random.randint(100,999)}"
 
@@ -71,13 +77,8 @@ class Variant(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.product.product_name} - {self.size} - {self.color}"
+        return f"{self.product.product_name} - {self.size.name} - {self.color}"
 
-
-class ProductImage(models.Model):
-    product = models.ForeignKey('Product', on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='products/')
-    is_primary = models.BooleanField(default=False)
 
 class VariantImage(models.Model):
     variant = models.ForeignKey(

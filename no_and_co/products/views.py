@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product, Variant, ProductImage,VariantImage
+from .models import Product, Variant,VariantImage,Size
 from category.models import Category, Subcategory
 from django.http import JsonResponse
 from django.contrib import messages
@@ -13,13 +13,6 @@ def admin_products(request):
         product = Product.objects.filter(is_deleted=True)
     else:
         product = Product.objects.filter(is_deleted=False)
-
-    product = product.annotate(
-        min_price=Min("variants__price"),
-        total_stock=Sum("variants__stock")
-    ).prefetch_related(
-        Prefetch("productimage_set", queryset=ProductImage.objects.filter(is_primary=True), to_attr="primary_img")
-    )
 
     query = request.GET.get("q")
     if query:
@@ -151,36 +144,6 @@ def admin_product_management(request, id=None):
             messages.success(request, "Product moved to archives")
             return redirect("admin-products")
 
-        # 2. AJAX IMAGE ACTIONS (Delete / Upload)
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            action = request.POST.get("action")
-            if action == "upload_image" and product:
-                if product.productimage_set.count() >= 4:
-                    return JsonResponse({"status": "error", "message": "Maximum 4 images allowed"}, status=400)
-                image_file = request.FILES.get("image")
-                if image_file:
-                    is_primary = not product.productimage_set.filter(is_primary=True).exists()
-                    new_img = ProductImage.objects.create(product=product, image=image_file, is_primary=is_primary)
-                    return JsonResponse({"status": "success", "url": new_img.image.url, "id": new_img.id, "is_primary": new_img.is_primary})
-
-            if action == "delete_image" and product:
-                image_id = request.POST.get("image_id")
-                img = ProductImage.objects.filter(id=image_id, product=product).first()
-                if img:
-                    was_primary = img.is_primary
-                    img.delete()
-                    if was_primary:
-                        next_img = product.productimage_set.first()
-                        if next_img:
-                            next_img.is_primary = True
-                            next_img.save()
-                    return JsonResponse({"status": "success", "message": "Image deleted"})
-            return JsonResponse({"status": "error", "message": "Invalid action"}, status=400)
-
-        # 3. Standard Form Image Upload (Create flow)
-        # Note: Handled after product creation below for new products
-
-        # Standard Form Submit
         product_name = request.POST.get("name")
         description_fit = request.POST.get("description")
         category_id = request.POST.get("category")
@@ -214,13 +177,6 @@ def admin_product_management(request, id=None):
             )
             messages.success(request, "Product Created")
 
-        # Save standard images if provided (Create flow)
-        for i in range(1, 5):
-            img = request.FILES.get(f"image_{i}")
-            if img and product.productimage_set.count() < 4:
-                is_primary = not product.productimage_set.filter(is_primary=True).exists()
-                ProductImage.objects.create(product=product, image=img, is_primary=is_primary)
-
         return redirect("admin-products")
 
     category_option = Category.objects.filter(is_deleted=False, is_active=True)
@@ -250,7 +206,7 @@ def admin_variants(request, id):
         action = request.POST.get("action")
 
         if action == "add_variant":
-            size = request.POST.get("size")
+            sizes = request.POST.getlist("sizes")
             color = request.POST.get("color")
             price = request.POST.get("price")
             stock = request.POST.get("stock")
@@ -260,30 +216,40 @@ def admin_variants(request, id):
             if is_default:
                 Variant.objects.filter(product=product, is_default=True).update(is_default=False)
 
-            variant = Variant.objects.create(
-                product=product,
-                size=size,
-                color=color,
-                price=price,
-                stock=stock,
-                is_active=is_active,
-                is_default=is_default
+
+            if not sizes:
+                messages.error(request, "Selet atleast one size", id=product.id)
+                return redirect("admin-variants", id = product.id)
+
+            for i , size_id in enumerate(sizes):
+
+                exists = Variant.objects.filter(product = product , size_id = size_id , color = color).exists()
+
+                if not exists:
+                    variant = Variant.objects.create(
+                    product=product,
+                    size_id=size_id,
+                    color=color,
+                    price=price,
+                    stock=stock,
+                    is_active=is_active,
+                    is_default=is_default
             )
 
             # Handle Images
-            primary_val = request.POST.get("primary_image", "new_0")
-            for i in range(4):
-                img = request.FILES.get(f"image_{i}")
-                if img:
-                    is_primary = (f"new_{i}" == primary_val)
-                    VariantImage.objects.create(variant=variant, image=img, is_primary=is_primary)
+                primary_val = request.POST.get("primary_image", "new_0")
+                for i in range(4):
+                    img = request.FILES.get(f"image_{i}")
+                    if img:
+                        is_primary = (f"new_{i}" == primary_val)
+                        VariantImage.objects.create(variant=variant, image=img, is_primary=is_primary)
 
-            if variant.images.exists() and not variant.images.filter(is_primary=True).exists():
-                first_img = variant.images.first()
-                first_img.is_primary = True
-                first_img.save()
+                if variant.images.exists() and not variant.images.filter(is_primary=True).exists():
+                    first_img = variant.images.first()
+                    first_img.is_primary = True
+                    first_img.save()
 
-            messages.success(request, "Variant added successfully")
+                messages.success(request, "Variant added successfully")
 
 
         elif action == "edit_variant":
@@ -291,9 +257,15 @@ def admin_variants(request, id):
 
             variant = get_object_or_404(Variant, id=variant_id)
 
+            sizes = request.POST.getlist("sizes")
+
             variant.stock = int(request.POST.get("stock", 0))
             variant.price = float(request.POST.get("price", 0))
-            variant.size = request.POST.get("size")
+            variant.size_id = int(sizes[0])
+
+            if sizes:
+                variant.size_id = sizes[0]
+
             variant.color = request.POST.get("color")
 
             variant.is_active = "true" in request.POST.getlist("is_active")
@@ -382,7 +354,7 @@ def admin_variants(request, id):
     if q:
         variants = variants.filter(
             Q(color__icontains=q) |
-            Q(size__icontains=q) |
+            Q(size__name__icontains=q) |
             Q(sku__icontains=q)
         )
 
@@ -406,14 +378,15 @@ def admin_variants(request, id):
 
     paginator = Paginator(variants, 4)
     page_obj = paginator.get_page(request.GET.get("page"))
-
+    sizes = Size.objects.all()
     context = {
         "product": product,
         "variants": page_obj,
         "page_obj": page_obj,
         "active_count": active_count,
         "inactive_count": inactive_count,
-        "total_count":total_count
+        "total_count":total_count,
+        "sizes":sizes
     }
 
     return render(request, "variant/admin-variants.html", context)
