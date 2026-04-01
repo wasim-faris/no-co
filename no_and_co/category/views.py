@@ -23,6 +23,11 @@ def admin_category(request):
 
         if action == "create":
             name = request.POST.get("category_name")
+            name = name.strip().upper()
+
+            if Category.objects.filter(category_name = name).exists():
+                messages.error(request, "Category already exists or archived")
+                return redirect("admin-category")
 
             if not name or len(name.strip()) < 3:
                 messages.error(request, "Please enter at least 3 characters")
@@ -119,6 +124,12 @@ def admin_subcategory(request):
         if action == "create":
             parent_category = request.POST.get("parent_category")
             name = request.POST.get("subcategory_name")
+
+            name = name.strip().upper()
+
+            if Subcategory.objects.filter(subcategory_name = name, category = parent_category).exists():
+                messages.error(request, "Subcategory already exists or archived")
+                return redirect("admin-subcategory")
 
             if not name or len(name.strip()) < 3:
                 messages.error(request, "Please enter at least 3 characters")

@@ -4,205 +4,182 @@
 {% load static %}
 
 <style>
-   .serif-font{font-family:'Playfair Display',serif}
-body{font-family:'Inter',sans-serif}
-.no-scrollbar::-webkit-scrollbar{display:none}
+    .serif-font{font-family:'Playfair Display',serif}
+    body{font-family:'Inter',sans-serif}
+    .no-scrollbar::-webkit-scrollbar{display:none}
 
-/* --- DYNAMIC BLACK PILL TOAST (HUGS CONTENT) --- */
-#toast-container {
-    position: fixed;
-    top: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-}
+    /* --- SKELETON ANIMATION --- */
+    @keyframes shimmer {
+        0% { background-position: -200% 0; }
+        100% { background-position: 200% 0; }
+    }
+    .skeleton {
+        background: #f0f0f0;
+        background-image: linear-gradient(90deg, #f0f0f0 25%, #f7f7f7 50%, #f0f0f0 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite linear;
+    }
+    /* Hide actual content until loaded */
+    .loading-content img, .loading-content .section-label {
+        opacity: 0;
+        transition: opacity 0.5s ease-in;
+    }
+    .loaded .loading-content img, .loaded .loading-content .section-label {
+        opacity: 1;
+    }
+    .loaded .skeleton {
+        animation: none;
+        background: transparent;
+    }
 
-.custom-pill-toast {
-    width: max-content; /* Hugs the text */
-    max-width: 90vw;
-    padding: 10px 22px 10px 14px;
-    border-radius: 50px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    opacity: 0;
-    transform: translateY(-20px);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    pointer-events: auto;
-    background: #000;
-    color: #fff;
-}
+    /* --- DYNAMIC BLACK PILL TOAST --- */
+    #toast-container {
+        position: fixed;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+    }
 
-.custom-pill-toast.show {
-    opacity: 1;
-    transform: translateY(0);
-}
+    .custom-pill-toast {
+        width: max-content;
+        max-width: 90vw;
+        padding: 10px 22px 10px 14px;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        pointer-events: auto;
+        background: #000;
+        color: #fff;
+    }
 
-.toast-left-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.toast-icon-circle {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    flex-shrink: 0;
-}
-
-.toast-success .toast-icon-circle { background: #2F8D46; }
-.toast-error .toast-icon-circle { background: #E03B2A; }
-
-.toast-message-wrapper {
-    display: flex;
-    flex-direction: column;
-    white-space: nowrap; /* Prevents text wrapping */
-    margin-right: 15px;
-}
-
-.toast-main-text {
-    font-size: 11px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    line-height: 1.2;
-}
-
-.toast-sub-text {
-    font-size: 9px;
-    opacity: 0.7;
-    margin-top: 1px;
-}
-
-.toast-close-btn {
-    cursor: pointer;
-    font-size: 16px;
-    opacity: 0.6;
-    transition: opacity 0.2s;
-}
-.toast-close-btn:hover { opacity: 1; }
-
-#timer-container{ transition:opacity .5s ease; }
-.hidden-resend{ display:none; }
+    .custom-pill-toast.show { opacity: 1; transform: translateY(0); }
+    .toast-left-content { display: flex; align-items: center; gap: 12px; }
+    .toast-icon-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .toast-success .toast-icon-circle { background: #2F8D46; }
+    .toast-error .toast-icon-circle { background: #E03B2A; }
+    .toast-message-wrapper { display: flex; flex-direction: column; white-space: nowrap; margin-right: 15px; }
+    .toast-main-text { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; line-height: 1.2; }
+    .toast-sub-text { font-size: 9px; opacity: 0.7; margin-top: 1px; }
+    .toast-close-btn { cursor: pointer; font-size: 16px; opacity: 0.6; transition: opacity 0.2s; }
+    .toast-close-btn:hover { opacity: 1; }
 </style>
 
 <div id="toast-container"></div>
 
-<main class="w-full">
-<section class="w-full relative">
-  <div class="w-full aspect-[16/8] md:aspect-[16/7] bg-[#f3f3f3] overflow-hidden">
-    <img src="{% static 'core/images/hero.jpg' %}" alt="Hero" class="w-full h-full object-cover object-top">
-  </div>
-  <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white">
-    <span class="section-label text-[10px] uppercase tracking-widest font-medium">Valid on selected styles</span>
-    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-  </div>
-</section>
+<main class="w-full" id="main-content">
+    <section class="w-full relative loading-content">
+        <div class="w-full aspect-[16/8] md:aspect-[16/7] bg-[#f3f3f3] overflow-hidden skeleton">
+            <img src="{% static 'core/images/hero.jpg' %}" alt="Hero" class="w-full h-full object-cover object-top" onload="this.parentElement.classList.remove('skeleton')">
+        </div>
+        <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white">
+            <span class="section-label text-[10px] uppercase tracking-widest font-medium">Valid on selected styles</span>
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+    </section>
 
     <section class="w-full grid grid-cols-1 md:grid-cols-2 no-gap">
-      <div class="w-full border-r border-gray-100">
-        <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static 'core/images/home-img1.jpg' %}" alt="Soft Romance" class="w-full h-full object-cover">
+        <div class="w-full border-r border-gray-100 loading-content">
+            <div class="w-full aspect-[4/5] overflow-hidden skeleton">
+                <img src="{% static 'core/images/home-img1.jpg' %}" alt="Soft Romance" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+            </div>
+            <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white">
+                <span class="section-label">Soft Romance</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
         </div>
-        <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white">
-            <span class="section-label">Soft Romance</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <div class="w-full loading-content">
+            <div class="w-full aspect-[4/5] overflow-hidden skeleton">
+                <img src="{% static 'core/images/home-img2.jpg' %}" alt="New Occasionwear" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+            </div>
+            <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white">
+                <span class="section-label">New Occasionwear</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
         </div>
-      </div>
-      <div class="w-full">
-        <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static 'core/images/home-img2.jpg' %}" alt="New Occasionwear" class="w-full h-full object-cover">
-        </div>
-        <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white">
-            <span class="section-label">New Occasionwear</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>
-      </div>
     </section>
 
     <section class="w-full grid grid-cols-3 md:grid-cols-6 no-gap">
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/5f/eb/5feb147aafab1236ea7daa3344696c9401ca254e.jpg?imwidth=384"></div>
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/ae/2e/ae2ee0a97b9e563c11f08785b4b6b92b572a26c3.jpg?imwidth=384"></div>
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/08/3e/083efb5fddf4759258e6cdb9e90948569cec8a57.jpg?imwidth=384"></div>
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/7d/71/7d716760645646ba339a1ac494f3734ec9c92836.jpg?imwidth=384"></div>
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/64/17/6417bde3c7f79f30842585ef3cbfc7674006bb68.jpg?imwidth=384"></div>
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/8c/2e/8c2ec641dacde32e3ef65e0918050d0ce21db9c5.jpg?imwidth=384"></div>
+        {% for variant in variants %}
+        <div class="product-grid-item aspect-[3/4] skeleton">
+            <a href="{% url "product-details" variant.product.id %}" class="loading-content">
+                {% if variant.primary_images %}
+                    <img src="{{ variant.primary_images.0.image.url }}" alt="" class="w-full h-full object-cover" onload="this.parentElement.parentElement.classList.remove('skeleton')">
+                {% else %}
+                    <div class="w-full h-full bg-gray-100"></div>
+                {% endif %}
+            </a>
+        </div>
+        {% endfor %}
 
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/d9/d2/d9d22770c6399170f81f951c3985a5df1af61949.jpg?imwidth=384"></div>
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/f3/f2/f3f2031a46b64589003bda133e3e1c265476cfcd.jpg?imwidth=384"></div>
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/3e/b4/3eb46a8906c06c1b2de0c0cc24b7955020efbe69.jpg?imwidth=384"></div>
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/c7/b8/c7b8ed5bb65ce332e3914d5ab64a6c0aaaa76874.jpg?imwidth=384"></div>
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/24/de/24dec0e5d6d5c5bf877af864fc151c240aeeb1be.jpg?imwidth=384"></div>
-      <div class="product-grid-item aspect-[3/4]"><img src="https://image.hm.com/assets/hm/10/e4/10e48c5b86e7832b7e2200c95125858647be84f6.jpg?imwidth=384"></div>
+        <div class="product-grid-item aspect-[3/4] skeleton">
+            <img src="https://image.hm.com/assets/hm/d9/d2/d9d22770c6399170f81f951c3985a5df1af61949.jpg?imwidth=384" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+        </div>
+        <div class="product-grid-item aspect-[3/4] skeleton">
+            <img src="https://image.hm.com/assets/hm/f3/f2/f3f2031a46b64589003bda133e3e1c265476cfcd.jpg?imwidth=384" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+        </div>
+        <div class="product-grid-item aspect-[3/4] skeleton">
+            <img src="https://image.hm.com/assets/hm/3e/b4/3eb46a8906c06c1b2de0c0cc24b7955020efbe69.jpg?imwidth=384" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+        </div>
+        <div class="product-grid-item aspect-[3/4] skeleton">
+            <img src="https://image.hm.com/assets/hm/c7/b8/c7b8ed5bb65ce332e3914d5ab64a6c0aaaa76874.jpg?imwidth=384" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+        </div>
+        <div class="product-grid-item aspect-[3/4] skeleton">
+            <img src="https://image.hm.com/assets/hm/24/de/24dec0e5d6d5c5bf877af864fc151c240aeeb1be.jpg?imwidth=384" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+        </div>
+        <div class="product-grid-item aspect-[3/4] skeleton">
+            <img src="https://image.hm.com/assets/hm/10/e4/10e48c5b86e7832b7e2200c95125858647be84f6.jpg?imwidth=384" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+        </div>
+        <div class="product-grid-item aspect-[3/4] skeleton">
+            <img src="https://image.hm.com/assets/hm/10/e4/10e48c5b86e7832b7e2200c95125858647be84f6.jpg?imwidth=384" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+        </div>
     </section>
 
     <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white">
-      <span class="section-label">New In</span>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <span class="section-label">New In</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </div>
 
     <section class="w-full grid grid-cols-1 md:grid-cols-2 no-gap border-t border-gray-100">
-      <div class="w-full">
-        <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static 'core/images/home-img3.jpg' %}" alt="Shirts" class="w-full h-full object-cover">
+        <div class="w-full loading-content">
+            <div class="w-full aspect-[4/5] overflow-hidden skeleton">
+                <img src="{% static 'core/images/home-img3.jpg' %}" alt="Shirts" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+            </div>
+            <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
+                <p class="section-label">Shirts</p>
+                <p class="sub-label">Explore</p>
+            </div>
         </div>
-        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
-            <p class="section-label">Shirts</p>
-            <p class="sub-label">Explore</p>
+        <div class="w-full border-l border-gray-100 loading-content">
+            <div class="w-full aspect-[4/5] overflow-hidden skeleton">
+                <img src="{% static 'core/images/home-img4.jpg' %}" alt="Trousers" class="w-full h-full object-cover" onload="this.parentElement.classList.remove('skeleton')">
+            </div>
+            <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
+                <p class="section-label">Trousers</p>
+                <p class="sub-label">Explore</p>
+            </div>
         </div>
-      </div>
-      <div class="w-full border-l border-gray-100">
-        <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static 'core/images/home-img4.jpg' %}" alt="Trousers" class="w-full h-full object-cover">
-        </div>
-        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
-            <p class="section-label">Trousers</p>
-            <p class="sub-label">Explore</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="w-full grid grid-cols-1 md:grid-cols-2 no-gap border-t border-gray-100">
-      <div class="w-full">
-        <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static 'core/images/home-img5.jpg' %}" alt="Shirts" class="w-full h-full object-cover">
-        </div>
-        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
-            <p class="section-label">Shirts</p>
-            <p class="sub-label">Explore</p>
-        </div>
-      </div>
-      <div class="w-full border-l border-gray-100">
-        <div class="w-full aspect-[4/5] overflow-hidden">
-            <img src="{% static 'core/images/home-img6.jpg' %}" alt="Trousers" class="w-full h-full object-cover">
-        </div>
-        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white">
-            <p class="section-label">Trousers</p>
-            <p class="sub-label">Explore</p>
-        </div>
-      </div>
     </section>
 
     <section class="w-full bg-white px-6 md:px-12 py-16 md:py-24 text-center">
-      <div class="max-w-4xl mx-auto">
-        <h2 class="text-sm font-bold uppercase tracking-widest mb-10">Men's Clothing</h2>
-        <p class="text-[0.8rem] leading-relaxed text-gray-700 font-medium">
-          Check out all the freshest styles your closet needs in our men's clothing range...
-        </p>
-      </div>
+        <div class="max-w-4xl mx-auto">
+            <h2 class="text-sm font-bold uppercase tracking-widest mb-10">Men's Clothing</h2>
+            <p class="text-[0.8rem] leading-relaxed text-gray-700 font-medium">
+                Check out all the freshest styles your closet needs in our men's clothing range...
+            </p>
+        </div>
     </section>
-  </main>
+</main>
 
-  <script id="django-messages" type="application/json">
+<script id="django-messages" type="application/json">
     [
         {% if messages %}
             {% for message in messages %}
@@ -213,52 +190,50 @@ body{font-family:'Inter',sans-serif}
             {% endfor %}
         {% endif %}
     ]
-  </script>
+</script>
 
-  <script>
+<script>
+    // Reveal content logic
+    window.addEventListener('load', () => {
+        document.getElementById('main-content').classList.add('loaded');
+    });
+
     function showToast(message, type = 'error') {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-
-    const toast = document.createElement('div');
-    const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
-    toast.className = `custom-pill-toast ${toastClass}`;
-
-    const icon = type === 'success' ? '✓' : '✕';
-    const subtext = "Notification";
-
-    toast.innerHTML = `
-        <div class="toast-left-content">
-            <div class="toast-icon-circle">${icon}</div>
-            <div class="toast-message-wrapper">
-                <span class="toast-main-text">${message}</span>
-                <span class="toast-sub-text">${subtext}</span>
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
+        toast.className = `custom-pill-toast ${toastClass}`;
+        const icon = type === 'success' ? '✓' : '✕';
+        toast.innerHTML = `
+            <div class="toast-left-content">
+                <div class="toast-icon-circle">${icon}</div>
+                <div class="toast-message-wrapper">
+                    <span class="toast-main-text">${message}</span>
+                    <span class="toast-sub-text">Notification</span>
+                </div>
             </div>
-        </div>
-        <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>
-    `;
-
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => {
-        if(toast.parentNode) {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 400);
-        }
-    }, 4000);
-}
+            <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            if(toast.parentNode) {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }
+        }, 4000);
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         const dataElement = document.getElementById('django-messages');
         if (dataElement) {
             try {
                 const messages = JSON.parse(dataElement.textContent);
-                messages.forEach(msg => {
-                    showToast(msg.message, msg.tags);
-                });
+                messages.forEach(msg => showToast(msg.message, msg.tags));
             } catch (e) {}
         }
     });
-  </script>
+</script>
 
 {% endblock %}

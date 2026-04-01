@@ -39,7 +39,7 @@ def admin_products(request):
             return redirect("admin-products")
 
     all_products = Product.objects.filter(is_deleted=False)
-    all_products = all_products.order_by("-id")
+    product = all_products.order_by("-id")
     count = all_products.count()
     active_count = all_products.filter(is_active=True).count()
     inactive_count = all_products.filter(is_active=False).count()

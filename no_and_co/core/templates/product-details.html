@@ -1,0 +1,422 @@
+{% extends 'user_base/base.html' %}
+
+{% block content %}
+{% load static %}
+
+{% with default_variant=default_variant %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #fff;
+        color: #000;
+        margin: 0;
+        padding: 0;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* ════════════════════════════════════════
+       MAIN LAYOUT
+    ════════════════════════════════════════ */
+    .pdp-wrapper {
+        display: flex;
+        width: 100%;
+        min-height: 100vh;
+        align-items: flex-start;
+    }
+
+    .pdp-image-column {
+        flex: 0 0 50%;
+        width: 50%;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        align-self: flex-start;
+    }
+
+    .image-sub-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+    }
+
+    .pdp-image-column img {
+        width: 100%;
+        height: auto;
+        display: block;
+        object-fit: cover;
+        margin: 0;
+        padding: 0;
+        opacity: 1;
+        transition: opacity 0.2s ease-in-out;
+    }
+
+    .pdp-info-column {
+        flex: 0 0 50%;
+        width: 50%;
+        box-sizing: border-box;
+        padding: 40px 60px 120px 72px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+    }
+
+    .pdp-info-column::-webkit-scrollbar { width: 0; }
+
+    .info-inner {
+        max-width: 440px;
+    }
+
+    /* ════════════════════════════════════════
+       TYPOGRAPHY
+    ════════════════════════════════════════ */
+    .prod-name {
+        font-size: 13px;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        margin: 0 0 2px;
+        line-height: 1.3;
+    }
+    .prod-price {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0 0 1px;
+    }
+    .prod-tax {
+        font-size: 11px;
+        color: #767676;
+        font-weight: 400;
+        margin: 0 0 28px;
+    }
+    .section-label {
+        font-size: 11px;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        display: block;
+        margin-bottom: 10px;
+        color: #000;
+    }
+
+    /* ════════════════════════════════════════
+       COLOR SWATCHES
+    ════════════════════════════════════════ */
+    .swatch-row {
+        display: flex;
+        flex-wrap: wrap;
+        border-top: 1px solid #dcdcdc;
+        border-left: 1px solid #dcdcdc;
+        margin-bottom: 20px;
+        max-width: calc(60px * 7);
+        width: fit-content;
+    }
+
+    .swatch-item {
+        width: 60px;
+        height: 80px;
+        border-right: 1px solid #dcdcdc;
+        border-bottom: 1px solid #dcdcdc;
+        cursor: pointer;
+        overflow: hidden;
+        position: relative;
+        box-sizing: border-box;
+    }
+
+    .swatch-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .swatch-item.active {
+        outline: 1px solid #000;
+        outline-offset: -1px;
+        z-index: 2;
+    }
+
+    .swatch-item:hover {
+        z-index: 1;
+        outline: 1px solid #888;
+        outline-offset: -1px;
+    }
+
+    /* ════════════════════════════════════════
+       SIZE BOXES
+    ════════════════════════════════════════ */
+    .size-head-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .size-guide {
+        font-size: 11px;
+        text-decoration: underline;
+        text-transform: uppercase;
+        font-weight: 400;
+        cursor: pointer;
+        color: #000;
+        letter-spacing: .04em;
+    }
+    .size-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-top: 1px solid #dcdcdc;
+        border-left: 1px solid #dcdcdc;
+        margin-bottom: 16px;
+        width: 100%;
+    }
+    .size-box {
+        height: 52px;
+        border-right: 1px solid #dcdcdc;
+        border-bottom: 1px solid #dcdcdc;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 400;
+        background: #fff;
+        cursor: pointer;
+        box-sizing: border-box;
+        transition: background .14s;
+    }
+
+    .size-box:hover { background: #f5f5f5; }
+
+    .size-box.active {
+        background: #000;
+        color: #fff;
+        border-color: #000;
+        z-index: 2;
+    }
+
+    /* ════════════════════════════════════════
+       BUTTONS & LINKS
+    ════════════════════════════════════════ */
+    .btn-add {
+        width: 100%;
+        background: #000;
+        color: #fff;
+        padding: 16px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .14em;
+        border: none;
+        margin-bottom: 18px;
+        cursor: pointer;
+        transition: background .18s;
+        display: block;
+    }
+    .btn-add:hover { background: #2a2a2a; }
+
+    .link-group {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 0; border-top: 1px solid #ebebeb;
+    }
+    .rating-row {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 0; border-top: 1px solid #ebebeb;
+        margin-bottom: 20px;
+    }
+    .secondary-link {
+        font-size: 11px; text-decoration: underline;
+        text-transform: uppercase; font-weight: 400;
+        cursor: pointer; letter-spacing: .04em; color: #000;
+    }
+    .acc-item {
+        border-top: 1px solid #e5e5e5; padding: 15px 0;
+        display: flex; justify-content: space-between; align-items: center;
+        font-size: 11px; font-weight: 400;
+        text-transform: uppercase; letter-spacing: .06em; cursor: pointer;
+    }
+    .acc-plus { font-size: 20px; font-weight: 300; color: #555; line-height: 1; }
+
+    @media (max-width: 900px) {
+        .pdp-wrapper { flex-direction: column; }
+        .pdp-image-column { flex: none; width: 100%; }
+        .pdp-info-column { flex: none; width: 100%; position: relative; height: auto; padding: 28px 20px 60px; }
+    }
+</style>
+
+<main class="pdp-wrapper">
+
+    <div class="pdp-image-column" id="imageContainer">
+        {% if default_variant.primary_images.all %}
+            <img id="mainImage" src="{{ default_variant.primary_images.0.image.url }}" alt="">
+        {% elif default_variant.images.all %}
+            <img id="mainImage" src="{{ default_variant.images.all.0.image.url }}" alt="">
+        {% endif %}
+
+        <div class="image-sub-grid">
+            {% for img_obj in default_variant.images.all|slice:"1:3" %}
+                <img id="image{{ forloop.counter|add:1 }}" src="{{ img_obj.image.url }}" alt="">
+            {% endfor %}
+        </div>
+
+        {% with next_img=default_variant.images.all|slice:"3:4"|first %}
+            <img id="image4" src="{% if next_img %}{{ next_img.image.url }}{% endif %}" alt="" style="{% if not next_img %}display:none;{% endif %}">
+        {% endwith %}
+    </div>
+
+    <div class="pdp-info-column">
+      <div class="info-inner">
+
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+            <h1 class="prod-name">{{ product.product_name }}</h1>
+            <button style="background:none;border:none;cursor:pointer;padding:0;color:#ccc;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
+            </button>
+        </div>
+
+        <p class="prod-price" id="displayPrice">Rs. {{ default_variant.price }}</p>
+        {{ default_variant.color }}
+        <p class="prod-tax">MRP inclusive of all taxes</p>
+
+        <span class="section-label" id="colorLabel">COLOUR: {{ default_variant.color }}</span>
+
+        <div class="swatch-row">
+            {% for variant in unique_variants %}
+                {% comment %} Fix: Using ID comparison for reliable matching {% endcomment %}
+                <div class="swatch-item {% if variant.id == default_variant.id %}active{% endif %}"
+                     data-color="{{ variant.color }}"
+                     data-price="{{ variant.price }}"
+                     data-sizes="{% for v in variants %}{% if v.color == variant.color %}{{ v.size.name }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}"
+                     data-img1="{% if variant.primary_images.all %}{{ variant.primary_images.0.image.url }}{% elif variant.images.all %}{{ variant.images.all.0.image.url }}{% endif %}"
+                     {% for img in variant.images.all|slice:"1:4" %}
+                        data-img{{ forloop.counter|add:1 }}="{{ img.image.url }}"
+                     {% endfor %}
+                     onclick="selectVariant(this)">
+
+                    {% if variant.primary_images.all %}
+                        <img src="{{ variant.primary_images.0.image.url }}" alt="">
+                    {% elif variant.images.all %}
+                        <img src="{{ variant.images.all.0.image.url }}" alt="">
+                    {% else %}
+                        <div style="width:100%; height:100%; background:#f5f5f5;"></div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="size-head-row">
+            <span class="section-label" style="margin:0;">Size</span>
+            <span class="size-guide">Size Guide</span>
+        </div>
+
+        <div class="size-row" id="sizeContainer">
+            {% for v in variants %}
+                {% if v.color == default_variant.color %}
+                    <div class="size-box {% if forloop.first %}active{% endif %}" onclick="selectSize(this)">
+                        {{ v.size.name }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <button class="btn-add">Add</button>
+
+        <div class="link-group">
+            <span class="secondary-link">Find in store</span>
+            <span class="secondary-link">Check Availability</span>
+        </div>
+
+        <div class="rating-row">
+            <span class="secondary-link">Reviews (1407)</span>
+            <span style="font-size:12px; font-weight:700; color:#000;">★★★★★ 4.6</span>
+        </div>
+
+        <div>
+            <div class="acc-item"><span>Description &amp; Fit</span><span class="acc-plus">+</span></div>
+            <div class="acc-item"><span>Materials</span><span class="acc-plus">+</span></div>
+            <div class="acc-item" style="border-bottom:1px solid #e5e5e5;">
+                <span>Delivery, Payment and Returns</span><span class="acc-plus">+</span>
+            </div>
+        </div>
+
+      </div>
+    </div>
+</main>
+
+<script>
+    const colorLabel = document.getElementById('colorLabel');
+    const priceDisplay = document.getElementById('displayPrice');
+    const sizeContainer = document.getElementById('sizeContainer');
+
+    document.querySelectorAll('.swatch-item').forEach(item => {
+        item.addEventListener('mouseenter', () => {
+            colorLabel.innerText = `COLOUR: ${item.getAttribute('data-color')}`;
+        });
+        item.addEventListener('mouseleave', () => {
+            const active = document.querySelector('.swatch-item.active');
+            if(active) {
+                colorLabel.innerText = `COLOUR: ${active.getAttribute('data-color')}`;
+            }
+        });
+    });
+
+    function selectVariant(element) {
+        // Prevent unnecessary re-selection if already active
+
+        // Update selection UI
+        document.querySelectorAll('.swatch-item').forEach(s => s.classList.remove('active'));
+        element.classList.add('active');
+
+        // Update Text and price
+        priceDisplay.innerText = `Rs. ${element.getAttribute('data-price')}`;
+        colorLabel.innerText = `COLOUR: ${element.getAttribute('data-color')}`;
+
+        // Update Images with fade transition
+        for (let i = 1; i <= 4; i++) {
+            const targetId = (i === 1) ? 'mainImage' : `image${i}`;
+            const imgElement = document.getElementById(targetId);
+            const newSrc = element.getAttribute(`data-img${i}`);
+
+            if (imgElement) {
+                if (newSrc) {
+                    imgElement.style.opacity = '0';
+                    setTimeout(() => {
+                        imgElement.src = newSrc;
+                        imgElement.style.opacity = '1';
+                        imgElement.style.display = 'block';
+                    }, 100);
+                } else if (i > 1) {
+                    imgElement.style.display = 'none';
+                }
+            }
+        }
+
+        // Update Sizes
+        const sizesRaw = element.getAttribute('data-sizes');
+        const sizesArray = sizesRaw ? sizesRaw.split(',').filter(s => s.trim() !== "") : [];
+
+        sizeContainer.innerHTML = '';
+        sizesArray.forEach((size, index) => {
+            const sizeDiv = document.createElement('div');
+            sizeDiv.className = `size-box ${index === 0 ? 'active' : ''}`;
+            sizeDiv.innerText = size;
+            sizeDiv.onclick = function() { selectSize(this); };
+            sizeContainer.appendChild(sizeDiv);
+        });
+    }
+
+    function selectSize(box) {
+        document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
+        box.classList.add('active');
+    }
+
+    // Initial binding
+    document.querySelectorAll('.size-box').forEach(box => {
+        box.onclick = function() { selectSize(this); };
+    });
+</script>
+
+{% endwith %}
+{% endblock %}
