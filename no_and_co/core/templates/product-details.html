@@ -242,6 +242,202 @@
         .pdp-image-column { flex: none; width: 100%; }
         .pdp-info-column { flex: none; width: 100%; position: relative; height: auto; padding: 28px 20px 60px; }
     }
+    /* ════════════════════════════════════════
+       FULLSCREEN LIGHTBOX MODAL
+    ════════════════════════════════════════ */
+    #imageContainer img {
+        cursor: zoom-in; /* Let the user know it's clickable */
+    }
+
+    .lightbox-modal {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease-in-out;
+    }
+    .lightbox-modal.active {
+        display: flex;
+        opacity: 1;
+    }
+    .lightbox-img {
+        max-height: 90vh;
+        max-width: 90vw;
+        object-fit: contain;
+        user-select: none;
+    }
+    .lightbox-close {
+        position: absolute;
+        top: 30px; right: 40px;
+        color: #fff;
+        font-size: 40px;
+        font-weight: 300;
+        cursor: pointer;
+        line-height: 1;
+        user-select: none;
+    }
+    .lightbox-btn {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        color: #fff;
+        border: none;
+        font-size: 50px;
+        font-weight: 300;
+        cursor: pointer;
+        padding: 20px;
+        user-select: none;
+        transition: opacity 0.2s;
+    }
+    .lightbox-btn:hover { opacity: 0.7; }
+    .lightbox-btn.prev { left: 20px; }
+    .lightbox-btn.next { right: 20px; }
+    /* ════════════════════════════════════════
+       SIMILAR ITEMS
+    ════════════════════════════════════════ */
+    .similar-items-section {
+        padding: 60px 40px;
+        border-top: 1px solid #e5e5e5;
+        background: #fff;
+    }
+    .similar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    .similar-title {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        margin: 0;
+    }
+    .similar-nav button {
+        background: none;
+        border: none;
+        font-size: 18px;
+        color: #333;
+        cursor: pointer;
+        padding: 0 5px;
+        transition: opacity 0.2s;
+    }
+    .similar-nav button:hover { opacity: 0.6; }
+
+    .similar-carousel {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+        padding-bottom: 10px;
+    }
+    .similar-carousel::-webkit-scrollbar {
+        display: none; /* Chrome/Safari */
+    }
+
+    /* Widened cards for a premium, larger gallery feel */
+    .similar-card {
+        flex: 0 0 calc(32% - 20px); /* Roughly 3 items on desktop for larger presence */
+        min-width: 320px; /* Increased from 260px */
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: #000;
+        cursor: pointer;
+    }
+
+    /* Enforce a taller, H&M-style portrait cut */
+    .similar-img-wrapper {
+        position: relative;
+        width: 100%;
+        /* 2/3 ratio yields a significantly taller portrait view */
+        aspect-ratio: 2 / 3;
+        background-color: #f4f4f4;
+        margin-bottom: 14px;
+        overflow: hidden; /* Prevent edge-bleeding */
+    }
+
+    /* Lock the images to perfectly fill the newly expanded container */
+    .similar-img-wrapper img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Forces image to scale and crop properly */
+        object-position: center; /* Avoids upper/lower distortion */
+        top: 0;
+        left: 0;
+        position: absolute;
+        transition: opacity 0.4s ease-in-out; /* Smoother fade */
+    }
+
+    /* Hover layering remains intact but cleaner */
+    .sim-img-primary {
+        z-index: 1;
+    }
+    .sim-img-secondary {
+        z-index: 2;
+        opacity: 0;
+    }
+    .similar-card:hover .sim-img-secondary {
+        opacity: 1;
+    }
+    .similar-heart {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+    }
+    .similar-heart svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: #000;
+        stroke-width: 1.5;
+        transition: transform 0.1s;
+    }
+    .similar-heart:hover svg { transform: scale(1.1); fill: #eaeaea; }
+
+    .similar-name {
+        font-size: 12px;
+        font-weight: 400;
+        margin: 0 0 4px 0;
+        text-transform: uppercase;
+    }
+    .similar-price {
+        font-size: 13px;
+        font-weight: 700;
+        margin: 0 0 4px 0;
+    }
+    .similar-label {
+        font-size: 11px;
+        font-weight: 400;
+        color: #555;
+        margin: 0 0 8px 0;
+    }
+    .similar-swatches {
+        display: flex;
+        gap: 4px;
+    }
+    .similar-swatch {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #dcdcdc;
+    }
+
+    @media (max-width: 900px) {
+        .similar-items-section { padding: 40px 20px; }
+        .similar-card { flex: 0 0 calc(50% - 10px); min-width: 200px; }
+    }
 </style>
 
 <main class="pdp-wrapper">
@@ -253,11 +449,20 @@
             <img id="mainImage" src="{{ default_variant.images.all.0.image.url }}" alt="">
         {% endif %}
 
-        <div class="image-sub-grid">
-            {% for img_obj in default_variant.images.all|slice:"1:3" %}
-                <img id="image{{ forloop.counter|add:1 }}" src="{{ img_obj.image.url }}" alt="">
-            {% endfor %}
-        </div>
+        {% with img_count=default_variant.images.all|length %}
+            {% if img_count < 3 %}
+                {% with next_img=default_variant.images.all|slice:"1:2"|first %}
+                    <img id="image2" src="{% if next_img %}{{ next_img.image.url }}{% endif %}" alt="" style="{% if not next_img %}display:none;{% endif %}">
+                {% endwith %}
+                <img id="image3" src="" alt="" style="display:none;">
+            {% else %}
+                <div class="image-sub-grid">
+                    {% for img_obj in default_variant.images.all|slice:"1:3" %}
+                        <img id="image{{ forloop.counter|add:1 }}" src="{{ img_obj.image.url }}" alt="">
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
 
         {% with next_img=default_variant.images.all|slice:"3:4"|first %}
             <img id="image4" src="{% if next_img %}{{ next_img.image.url }}{% endif %}" alt="" style="{% if not next_img %}display:none;{% endif %}">
@@ -277,7 +482,6 @@
         </div>
 
         <p class="prod-price" id="displayPrice">Rs. {{ default_variant.price }}</p>
-        {{ default_variant.color }}
         <p class="prod-tax">MRP inclusive of all taxes</p>
 
         <span class="section-label" id="colorLabel">COLOUR: {{ default_variant.color }}</span>
@@ -335,15 +539,139 @@
 
         <div>
             <div class="acc-item"><span>Description &amp; Fit</span><span class="acc-plus">+</span></div>
+            <div class="acc-content" style="display: none; padding: 0 0 15px 0; font-size: 12px; line-height: 1.6; color: #444;">
+                {{ product.description_fit|linebreaks }}
+            </div>
+
             <div class="acc-item"><span>Materials</span><span class="acc-plus">+</span></div>
+            <div class="acc-content" style="display: none; padding: 0 0 15px 0; font-size: 12px; line-height: 1.6; color: #444;">
+                {{ product.materials|linebreaks }}
+            </div>
+
             <div class="acc-item" style="border-bottom:1px solid #e5e5e5;">
                 <span>Delivery, Payment and Returns</span><span class="acc-plus">+</span>
+            </div>
+            <div class="acc-content" style="display: none; padding: 15px 0; font-size: 12px; line-height: 1.6; color: #444; border-bottom:1px solid #e5e5e5;">
+                {{ product.delivery_returns|linebreaks }}
             </div>
         </div>
 
       </div>
     </div>
+    <!-- Lightbox Modal -->
+    <div class="lightbox-modal" id="lightboxModal">
+        <span class="lightbox-close" id="lightboxClose">&times;</span>
+        <button class="lightbox-btn prev" id="lightboxPrev">&#8249;</button>
+        <img src="" class="lightbox-img" id="lightboxImg" alt="Zoomed Product">
+        <button class="lightbox-btn next" id="lightboxNext">&#8250;</button>
+    </div>
 </main>
+
+<!-- SIMILAR ITEMS SECTION -->
+<section class="similar-items-section">
+    <div class="similar-header">
+        <h2 class="similar-title">Similar Items</h2>
+        <div class="similar-nav">
+            <button id="simPrev">&#10094;</button>
+            <button id="simNext">&#10095;</button>
+        </div>
+    </div>
+
+    <!--
+      Note: We fall back to unique_variants here so it populates automatically
+      without modifying views.py. If you later add 'similar_products' to context,
+      just swap it in the for loop.
+    -->
+    <div class="similar-carousel" id="similarCarousel">
+        {% for item in similar_items|default:unique_variants %}
+        <a href="{% url "product-details" item.product.id %}" class="similar-card">
+            <div class="similar-img-wrapper">
+                {% if item.primary_images.all %}
+                    <img src="{{ item.primary_images.0.image.url }}" class="sim-img-primary" alt="{{ item.color }}">
+                {% elif item.images.all %}
+                    <img src="{{ item.images.all.0.image.url }}" class="sim-img-primary" alt="{{ item.color }}">
+                {% else %}
+                    <div style="width:100%; height:100%; background:#f5f5f5; position: absolute; z-index: 1;"></div>
+                {% endif %}
+
+                {% with second_img=item.images.all.1 %}
+                    {% if second_img %}
+                        <img src="{{ second_img.image.url }}" class="sim-img-secondary" alt="{{ item.color }}">
+                    {% endif %}
+                {% endwith %}
+
+                <button class="similar-heart" aria-label="Add to Wishlist">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <p class="similar-name">{{ product.product_name }} - {{ item.color }}</p>
+            <p class="similar-price">Rs. {{ item.price }}</p>
+            <p class="similar-label">New Arrival</p>
+
+            <div class="similar-swatches">
+                <div class="similar-swatch" style="background-color: {{ item.color | lower }};"></div>
+                <!-- Additional static swatches for visual demonstration -->
+                <div class="similar-swatch" style="background-color: #555;"></div>
+                <div class="similar-swatch" style="background-color: #e5e5e5;"></div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- OTHERS ALSO BOUGHT SECTION -->
+<section class="similar-items-section" style="border-top: none; padding-top: 0;">
+    <div class="similar-header">
+        <h2 class="similar-title">Others Also Bought</h2>
+        <div class="similar-nav">
+            <button id="othersPrev">&#10094;</button>
+            <button id="othersNext">&#10095;</button>
+        </div>
+    </div>
+
+    <!-- Reusing similar_items list in reversed order for a quick demo variation -->
+    <div class="similar-carousel" id="othersCarousel">
+        {% for item in similar_items reversed %}
+        <a href="{% url "product-details" item.product.id %}" class="similar-card">
+            <div class="similar-img-wrapper">
+                <!-- Primary Image -->
+                {% if item.primary_images.all %}
+                    <img src="{{ item.primary_images.0.image.url }}" class="sim-img-primary" alt="{{ item.color }}">
+                {% elif item.images.all %}
+                    <img src="{{ item.images.all.0.image.url }}" class="sim-img-primary" alt="{{ item.color }}">
+                {% else %}
+                    <div style="width:100%; height:100%; background:#f5f5f5; position: absolute; z-index: 1;"></div>
+                {% endif %}
+
+                <!-- Secondary Hover Image -->
+                {% with second_img=item.images.all.1 %}
+                    {% if second_img %}
+                        <img src="{{ second_img.image.url }}" class="sim-img-secondary" alt="{{ item.color }}">
+                    {% endif %}
+                {% endwith %}
+
+                <button class="similar-heart" aria-label="Add to Wishlist">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
+            <p class="similar-price">Rs. {{ item.price }}</p>
+            <p class="similar-label">Trending Now</p>
+
+            <div class="similar-swatches">
+                <div class="similar-swatch" style="background-color: {{ item.color | lower }};"></div>
+                <div class="similar-swatch" style="background-color: #e5e5e5;"></div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
 
 <script>
     const colorLabel = document.getElementById('colorLabel');
@@ -364,6 +692,7 @@
 
     function selectVariant(element) {
         // Prevent unnecessary re-selection if already active
+        if (element.classList.contains('active')) return;
 
         // Update selection UI
         document.querySelectorAll('.swatch-item').forEach(s => s.classList.remove('active'));
@@ -412,10 +741,142 @@
         box.classList.add('active');
     }
 
+    // Accordion Logic
+    document.querySelectorAll('.acc-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const content = this.nextElementSibling;
+            const plus = this.querySelector('.acc-plus');
+            const isOpen = content && content.style.display === 'block';
+
+            // Close all open sections and reset icons
+            document.querySelectorAll('.acc-content').forEach(c => c.style.display = 'none');
+            document.querySelectorAll('.acc-plus').forEach(p => p.innerText = '+');
+
+            // Open clicked section if it was previously closed
+            if (!isOpen && content && content.classList.contains('acc-content')) {
+                content.style.display = 'block';
+                plus.innerText = '−';
+            }
+        });
+    });
+
     // Initial binding
     document.querySelectorAll('.size-box').forEach(box => {
         box.onclick = function() { selectSize(this); };
     });
+    // ════════════════════════════════════════
+    // FULLSCREEN LIGHTBOX LOGIC
+    // ════════════════════════════════════════
+    const lightboxModal = document.getElementById('lightboxModal');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxClose = document.getElementById('lightboxClose');
+    const lightboxPrev = document.getElementById('lightboxPrev');
+    const lightboxNext = document.getElementById('lightboxNext');
+    const productImgContainer = document.getElementById('imageContainer');
+
+    let galleryImages = [];
+    let currentGalleryIndex = 0;
+
+    // Dynamically collect visible images before opening
+    function updateGalleryImages() {
+        galleryImages = [];
+        const imgs = productImgContainer.querySelectorAll('img');
+        imgs.forEach(img => {
+            // Only capture images that actually have a source and are visible
+            if (img.getAttribute('src') && window.getComputedStyle(img).display !== 'none') {
+                galleryImages.push(img.src);
+            }
+        });
+    }
+
+    // Open Modal
+    productImgContainer.addEventListener('click', (e) => {
+        if (e.target.tagName === 'IMG') {
+            updateGalleryImages();
+            const clickedSrc = e.target.src;
+            currentGalleryIndex = galleryImages.indexOf(clickedSrc);
+
+            if (currentGalleryIndex > -1) {
+                lightboxImg.src = clickedSrc;
+                lightboxModal.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Lock background scrolling
+            }
+        }
+    });
+
+    // Close Modal
+    function closeLightbox() {
+        lightboxModal.classList.remove('active');
+        document.body.style.overflow = ''; // Restore background scrolling
+    }
+
+    // Click Close Button OR Click strictly on the dark background
+    lightboxClose.addEventListener('click', closeLightbox);
+    lightboxModal.addEventListener('click', (e) => {
+        if (e.target === lightboxModal) closeLightbox();
+    });
+
+    // Navigate Images
+    function showNextImage() {
+        if (galleryImages.length === 0) return;
+        currentGalleryIndex = (currentGalleryIndex + 1) % galleryImages.length;
+        lightboxImg.src = galleryImages[currentGalleryIndex];
+    }
+
+    function showPrevImage() {
+        if (galleryImages.length === 0) return;
+        currentGalleryIndex = (currentGalleryIndex - 1 + galleryImages.length) % galleryImages.length;
+        lightboxImg.src = galleryImages[currentGalleryIndex];
+    }
+
+    lightboxNext.addEventListener('click', showNextImage);
+    lightboxPrev.addEventListener('click', showPrevImage);
+
+    // Keyboard bindings (Escape, Left, Right)
+    document.addEventListener('keydown', (e) => {
+        if (!lightboxModal.classList.contains('active')) return;
+
+        if (e.key === 'Escape') closeLightbox();
+        else if (e.key === 'ArrowRight') showNextImage();
+        else if (e.key === 'ArrowLeft') showPrevImage();
+    });
+
+    // ════════════════════════════════════════
+    // SIMILAR ITEMS CAROUSEL
+    // ════════════════════════════════════════
+    const similarCarousel = document.getElementById('similarCarousel');
+    const simPrev = document.getElementById('simPrev');
+    const simNext = document.getElementById('simNext');
+
+    if (simPrev && simNext && similarCarousel) {
+        // Scroll exactly one average card width (approx 300px)
+        simPrev.addEventListener('click', () => {
+            similarCarousel.scrollBy({ left: -300, behavior: 'smooth' });
+        });
+
+        simNext.addEventListener('click', () => {
+            similarCarousel.scrollBy({ left: 300, behavior: 'smooth' });
+        });
+    }
+
+    // ════════════════════════════════════════
+    // OTHERS ALSO BOUGHT CAROUSEL
+    // ════════════════════════════════════════
+    const othersCarousel = document.getElementById('othersCarousel');
+    const othersPrev = document.getElementById('othersPrev');
+    const othersNext = document.getElementById('othersNext');
+
+    if (othersPrev && othersNext && othersCarousel) {
+        // Scroll exactly one average card width (approx 300px) backwards
+        othersPrev.addEventListener('click', () => {
+            othersCarousel.scrollBy({ left: -320, behavior: 'smooth' });
+        });
+
+        // Scroll exactly one average card width (approx 300px) forwards
+        othersNext.addEventListener('click', () => {
+            othersCarousel.scrollBy({ left: 320, behavior: 'smooth' });
+        });
+    }
 </script>
 
 {% endwith %}
