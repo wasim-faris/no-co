@@ -15,9 +15,61 @@
     .no-gap { gap: 0 !important; }
     .product-grid-item { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #fff; }
     .product-grid-item img { width: 100%; height: 100%; object-fit: cover; }
-    .footer-title { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 1.5rem; }
-    .footer-link { font-size: 0.7rem; color: #999; display: block; margin-bottom: 0.8rem; transition: color 0.2s; }
-    .footer-link:hover { color: #fff; }
+    .footer-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #000; margin-bottom: 1rem; }
+    .footer-link { font-size: 0.65rem; color: #6b7280; display: block; margin-bottom: 0.65rem; transition: color 0.2s; text-decoration: none; }
+    .footer-link:hover { color: #000; }
+
+    /* ════════════════════════════════════════
+       SKELETON ANIMATION & SHIMMER
+    ════════════════════════════════════════ */
+    .skeleton {
+        background: #e5e5e5;
+        background: linear-gradient(90deg, #e5e5e5 25%, #f2f2f2 50%, #e5e5e5 75%);
+        background-size: 200% 100%;
+        animation: shimmer 1.5s infinite linear;
+        border-radius: 2px;
+    }
+    @keyframes shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    .skeleton-img {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 10;
+        pointer-events: none;
+    }
+    .skeleton-text {
+        height: 12px;
+        margin-bottom: 8px;
+    }
+    .skeleton-swatch {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+
+    /* LAZY LOAD LOGIC & REVEAL */
+    .lazy-image {
+        opacity: 0;
+        transition: opacity 0.4s ease-in-out;
+    }
+    .skeleton-wrapper .actual-content {
+        display: none; 
+    }
+    .skeleton-wrapper.is-loaded .skeleton {
+        display: none !important;
+        animation: none;
+    }
+    .skeleton-wrapper.is-loaded .actual-content {
+        display: block;
+    }
+    .skeleton-wrapper.is-loaded .lazy-image {
+        opacity: 1;
+    }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
@@ -30,6 +82,45 @@
   </main>
 
 {% include 'user_base/components/footer.html' %}
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const lazyImages = document.querySelectorAll('img.lazy-image');
+    if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.removeAttribute('data-src');
+                    }
+                    img.onload = () => {
+                        const wrapper = img.closest('.skeleton-wrapper');
+                        if (wrapper) wrapper.classList.add('is-loaded');
+                        else img.classList.add('is-loaded');
+                    };
+                    observer.unobserve(img);
+                }
+            });
+        }, { rootMargin: "200px 0px", threshold: 0.01 });
+
+        lazyImages.forEach(image => imageObserver.observe(image));
+    } else {
+        // Fallback for older browsers
+        lazyImages.forEach(img => {
+            if (img.dataset.src) {
+                img.src = img.dataset.src;
+                img.removeAttribute('data-src');
+            }
+            img.onload = () => {
+                const wrapper = img.closest('.skeleton-wrapper');
+                if (wrapper) wrapper.classList.add('is-loaded');
+            };
+        });
+    }
+});
+</script>
 
 </body>
 </html>

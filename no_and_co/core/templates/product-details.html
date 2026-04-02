@@ -301,7 +301,7 @@
        SIMILAR ITEMS
     ════════════════════════════════════════ */
     .similar-items-section {
-        padding: 60px 40px;
+        padding: 40px 0 60px 0;
         border-top: 1px solid #e5e5e5;
         background: #fff;
     }
@@ -309,7 +309,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
+        margin-bottom: 16px;
+        padding: 0 40px;
     }
     .similar-title {
         font-size: 14px;
@@ -331,12 +332,13 @@
 
     .similar-carousel {
         display: flex;
-        gap: 20px;
+        gap: 0;
         overflow-x: auto;
         scroll-behavior: smooth;
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
-        padding-bottom: 10px;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        padding: 0;
+        margin: 0;
     }
     .similar-carousel::-webkit-scrollbar {
         display: none; /* Chrome/Safari */
@@ -344,24 +346,25 @@
 
     /* Widened cards for a premium, larger gallery feel */
     .similar-card {
-        flex: 0 0 calc(32% - 20px); /* Roughly 3 items on desktop for larger presence */
-        min-width: 320px; /* Increased from 260px */
+        flex: 0 0 32%;
+        min-width: 280px;
         display: flex;
         flex-direction: column;
         text-decoration: none;
         color: #000;
         cursor: pointer;
+        margin: 0;
+        padding: 0;
     }
 
     /* Enforce a taller, H&M-style portrait cut */
     .similar-img-wrapper {
         position: relative;
         width: 100%;
-        /* 2/3 ratio yields a significantly taller portrait view */
         aspect-ratio: 2 / 3;
         background-color: #f4f4f4;
-        margin-bottom: 14px;
-        overflow: hidden; /* Prevent edge-bleeding */
+        margin: 0;
+        overflow: hidden;
     }
 
     /* Lock the images to perfectly fill the newly expanded container */
@@ -410,23 +413,27 @@
     .similar-name {
         font-size: 12px;
         font-weight: 400;
-        margin: 0 0 4px 0;
+        margin: 12px 0 4px 0;
         text-transform: uppercase;
+        padding: 0 10px;
     }
     .similar-price {
         font-size: 13px;
         font-weight: 700;
         margin: 0 0 4px 0;
+        padding: 0 10px;
     }
     .similar-label {
         font-size: 11px;
         font-weight: 400;
         color: #555;
         margin: 0 0 8px 0;
+        padding: 0 10px;
     }
     .similar-swatches {
         display: flex;
         gap: 4px;
+        padding: 0 10px;
     }
     .similar-swatch {
         width: 10px;
@@ -435,8 +442,9 @@
     }
 
     @media (max-width: 900px) {
-        .similar-items-section { padding: 40px 20px; }
-        .similar-card { flex: 0 0 calc(50% - 10px); min-width: 200px; }
+        .similar-items-section { padding: 30px 0 40px 0; }
+        .similar-header { padding: 0 20px; }
+        .similar-card { flex: 0 0 50%; min-width: 200px; }
     }
 </style>
 
