@@ -5,7 +5,6 @@
 
 <style>
     .serif-font{font-family:'Playfair Display',serif}
-    body{font-family:'Inter',sans-serif}
     .no-scrollbar::-webkit-scrollbar{display:none}
 
 
@@ -54,12 +53,25 @@
 <div id="toast-container"></div>
 
 <main class="w-full" id="main-content">
-    <section class="w-full relative skeleton-wrapper">
-        <div class="w-full aspect-[16/8] md:aspect-[16/7] overflow-hidden" style="position: relative;">
+    <section class="w-full relative skeleton-wrapper overflow-hidden">
+        <div class="w-full h-[75vh] md:h-auto md:aspect-[16/7] overflow-hidden relative">
             <div class="skeleton skeleton-img"></div>
+            <!-- Immersive Hero Trigger & Compact Dropdown -->
+            <div class="md:hidden absolute top-4 left-5 z-20">
+                <div id="categoryDropdownTrigger" class="text-[#111] text-[13px] font-medium tracking-[0.15em] uppercase cursor-pointer flex items-center bg-white px-2 py-1 rounded-[4px] shadow-sm">
+                    MENS <span class="ml-1.5 text-base leading-none font-light">+</span>
+                </div>
+
+                <!-- Floating Compact Dropdown -->
+                <div id="categoryDropdown" class="absolute top-10 left-0 w-[170px] bg-white rounded-[6px] border border-black/5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] py-2 transition-all duration-300 opacity-0 visibility-hidden max-h-0 overflow-hidden">
+                    <a href="{% url 'home' %}" class="block px-4 py-2 text-[14px] font-semibold text-[#111]">Mens</a>
+                    <a href="{% url 'ladies' %}" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Ladies</a>
+                    <a href="#" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Kids</a>
+                </div>
+            </div>
             <img data-src="{% static 'core/images/main-img.jpg' %}" alt="Hero" class="w-full h-full object-cover object-top lazy-image">
         </div>
-        <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white actual-content" style="display:flex !important;">
+          <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white actual-content" style="display:flex !important;">
             <span class="section-label text-[10px] uppercase tracking-widest font-medium">Valid on selected styles</span>
             <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
