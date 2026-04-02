@@ -1,0 +1,312 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}Linen Shop – NO&CO{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* ── Page base ── */
+    .plp-body { font-family: 'Inter', system-ui, sans-serif; color: #000; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+    /* ── Category tabs ── */
+    .cat-tab {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        padding: 7px 14px;
+        border: 1px solid #000;
+        cursor: pointer;
+        background: #fff;
+        color: #000;
+        white-space: nowrap;
+        transition: background .15s, color .15s;
+    }
+    .cat-tab:hover { background: #f5f5f5; }
+    .cat-tab.active { background: #000; color: #fff; }
+
+    /* ── Sort / Filter bar ── */
+    .plp-bar-btn {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: .1em;
+        text-transform: uppercase;
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #000;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 0;
+    }
+
+    /* ── Product card ── */
+    .plp-card {
+        display: flex;
+        flex-direction: column;
+        cursor: pointer;
+        position: relative;
+    }
+
+    /* Image wrapper with 2:3 portrait ratio */
+    .plp-img-wrap {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        overflow: hidden;
+        background: #f2f2f2;
+    }
+
+    .plp-img-primary {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+        transition: transform 0.4s ease, opacity 0.35s ease;
+        z-index: 1;
+    }
+
+    .plp-img-secondary {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+        opacity: 0;
+        z-index: 2;
+        transition: opacity 0.35s ease;
+    }
+
+    .plp-card:hover .plp-img-primary  { transform: scale(1.03); }
+    .plp-card:hover .plp-img-secondary { opacity: 1; }
+
+    /* Wishlist heart */
+    .plp-heart {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        z-index: 10;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+    }
+    .plp-heart svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: #000;
+        stroke-width: 1.5;
+        transition: transform .12s;
+        filter: drop-shadow(0 0 2px rgba(255,255,255,0.8));
+    }
+    .plp-heart:hover svg { transform: scale(1.15); fill: #eee; }
+
+    /* Card text */
+    .plp-brand {
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #888;
+        margin: 10px 0 3px;
+        padding: 0 13px;
+        line-height: 1.1;
+    }
+    .plp-name {
+        font-size: 13px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #000;
+        margin: 0 0 5px;
+        padding: 0 13px;
+        line-height: 1.3;
+        /* Truncate at 2 lines like H&M */
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .plp-price {
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: .02em;
+        color: #000;
+        margin: 0 0 10px;
+        padding: 0 13px;
+    }
+
+    /* Color swatches */
+    .plp-swatches {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        flex-wrap: wrap;
+        padding: 0 13px;
+        margin-top: 5px;
+    }
+    .plp-swatch {
+        width: 11px;
+        height: 11px;
+        border: 1px solid #eee;
+        display: inline-block;
+    }
+    .plp-swatch-more {
+        font-size: 10px;
+        color: #767676;
+        font-weight: 500;
+        letter-spacing: .02em;
+        line-height: 1;
+    }
+
+    /* ── Product grid ── */
+    .plp-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+        width: 100%;
+        padding: 0;
+        margin: 0;
+        justify-content: start;
+        border-top: 1px solid #eee;
+    }
+    @media (max-width: 1024px) {
+        .plp-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+        .plp-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Tight card spacing between columns — H&M uses ~0px gap */
+    .plp-card-wrap {
+        padding: 0 0 24px 0;
+    }
+
+    /* ── Page layout ── */
+    .plp-page { padding: 0 0 60px; }
+    .plp-inner { padding: 0; max-width: none; margin: 0; width: 100%; }
+    .plp-header-content { padding: 0 20px; max-width: 1300px; margin: 0 auto; width: 100%; }
+    @media (min-width: 768px) { .plp-header-content { padding: 0 40px; } }
+
+    /* ── Item count ── */
+    .plp-count {
+        font-size: 11px;
+        color: #767676;
+        font-weight: 400;
+        letter-spacing: .02em;
+        margin-bottom: 24px;
+        padding: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="plp-body plp-page">
+  <div class="plp-inner">
+
+    <div class="plp-header-content">
+      <!-- ══ PAGE TITLE ══ -->
+      <div style="padding: 32px 0 20px;">
+          <h1 style="font-size: clamp(32px, 5vw, 48px); font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; margin: 0; line-height: 0.9;">
+              Linen Shop
+          </h1>
+      </div>
+
+      <!-- ══ CATEGORY TABS ══ -->
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
+          <button class="cat-tab active" onclick="setTab(this)">Linen Clothing</button>
+          <button class="cat-tab" onclick="setTab(this)">Shirts</button>
+          <button class="cat-tab" onclick="setTab(this)">Trousers</button>
+          <button class="cat-tab" onclick="setTab(this)">Suits &amp; Blazers</button>
+          <button class="cat-tab" onclick="setTab(this)">Shorts</button>
+      </div>
+
+      <!-- ══ SORT & FILTER BAR ══ -->
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; margin-bottom: 24px; border-bottom: 1px solid #eee;">
+          <button class="plp-bar-btn">
+              Sort By
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="3" y1="6"  x2="21" y2="6"/><line x1="3" y1="12" x2="16" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/>
+              </svg>
+          </button>
+          <button class="plp-bar-btn">
+              Filter
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
+              </svg>
+          </button>
+      </div>
+
+      <!-- ── Item count ── -->
+      <p class="plp-count">12 Items</p>
+    </div><!-- /plp-header-content -->
+
+    <!-- ══ PRODUCT GRID ══ -->
+    <div class="plp-grid">
+      {% for variant in variants %}
+      <div class="plp-card-wrap">
+        <div class="plp-card">
+          <div class="plp-img-wrap">
+            <!-- PRIMARY IMAGE -->
+            {% for img in variant.images.all %}
+              {% if img.is_primary %}
+                <img src="{{ img.image.url }}" class="plp-img-primary" alt="{{ variant.product.product_name }}">
+              {% endif %}
+            {% endfor %}
+
+            <!-- OPTIONAL SECONDARY IMAGE (Hover Effect) -->
+            {% if variant.images.all|length > 1 %}
+              {% for img in variant.images.all %}
+                {% if not img.is_primary %}
+                  <img src="{{ img.image.url }}" class="plp-img-secondary" alt="">
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+
+            <button class="plp-heart" aria-label="Add to Wishlist">
+              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+            </button>
+          </div>
+
+          <p class="plp-brand">{% if variant.product.is_premium %}H&M Premium Selection{% else %}&nbsp;{% endif %}</p>
+          <p class="plp-name">{{ variant.product.product_name }}</p>
+          <p class="plp-price">Rs.{{ variant.price }}
+            {{ variant.color }}
+          </p>
+
+          <!-- COLOR SWATCHES (Unique colors only) -->
+          <div class="plp-swatches">
+            {% regroup variant.product.variants.all by color as color_list %}
+            {% for color_item in color_list|slice:":3" %}
+              {% if color_item.grouper %}
+                <span class="plp-swatch" style="background: {{ color_item.grouper }};" title="{{ color_item.grouper }}"></span>
+              {% endif %}
+            {% endfor %}
+            {% if color_list|length > 3 %}
+              <span class="plp-swatch-more">+{{ color_list|length|add:"-3" }}</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div><!-- /plp-grid -->
+
+  </div><!-- /plp-inner -->
+</div><!-- /plp-body -->
+
+<script>
+    function setTab(el) {
+        document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+    }
+</script>
+
+{% endblock %}

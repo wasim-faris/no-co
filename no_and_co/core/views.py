@@ -7,6 +7,7 @@ from users.decorators import block_check
 from products.models import Variant, VariantImage,Product
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
+from category.models import Category,Subcategory
 # Create your views here.
 
 @never_cache
@@ -76,4 +77,28 @@ def product_details(request, id):
         "unique_sizes":unique_sizes,
         "default_variant":default_variant,
         "similar_items":similar_items
+    })
+
+def product_listing(request):
+    subcategory = request.GET.get("subcategory")
+    print("URL VALUE:", subcategory)
+    sub = Subcategory.objects.filter(subcategory_name=subcategory)
+    print("SUBCATEGORY FOUND:", sub.exists())
+
+    sub = get_object_or_404(Subcategory, subcategory_name=subcategory)
+    products = Product.objects.filter(subcategory = sub , is_active = True , is_deleted = False)
+    print("PRODUCT COUNT:", products.count())
+    variants = []
+
+    for i in products:
+        try:
+            default_variants = i.variants.get(is_default = True)
+            variants.append(default_variants)
+        except Variant.DoesNotExist:
+            continue
+        except Variant.MultipleObjectsReturned:
+            continue
+
+    return render(request, "product-listing.html",{
+        "variants":variants
     })
