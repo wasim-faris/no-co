@@ -337,7 +337,7 @@
     {% empty %}
         <!-- Fallback -->
         <span class="w-full h-full rounded-lg shadow-sm opacity-90 absolute inset-0"
-              style="background-color: {{ variant.color }};"></span>
+              style="background-color: {{ variant.color_hex|default:'#ccc' }};"></span>
     {% endfor %}
 </div>
                                     <!-- END CHANGED -->
@@ -399,6 +399,7 @@
                                             data-id="{{ variant.id }}"
                                            data-sizes="[{{ variant.size.id }}]"
                                             data-color="{{ variant.color }}"
+                                            data-color-hex="{{ variant.color_hex|default:'' }}"
                                             data-price="{{ variant.price }}"
                                             data-stock="{{ variant.stock }}"
                                             data-active="{{ variant.is_active }}"
@@ -508,9 +509,16 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color</label>
-                        <input type="text" name="color" id="add-color" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                        <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color Name</label>
+                        <input type="text" name="color" id="add-color" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors" placeholder="e.g. Cobalt Blue">
                         <p id="add-color-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color Hex</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" name="color_hex" id="add-color-hex" class="w-12 h-11 p-1 bg-[#f9fafb] border border-gray-100 rounded-xl cursor-pointer">
+                            <input type="text" oninput="document.getElementById('add-color-hex').value = this.value" placeholder="#000000" class="flex-1 bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-mono">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Price</label>
@@ -612,9 +620,16 @@
                     </div>
 
                     <div>
-                        <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color</label>
+                        <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color Name</label>
                         <input type="text" name="color" id="edit-color" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
                         <p id="edit-color-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color Hex</label>
+                        <div class="flex items-center gap-2">
+                            <input type="color" name="color_hex" id="edit-color-hex" class="w-12 h-11 p-1 bg-[#f9fafb] border border-gray-100 rounded-xl cursor-pointer">
+                            <input type="text" id="edit-color-hex-text" oninput="document.getElementById('edit-color-hex').value = this.value" placeholder="#000000" class="flex-1 bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-mono">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Price</label>
@@ -695,7 +710,7 @@ function resetEditModal() {
     });
 
     // Clear text/number fields
-    ['edit-color', 'edit-price', 'edit-stock'].forEach(function(fieldId) {
+    ['edit-color', 'edit-color-hex', 'edit-color-hex-text', 'edit-price', 'edit-stock'].forEach(function(fieldId) {
         var el = document.getElementById(fieldId);
         if (el) el.value = '';
     });
@@ -748,6 +763,11 @@ document.addEventListener('click', function(e) {
 
     document.getElementById("edit-id").value = btn.getAttribute("data-id");
     document.getElementById("edit-color").value = btn.getAttribute("data-color");
+
+    const hexValue = btn.getAttribute("data-color-hex") || "#000000";
+    document.getElementById("edit-color-hex").value = hexValue;
+    document.getElementById("edit-color-hex-text").value = hexValue;
+
     document.getElementById("edit-price").value = btn.getAttribute("data-price").replace(",", ".");
     document.getElementById("edit-stock").value = btn.getAttribute("data-stock");
 

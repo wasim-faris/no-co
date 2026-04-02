@@ -208,6 +208,7 @@ def admin_variants(request, id):
         if action == "add_variant":
             sizes = request.POST.getlist("sizes")
             color = request.POST.get("color")
+            color_hex = request.POST.get("color_hex")
             price = request.POST.get("price")
             stock = request.POST.get("stock")
             is_active = request.POST.get("is_active") == "true"
@@ -232,6 +233,7 @@ def admin_variants(request, id):
                     color=color,
                     price=price,
                     stock=stock,
+                    color_hex=color_hex,
                     is_active=is_active,
                     is_default=is_default
             )
@@ -267,6 +269,7 @@ def admin_variants(request, id):
                 variant.size_id = sizes[0]
 
             variant.color = request.POST.get("color")
+            variant.color_hex = request.POST.get("color_hex")
 
             variant.is_active = "true" in request.POST.getlist("is_active")
             variant.is_default = "true" in request.POST.getlist("is_default")

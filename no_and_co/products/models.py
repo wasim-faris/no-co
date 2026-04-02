@@ -45,7 +45,7 @@ class Variant(models.Model):
 
     size = models.ForeignKey(Size, on_delete=models.CASCADE)
     color = models.CharField(max_length=50)
-    color_hex = models.CharField(max_length=50, blank=True, null = True)
+    color_hex = models.CharField(max_length=7, blank=True, null=True)
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
     stock = models.PositiveIntegerField(default=0)

@@ -250,54 +250,78 @@
     </div><!-- /plp-header-content -->
 
     <!-- ══ PRODUCT GRID ══ -->
-    <div class="plp-grid">
-      {% for variant in variants %}
-      <div class="plp-card-wrap">
-        <div class="plp-card">
-          <div class="plp-img-wrap">
-            <!-- PRIMARY IMAGE -->
+   <div class="plp-grid">
+  {% for variant in variants %}
+
+  <!-- CLICKABLE WRAPPER -->
+  <a href="{% url "product-details" variant.product.id %}" class="block"> <!-- you will replace # -->
+
+    <div class="plp-card-wrap">
+      <div class="plp-card">
+
+        <div class="plp-img-wrap">
+
+          <!-- PRIMARY IMAGE -->
+          {% for img in variant.images.all %}
+            {% if img.is_primary %}
+              <img src="{{ img.image.url }}" class="plp-img-primary" alt="{{ variant.product.product_name }}">
+            {% endif %}
+          {% endfor %}
+
+          <!-- SECONDARY IMAGE -->
+          {% if variant.images.all|length > 1 %}
             {% for img in variant.images.all %}
-              {% if img.is_primary %}
-                <img src="{{ img.image.url }}" class="plp-img-primary" alt="{{ variant.product.product_name }}">
+              {% if not img.is_primary %}
+                <img src="{{ img.image.url }}" class="plp-img-secondary" alt="">
               {% endif %}
             {% endfor %}
+          {% endif %}
 
-            <!-- OPTIONAL SECONDARY IMAGE (Hover Effect) -->
-            {% if variant.images.all|length > 1 %}
-              {% for img in variant.images.all %}
-                {% if not img.is_primary %}
-                  <img src="{{ img.image.url }}" class="plp-img-secondary" alt="">
-                {% endif %}
-              {% endfor %}
-            {% endif %}
+          <!-- HEART (prevent click propagation later if needed) -->
+          <button class="plp-heart" aria-label="Add to Wishlist">
+            <svg viewBox="0 0 24 24">
+              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+            </svg>
+          </button>
 
-            <button class="plp-heart" aria-label="Add to Wishlist">
-              <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
-            </button>
-          </div>
-
-          <p class="plp-brand">{% if variant.product.is_premium %}H&M Premium Selection{% else %}&nbsp;{% endif %}</p>
-          <p class="plp-name">{{ variant.product.product_name }}</p>
-          <p class="plp-price">Rs.{{ variant.price }}
-            {{ variant.color }}
-          </p>
-
-          <!-- COLOR SWATCHES (Unique colors only) -->
-          <div class="plp-swatches">
-            {% regroup variant.product.variants.all by color as color_list %}
-            {% for color_item in color_list|slice:":3" %}
-              {% if color_item.grouper %}
-                <span class="plp-swatch" style="background: {{ color_item.grouper }};" title="{{ color_item.grouper }}"></span>
-              {% endif %}
-            {% endfor %}
-            {% if color_list|length > 3 %}
-              <span class="plp-swatch-more">+{{ color_list|length|add:"-3" }}</span>
-            {% endif %}
-          </div>
         </div>
+
+        <p class="plp-brand">
+          {% if variant.product.is_premium %}
+            H&M Premium Selection
+          {% else %}
+            &nbsp;
+          {% endif %}
+        </p>
+
+        <p class="plp-name">{{ variant.product.product_name }}</p>
+        <p class="plp-price">Rs.{{ variant.price }}</p>
+
+        <!-- COLOR SWATCHES -->
+        <div class="plp-swatches">
+          {% regroup variant.product.variants.all by color as color_list %}
+          {% for color_item in color_list|slice:":3" %}
+            {% with first_v=color_item.list.0 %}
+              <span class="plp-swatch"
+                    style="background-color: {{ first_v.color_hex|default:'#ccc' }};">
+              </span>
+            {% endwith %}
+          {% endfor %}
+
+          {% if color_list|length > 3 %}
+            <span class="plp-swatch-more">
+              +{{ color_list|length|add:"-3" }}
+            </span>
+          {% endif %}
+        </div>
+
       </div>
-      {% endfor %}
-    </div><!-- /plp-grid -->
+    </div>
+
+  </a>
+
+  {% endfor %}
+</div>
 
   </div><!-- /plp-inner -->
 </div><!-- /plp-body -->
