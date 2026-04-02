@@ -92,12 +92,12 @@
     }
 
     /* Hover States for Multi-Image Cards */
-    .plp-card:hover .plp-img-wrap.has-hover .plp-img-primary { 
+    .plp-card:hover .plp-img-wrap.has-hover .plp-img-primary {
         opacity: 1;
-        transform: scale(1.03); 
+        transform: scale(1.03);
     }
-    .plp-card:hover .plp-img-wrap.has-hover .plp-img-secondary { 
-        opacity: 0; 
+    .plp-card:hover .plp-img-wrap.has-hover .plp-img-secondary {
+        opacity: 0;
     }
 
     /* Wishlist heart */
@@ -280,8 +280,8 @@
           {% with primary_img=all_images.first %}
           {% with secondary_img=all_images.1 %}
 
-          {% comment %} 
-             Logic: 
+          {% comment %}
+             Logic:
              If <= 2 images: Show ONLY primary (No hover).
              If > 2 images: Show ONLY primary & secondary for hover swap (Secondary default).
           {% endcomment %}
