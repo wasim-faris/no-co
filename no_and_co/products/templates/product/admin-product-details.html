@@ -80,6 +80,23 @@
             -webkit-text-fill-color: #3E3A37 !important;
         }
 
+        .custom-slim-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-slim-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-slim-scroll::-webkit-scrollbar-thumb {
+            background: #e5e7eb;
+            border-radius: 10px;
+        }
+
+        .custom-slim-scroll::-webkit-scrollbar-thumb:hover {
+            background: #d1d5db;
+        }
+
         @media (max-width: 768px) {
             .image-section {
                 display: none;
@@ -491,39 +508,47 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                                         <div class="text-sm text-gray-800 py-2 border-b border-transparent">{{product.subcategory.subcategory_name }}</div>
                                     </div>
 
-                                    <div class="col-span-1 md:col-span-2 space-y-2">
+                                    <div class="col-span-1 md:col-span-2 space-y-3">
                                         <label
-                                            class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Materials</label>
-                                        <div
-                                            class="text-sm leading-relaxed text-gray-800 py-2 border-b border-transparent">
-                                            {{ product.materials|default:'100% Cotton' }}</div>
+                                            class="text-[10px] uppercase tracking-widest text-gray-400 font-bold block mb-1">Materials</label>
+                                        <div class="max-h-[300px] overflow-y-auto custom-slim-scroll">
+                                            <div class="text-sm leading-relaxed text-gray-800 py-3 border-b border-gray-50/50 whitespace-pre-line max-w-2xl">
+                                                {{ product.materials|default:'100% Cotton' }}
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="col-span-1 md:col-span-2 space-y-2">
+                                    <div class="col-span-1 md:col-span-2 space-y-3">
                                         <label
-                                            class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Description
+                                            class="text-[10px] uppercase tracking-widest text-gray-400 font-bold block mb-1">Description
                                             & Fit</label>
-                                        <div
-                                            class="text-sm leading-relaxed text-gray-800 py-2 border-b border-transparent">
-                                            {{ product.description_fit|default:'Classic silhouette with a relaxeddrape.' }}</div>
+                                        <div class="max-h-[300px] overflow-y-auto custom-slim-scroll">
+                                            <div class="text-sm leading-loose text-gray-800 py-3 border-b border-gray-50/50 whitespace-pre-line max-w-2xl">
+                                                {{ product.description_fit|default:'Classic silhouette with a relaxed drape.' }}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
                             <div x-show="activeTab === 'logistics'" class="space-y-8" x-transition>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div class="space-y-2">
+                                    <div class="space-y-3">
                                         <label
-                                            class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Care
+                                            class="text-[10px] uppercase tracking-widest text-gray-400 font-bold block mb-1">Care
                                             Guide</label>
-                                        <div class="text-sm text-gray-800 py-2 border-b border-transparent">{{product.care_guide|default:'Hand wash cold. Do not bleach.' }}</div>
+                                        <div class="text-sm leading-loose text-gray-800 py-3 border-b border-gray-50/50 whitespace-pre-line max-w-prose">
+                                            {{ product.care_guide|default:'Hand wash cold. Do not bleach.' }}
+                                        </div>
                                     </div>
 
-                                    <div class="space-y-2">
+                                    <div class="space-y-3">
                                         <label
-                                            class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Delivery
+                                            class="text-[10px] uppercase tracking-widest text-gray-400 font-bold block mb-1">Delivery
                                             & Returns</label>
-                                        <div class="text-sm text-gray-800 py-2 border-b border-transparent">{{product.delivery_returns|default:'Standard shipping 3-5 days.' }}</div>
+                                        <div class="text-sm leading-loose text-gray-800 py-3 border-b border-gray-50/50 whitespace-pre-line max-w-prose">
+                                            {{ product.delivery_returns|default:'Standard shipping 3-5 days.' }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -583,9 +608,9 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                                             {% endif %}
                                         </div>
                                         <div class="flex items-center gap-3">
-                                            <div class="w-2 h-2 rounded-full border border-gray-100 shadow-sm"
-                                                 style="background-color: {{ variant.color|lower|default:'gray' }};"></div>
-                                            <p class="text-[10px] text-gray-400 uppercase font-medium">{{ variant.color }} / {{ variant.size }}</p>
+                                            <div class="w-2.5 h-2.5 rounded-full border border-gray-200 shadow-sm"
+                                                 style="background-color: {{ variant.color_hex|default:'#ccc' }};"></div>
+                                            <p class="text-[10px] text-gray-400 uppercase font-bold tracking-tight">{{ variant.color }} / {{ variant.size }}</p>
                                         </div>
                                     </div>
 
@@ -616,6 +641,7 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                                         data-id="{{ variant.id }}"
                                         data-size="{{ variant.size }}"
                                         data-color="{{ variant.color }}"
+                                        data-color-hex="{{ variant.color_hex|default:'' }}"
                                         data-price="{{ variant.price }}"
                                         data-stock="{{ variant.stock }}"
                                         data-active="{{ variant.is_active|yesno:'true,false' }}"
@@ -774,11 +800,22 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all">
                         </div>
 
-                        <!-- Color -->
+                        <!-- Color Name -->
                         <div class="space-y-2">
-                            <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Color</label>
+                            <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Color Name</label>
                             <input type="text" name="color" placeholder="e.g. Red, Black" required
                                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all">
+                        </div>
+
+                        <!-- Color Hex -->
+                        <div class="space-y-2">
+                            <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Color Hex Code</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" name="color_hex" id="add-color-hex" value="#000000"
+                                    class="w-12 h-11 p-1 bg-[#f9fafb] border border-gray-100 rounded-xl cursor-pointer">
+                                <input type="text" oninput="document.getElementById('add-color-hex').value = this.value" placeholder="#000000"
+                                    class="flex-1 bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-black font-mono">
+                            </div>
                         </div>
 
                         <!-- Price -->
@@ -861,11 +898,22 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all">
                         </div>
 
-                        <!-- Color -->
+                        <!-- Color Name -->
                         <div class="space-y-2">
-                            <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Color</label>
+                            <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Color Name</label>
                             <input type="text" name="color" id="edit-color" required
                                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all">
+                        </div>
+
+                        <!-- Color Hex -->
+                        <div class="space-y-2">
+                            <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Color Hex Code</label>
+                            <div class="flex items-center gap-2">
+                                <input type="color" name="color_hex" id="edit-color-hex"
+                                    class="w-12 h-11 p-1 bg-[#f9fafb] border border-gray-100 rounded-xl cursor-pointer">
+                                <input type="text" id="edit-color-hex-text" oninput="document.getElementById('edit-color-hex').value = this.value" placeholder="#000000"
+                                    class="flex-1 bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-black font-mono">
+                            </div>
                         </div>
 
                         <!-- Price -->
@@ -974,6 +1022,11 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                     const el = document.getElementById(id);
                     if (el) el.value = val;
                 }
+
+                // Handle color_hex specifically
+                const hexVal = data.colorHex || "#000000";
+                document.getElementById('edit-color-hex').value = hexVal;
+                document.getElementById('edit-color-hex-text').value = hexVal;
 
                 const isActive = String(data.active || "false").toLowerCase() === "true";
                 const isDefault = String(data.default || "false").toLowerCase() === "true";

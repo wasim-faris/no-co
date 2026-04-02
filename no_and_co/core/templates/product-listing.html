@@ -66,8 +66,9 @@
         height: 100%;
         object-fit: cover;
         object-position: top center;
-        transition: transform 0.4s ease, opacity 0.35s ease;
+        transition: transform 0.4s ease, opacity 0.4s ease;
         z-index: 1;
+        opacity: 1; /* Default visible for static cards */
     }
 
     .plp-img-secondary {
@@ -77,13 +78,27 @@
         height: 100%;
         object-fit: cover;
         object-position: top center;
-        opacity: 0;
         z-index: 2;
-        transition: opacity 0.35s ease;
+        transition: opacity 0.4s ease;
+        opacity: 0; /* Default hidden for static cards */
     }
 
-    .plp-card:hover .plp-img-primary  { transform: scale(1.03); }
-    .plp-card:hover .plp-img-secondary { opacity: 1; }
+    /* Condition: More than 2 images -> Enable Inverted Hover */
+    .plp-img-wrap.has-hover .plp-img-primary {
+        opacity: 0;
+    }
+    .plp-img-wrap.has-hover .plp-img-secondary {
+        opacity: 1;
+    }
+
+    /* Hover States for Multi-Image Cards */
+    .plp-card:hover .plp-img-wrap.has-hover .plp-img-primary { 
+        opacity: 1;
+        transform: scale(1.03); 
+    }
+    .plp-card:hover .plp-img-wrap.has-hover .plp-img-secondary { 
+        opacity: 0; 
+    }
 
     /* Wishlist heart */
     .plp-heart {
@@ -259,23 +274,41 @@
     <div class="plp-card-wrap">
       <div class="plp-card">
 
-        <div class="plp-img-wrap">
+        <div class="plp-img-wrap {% if variant.images.all|length > 2 %}has-hover{% endif %}">
 
-          <!-- PRIMARY IMAGE -->
-          {% for img in variant.images.all %}
-            {% if img.is_primary %}
-              <img src="{{ img.image.url }}" class="plp-img-primary" alt="{{ variant.product.product_name }}">
+          {% with all_images=variant.images.all %}
+          {% with primary_img=all_images.first %}
+          {% with secondary_img=all_images.1 %}
+
+          {% comment %} 
+             Logic: 
+             If <= 2 images: Show ONLY primary (No hover).
+             If > 2 images: Show ONLY primary & secondary for hover swap (Secondary default).
+          {% endcomment %}
+
+          {% if all_images|length <= 2 %}
+            {% if primary_img %}
+              <img src="{{ primary_img.image.url }}" class="plp-img-primary" alt="{{ variant.product.product_name }}">
             {% endif %}
-          {% endfor %}
+          {% else %}
+            <!-- Identify True Primary (is_primary=True) if possible -->
+            {% for img in all_images %}
+               {% if img.is_primary %}
+                  <img src="{{ img.image.url }}" class="plp-img-primary" alt="{{ variant.product.product_name }}">
+               {% endif %}
+            {% endfor %}
 
-          <!-- SECONDARY IMAGE -->
-          {% if variant.images.all|length > 1 %}
-            {% for img in variant.images.all %}
-              {% if not img.is_primary %}
-                <img src="{{ img.image.url }}" class="plp-img-secondary" alt="">
-              {% endif %}
+            <!-- Identify Secondary -->
+            {% for img in all_images %}
+               {% if not img.is_primary %}
+                  <img src="{{ img.image.url }}" class="plp-img-secondary" alt="">
+               {% endif %}
             {% endfor %}
           {% endif %}
+
+          {% endwith %}
+          {% endwith %}
+          {% endwith %}
 
           <!-- HEART (prevent click propagation later if needed) -->
           <button class="plp-heart" aria-label="Add to Wishlist">

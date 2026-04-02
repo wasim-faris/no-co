@@ -65,10 +65,14 @@ def admin_product_details(request, id):
         action = request.POST.get("action")
 
         if action == "add_variant":
+            size_name = request.POST.get("size")
+            size_obj, _ = Size.objects.get_or_create(name=size_name)
+            
             Variant.objects.create(
                 product = product,
-                size = request.POST.get("size"),
+                size = size_obj,
                 color = request.POST.get("color"),
+                color_hex = request.POST.get("color_hex"),
                 price = request.POST.get("price"),
                 stock = request.POST.get("stock"),
                 is_active = request.POST.get("is_active") == "true",
@@ -90,13 +94,14 @@ def admin_product_details(request, id):
             if is_default:
                 Variant.objects.filter(is_default = True , product = variant.product).update(is_default = False)
 
-            variant.size = size
+            size_obj, _ = Size.objects.get_or_create(name=size)
+            variant.size = size_obj
             variant.price = price
             variant.stock = stock
             variant.color = color
+            variant.color_hex = request.POST.get("color_hex")
             variant.is_active = is_active
             variant.is_default = is_default
-
             variant.save()
             messages.success(request, "Product edited succesfully")
             return redirect("admin-product-details", id=product.id)

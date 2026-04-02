@@ -66,9 +66,26 @@ def product_details(request, id):
     similar_products = Product.objects.filter(is_active=True, is_deleted=False).exclude(id=product.id).order_by('-created_at')[:6]
     similar_items = []
     for p in similar_products:
-        rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by('-is_default', 'id').first()
+        rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
         if rep_variant:
             similar_items.append(rep_variant)
+
+    # ════════════════════════ PRODUCT IMAGE LOGIC (FORCE FIX) ════════════════════════
+    product_image = None
+    
+    # 1. & 2. Try Default Variant
+    if default_variant:
+        product_image = default_variant.images.filter(is_primary=True).first()
+        if not product_image:
+            product_image = default_variant.images.first()
+
+    # 3. & 4. Try First Variant fallback if still no image
+    if not product_image:
+        v_fallback = variants.first()
+        if v_fallback:
+            product_image = v_fallback.images.filter(is_primary=True).first()
+            if not product_image:
+                product_image = v_fallback.images.first()
 
     return render(request, "product-details.html",{
         "product":product,
@@ -76,6 +93,7 @@ def product_details(request, id):
         "unique_variants":unique_variants,
         "unique_sizes":unique_sizes,
         "default_variant":default_variant,
+        "product_image":product_image,
         "similar_items":similar_items
     })
 

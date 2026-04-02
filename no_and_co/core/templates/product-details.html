@@ -459,30 +459,25 @@
 <main class="pdp-wrapper">
 
     <div class="pdp-image-column" id="imageContainer">
-        {% if default_variant.primary_images.all %}
-            <img id="mainImage" src="{{ default_variant.primary_images.0.image.url }}" alt="">
-        {% elif default_variant.images.all %}
-            <img id="mainImage" src="{{ default_variant.images.all.0.image.url }}" alt="">
+        <!-- Main Image with Forced Logic -->
+        {% if product_image %}
+            <img id="mainImage" src="{{ product_image.image.url }}" alt="{{ product.product_name }}" 
+                 style="width: 100%; height: 100%; min-height: 600px; object-fit: cover; object-position: center;">
+        {% else %}
+            <!-- Placeholder -->
+            <div id="mainImagePlaceholder" class="w-full bg-gray-100 flex items-center justify-center" style="aspect-ratio: 2/3; min-height: 600px;">
+                <span class="text-gray-300 text-[10px] uppercase font-bold tracking-widest">No Image Available</span>
+            </div>
         {% endif %}
 
-        {% with img_count=default_variant.images.all|length %}
-            {% if img_count < 3 %}
-                {% with next_img=default_variant.images.all|slice:"1:2"|first %}
-                    <img id="image2" src="{% if next_img %}{{ next_img.image.url }}{% endif %}" alt="" style="{% if not next_img %}display:none;{% endif %}">
-                {% endwith %}
-                <img id="image3" src="" alt="" style="display:none;">
-            {% else %}
-                <div class="image-sub-grid">
-                    {% for img_obj in default_variant.images.all|slice:"1:3" %}
-                        <img id="image{{ forloop.counter|add:1 }}" src="{{ img_obj.image.url }}" alt="">
-                    {% endfor %}
-                </div>
+        <!-- Secondary Images Grid (Fallback only if default_variant exists) -->
+        <div class="image-sub-grid">
+            {% if default_variant %}
+                {% for img_obj in default_variant.images.all|slice:"1:5" %}
+                    <img id="image{{ forloop.counter|add:1 }}" src="{{ img_obj.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                {% endfor %}
             {% endif %}
-        {% endwith %}
-
-        {% with next_img=default_variant.images.all|slice:"3:4"|first %}
-            <img id="image4" src="{% if next_img %}{{ next_img.image.url }}{% endif %}" alt="" style="{% if not next_img %}display:none;{% endif %}">
-        {% endwith %}
+        </div>
     </div>
 
     <div class="pdp-info-column">
