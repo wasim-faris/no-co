@@ -1,0 +1,285 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}Shopping Bag – NO&CO{% endblock %}
+
+{% block extra_head %}
+<style>
+    .cart-title {
+        font-size: clamp(1.5rem, 5vw, 2.2rem);
+        font-weight: 800;
+        letter-spacing: -0.01em;
+        text-transform: uppercase;
+        margin-top: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    .info-banner {
+        border: 1px solid #eee;
+        padding: 0.75rem 1rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        color: #111;
+        margin-bottom: 2rem;
+    }
+    .item-card {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        padding-bottom: 2rem;
+        border-bottom: 1px solid #f3f3f3;
+        margin-bottom: 2rem;
+    }
+    @media (min-width: 640px) {
+        .item-card {
+            flex-direction: row;
+            gap: 1.5rem;
+        }
+    }
+    .item-img-wrap {
+        width: 130px;
+        aspect-ratio: 2/3;
+        flex-shrink: 0;
+        background: #f7f7f7;
+    }
+    .item-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .item-details {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .item-brand {
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #666;
+        margin-bottom: 0.25rem;
+    }
+    .item-name {
+        font-size: 0.9rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        margin-bottom: 0.25rem;
+    }
+    .item-price {
+        font-size: 0.9rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+    }
+    .item-meta {
+        font-size: 0.75rem;
+        color: #111;
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.25rem 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .meta-label { color: #666; }
+    
+    .item-actions {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        margin-top: auto;
+    }
+    .qty-control {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        border: 1px solid #ddd;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.85rem;
+    }
+    .qty-btn { cursor: pointer; color: #111; font-weight: 500; }
+    .delete-btn { color: #111; cursor: pointer; font-size: 1.2rem; }
+
+    .summary-panel {
+        background: #fff;
+        position: sticky;
+        top: 2rem;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85rem;
+        margin-bottom: 1rem;
+        color: #111;
+    }
+    .summary-total {
+        font-size: 1rem;
+        font-weight: 800;
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+        /* border-top: 1px solid #eee; */
+    }
+    .discount-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 2rem;
+    }
+    .add-link {
+        font-size: 0.75rem;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    
+    .btn-checkout {
+        background: #000;
+        color: #fff;
+        width: 100%;
+        padding: 1rem;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        margin-top: 2rem;
+        transition: opacity 0.2s;
+    }
+    .btn-checkout:hover { opacity: 0.8; }
+    
+    .btn-signin {
+        background: #fff;
+        color: #000;
+        border: 1px solid #000;
+        width: 100%;
+        padding: 1rem;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        margin-top: 1rem;
+    }
+    
+    .payment-icons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+    .info-text {
+        font-size: 0.65rem;
+        color: #666;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    .info-link {
+        text-decoration: underline;
+        color: #111;
+    }
+    
+    @media (max-width: 1024px) {
+        .summary-panel { position: static; margin-top: 2rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-[1200px] mx-auto px-4 md:px-8 pb-20">
+    <!-- Header Section -->
+    <h1 class="cart-title">Shopping Bag</h1>
+    
+    <!-- Info Banner -->
+    <div class="info-banner uppercase">
+        UPI payment supports quicker refunds
+    </div>
+
+    <!-- Main Grid -->
+    <div class="cart-grid grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12">
+        
+        <!-- Left Column: Items -->
+        <div class="cart-items">
+            <!-- Mock Item 1 -->
+            <div class="item-card">
+                <div class="item-img-wrap">
+                    <img src="/media/variant_images/07153ad4a462cc792d06e2fe0e223d49b354ffc2.avif" alt="Product" class="item-img">
+                </div>
+                <div class="item-details">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="item-brand">H&M Premium Selection</p>
+                            <h3 class="item-name">Slim Fit Linen Shirt</h3>
+                        </div>
+                        <button class="text-xl"><i class="ri-heart-line"></i></button>
+                    </div>
+                    <p class="item-price">Rs. 2,999.00</p>
+                    
+                    <div class="item-meta">
+                        <span class="meta-label">Art no:</span> <span>1258123001</span>
+                        <span class="meta-label">Colour:</span> <span>White</span>
+                        <span class="meta-label">Size:</span> <span>S</span>
+                        <span class="meta-label">Quantity:</span> <span>1</span>
+                        <span class="meta-label">Total:</span> <span class="font-bold">Rs. 2,999.00</span>
+                    </div>
+                    
+                    <div class="item-actions">
+                        <div class="qty-control">
+                            <i class="ri-delete-bin-line cursor-pointer mr-2"></i>
+                            <span class="qty-btn"><i class="ri-subtract-line"></i></span>
+                            <span class="font-bold">1</span>
+                            <span class="qty-btn"><i class="ri-add-line"></i></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- End Mock Item -->
+        </div>
+
+        <!-- Right Column: Summary -->
+        <div class="summary-container">
+            <div class="summary-panel">
+                <div class="discount-section">
+                    <span>Discounts</span>
+                    <span class="add-link">Add</span>
+                </div>
+                
+                <div class="summary-row">
+                    <span>Order value</span>
+                    <span class="font-bold">Rs. 2,999.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Estimated delivery fee</span>
+                    <span class="font-bold">Rs. 149.00</span>
+                </div>
+                
+                <div class="summary-row summary-total">
+                    <span>TOTAL</span>
+                    <span>Rs. 3,148.00</span>
+                </div>
+                
+                <button class="btn-checkout">Continue to Checkout</button>
+                <button class="btn-signin">Sign In</button>
+                
+                <div class="payment-icons">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-3 opacity-80">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-5 opacity-80">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" class="h-4 opacity-80 filter grayscale">
+                </div>
+                
+                <p class="info-text">
+                    Prices and delivery costs are not confirmed until you've reached the checkout.
+                </p>
+                <p class="info-text">
+                    15 days free returns. Read more about <a href="#" class="info-link">return and refund policy</a>.
+                </p>
+                <p class="info-text">
+                    Need help? Please contact <a href="#" class="info-link">Customer Service</a>. Customers would receive an SMS/WhatsApp notifications regarding deliveries on the registered phone number.
+                </p>
+                
+                <a href="#" class="block text-[0.7rem] font-bold uppercase tracking-widest underline mt-8">Delivery and return options</a>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
