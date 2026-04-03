@@ -100,6 +100,14 @@
         opacity: 0;
     }
 
+    /* ── Product card refinements ── */
+    .plp-card {
+        transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    .plp-card:hover {
+        transform: scale(1.02);
+    }
+
     /* Wishlist heart */
     .plp-heart {
         position: absolute;
@@ -302,6 +310,40 @@
     .filter-option-checkbox { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 13px; cursor: pointer; color: #444; }
     .filter-option-checkbox input { accent-color: #000; width: 18px; height: 18px; }
 
+    /* ── Active Filter Tags ── */
+    .active-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding: 0 0 10px;
+    }
+    .filter-tag {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 14px;
+        background: #fff;
+        border: 1px solid #eee;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #000;
+        cursor: default;
+        transition: border-color 0.2s;
+    }
+    .filter-tag:hover { border-color: #000; }
+    .filter-tag-close {
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        color: #999;
+        transition: color 0.2s;
+        margin-left: 5px;
+    }
+    .filter-tag-close:hover { color: #000; }
+
     /* ── Dual-Range Slider logic ── */
     .slider-container { position: relative; width: 100%; height: 40px; }
     .slider-track { position: absolute; top: 18px; left: 0; right: 0; height: 3px; background: #e5e5e5; z-index: 1; }
@@ -398,8 +440,10 @@
     <div class="plp-header-content">
       <!-- ══ PAGE TITLE ══ -->
       <div style="padding: 32px 0 20px;">
-          <h1 style="font-size: clamp(32px, 5vw, 48px); font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; margin: 0; line-height: 0.9;">
-              Linen Shop
+          <h1 style="font-size: clamp(28px, 6vw, 42px); font-weight: 800; letter-spacing: -0.01em; text-transform: uppercase; margin: 0; line-height: 1.1; color: #000;">
+              {% if request.GET.subcategory %}{{ request.GET.subcategory }}
+              {% elif request.GET.category %}{{ request.GET.category }}
+              {% else %}All Products{% endif %}
           </h1>
       </div>
 
@@ -470,6 +514,27 @@
 
       <!-- ── Item count ── -->
       <p class="plp-count">{% if variants %}{{ variants|length }}{% else %}0{% endif %} Items</p>
+
+      <!-- ══ ACTIVE FILTER TAGS ══ -->
+      <div class="active-filters" id="activeFilterTags">
+          {% if request.GET.category %}{% for cat in request.GET.getlist.category %}
+              <div class="filter-tag">
+                  {{ cat }} <span class="filter-tag-close" onclick="removeFilter('category', '{{ cat }}')">&times;</span>
+              </div>
+          {% endfor %}{% endif %}
+
+          {% if request.GET.price_min and request.GET.price_min != "500" %}
+              <div class="filter-tag">
+                  Min ₹{{ request.GET.price_min }} <span class="filter-tag-close" onclick="removeFilter('price_min', '{{ request.GET.price_min }}')">&times;</span>
+              </div>
+          {% endif %}
+
+          {% if request.GET.price_max and request.GET.price_max != "9999" %}
+              <div class="filter-tag">
+                  Max ₹{{ request.GET.price_max }} <span class="filter-tag-close" onclick="removeFilter('price_max', '{{ request.GET.price_max }}')">&times;</span>
+              </div>
+          {% endif %}
+      </div>
     </div><!-- /plp-header-content -->
 
     <!-- ══ PRODUCT GRID ══ -->
@@ -592,7 +657,7 @@
 
     <form class="filter-body" method="GET" action="." id="filterForm">
         <!-- PRESERVE EXISTING PARAMS -->
-        <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}">
+        {% comment %} <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}"> {% endcomment %}
 
         <!-- Sort Section -->
         <div class="filter-section">
@@ -615,22 +680,14 @@
         <div class="filter-section">
             <h3 class="filter-section-title">Category</h3>
             <label class="filter-option-checkbox">
-    <input type="checkbox" name="category" value="mens"
-    {% if request.GET.category == "mens" %}checked{% endif %}>
-    Men
-</label>
-
-<label class="filter-option-checkbox">
-    <input type="checkbox" name="category" value="women"
-    {% if request.GET.category == "women" %}checked{% endif %}>
-    Women
-</label>
-
-<label class="filter-option-checkbox">
-    <input type="checkbox" name="category" value="kids"
-    {% if request.GET.category == "kids" %}checked{% endif %}>
-    Kids
-</label>
+                <input type="checkbox" name="category" value="mens" {% if 'mens' in request.GET.getlist.category %}checked{% endif %}> Men
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="checkbox" name="category" value="women" {% if 'women' in request.GET.getlist.category %}checked{% endif %}> Women
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="checkbox" name="category" value="kids" {% if 'kids' in request.GET.getlist.category %}checked{% endif %}> Kids
+            </label>
         </div>
 
         <!-- Price Section -->
@@ -702,9 +759,10 @@
     // Clear All Logic
     if (filterReset) {
         filterReset.addEventListener('click', () => {
-            // Find the subcategory and preserve it, but clear others
-            const sub = filterForm.querySelector('input[name="subcategory"]').value;
-            window.location.href = window.location.pathname + (sub ? '?subcategory=' + sub : '');
+            const url = new URL(window.location.href);
+            const sub = url.searchParams.get('subcategory');
+            // Reset to clean path + subcategory if present
+            window.location.href = url.pathname + (sub ? '?subcategory=' + sub : '');
         });
     }
 
@@ -733,6 +791,20 @@
     }
 
     if (priceMin) { priceMin.addEventListener('input', updatePriceUI); priceMax.addEventListener('input', updatePriceUI); updatePriceUI(); }
+
+    /* ── Filter Tag Helper ── */
+    function removeFilter(key, value) {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        if (key === 'category') {
+            const currentValues = params.getAll('category');
+            params.delete('category');
+            currentValues.forEach(v => { if (v !== value) params.append('category', v); });
+        } else if (key === 'price_min' || key === 'price_max') {
+            params.delete(key);
+        }
+        window.location.href = url.pathname + '?' + params.toString();
+    }
 </script>
 
 {% endblock %}
