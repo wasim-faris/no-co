@@ -91,6 +91,19 @@
 }
 .toast-close-btn:hover { opacity: 1; }
 
+/* MOBILE PRODUCT GRID FIX (768px and below) */
+@media (max-width: 768px) {
+    .product-grid-item {
+        aspect-ratio: 2/3 !important;
+        height: auto !important;
+    }
+    .product-grid-item img {
+        object-fit: contain !important;
+        object-position: center;
+        background-color: #f9f9f9;
+    }
+}
+
 #timer-container{ transition:opacity .5s ease; }
 .hidden-resend{ display:none; }
 </style>
