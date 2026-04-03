@@ -11,19 +11,24 @@
     .pdp-wrapper {
         display: flex;
         width: 100%;
-        min-height: 100vh;
         align-items: flex-start;
+        position: relative;
     }
 
     .pdp-image-column {
         flex: 0 0 55%;
         width: 55%;
         min-width: 0;
+        height: 100vh;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
         gap: 0;
-        align-self: flex-start;
+        /* Hide scrollbars for ultra-premium look */
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
+    .pdp-image-column::-webkit-scrollbar { display: none; }
 
     .image-sub-grid {
         display: grid;
@@ -46,18 +51,20 @@
         flex: 0 0 45%;
         width: 45%;
         box-sizing: border-box;
-        /* Use flex to center the inner content block — H&M pattern */
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 48px 20px 120px;
         position: sticky;
-        top: 0;
-        height: 100vh;
+        top: 120px;
+        height: fit-content;
+        max-height: calc(100vh - 120px);
         overflow-y: auto;
+        -ms-overflow-style: none; /* Hide scrollbar for cleaner look */
+        scrollbar-width: none;
     }
-
-    .pdp-info-column::-webkit-scrollbar { width: 0; }
+    
+    .pdp-info-column::-webkit-scrollbar { display: none; }
 
     /* Narrow centered content block — left-aligned content inside centered shell */
     .info-inner {
@@ -527,6 +534,7 @@
                 {% endif %}
             {% endif %}
         {% endwith %}
+
     </div>
 
     <div class="pdp-info-column">
@@ -618,6 +626,7 @@
             </div>
 
             <!-- LENGTH -->
+            <!-- LENGTH -->
             <div style="margin-bottom: 4px;">
                 <span class="section-label" style="font-size: 12px; margin-bottom: 10px;">Length</span>
                 <div style="position: relative; width: 100%; height: 16px; display: flex; align-items: center;">
@@ -633,8 +642,10 @@
                 </div>
             </div>
 
-        </div>
-          <!-- Lightbox Modal -->
+        </div> <!-- end info-inner -->
+    </div> <!-- end pdp-info-column -->
+
+    <!-- Lightbox Modal -->
     <div class="lightbox-modal" id="lightboxModal">
         <span class="lightbox-close" id="lightboxClose">&times;</span>
         <button class="lightbox-btn prev" id="lightboxPrev">&#8249;</button>
@@ -643,135 +654,86 @@
     </div>
 </main>
 
-<!-- SIMILAR ITEMS SECTION -->
-<section class="similar-items-section">
-    <div class="similar-header">
-        <h2 class="similar-title">Similar Items</h2>
-        <div class="similar-nav">
-            <button id="simPrev">&#10094;</button>
-            <button id="simNext">&#10095;</button>
+<!-- SIMILAR ITEMS SECTION (OUTSIDE WRAPPER FOR FULL WIDTH) -->
+<div class="mt-20">
+    <!-- SIMILAR ITEMS SECTION -->
+    <section class="similar-items-section">
+        <div class="similar-header">
+            <h2 class="similar-title">Similar Items</h2>
+            <div class="similar-nav">
+                <button id="simPrev">&#10094;</button>
+                <button id="simNext">&#10095;</button>
+            </div>
         </div>
-    </div>
-
-    <!--
-      Note: We fall back to unique_variants here so it populates automatically
-      without modifying views.py. If you later add 'similar_products' to context,
-      just swap it in the for loop.
-    -->
-    <div class="similar-carousel" id="similarCarousel">
-        {% for item in similar_items|default:unique_variants %}
-        <a href="{% url 'product-details' item.product.id %}" class="similar-card">
-            <div class="similar-img-wrapper">
-                {% with all_imgs=item.images.all %}
-                {% if all_imgs|length > 2 %}
-                    <!-- JS-driven swap (Primary -> Secondary) -->
-                    <img src="{{ all_imgs.0.image.url }}" 
-                         data-secondary="{{ all_imgs.1.image.url|default:all_imgs.0.image.url }}" 
-                         class="product-img" 
-                         alt="{{ item.color }}">
-                {% else %}
-                    <!-- Static Display -->
-                    <img src="{{ all_imgs.0.image.url|default:'#' }}" class="product-img" alt="{{ item.color }}">
-                {% endif %}
-                {% endwith %}
-
-                <button class="similar-heart" aria-label="Add to Wishlist">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </button>
-            </div>
-
-            <p class="similar-label">
-                {% if item.product.is_premium %}
-                    H&M Premium Selection
-                {% else %}
-                    New Arrival
-                {% endif %}
-            </p>
-            <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
-            <p class="similar-price">Rs. {{ item.price }}</p>
-
-            <div class="similar-swatches">
-                {% regroup item.product.variants.all by color as color_list %}
-                {% for col_item in color_list|slice:":3" %}
-                    {% with first_v=col_item.list.0 %}
-                        <div class="similar-swatch" style="background-color: {{ first_v.color_hex|default:'#ccc' }};"></div>
+        <div class="similar-carousel" id="similarCarousel">
+            {% for item in similar_items|default:unique_variants %}
+            <a href="{% url 'product-details' item.product.id %}" class="similar-card">
+                <div class="similar-img-wrapper">
+                    {% with all_imgs=item.images.all %}
+                    {% if all_imgs|length > 2 %}
+                        <img src="{{ all_imgs.0.image.url }}" data-secondary="{{ all_imgs.1.image.url|default:all_imgs.0.image.url }}" class="product-img" alt="{{ item.color }}">
+                    {% else %}
+                        <img src="{{ all_imgs.0.image.url|default:'#' }}" class="product-img" alt="{{ item.color }}">
+                    {% endif %}
                     {% endwith %}
-                {% endfor %}
-
-                {% if color_list|length > 3 %}
-                    <span class="similar-swatch-more">+{{ color_list|length|add:"-3" }}</span>
-                {% endif %}
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-</section>
-
-
-
-<!-- OTHERS ALSO BOUGHT SECTION -->
-<section class="similar-items-section" style="border-top: none; padding-top: 0;">
-    <div class="similar-header">
-        <h2 class="similar-title">Others Also Bought</h2>
-        <div class="similar-nav">
-            <button id="othersPrev">&#10094;</button>
-            <button id="othersNext">&#10095;</button>
+                    <button class="similar-heart" aria-label="Add to Wishlist">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+                <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}New Arrival{% endif %}</p>
+                <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
+                <p class="similar-price">Rs. {{ item.price }}</p>
+                <div class="similar-swatches">
+                    {% regroup item.product.variants.all by color as color_list %}
+                    {% for col_item in color_list|slice:":3" %}
+                        {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                    {% endfor %}
+                    {% if color_list|length > 3 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-3" }}</span>{% endif %}
+                </div>
+            </a>
+            {% endfor %}
         </div>
-    </div>
+    </section>
 
-    <!-- Reusing similar_items list in reversed order for a quick demo variation -->
-    <div class="similar-carousel" id="othersCarousel">
-        {% for item in similar_items reversed %}
-        <a href="{% url 'product-details' item.product.id %}" class="similar-card">
-            <div class="similar-img-wrapper">
-                {% with all_imgs=item.images.all %}
-                {% if all_imgs|length > 2 %}
-                    <!-- JS-driven swap (Primary -> Secondary) -->
-                    <img src="{{ all_imgs.0.image.url }}" 
-                         data-secondary="{{ all_imgs.1.image.url|default:all_imgs.0.image.url }}" 
-                         class="product-img" 
-                         alt="{{ item.color }}">
-                {% else %}
-                    <!-- Static Display -->
-                    <img src="{{ all_imgs.0.image.url|default:'#' }}" class="product-img" alt="{{ item.color }}">
-                {% endif %}
-                {% endwith %}
-
-                <button class="similar-heart" aria-label="Add to Wishlist">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </button>
+    <!-- OTHERS ALSO BOUGHT SECTION -->
+    <section class="similar-items-section" style="border-top: none; padding-top: 0;">
+        <div class="similar-header">
+            <h2 class="similar-title">Others Also Bought</h2>
+            <div class="similar-nav">
+                <button id="othersPrev">&#10094;</button>
+                <button id="othersNext">&#10095;</button>
             </div>
-
-            <p class="similar-label">
-                {% if item.product.is_premium %}
-                    H&M Premium Selection
-                {% else %}
-                    Trending Now
-                {% endif %}
-            </p>
-            <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
-            <p class="similar-price">Rs. {{ item.price }}</p>
-
-            <div class="similar-swatches">
-                {% regroup item.product.variants.all by color as color_list %}
-                {% for col_item in color_list|slice:":3" %}
-                    {% with first_v=col_item.list.0 %}
-                        <div class="similar-swatch" style="background-color: {{ first_v.color_hex|default:'#ccc' }};"></div>
+        </div>
+        <div class="similar-carousel" id="othersCarousel">
+            {% for item in similar_items reversed %}
+            <a href="{% url 'product-details' item.product.id %}" class="similar-card">
+                <div class="similar-img-wrapper">
+                    {% with all_imgs=item.images.all %}
+                    {% if all_imgs|length > 2 %}
+                        <img src="{{ all_imgs.0.image.url }}" data-secondary="{{ all_imgs.1.image.url|default:all_imgs.0.image.url }}" class="product-img" alt="{{ item.color }}">
+                    {% else %}
+                        <img src="{{ all_imgs.0.image.url|default:'#' }}" class="product-img" alt="{{ item.color }}">
+                    {% endif %}
                     {% endwith %}
-                {% endfor %}
-
-                {% if color_list|length > 3 %}
-                    <span class="similar-swatch-more">+{{ color_list|length|add:"-3" }}</span>
-                {% endif %}
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-</section>
+                    <button class="similar-heart" aria-label="Add to Wishlist">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+                <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}Trending Now{% endif %}</p>
+                <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
+                <p class="similar-price">Rs. {{ item.price }}</p>
+                <div class="similar-swatches">
+                    {% regroup item.product.variants.all by color as color_list %}
+                    {% for col_item in color_list|slice:":3" %}
+                        {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                    {% endfor %}
+                    {% if color_list|length > 3 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-3" }}</span>{% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+</div>
 
 <script>
     const colorLabel = document.getElementById('colorLabel');
