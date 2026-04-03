@@ -103,13 +103,31 @@ def product_listing(request):
 
     variants = Variant.objects.filter(
         product__is_active=True,
-        product__is_deleted=False,  # ✅ FIXED
+        product__is_deleted=False,
         is_default=True
     )
 
+
     if subcategory:
+        subcategory = subcategory.upper()
         sub = get_object_or_404(Subcategory, subcategory_name=subcategory)
         variants = variants.filter(product__subcategory=sub)
+
+    category_ref = request.GET.get("category")
+    min_price = request.GET.get("price_min")
+    max_price = request.GET.get("price_max")
+
+
+    if min_price:
+        variants = variants.filter(price__gte = min_price)
+
+    if max_price:
+        variants = variants.filter(price__lte = max_price)
+
+    if category_ref:
+        category_ref = category_ref.upper()
+        category = get_object_or_404(Category, category_name = category_ref )
+        variants = variants.filter(product__category = category)
 
     if sort == "newest":
         variants = variants.order_by("-id")

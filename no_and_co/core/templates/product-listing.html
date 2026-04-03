@@ -292,12 +292,16 @@
     }
     .filter-title { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #000; }
     .filter-close { background: none; border: none; cursor: pointer; font-size: 24px; color: #000; line-height: 1; padding: 0; }
-    .filter-body { flex: 1; overflow-y: auto; padding: 28px; }
-    .filter-section { margin-bottom: 3.5rem; }
-    .filter-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; color: #111; border-left: 2px solid #000; padding-left: 12px; }
+    .filter-body { flex: 1; overflow-y: auto; padding: 0 28px; }
+    .filter-section {
+        padding: 28px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .filter-section:last-child { border-bottom: none; }
+    .filter-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px; color: #111; display: flex; align-items: center; justify-content: space-between; }
     .filter-option-checkbox { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 13px; cursor: pointer; color: #444; }
     .filter-option-checkbox input { accent-color: #000; width: 18px; height: 18px; }
-    
+
     /* ── Dual-Range Slider logic ── */
     .slider-container { position: relative; width: 100%; height: 40px; }
     .slider-track { position: absolute; top: 18px; left: 0; right: 0; height: 3px; background: #e5e5e5; z-index: 1; }
@@ -307,6 +311,77 @@
     }
     .slider-container input[type="range"]::-webkit-slider-thumb {
         pointer-events: auto; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #000; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); cursor: pointer;
+    }
+
+    /* ── Empty State Styles ── */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 120px 20px;
+        text-align: center;
+        width: 100%;
+        background: #fff;
+        animation: emptyFadeIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+    @keyframes emptyFadeIn {
+        from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .empty-icon {
+        color: #e5e5e5;
+        margin-bottom: 32px;
+        transition: transform 0.3s ease;
+    }
+    .empty-state:hover .empty-icon {
+        transform: scale(1.05);
+    }
+    .empty-title {
+        font-size: 18px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 16px;
+        color: #000;
+    }
+    .empty-subtitle {
+        font-size: 13px;
+        color: #767676;
+        margin-bottom: 40px;
+        max-width: 360px;
+        line-height: 1.7;
+    }
+    .empty-btn {
+        padding: 16px 40px;
+        background: #000;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        border: 1px solid #000;
+    }
+    .empty-btn:hover {
+        background: #fff;
+        color: #000;
+    }
+    .empty-link {
+        margin-top: 24px;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        color: #999;
+        text-decoration: none;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid transparent;
+        transition: all 0.2s;
+    }
+    .empty-link:hover {
+        color: #000;
+        border-bottom: 1px solid #000;
     }
 
     .filter-footer { padding: 28px; border-top: 1px solid #eee; display: flex; gap: 16px; }
@@ -339,7 +414,7 @@
 
       <!-- ══ SORT & FILTER BAR ══ -->
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; margin-bottom: 24px; border-bottom: 1px solid #eee;">
-          
+
           <!-- Sort Dropdown Trigger & Form -->
           <div class="sort-dropdown-wrapper">
               <button class="plp-bar-btn" id="sortTrigger">
@@ -359,25 +434,25 @@
 
                       <label class="sort-option">
                           Recommended
-                          <input type="radio" name="sort" value="recommended" 
+                          <input type="radio" name="sort" value="recommended"
                           {% if not request.GET.sort or request.GET.sort == "recommended" %}checked{% endif %}
                           onchange="this.form.submit()">
                       </label>
                       <label class="sort-option">
                           Newest
-                          <input type="radio" name="sort" value="newest" 
+                          <input type="radio" name="sort" value="newest"
                           {% if request.GET.sort == "newest" %}checked{% endif %}
                           onchange="this.form.submit()">
                       </label>
                       <label class="sort-option">
                           Lowest Price
-                          <input type="radio" name="sort" value="low_price" 
+                          <input type="radio" name="sort" value="low_price"
                           {% if request.GET.sort == "low_price" %}checked{% endif %}
                           onchange="this.form.submit()">
                       </label>
                       <label class="sort-option">
                           Highest Price
-                          <input type="radio" name="sort" value="high_price" 
+                          <input type="radio" name="sort" value="high_price"
                           {% if request.GET.sort == "high_price" %}checked{% endif %}
                           onchange="this.form.submit()">
                       </label>
@@ -394,12 +469,13 @@
       </div>
 
       <!-- ── Item count ── -->
-      <p class="plp-count">12 Items</p>
+      <p class="plp-count">{% if variants %}{{ variants|length }}{% else %}0{% endif %} Items</p>
     </div><!-- /plp-header-content -->
 
     <!-- ══ PRODUCT GRID ══ -->
-   <div class="plp-grid">
-  {% for variant in variants %}
+    {% if variants %}
+    <div class="plp-grid">
+    {% for variant in variants %}
 
   <!-- CLICKABLE WRAPPER -->
   <a href="{% url "product-details" variant.product.id %}" class="block"> <!-- you will replace # -->
@@ -488,6 +564,20 @@
 
   {% endfor %}
 </div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+    </div>
+    <h2 class="empty-title">No products found</h2>
+    <p class="empty-subtitle">Try adjusting your filters or explore other categories to find exactly what you're looking for.</p>
+    <a href="?subcategory={{request.GET.subcategory }}" class="empty-btn">Clear Filters</a>
+    <a href="{% url "home" %}" class="empty-link">Back to home</a>
+</div>
+{% endif %}
 
   </div><!-- /plp-inner -->
 </div><!-- /plp-body -->
@@ -503,39 +593,44 @@
     <form class="filter-body" method="GET" action="." id="filterForm">
         <!-- PRESERVE EXISTING PARAMS -->
         <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}">
-        <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+
+        <!-- Sort Section -->
+        <div class="filter-section">
+            <h3 class="filter-section-title">Sort by</h3>
+            <label class="filter-option-checkbox">
+                <input type="radio" name="sort" value="recommended" {% if not request.GET.sort or request.GET.sort == "recommended" %}checked{% endif %}> Recommended
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="radio" name="sort" value="newest" {% if request.GET.sort == "newest" %}checked{% endif %}> Newest
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="radio" name="sort" value="low_price" {% if request.GET.sort == "low_price" %}checked{% endif %}> Lowest Price
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="radio" name="sort" value="high_price" {% if request.GET.sort == "high_price" %}checked{% endif %}> Highest Price
+            </label>
+        </div>
 
         <!-- Category Section -->
         <div class="filter-section">
             <h3 class="filter-section-title">Category</h3>
             <label class="filter-option-checkbox">
-                <input type="checkbox" name="category" value="men" {% if 'men' in request.GET.getlist.category %}checked{% endif %}> Men
-            </label>
-            <label class="filter-option-checkbox">
-                <input type="checkbox" name="category" value="women" {% if 'women' in request.GET.getlist.category %}checked{% endif %}> Women
-            </label>
-            <label class="filter-option-checkbox">
-                <input type="checkbox" name="category" value="kids" {% if 'kids' in request.GET.getlist.category %}checked{% endif %}> Kids
-            </label>
-        </div>
+    <input type="checkbox" name="category" value="mens"
+    {% if request.GET.category == "mens" %}checked{% endif %}>
+    Men
+</label>
 
-        <!-- Size Section -->
-        <div class="filter-section">
-            <h3 class="filter-section-title">Size</h3>
-            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
-                <label class="filter-option-checkbox">
-                    <input type="checkbox" name="size" value="s" {% if 's' in request.GET.getlist.size %}checked{% endif %}> S
-                </label>
-                <label class="filter-option-checkbox">
-                    <input type="checkbox" name="size" value="m" {% if 'm' in request.GET.getlist.size %}checked{% endif %}> M
-                </label>
-                <label class="filter-option-checkbox">
-                    <input type="checkbox" name="size" value="l" {% if 'l' in request.GET.getlist.size %}checked{% endif %}> L
-                </label>
-                <label class="filter-option-checkbox">
-                    <input type="checkbox" name="size" value="xl" {% if 'xl' in request.GET.getlist.size %}checked{% endif %}> XL
-                </label>
-            </div>
+<label class="filter-option-checkbox">
+    <input type="checkbox" name="category" value="women"
+    {% if request.GET.category == "women" %}checked{% endif %}>
+    Women
+</label>
+
+<label class="filter-option-checkbox">
+    <input type="checkbox" name="category" value="kids"
+    {% if request.GET.category == "kids" %}checked{% endif %}>
+    Kids
+</label>
         </div>
 
         <!-- Price Section -->
