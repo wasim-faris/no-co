@@ -272,10 +272,18 @@
         border-top: 1px solid #eee;
     }
     @media (max-width: 1024px) {
-        .plp-grid { grid-template-columns: repeat(2, 1fr); }
+        .plp-grid { grid-template-columns: repeat(3, 1fr); }
     }
-    @media (max-width: 640px) {
-        .plp-grid { grid-template-columns: 1fr; }
+    @media (max-width: 768px) {
+        .plp-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0;
+        }
+        .plp-card-wrap {
+            padding: 0 0 16px 0;
+        }
+        .plp-name { font-size: 11px; }
+        .plp-price { font-size: 12px; }
     }
 
     /* Tight card spacing between columns — H&M uses ~0px gap */
@@ -646,6 +654,11 @@
 
   </div><!-- /plp-inner -->
 </div><!-- /plp-body -->
+
+<!-- ══ FOOTER ══ -->
+<div style="margin-top: 60px; border-top: 1px solid #eee;">
+    {% include 'user_base/components/footer.html' %}
+</div>
 
 <!-- ══ FILTER DRAWER COMPONENTS ══ -->
 <div class="filter-overlay" id="filterOverlay"></div>
