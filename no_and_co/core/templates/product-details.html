@@ -63,7 +63,7 @@
         -ms-overflow-style: none; /* Hide scrollbar for cleaner look */
         scrollbar-width: none;
     }
-    
+
     .pdp-info-column::-webkit-scrollbar { display: none; }
 
     /* Narrow centered content block — left-aligned content inside centered shell */
@@ -242,9 +242,9 @@
 
     @media (max-width: 900px) {
         .pdp-wrapper { flex-direction: column; }
-        .pdp-image-column { 
-            flex: none; 
-            width: 100%; 
+        .pdp-image-column {
+            flex: none;
+            width: 100%;
             height: auto;
             flex-direction: row;
             overflow-x: auto;
@@ -253,7 +253,7 @@
             scrollbar-width: none;
         }
         .pdp-image-column::-webkit-scrollbar { display: none; }
-        
+
         /* Flatten sub-grids on mobile so children flow in the horizontal row */
         .image-sub-grid {
             display: contents;
@@ -266,13 +266,13 @@
             scroll-snap-align: start;
         }
 
-        .pdp-info-column { 
-            flex: none; 
-            width: 100%; 
-            position: relative; 
-            height: auto; 
-            padding: 28px 20px 60px; 
-            align-items: flex-start; 
+        .pdp-info-column {
+            flex: none;
+            width: 100%;
+            position: relative;
+            height: auto;
+            padding: 28px 20px 60px;
+            align-items: flex-start;
         }
         .info-inner { max-width: 100%; }
     }
@@ -425,7 +425,7 @@
         display: block;
         transition: transform 0.4s ease; /* Keep only scale if desired, but user said no animation */
     }
-    
+
     .similar-img-wrapper {
         position: relative;
         width: 100%;
@@ -519,9 +519,9 @@
         {% with all_imgs=default_variant.images.all %}
             {% if all_imgs|length == 1 %}
                 <!-- Case 1: Single image takes full width -->
-                <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="{{ product.product_name }}" 
+                <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="{{ product.product_name }}"
                      style="width: 100%; aspect-ratio: 2/3; object-fit: cover; object-position: center;">
-            
+
             {% elif all_imgs|length == 2 %}
                 <!-- Case 2: Vertical stack (Full Width each) per requirement -->
                 <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
