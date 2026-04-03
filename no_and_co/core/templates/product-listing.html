@@ -434,6 +434,22 @@
         border-bottom: 1px solid #000;
     }
 
+    /* ── Self-contained Skeleton Shimmer ── */
+    .plp-skeleton {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        background: linear-gradient(100deg, #f2f2f2 25%, #e5e5e5 37%, #f2f2f2 63%);
+        background-size: 400% 100%;
+        animation: plp-shimmer 1.4s ease-in-out infinite;
+        transition: opacity 0.35s ease;
+        pointer-events: none;
+    }
+    @keyframes plp-shimmer {
+        0%   { background-position: 100% 50%; }
+        100% { background-position:   0% 50%; }
+    }
+
     .filter-footer { padding: 28px; border-top: 1px solid #eee; display: flex; gap: 16px; }
     .filter-btn { flex: 1; padding: 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border: 1px solid #000; transition: all 0.2s; }
     .filter-btn-apply { background: #000; color: #fff; }
@@ -558,32 +574,38 @@
 
         <div class="plp-img-wrap {% if variant.images.all|length > 2 %}has-hover{% endif %}">
 
+          <!-- Skeleton shimmer overlay -->
+          <div class="plp-skeleton"></div>
+
           {% with all_images=variant.images.all %}
           {% with primary_img=all_images.first %}
           {% with secondary_img=all_images.1 %}
 
-          {% comment %}
-             Logic:
-             If <= 2 images: Show ONLY primary (No hover).
-             If > 2 images: Show ONLY primary & secondary for hover swap (Secondary default).
-          {% endcomment %}
-
           {% if all_images|length <= 2 %}
             {% if primary_img %}
-              <img src="{{ primary_img.image.url }}" class="plp-img-primary" alt="{{ variant.product.product_name }}">
+              <img src="{{ primary_img.image.url }}"
+                   class="plp-img-primary"
+                   alt="{{ variant.product.product_name }}"
+                   loading="lazy"
+                   onload="var s=this.closest('.plp-img-wrap').querySelector('.plp-skeleton');if(s)s.style.opacity='0';">
             {% endif %}
           {% else %}
-            <!-- Identify True Primary (is_primary=True) if possible -->
             {% for img in all_images %}
                {% if img.is_primary %}
-                  <img src="{{ img.image.url }}" class="plp-img-primary" alt="{{ variant.product.product_name }}">
+                  <img src="{{ img.image.url }}"
+                       class="plp-img-primary"
+                       alt="{{ variant.product.product_name }}"
+                       loading="lazy"
+                       onload="var s=this.closest('.plp-img-wrap').querySelector('.plp-skeleton');if(s)s.style.opacity='0';">
                {% endif %}
             {% endfor %}
 
-            <!-- Identify Secondary -->
             {% for img in all_images %}
                {% if not img.is_primary %}
-                  <img src="{{ img.image.url }}" class="plp-img-secondary" alt="">
+                  <img src="{{ img.image.url }}"
+                       class="plp-img-secondary"
+                       alt=""
+                       loading="lazy">
                {% endif %}
             {% endfor %}
           {% endif %}
@@ -592,7 +614,7 @@
           {% endwith %}
           {% endwith %}
 
-          <!-- HEART (prevent click propagation later if needed) -->
+          <!-- HEART -->
           <button class="plp-heart" aria-label="Add to Wishlist">
             <svg viewBox="0 0 24 24">
               <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
