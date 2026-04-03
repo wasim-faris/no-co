@@ -182,6 +182,76 @@
         line-height: 1;
     }
 
+    /* ── Sort Dropdown Styles ── */
+    .sort-dropdown-wrapper { position: relative; }
+    .sort-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        min-width: 200px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        z-index: 500;
+        padding: 10px 0;
+        display: none;
+        animation: dropdownFade 0.2s ease-out;
+    }
+    .sort-menu.active { display: block; }
+    @keyframes dropdownFade { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    .sort-option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        color: #444;
+        transition: all 0.15s;
+    }
+    .sort-option:hover { background: #f9f9f9; color: #000; }
+    .sort-option input { accent-color: #000; width: 14px; height: 14px; cursor: pointer; }
+
+    /* ── Filter Drawer Styles ── */
+    .filter-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+    }
+    .filter-overlay.active { opacity: 1; visibility: visible; }
+    .filter-drawer {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 100%;
+        max-width: 400px;
+        height: 100%;
+        background: #fff;
+        z-index: 1001;
+        transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: flex;
+        flex-direction: column;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+    }
+    .filter-drawer.active { right: 0; }
+    .filter-header {
+        padding: 24px 28px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .filter-btn-clear { background: #fff; color: #000; }
+    .filter-btn-clear:hover { background: #f8f8f8; }
+
     /* ── Product grid ── */
     .plp-grid {
         display: grid;
@@ -220,6 +290,29 @@
         margin-bottom: 24px;
         padding: 0;
     }
+    .filter-title { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #000; }
+    .filter-close { background: none; border: none; cursor: pointer; font-size: 24px; color: #000; line-height: 1; padding: 0; }
+    .filter-body { flex: 1; overflow-y: auto; padding: 28px; }
+    .filter-section { margin-bottom: 3.5rem; }
+    .filter-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; color: #111; border-left: 2px solid #000; padding-left: 12px; }
+    .filter-option-checkbox { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 13px; cursor: pointer; color: #444; }
+    .filter-option-checkbox input { accent-color: #000; width: 18px; height: 18px; }
+    
+    /* ── Dual-Range Slider logic ── */
+    .slider-container { position: relative; width: 100%; height: 40px; }
+    .slider-track { position: absolute; top: 18px; left: 0; right: 0; height: 3px; background: #e5e5e5; z-index: 1; }
+    .slider-active { position: absolute; top: 18px; height: 3px; background: #000; z-index: 2; }
+    .slider-container input[type="range"] {
+        position: absolute; pointer-events: none; appearance: none; width: 100%; outline: none; height: 3px; background: none; top: 18px; left: 0; z-index: 3;
+    }
+    .slider-container input[type="range"]::-webkit-slider-thumb {
+        pointer-events: auto; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #000; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); cursor: pointer;
+    }
+
+    .filter-footer { padding: 28px; border-top: 1px solid #eee; display: flex; gap: 16px; }
+    .filter-btn { flex: 1; padding: 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border: 1px solid #000; transition: all 0.2s; }
+    .filter-btn-apply { background: #000; color: #fff; }
+    .filter-btn-clear { background: #fff; color: #000; }
 </style>
 {% endblock %}
 
@@ -246,13 +339,53 @@
 
       <!-- ══ SORT & FILTER BAR ══ -->
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; margin-bottom: 24px; border-bottom: 1px solid #eee;">
-          <button class="plp-bar-btn">
-              Sort By
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <line x1="3" y1="6"  x2="21" y2="6"/><line x1="3" y1="12" x2="16" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/>
-              </svg>
-          </button>
-          <button class="plp-bar-btn">
+          
+          <!-- Sort Dropdown Trigger & Form -->
+          <div class="sort-dropdown-wrapper">
+              <button class="plp-bar-btn" id="sortTrigger">
+                  Sort By
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="3" y1="6"  x2="21" y2="6"/><line x1="3" y1="12" x2="16" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/>
+                  </svg>
+              </button>
+
+              <div class="sort-menu" id="sortMenu">
+                  <form method="GET" action="." id="sortForm">
+                      <!-- PRESERVE EXISTING PARAMS -->
+                      <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}">
+                      <input type="hidden" name="category" value="{{ request.GET.category }}">
+                      <input type="hidden" name="price_min" value="{{ request.GET.price_min }}">
+                      <input type="hidden" name="price_max" value="{{ request.GET.price_max }}">
+
+                      <label class="sort-option">
+                          Recommended
+                          <input type="radio" name="sort" value="recommended" 
+                          {% if not request.GET.sort or request.GET.sort == "recommended" %}checked{% endif %}
+                          onchange="this.form.submit()">
+                      </label>
+                      <label class="sort-option">
+                          Newest
+                          <input type="radio" name="sort" value="newest" 
+                          {% if request.GET.sort == "newest" %}checked{% endif %}
+                          onchange="this.form.submit()">
+                      </label>
+                      <label class="sort-option">
+                          Lowest Price
+                          <input type="radio" name="sort" value="low_price" 
+                          {% if request.GET.sort == "low_price" %}checked{% endif %}
+                          onchange="this.form.submit()">
+                      </label>
+                      <label class="sort-option">
+                          Highest Price
+                          <input type="radio" name="sort" value="high_price" 
+                          {% if request.GET.sort == "high_price" %}checked{% endif %}
+                          onchange="this.form.submit()">
+                      </label>
+                  </form>
+              </div>
+          </div>
+
+          <button class="plp-bar-btn" id="filterTrigger">
               Filter
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                   <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
@@ -359,11 +492,152 @@
   </div><!-- /plp-inner -->
 </div><!-- /plp-body -->
 
+<!-- ══ FILTER DRAWER COMPONENTS ══ -->
+<div class="filter-overlay" id="filterOverlay"></div>
+<div class="filter-drawer" id="filterDrawer">
+    <div class="filter-header">
+        <h2 class="filter-title">Filter By</h2>
+        <button class="filter-close" id="filterClose">&times;</button>
+    </div>
+
+    <form class="filter-body" method="GET" action="." id="filterForm">
+        <!-- PRESERVE EXISTING PARAMS -->
+        <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}">
+        <input type="hidden" name="sort" value="{{ request.GET.sort }}">
+
+        <!-- Category Section -->
+        <div class="filter-section">
+            <h3 class="filter-section-title">Category</h3>
+            <label class="filter-option-checkbox">
+                <input type="checkbox" name="category" value="men" {% if 'men' in request.GET.getlist.category %}checked{% endif %}> Men
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="checkbox" name="category" value="women" {% if 'women' in request.GET.getlist.category %}checked{% endif %}> Women
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="checkbox" name="category" value="kids" {% if 'kids' in request.GET.getlist.category %}checked{% endif %}> Kids
+            </label>
+        </div>
+
+        <!-- Size Section -->
+        <div class="filter-section">
+            <h3 class="filter-section-title">Size</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                <label class="filter-option-checkbox">
+                    <input type="checkbox" name="size" value="s" {% if 's' in request.GET.getlist.size %}checked{% endif %}> S
+                </label>
+                <label class="filter-option-checkbox">
+                    <input type="checkbox" name="size" value="m" {% if 'm' in request.GET.getlist.size %}checked{% endif %}> M
+                </label>
+                <label class="filter-option-checkbox">
+                    <input type="checkbox" name="size" value="l" {% if 'l' in request.GET.getlist.size %}checked{% endif %}> L
+                </label>
+                <label class="filter-option-checkbox">
+                    <input type="checkbox" name="size" value="xl" {% if 'xl' in request.GET.getlist.size %}checked{% endif %}> XL
+                </label>
+            </div>
+        </div>
+
+        <!-- Price Section -->
+        <div class="filter-section">
+            <h3 class="filter-section-title">Price Range</h3>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 13px; font-weight: 600;">
+                <span>₹<span id="minDisplay">{{ request.GET.price_min|default:"500" }}</span></span>
+                <span>₹<span id="maxDisplay">{{ request.GET.price_max|default:"9999" }}</span></span>
+            </div>
+            <div class="slider-container">
+                <div class="slider-track"></div>
+                <div class="slider-active" id="sliderActive"></div>
+                <input type="range" id="priceMin" name="price_min" min="0" max="9999" value="{{ request.GET.price_min|default:'500' }}">
+                <input type="range" id="priceMax" name="price_max" min="0" max="9999" value="{{ request.GET.price_max|default:'9999' }}">
+            </div>
+        </div>
+    </form>
+
+    <div class="filter-footer">
+        <button type="button" class="filter-btn filter-btn-clear" id="filterReset">Clear All</button>
+        <button type="submit" form="filterForm" class="filter-btn filter-btn-apply">Apply</button>
+    </div>
+</div>
+
 <script>
     function setTab(el) {
         document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
     }
+
+    /* ── UI Logic ── */
+    const sortTrigger = document.getElementById('sortTrigger');
+    const sortMenu = document.getElementById('sortMenu');
+    const filterTrigger = document.getElementById('filterTrigger');
+    const filterDrawer = document.getElementById('filterDrawer');
+    const filterOverlay = document.getElementById('filterOverlay');
+    const filterClose = document.getElementById('filterClose');
+    const filterReset = document.getElementById('filterReset');
+    const filterForm = document.getElementById('filterForm');
+
+    // Sort Toggle
+    if (sortTrigger) {
+        sortTrigger.addEventListener('click', (e) => { e.stopPropagation(); sortMenu.classList.toggle('active'); });
+    }
+
+    // Filter Toggle
+    function toggleFilter(show) {
+        if (show) {
+            filterDrawer.classList.add('active');
+            filterOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            updatePriceUI();
+        } else {
+            filterDrawer.classList.remove('active');
+            filterOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    if (filterTrigger) filterTrigger.addEventListener('click', (e) => { e.preventDefault(); toggleFilter(true); });
+    if (filterClose) filterClose.addEventListener('click', () => toggleFilter(false));
+    if (filterOverlay) filterOverlay.addEventListener('click', () => toggleFilter(false));
+
+    // Outside Clicks
+    document.addEventListener('click', (e) => {
+        if (sortMenu && !sortMenu.contains(e.target) && e.target !== sortTrigger) sortMenu.classList.remove('active');
+    });
+
+    // Clear All Logic
+    if (filterReset) {
+        filterReset.addEventListener('click', () => {
+            // Find the subcategory and preserve it, but clear others
+            const sub = filterForm.querySelector('input[name="subcategory"]').value;
+            window.location.href = window.location.pathname + (sub ? '?subcategory=' + sub : '');
+        });
+    }
+
+    /* ── Price Slider Logic ── */
+    const priceMin = document.getElementById('priceMin');
+    const priceMax = document.getElementById('priceMax');
+    const minDisplay = document.getElementById('minDisplay');
+    const maxDisplay = document.getElementById('maxDisplay');
+    const sliderActive = document.getElementById('sliderActive');
+
+    function updatePriceUI() {
+        if (!priceMin) return;
+        const minVal = parseInt(priceMin.value);
+        const maxVal = parseInt(priceMax.value);
+
+        if (minVal > maxVal) { priceMin.value = maxVal; }
+        minDisplay.innerText = priceMin.value;
+        maxDisplay.innerText = priceMax.value;
+
+        const range = priceMin.max - priceMin.min;
+        const minPercent = ((priceMin.value - priceMin.min) / range) * 100;
+        const maxPercent = ((priceMax.value - priceMin.min) / range) * 100;
+
+        sliderActive.style.left = minPercent + "%";
+        sliderActive.style.width = (maxPercent - minPercent) + "%";
+    }
+
+    if (priceMin) { priceMin.addEventListener('input', updatePriceUI); priceMax.addEventListener('input', updatePriceUI); updatePriceUI(); }
 </script>
 
 {% endblock %}

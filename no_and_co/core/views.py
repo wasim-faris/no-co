@@ -72,7 +72,7 @@ def product_details(request, id):
 
     # ════════════════════════ PRODUCT IMAGE LOGIC (FORCE FIX) ════════════════════════
     product_image = None
-    
+
     # 1. & 2. Try Default Variant
     if default_variant:
         product_image = default_variant.images.filter(is_primary=True).first()
@@ -98,25 +98,26 @@ def product_details(request, id):
     })
 
 def product_listing(request):
+    sort = request.GET.get("sort")
     subcategory = request.GET.get("subcategory")
-    print("URL VALUE:", subcategory)
-    sub = Subcategory.objects.filter(subcategory_name=subcategory)
-    print("SUBCATEGORY FOUND:", sub.exists())
 
-    sub = get_object_or_404(Subcategory, subcategory_name=subcategory)
-    products = Product.objects.filter(subcategory = sub , is_active = True , is_deleted = False)
-    print("PRODUCT COUNT:", products.count())
-    variants = []
+    variants = Variant.objects.filter(
+        product__is_active=True,
+        product__is_deleted=False,  # ✅ FIXED
+        is_default=True
+    )
 
-    for i in products:
-        try:
-            default_variants = i.variants.get(is_default = True)
-            variants.append(default_variants)
-        except Variant.DoesNotExist:
-            continue
-        except Variant.MultipleObjectsReturned:
-            continue
+    if subcategory:
+        sub = get_object_or_404(Subcategory, subcategory_name=subcategory)
+        variants = variants.filter(product__subcategory=sub)
 
-    return render(request, "product-listing.html",{
-        "variants":variants
+    if sort == "newest":
+        variants = variants.order_by("-id")
+    elif sort == "low_price":
+        variants = variants.order_by("price")
+    elif sort == "high_price":
+        variants = variants.order_by("-price")
+
+    return render(request, "product-listing.html", {
+        "variants": variants
     })
