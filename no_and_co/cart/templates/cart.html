@@ -195,91 +195,116 @@
     </div>
 
     <!-- Main Grid -->
-    <div class="cart-grid grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12">
-        
-        <!-- Left Column: Items -->
-        <div class="cart-items">
-            <!-- Mock Item 1 -->
-            <div class="item-card">
-                <div class="item-img-wrap">
-                    <img src="/media/variant_images/07153ad4a462cc792d06e2fe0e223d49b354ffc2.avif" alt="Product" class="item-img">
+    <div class="cart-grid">
+        {% if cart_items %}
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12">
+                <!-- Left Column: Items -->
+                <div class="cart-items">
+                    {% for item in cart_items %}
+                    <div class="item-card">
+                        <div class="item-img-wrap">
+                            {% if item.variant.images.all %}
+                                <img src="{{ item.variant.images.all.0.image.url }}" alt="{{ item.variant.product.product_name }}" class="item-img">
+                            {% else %}
+                                <div class="w-full h-full bg-gray-100 flex items-center justify-center">
+                                    <span class="text-[0.6rem] text-gray-400 font-bold uppercase">No Image</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="item-details">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="item-brand">{{ item.variant.product.category.category_name }}</p>
+                                    <h3 class="item-name">{{ item.variant.product.product_name }}</h3>
+                                </div>
+                                <button class="text-xl hover:text-red-500 transition-colors"><i class="ri-heart-line"></i></button>
+                            </div>
+                            <p class="item-price">Rs. {{ item.price }}</p>
+                            
+                            <div class="item-meta">
+                                <span class="meta-label">Colour:</span> <span>{{ item.variant.color }}</span>
+                                <span class="meta-label">Size:</span> <span>{{ item.variant.size.name }}</span>
+                                <span class="meta-label">Quantity:</span> <span>{{ item.quantity }}</span>
+                                <span class="meta-label">Total:</span> <span class="font-bold">Rs. {{ item.price }}</span>
+                            </div>
+                            
+                            <div class="item-actions">
+                                <div class="qty-control group">
+                                    <i class="ri-delete-bin-line cursor-pointer mr-2 hover:text-red-600 transition-colors"></i>
+                                    <span class="qty-btn hover:bg-gray-100 px-1"><i class="ri-subtract-line"></i></span>
+                                    <span class="font-bold w-6 text-center">{{ item.quantity }}</span>
+                                    <span class="qty-btn hover:bg-gray-100 px-1"><i class="ri-add-line"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
                 </div>
-                <div class="item-details">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="item-brand">H&M Premium Selection</p>
-                            <h3 class="item-name">Slim Fit Linen Shirt</h3>
+
+                <!-- Right Column: Summary -->
+                <div class="summary-container">
+                    <div class="summary-panel">
+                        <div class="discount-section">
+                            <span>Discounts</span>
+                            <span class="add-link">Add</span>
                         </div>
-                        <button class="text-xl"><i class="ri-heart-line"></i></button>
-                    </div>
-                    <p class="item-price">Rs. 2,999.00</p>
-                    
-                    <div class="item-meta">
-                        <span class="meta-label">Art no:</span> <span>1258123001</span>
-                        <span class="meta-label">Colour:</span> <span>White</span>
-                        <span class="meta-label">Size:</span> <span>S</span>
-                        <span class="meta-label">Quantity:</span> <span>1</span>
-                        <span class="meta-label">Total:</span> <span class="font-bold">Rs. 2,999.00</span>
-                    </div>
-                    
-                    <div class="item-actions">
-                        <div class="qty-control">
-                            <i class="ri-delete-bin-line cursor-pointer mr-2"></i>
-                            <span class="qty-btn"><i class="ri-subtract-line"></i></span>
-                            <span class="font-bold">1</span>
-                            <span class="qty-btn"><i class="ri-add-line"></i></span>
+                        
+                        <div class="summary-row">
+                            <span>Order value</span>
+                            <span class="font-bold">Rs. {{ cart_items.total_value|default:"0.00" }}</span>
                         </div>
+                        <div class="summary-row">
+                            <span>Estimated delivery fee</span>
+                            <span class="font-bold">Rs. 0.00</span>
+                        </div>
+                        
+                        <div class="summary-row summary-total border-t border-gray-400 pt-4">
+                            <span>TOTAL</span>
+                            <span>Rs. {{ cart_items.total_value|default:"0.00" }}</span>
+                        </div>
+                        
+                        <button class="btn-checkout">Continue to Checkout</button>
+                        {% if not user.is_authenticated %}
+                        <a href="{% url 'account_login' %}" class="btn-signin block text-center">Sign In</a>
+                        {% endif %}
+                        
+                        <div class="payment-icons">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-3 opacity-80">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-5 opacity-80">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" class="h-4 opacity-80 filter grayscale">
+                        </div>
+                        
+                        <p class="info-text">
+                            Prices and delivery costs are not confirmed until you've reached the checkout.
+                        </p>
+                        <p class="info-text">
+                            15 days free returns. Read more about <a href="#" class="info-link">return and refund policy</a>.
+                        </p>
+                        <p class="info-text">
+                            Need help? Please contact <a href="#" class="info-link">Customer Service</a>. Customers would receive an SMS/WhatsApp notifications regarding deliveries on the registered phone number.
+                        </p>
+                        
+                        <a href="#" class="block text-[0.7rem] font-bold uppercase tracking-widest underline mt-8">Delivery and return options</a>
                     </div>
                 </div>
             </div>
-            <!-- End Mock Item -->
-        </div>
-
-        <!-- Right Column: Summary -->
-        <div class="summary-container">
-            <div class="summary-panel">
-                <div class="discount-section">
-                    <span>Discounts</span>
-                    <span class="add-link">Add</span>
+        {% else %}
+            <!-- Empty State -->
+            <div class="flex flex-col items-center justify-center py-32 text-center">
+                <div class="mb-8 p-6 rounded-full bg-gray-50">
+                    <i class="ri-shopping-bag-line text-5xl text-gray-300"></i>
                 </div>
+                <h2 class="text-2xl font-bold uppercase tracking-tight mb-2">Your shopping bag is empty</h2>
+                <p class="text-gray-500 mb-8 max-w-sm text-sm">Styles you love are waiting for you! Just click the heart to save them or start filling your bag now.</p>
+                <a href="{% url 'home' %}" class="btn-checkout py-4 px-12 w-auto inline-block">Start Shopping</a>
                 
-                <div class="summary-row">
-                    <span>Order value</span>
-                    <span class="font-bold">Rs. 2,999.00</span>
-                </div>
-                <div class="summary-row">
-                    <span>Estimated delivery fee</span>
-                    <span class="font-bold">Rs. 149.00</span>
-                </div>
-                
-                <div class="summary-row summary-total">
-                    <span>TOTAL</span>
-                    <span>Rs. 3,148.00</span>
-                </div>
-                
-                <button class="btn-checkout">Continue to Checkout</button>
-                <button class="btn-signin">Sign In</button>
-                
-                <div class="payment-icons">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-3 opacity-80">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-5 opacity-80">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" class="h-4 opacity-80 filter grayscale">
-                </div>
-                
-                <p class="info-text">
-                    Prices and delivery costs are not confirmed until you've reached the checkout.
+                {% if not user.is_authenticated %}
+                <p class="mt-8 text-xs text-gray-400">
+                    Already have an account? <a href="{% url 'account_login' %}" class="underline font-bold text-black">Sign in</a> to see your bag!
                 </p>
-                <p class="info-text">
-                    15 days free returns. Read more about <a href="#" class="info-link">return and refund policy</a>.
-                </p>
-                <p class="info-text">
-                    Need help? Please contact <a href="#" class="info-link">Customer Service</a>. Customers would receive an SMS/WhatsApp notifications regarding deliveries on the registered phone number.
-                </p>
-                
-                <a href="#" class="block text-[0.7rem] font-bold uppercase tracking-widest underline mt-8">Delivery and return options</a>
+                {% endif %}
             </div>
-        </div>
-
+        {% endif %}
     </div>
 </div>
 {% endblock %}
