@@ -109,6 +109,14 @@ def cart_view(request):
             rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
             if rep_variant:
                 similar_items.append(rep_variant)
+    
+    # FALLBACK: If cart is empty or no similar products found, display latest products
+    if not similar_items:
+        fallback_products = Product.objects.filter(is_active=True, is_deleted=False).order_by('-id')[:8]
+        for p in fallback_products:
+            rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
+            if rep_variant:
+                similar_items.append(rep_variant)
                 
     return render(request, 'cart.html', {
         "cart_items": cart_items,
