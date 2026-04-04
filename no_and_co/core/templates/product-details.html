@@ -553,6 +553,8 @@
     .toast-close-btn:hover { opacity: 1; }
 </style>
 
+<div id="toast-container"></div>
+
 <main class="pdp-wrapper">
 
     <div class="pdp-image-column" id="imageContainer">
@@ -1034,6 +1036,58 @@
         img.addEventListener('mouseleave', () => {
             img.src = original;
         });
+    });
+</script>
+
+<script id="django-messages" type="application/json">
+    [
+        {% if messages %}
+            {% for message in messages %}
+                {
+                    "message": "{{ message|escapejs }}",
+                    "tags": "{{ message.tags }}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
+    ]
+</script>
+
+<script>
+    function showToast(message, type = 'error') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
+        toast.className = `custom-pill-toast ${toastClass}`;
+        const icon = type === 'success' ? '✓' : '✕';
+        toast.innerHTML = `
+            <div class="toast-left-content">
+                <div class="toast-icon-circle">${icon}</div>
+                <div class="toast-message-wrapper">
+                    <span class="toast-main-text">${message}</span>
+                    <span class="toast-sub-text">Notification</span>
+                </div>
+            </div>
+            <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            if(toast.parentNode) {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }
+        }, 4000);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const dataElement = document.getElementById('django-messages');
+        if (dataElement) {
+            try {
+                const messages = JSON.parse(dataElement.textContent);
+                messages.forEach(msg => showToast(msg.message, msg.tags));
+            } catch (e) {}
+        }
     });
 </script>
 
