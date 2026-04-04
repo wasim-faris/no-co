@@ -1118,6 +1118,70 @@
                 messages.forEach(msg => showToast(msg.message, msg.tags));
             } catch (e) {}
         }
+        
+        // AJAX Add To Cart
+        const addToCartForm = document.getElementById('addToCartForm');
+        if (addToCartForm) {
+            addToCartForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const btn = form.querySelector('.btn-add');
+                const url = form.getAttribute('action');
+                const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+                
+                // Loading State
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+                const originalText = btn.innerText;
+                btn.innerText = 'Adding...';
+                
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken,
+                    }
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        btn.innerText = 'Added ✓';
+                        btn.style.backgroundColor = '#15803d'; // Tailwind green-700
+                        btn.style.borderColor = '#15803d';
+                        
+                        // Broadcast the event forward so Navbars can update globally
+                        window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart_count } }));
+                        
+                        // Optionally trigger toast
+                        if (typeof showToast === "function") {
+                            showToast("Product Added to cart", "success");
+                        }
+                        
+                        setTimeout(() => {
+                            btn.innerText = originalText;
+                            btn.disabled = false;
+                            btn.style.opacity = '1';
+                            btn.style.backgroundColor = '';
+                            btn.style.borderColor = '';
+                        }, 2000);
+                    } else {
+                        throw new Error(data.message || 'Error adding to cart');
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                    btn.innerText = 'Error';
+                    if (typeof showToast === "function") {
+                        showToast("Error adding product to cart", "error");
+                    }
+                    setTimeout(() => {
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                        btn.style.opacity = '1';
+                    }, 2000);
+                });
+            });
+        }
     });
 </script>
 

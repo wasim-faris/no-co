@@ -3,26 +3,43 @@ from django.shortcuts import get_object_or_404
 from products.models import Variant
 from .models import Cart
 from django.contrib import messages
-from django.db.models import F,Sum
+from django.db.models import F, Sum
+from django.http import JsonResponse
 
 def cart_view(request):
 
     if request.method == "POST":
         action = request.POST.get("action")
+        cart_id = request.POST.get("cart_id")
 
-        if action == "decrease":
-            cart_id = request.POST.get("cart_id")
+        if action in ["increase", "decrease"] and cart_id:
             cart_obj = get_object_or_404(Cart, id=cart_id)
-            if cart_obj.quantity > 1:
-                 cart_obj.quantity -=1
-                 cart_obj.save()
-            return redirect("cart")
-        elif action == "increase":
-            cart_id = request.POST.get("cart_id")
-            cart_obj = get_object_or_404(Cart, id=cart_id)
-            if cart_obj.quantity < 5:
-                cart_obj.quantity +=1
+            if action == "decrease" and cart_obj.quantity > 1:
+                cart_obj.quantity -= 1
                 cart_obj.save()
+            elif action == "increase" and cart_obj.quantity < 5:
+                cart_obj.quantity += 1
+                cart_obj.save()
+
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                user = request.user if request.user.is_authenticated else None
+                session = None if request.user.is_authenticated else request.session.session_key
+                
+                order_total = Cart.objects.filter(
+                    user=user, session_key=session
+                ).aggregate(total=Sum(F("price") * F("quantity")))["total"] or 0
+                
+                delivery_fee = 0 if order_total < 1999 else 149
+                full_total = delivery_fee + order_total
+                item_total = cart_obj.price * cart_obj.quantity
+                
+                return JsonResponse({
+                    "quantity": cart_obj.quantity,
+                    "item_total": item_total,
+                    "order_total": order_total,
+                    "full_total": full_total,
+                    "delivery_fee": delivery_fee
+                })
 
             return redirect("cart")
 
@@ -101,7 +118,12 @@ def add_to_cart(request, variant_id):
         )
 
     messages.success(request, "Product Added to cart")
-    return redirect(request.META.get('HTTP_REFERER'))
+    
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        cart_count = Cart.objects.filter(user=user).count() if user else Cart.objects.filter(session_key=session).count()
+        return JsonResponse({"success": True, "cart_count": cart_count})
+        
+    return redirect(request.META.get('HTTP_REFERER', '/'))
 
 def delete_cart_item(request):
     if request.method == "POST":
@@ -109,11 +131,31 @@ def delete_cart_item(request):
 
         if cart_id:
             if request.user.is_authenticated:
-                Cart.objects.filter(id=cart_id , user = request.user).delete()
+                Cart.objects.filter(id=cart_id, user=request.user).delete()
             else:
                 if not request.session.session_key:
                     request.session.create()
-                Cart.objects.filter(id=cart_id , session_key = request.session.session_key).delete()
+                Cart.objects.filter(id=cart_id, session_key=request.session.session_key).delete()
 
-            messages.success(request, "Product delete from cart")
+            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+                user = request.user if request.user.is_authenticated else None
+                session = None if request.user.is_authenticated else request.session.session_key
+                
+                order_total = Cart.objects.filter(
+                    user=user, session_key=session
+                ).aggregate(total=Sum(F("price") * F("quantity")))["total"] or 0
+                
+                delivery_fee = 0 if order_total < 1999 else 149
+                full_total = delivery_fee + order_total
+                cart_count = Cart.objects.filter(user=user).count() if user else Cart.objects.filter(session_key=session).count()
+                
+                return JsonResponse({
+                    "success": True,
+                    "order_total": order_total,
+                    "full_total": full_total,
+                    "delivery_fee": delivery_fee,
+                    "cart_count": cart_count
+                })
+
+            messages.success(request, "Product deleted from cart")
             return redirect("cart")
