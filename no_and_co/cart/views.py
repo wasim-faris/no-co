@@ -42,9 +42,10 @@ def cart_view(request):
         user = user,
         session_key = session
     )
-
-
-    order_total = Cart.objects.filter(
+    for item in cart_items:
+        item.total_price = item.price * item.quantity
+        
+        order_total = Cart.objects.filter(
         user=user,
         session_key = session
     ).aggregate(

@@ -247,7 +247,7 @@
                                 <span>Colour</span> <span>{{ item.variant.color|default:"Neutral" }}</span>
                                 <span>Size</span> <span>{{ item.variant.size.name }}</span>
                                 <span>Quantity</span> <span>{{ item.quantity }}</span>
-                                <span>Total</span> <span class="font-semibold text-black">Rs. {{item.price}}</span>
+                                <span>Total</span> <span class="font-semibold text-black">Rs. {{item.total_price}}</span>
                             </div>
 
                             <!-- Compact Quantity Control -->
@@ -262,7 +262,7 @@
                                 {% endif %}
 
                                 <span class="text-sm font-medium">{{ item.quantity }}</span>
-                                <button type="submit" name="action" value="increase" class="hover:text-black transition-colors outline-none"><i class="ri-add-line text-sm"></i></button>
+                                <button type="submit" name="action" value="increase" {% if item.quantity >= 5 %}disabled{% endif %} class="outline-none transition-colors {% if item.quantity >= 5 %}cursor-not-allowed opacity-50{% else %}hover:text-black{% endif %}"><i class="ri-add-line text-sm"></i></button>
                             </form>
                         </div>
                     </div>
