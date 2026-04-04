@@ -35,7 +35,7 @@ def cart_view(request):
         delivery_fee = 0
     else:
         delivery_fee = 149
-        
+
     full_total = delivery_fee + order_total
 
     return render(request, 'cart.html',{
@@ -81,3 +81,18 @@ def add_to_cart(request, variant_id):
 
     messages.success(request, "Product Added to cart")
     return redirect(request.META.get('HTTP_REFERER'))
+
+def delete_cart_item(request):
+    if request.method == "POST":
+        cart_id = request.POST.get("cart_id")
+
+        if cart_id:
+            if request.user.is_authenticated:
+                Cart.objects.filter(id=cart_id , user = request.user).delete()
+            else:
+                if not request.session.session_key:
+                    request.session.create()
+                Cart.objects.filter(id=cart_id , session_key = request.session.session_key).delete()
+
+            messages.success(request, "Product delete from cart")
+            return redirect("cart")

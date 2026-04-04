@@ -252,7 +252,7 @@
 
                             <!-- Compact Quantity Control -->
                             <div class="flex items-center justify-between border border-black px-4 py-2 w-32 mt-auto">
-                                <button type="button" onclick="openRemoveModal(this)" class="hover:text-red-500 transition-colors outline-none"><i class="ri-delete-bin-line text-sm"></i></button>
+                                <button type="button" data-id="{{ item.id }}" onclick="openRemoveModal(this)" class="hover:text-red-500 transition-colors outline-none"><i class="ri-delete-bin-line text-sm"></i></button>
                                 <span class="text-sm font-medium">{{ item.quantity }}</span>
                                 <button class="hover:text-black transition-colors outline-none"><i class="ri-add-line text-sm"></i></button>
                             </div>
@@ -329,7 +329,7 @@
 <div id="removeModal" class="fixed inset-0 z-[9999] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
     <!-- Darkened Background Overlay -->
     <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onclick="closeRemoveModal()"></div>
-    
+
     <!-- Modal Content Box -->
     <div id="removeModalContent" class="relative bg-white w-full max-w-lg mx-4 px-8 py-10 pt-12 transform translate-y-12 transition-transform duration-400 ease-out shadow-2xl">
         <!-- Header -->
@@ -339,36 +339,40 @@
                 <i class="ri-close-line font-light"></i>
             </button>
         </div>
-        
+
         <!-- Message -->
         <p class="text-[1rem] font-normal text-black mb-10 pr-4 leading-relaxed">
             Are you sure you would like to remove this item from your shopping bag?
         </p>
-        
+
         <!-- Actions -->
-        <div class="flex flex-row gap-4 mb-2">
-            <button onclick="closeRemoveModal()" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
-                Cancel
-            </button>
-            <button id="confirmRemoveBtn" onclick="confirmRemove()" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
-                Remove from bag
-            </button>
-        </div>
+        <form method="POST" action="{% url "delete-cart-item" %}">
+            {% csrf_token %}
+            <input type="hidden" name="cart_id" id="cartItemId" value="">
+            <div class="flex flex-row gap-4 mb-2">
+                <button type="button" onclick="closeRemoveModal()" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
+                    Cancel
+                </button>
+                <button type="submit" id="confirmRemoveBtn" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
+                    Remove from bag
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
-    let itemToDelete = null; // Store reference to the specific item being deleted
-
     function openRemoveModal(btnElement) {
-        itemToDelete = btnElement;
+        const itemId = btnElement.getAttribute('data-id');
+        document.getElementById('cartItemId').value = itemId;
+
         const modal = document.getElementById('removeModal');
         const content = document.getElementById('removeModalContent');
-        
+
         // Show overlay
         modal.classList.remove('opacity-0', 'pointer-events-none');
         modal.classList.add('opacity-100', 'pointer-events-auto');
-        
+
         // Slide up modal
         content.classList.remove('translate-y-12');
         content.classList.add('translate-y-0');
@@ -377,27 +381,14 @@
     function closeRemoveModal() {
         const modal = document.getElementById('removeModal');
         const content = document.getElementById('removeModalContent');
-        
+
         // Slide down modal
         content.classList.remove('translate-y-0');
         content.classList.add('translate-y-12');
-        
+
         // Hide overlay
         modal.classList.remove('opacity-100', 'pointer-events-auto');
         modal.classList.add('opacity-0', 'pointer-events-none');
-        
-        itemToDelete = null;
-    }
-
-    function confirmRemove() {
-        if (itemToDelete) {
-            // Integration Note: In the future, attach backend delete logic here
-            // e.g., fetching a Django url, submitting a hidden form, or triggering an HTMX swap
-            console.log("Item removed!");
-            closeRemoveModal();
-            // Optional: Visually remove item from DOM for immediate feedback
-            // itemToDelete.closest('.flex-row.border-b').remove(); 
-        }
     }
 </script>
 {% endblock %}
