@@ -235,6 +235,7 @@
                     data-cart-id="{{ item.id }}"
                     data-quantity="{{ item.quantity }}"
                     data-price="{{ item.price }}"
+                    data-stock="{{ item.variant.stock }}"
                 >
                     <!-- Image -->
                     <div class="relative w-[110px] sm:w-[130px] flex-shrink-0 bg-gray-50 h-max">
@@ -301,7 +302,7 @@
                                 type="button"
                                 class="qty-btn increase-btn"
                                 data-id="{{ item.id }}"
-                                {% if item.quantity >= 5 %}disabled{% endif %}
+                                {% if item.quantity >= item.variant.stock %}disabled{% endif %}
                                 aria-label="Increase quantity"
                             >
                                 <i class="ri-add-line text-sm"></i>
@@ -537,10 +538,11 @@
             }
         }
 
-        // Enforce max-qty disable on increase btn
+        // Enforce max-qty disable on increase btn based on real stock
         const incBtn = row.querySelector('.increase-btn');
         if (incBtn) {
-            incBtn.disabled = qty >= 5;
+            const stock = parseInt(row.dataset.stock, 10);
+            incBtn.disabled = !isNaN(stock) ? qty >= stock : qty >= 5;
         }
     }
 

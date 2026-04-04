@@ -551,6 +551,26 @@
     .toast-sub-text { font-size: 9px; opacity: 0.7; margin-top: 1px; }
     .toast-close-btn { cursor: pointer; font-size: 16px; opacity: 0.6; transition: opacity 0.2s; }
     .toast-close-btn:hover { opacity: 1; }
+
+    /* ─── Low Stock Indicator ────────────────────── */
+    .low-stock-dot {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #e02d2d;
+        pointer-events: none;
+        display: block;
+    }
+    .low-stock-hint {
+        font-size: 11px;
+        color: #e02d2d;
+        font-weight: 400;
+        letter-spacing: .02em;
+        margin: -6px 0 14px;
+    }
 </style>
 
 <div id="toast-container"></div>
@@ -658,12 +678,17 @@
         <div class="size-row" id="sizeContainer">
             {% for v in variants %}
                 {% if v.color == default_variant.color %}
-                    <div class="size-box {% if forloop.first %}active{% endif %}" onclick="selectSize(this)">
+                    <div class="size-box {% if forloop.first %}active{% endif %}"
+                         data-stock="{{ v.stock }}"
+                         onclick="selectSize(this)"
+                         style="position:relative;">
                         {{ v.size.name }}
+                        {% if v.stock > 0 and v.stock < 5 %}<span class="low-stock-dot"></span>{% endif %}
                     </div>
                 {% endif %}
             {% endfor %}
         </div>
+        <p id="stockHint" class="low-stock-hint" style="display:none;">Only few left</p>
 
        <form method="POST" action="{% url "add-to-cart" default_variant.id %}" id="addToCartForm" style="display:inline;">
     {% csrf_token %}
@@ -817,6 +842,12 @@
         {% endfor %}
     };
 
+    const stockMap = {
+        {% for v in variants %}
+        "{{ v.color|escapejs }}_{{ v.size.name|escapejs }}": {{ v.stock }},
+        {% endfor %}
+    };
+
     function updateCartAction() {
         const activeColorEl = document.querySelector('.swatch-item.active');
         const activeSizeEl = document.querySelector('.size-box.active');
@@ -889,22 +920,39 @@
         // Update Sizes
         const sizesRaw = element.getAttribute('data-sizes');
         const sizesArray = sizesRaw ? sizesRaw.split(',').filter(s => s.trim() !== "") : [];
+        const activeColor = element.getAttribute('data-color');
 
         sizeContainer.innerHTML = '';
         sizesArray.forEach((size, index) => {
             const sizeDiv = document.createElement('div');
             sizeDiv.className = `size-box ${index === 0 ? 'active' : ''}`;
-            sizeDiv.innerText = size;
+            sizeDiv.style.position = 'relative';
+            const stock = stockMap[activeColor + '_' + size];
+            if (stock !== undefined) sizeDiv.dataset.stock = stock;
+            sizeDiv.appendChild(document.createTextNode(size));
+            if (stock !== undefined && stock > 0 && stock < 5) {
+                const dot = document.createElement('span');
+                dot.className = 'low-stock-dot';
+                sizeDiv.appendChild(dot);
+            }
             sizeDiv.onclick = function() { selectSize(this); };
             sizeContainer.appendChild(sizeDiv);
         });
-        
-        updateCartAction();
+
+        // Trigger selectSize on newly active box so hint updates
+        const firstSize = sizeContainer.querySelector('.size-box.active');
+        if (firstSize) selectSize(firstSize);
     }
 
     function selectSize(box) {
         document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
         box.classList.add('active');
+        // Show low-stock hint when selected size has fewer than 5 units
+        const hint = document.getElementById('stockHint');
+        if (hint) {
+            const stock = parseInt(box.dataset.stock, 10);
+            hint.style.display = (!isNaN(stock) && stock > 0 && stock < 5) ? 'block' : 'none';
+        }
         updateCartAction();
     }
 
@@ -931,6 +979,9 @@
     document.querySelectorAll('.size-box').forEach(box => {
         box.onclick = function() { selectSize(this); };
     });
+    // Initialize low-stock hint for the default active size on page load
+    const initialActiveSize = document.querySelector('.size-box.active');
+    if (initialActiveSize) selectSize(initialActiveSize);
     // ════════════════════════════════════════
     // FULLSCREEN LIGHTBOX LOGIC
     // ════════════════════════════════════════
@@ -1165,7 +1216,7 @@
                             btn.style.borderColor = '';
                         }, 2000);
                     } else {
-                        throw new Error(data.message || 'Error adding to cart');
+                        throw new Error(data.error || data.message || 'Error adding to cart');
                     }
                 })
                 .catch(error => {
