@@ -5,6 +5,7 @@
 
 {% block extra_head %}
 <style>
+    /* ─── Layout ─────────────────────────────────────────────── */
     .cart-title {
         font-size: clamp(2rem, 5vw, 4rem);
         font-weight: 900;
@@ -25,88 +26,66 @@
         color: #767676;
         margin-bottom: 2.5rem;
     }
-    .item-card {
-        display: flex;
-        flex-direction: row;
-        gap: 1.5rem;
-        padding-bottom: 2rem;
-        border-bottom: 1px solid #f2f2f2;
-        margin-bottom: 2rem;
-        align-items: stretch;
-    }
-    .item-img-wrap {
-        width: 80px;
-        aspect-ratio: 2/3;
-        flex-shrink: 0;
-        background: #fdfdfd;
-    }
-    .item-img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-    .item-details {
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-    }
-    .item-brand {
-        font-size: 0.55rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: #767676;
-        margin-bottom: 0.2rem;
-    }
-    .item-name {
-        font-size: 0.75rem;
-        font-weight: 500;
-        letter-spacing: 0.02em;
-        color: #111;
-        margin-bottom: 0.3rem;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-        line-height: 1.3;
-        text-transform: uppercase;
-    }
-    .item-price {
-        font-size: 0.8rem;
-        font-weight: 600;
-        margin-bottom: 0.75rem;
-    }
-    .item-meta {
-        font-size: 0.65rem;
-        color: #111;
-        display: flex;
-        flex-wrap: wrap;
-        column-gap: 1.5rem;
-        row-gap: 0.2rem;
-        margin-bottom: auto;
-    }
-    .meta-item { display: flex; gap: 0.3rem }
-    .meta-label { color: #767676; }
 
-    .item-actions {
+    /* ─── Item Card ──────────────────────────────────────────── */
+    .cart-item-row {
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        will-change: opacity, transform;
+    }
+    .cart-item-row.is-loading {
+        opacity: 0.45;
+        pointer-events: none;
+    }
+    .cart-item-row.is-removing {
+        opacity: 0;
+        transform: translateX(-12px);
+        overflow: hidden;
+    }
+
+    /* ─── Quantity Controls ──────────────────────────────────── */
+    .qty-form {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-top: 1rem;
+        border: 1px solid #111;
+        padding: 0.5rem 1rem;
+        width: 8rem;
+        margin-top: auto;
     }
-    .qty-control {
+    .qty-btn {
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
         display: flex;
         align-items: center;
-        gap: 1rem;
-        font-size: 0.75rem;
+        justify-content: center;
+        transition: opacity 0.2s ease, transform 0.15s ease;
+        outline: none;
+        color: #111;
     }
-    .qty-btn { cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }
-    .qty-btn:hover { opacity: 1; }
-    .delete-btn { color: #111; cursor: pointer; font-size: 0.9rem; opacity: 0.5; transition: opacity 0.2s; }
-    .delete-btn:hover { opacity: 1; color: #d00; }
+    .qty-btn:hover:not(:disabled) { opacity: 1; transform: scale(1.15); }
+    .qty-btn:disabled  { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+    .qty-display {
+        font-size: 0.875rem;
+        font-weight: 500;
+        min-width: 1.5ch;
+        text-align: center;
+        transition: transform 0.18s ease;
+    }
+    .qty-display.pop {
+        transform: scale(1.35);
+    }
 
+    /* ─── Price flash ────────────────────────────────────────── */
+    .price-flash {
+        transition: color 0.3s ease;
+    }
+    .price-flash.updated {
+        color: #1a1a1a;
+    }
+
+    /* ─── Summary Panel ──────────────────────────────────────── */
     .summary-panel {
         background: #fff;
         position: sticky;
@@ -145,6 +124,7 @@
         opacity: 0.7;
     }
 
+    /* ─── Buttons ────────────────────────────────────────────── */
     .btn-checkout {
         background: #000;
         color: #fff;
@@ -156,6 +136,8 @@
         letter-spacing: 0.15em;
         margin-top: 2rem;
         transition: background-color 0.3s;
+        border: none;
+        cursor: pointer;
     }
     .btn-checkout:hover { background-color: #333; }
 
@@ -171,9 +153,12 @@
         letter-spacing: 0.15em;
         margin-top: 1rem;
         transition: background-color 0.2s;
+        display: block;
+        text-align: center;
     }
     .btn-signin:hover { background-color: #fafafa; }
 
+    /* ─── Payment / Info ─────────────────────────────────────── */
     .payment-icons {
         display: flex;
         gap: 1.2rem;
@@ -192,6 +177,34 @@
         color: #767676;
     }
 
+    /* ─── Inline Error / Notification ───────────────────────── */
+    .inline-toast {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%) translateY(2rem);
+        background: #111;
+        color: #fff;
+        font-size: 0.7rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 0.85rem 2rem;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        z-index: 99999;
+        white-space: nowrap;
+    }
+    .inline-toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* ─── Empty State ────────────────────────────────────────── */
+    #emptyState { display: none; }
+    #emptyState.visible { display: flex; }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
     @media (max-width: 1024px) {
         .summary-panel { position: static; margin-top: 3rem; }
     }
@@ -200,203 +213,486 @@
 
 {% block content %}
 <div class="max-w-[1200px] mx-auto px-4 md:px-8 pb-20">
-    <!-- Header Section -->
+
     <h1 class="cart-title">Shopping Bag</h1>
 
-    <!-- Info Banner -->
     <div class="info-banner uppercase">
         UPI payment supports quicker refunds
     </div>
 
-    <!-- Main Grid -->
-    <div class="cart-grid">
+    <!-- ─── Cart Grid ─────────────────────────────────────────── -->
+    <div id="cartGrid">
+
         {% if cart_items %}
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-16">
-                <!-- Left Column: Items -->
-                <div class="cart-items">
-                    {% for item in cart_items %}
-                    <div class="flex flex-row gap-5 border-b border-gray-200 pb-8 mb-8">
-                        <!-- Left: Image with floating heart inside -->
-                        <div class="relative w-[110px] sm:w-[130px] flex-shrink-0 bg-gray-50 h-max">
-                            {% if item.variant.images.all %}
-                                <img src="{{ item.variant.images.all.0.image.url }}" alt="{{ item.variant.product.product_name }}" class="w-full h-auto object-cover aspect-[2/3]">
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-16">
+
+            <!-- Left Column: Items -->
+            <div id="cartItemsList">
+                {% for item in cart_items %}
+                <div
+                    id="cart-item-{{ item.id }}"
+                    class="cart-item-row flex flex-row gap-5 border-b border-gray-200 pb-8 mb-8"
+                    data-cart-id="{{ item.id }}"
+                    data-quantity="{{ item.quantity }}"
+                    data-price="{{ item.price }}"
+                >
+                    <!-- Image -->
+                    <div class="relative w-[110px] sm:w-[130px] flex-shrink-0 bg-gray-50 h-max">
+                        {% if item.variant.images.all %}
+                            <img src="{{ item.variant.images.all.0.image.url }}"
+                                 alt="{{ item.variant.product.product_name }}"
+                                 class="w-full h-auto object-cover aspect-[2/3]">
+                        {% else %}
+                            <div class="w-full aspect-[2/3] flex items-center justify-center">
+                                <span class="text-[0.45rem] text-gray-400 font-bold uppercase tracking-widest text-center w-full px-1">No Image</span>
+                            </div>
+                        {% endif %}
+                        <button class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center opacity-80 hover:opacity-100 hover:bg-white rounded-full p-1 transition-all">
+                            <i class="ri-heart-line text-sm text-black"></i>
+                        </button>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="flex flex-col flex-grow">
+                        <div class="space-y-1 mb-4">
+                            <p class="text-[0.65rem] text-gray-500 uppercase tracking-wide">{{ item.variant.product.category.category_name }} PREMIUM SELECTION</p>
+                            <h3 class="text-sm font-medium uppercase leading-tight line-clamp-2 text-black">{{ item.variant.product.product_name }}</h3>
+                            <p class="text-sm font-semibold text-black">Rs. {{ item.price }}</p>
+                        </div>
+
+                        <!-- Meta -->
+                        <div class="grid grid-cols-[65px_1fr] gap-x-2 gap-y-0.5 text-xs text-gray-600 mb-6 leading-tight">
+                            <span>Art no:</span> <span>{{ item.variant.id|stringformat:"06d"|default:"100234" }}</span>
+                            <span>Colour</span>  <span>{{ item.variant.color|default:"Neutral" }}</span>
+                            <span>Size</span>    <span>{{ item.variant.size.name }}</span>
+                            <span>Quantity</span>
+                            <span class="qty-display" id="qty-display-{{ item.id }}">{{ item.quantity }}</span>
+                            <span>Total</span>
+                            <span class="font-semibold text-black price-flash" id="item-total-{{ item.id }}">Rs. {{ item.total_price }}</span>
+                        </div>
+
+                        <!-- Quantity Controls -->
+                        <div class="qty-form">
+                            <!-- Decrease / Delete -->
+                            {% if item.quantity == 1 %}
+                            <button
+                                type="button"
+                                class="qty-btn open-remove-modal"
+                                data-id="{{ item.id }}"
+                                aria-label="Remove item"
+                            >
+                                <i class="ri-delete-bin-line text-sm"></i>
+                            </button>
                             {% else %}
-                                <div class="w-full aspect-[2/3] flex items-center justify-center">
-                                    <span class="text-[0.45rem] text-gray-400 font-bold uppercase tracking-widest text-center w-full px-1">No Image</span>
-                                </div>
+                            <button
+                                type="button"
+                                class="qty-btn decrease-btn"
+                                data-id="{{ item.id }}"
+                                aria-label="Decrease quantity"
+                            >
+                                <i class="ri-subtract-line text-sm"></i>
+                            </button>
                             {% endif %}
 
-                            <!-- Top Right Floating Heart -->
-                            <button class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center opacity-80 hover:opacity-100 hover:bg-white rounded-full p-1 transition-all">
-                                <i class="ri-heart-line text-sm text-black"></i>
+                            <span class="qty-display" id="qty-ctrl-{{ item.id }}">{{ item.quantity }}</span>
+
+                            <!-- Increase -->
+                            <button
+                                type="button"
+                                class="qty-btn increase-btn"
+                                data-id="{{ item.id }}"
+                                {% if item.quantity >= 5 %}disabled{% endif %}
+                                aria-label="Increase quantity"
+                            >
+                                <i class="ri-add-line text-sm"></i>
                             </button>
                         </div>
 
-                        <!-- Right: Stacked Details -->
-                        <div class="flex flex-col flex-grow">
-                            <!-- Typography Section -->
-                            <div class="space-y-1 mb-4">
-                                <p class="text-[0.65rem] text-gray-500 uppercase tracking-wide">{{ item.variant.product.category.category_name }} PREMIUM SELECTION</p>
-                                <h3 class="text-sm font-medium uppercase leading-tight line-clamp-2 text-black">{{ item.variant.product.product_name }}</h3>
-                                <p class="text-sm font-semibold text-black">Rs. {{ item.price }}</p>
-                            </div>
-
-                            <!-- Meta Details (Art, Colour, Size, Etc) -->
-                            <div class="grid grid-cols-[65px_1fr] gap-x-2 gap-y-0.5 text-xs text-gray-600 mb-6 leading-tight">
-                                <span>Art no:</span> <span>{{ item.variant.id|stringformat:"06d"|default:"100234" }}</span>
-                                <span>Colour</span> <span>{{ item.variant.color|default:"Neutral" }}</span>
-                                <span>Size</span> <span>{{ item.variant.size.name }}</span>
-                                <span>Quantity</span> <span>{{ item.quantity }}</span>
-                                <span>Total</span> <span class="font-semibold text-black">Rs. {{item.total_price}}</span>
-                            </div>
-
-                            <!-- Compact Quantity Control -->
-                            <form method="POST" action="" class="flex items-center justify-between border border-black px-4 py-2 w-32 mt-auto">
-                                {% csrf_token %}
-                                <input type="hidden" name="cart_id" value="{{ item.id }}">
-
-                                {% if item.quantity == 1 %}
-                                    <button type="button" data-id="{{ item.id }}" onclick="openRemoveModal(this)" class="hover:text-red-500 transition-colors outline-none"><i class="ri-delete-bin-line text-sm"></i></button>
-                                {% else %}
-                                    <button type="submit" name="action" value="decrease" class="hover:text-black transition-colors outline-none"><i class="ri-subtract-line text-sm"></i></button>
-                                {% endif %}
-
-                                <span class="text-sm font-medium">{{ item.quantity }}</span>
-                                <button type="submit" name="action" value="increase" {% if item.quantity >= 5 %}disabled{% endif %} class="outline-none transition-colors {% if item.quantity >= 5 %}cursor-not-allowed opacity-50{% else %}hover:text-black{% endif %}"><i class="ri-add-line text-sm"></i></button>
-                            </form>
-                        </div>
+                        <!-- Inline error per item -->
+                        <p class="item-error text-[0.6rem] text-red-500 mt-2 hidden" id="err-{{ item.id }}"></p>
                     </div>
-                    {% endfor %}
                 </div>
+                {% endfor %}
+            </div>
 
-                <!-- Right Column: Summary -->
-                <div class="summary-container">
-                    <div class="summary-panel">
-                        <div class="discount-section">
-                            <span>Discounts</span>
-                            <span class="add-link">Add</span>
-                        </div>
-
-                        <div class="summary-row">
-                            <span class="text-[#767676]">Order value</span>
-                            <span class="font-bold">Rs. {{order_total}}</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="text-[#767676]">Estimated delivery fee</span>
-                            <span class="font-bold">Rs. {{delivery_fee}}.00</span>
-                        </div>
-
-                        <div class="summary-row summary-total">
-                            <span>TOTAL</span>
-                            <span>Rs.{{full_total}}</span>
-                        </div>
-
-                        <button class="btn-checkout">Continue to Checkout</button>
-
-                        {% if not user.is_authenticated %}
-                        <a href="{% url 'account_login' %}" class="btn-signin block text-center">Sign In</a>
-                        {% endif %}
-
-                        <div class="payment-icons">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-2.5">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-4">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" class="h-3.5 filter grayscale contrast-0">
-                        </div>
-
-                        <p class="info-text">
-                            Prices and delivery costs are not confirmed until you've reached the checkout.
-                        </p>
-                        <p class="info-text">
-                            15 days free returns. Read more about <a href="#" class="info-link">return and refund policy</a>.
-                        </p>
-                        <p class="info-text">
-                            Need help? Please contact <a href="#" class="info-link">Customer Service</a>.
-                        </p>
-
-                        <a href="#" class="block text-[0.65rem] font-bold uppercase tracking-widest underline mt-8 opacity-70 hover:opacity-100 transition-opacity">Delivery and return options</a>
+            <!-- Right Column: Summary -->
+            <div class="summary-container">
+                <div class="summary-panel">
+                    <div class="discount-section">
+                        <span>Discounts</span>
+                        <span class="add-link">Add</span>
                     </div>
+
+                    <div class="summary-row">
+                        <span class="text-[#767676]">Order value</span>
+                        <span class="font-bold price-flash" id="summary-order-total">Rs. {{ order_total }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="text-[#767676]">Estimated delivery fee</span>
+                        <span class="font-bold price-flash" id="summary-delivery">Rs. {{ delivery_fee }}.00</span>
+                    </div>
+
+                    <div class="summary-row summary-total">
+                        <span>TOTAL</span>
+                        <span class="price-flash" id="summary-full-total">Rs. {{ full_total }}</span>
+                    </div>
+
+                    <button class="btn-checkout">Continue to Checkout</button>
+
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'account_login' %}" class="btn-signin">Sign In</a>
+                    {% endif %}
+
+                    <div class="payment-icons">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"        alt="Visa"       class="h-2.5">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"       alt="Mastercard" class="h-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg"       alt="UPI"        class="h-3.5 filter grayscale contrast-0">
+                    </div>
+
+                    <p class="info-text">Prices and delivery costs are not confirmed until you've reached the checkout.</p>
+                    <p class="info-text">15 days free returns. Read more about <a href="#" class="info-link">return and refund policy</a>.</p>
+                    <p class="info-text">Need help? Please contact <a href="#" class="info-link">Customer Service</a>.</p>
+
+                    <a href="#" class="block text-[0.65rem] font-bold uppercase tracking-widest underline mt-8 opacity-70 hover:opacity-100 transition-opacity">Delivery and return options</a>
                 </div>
             </div>
+        </div>
+
         {% else %}
-            <!-- Empty State -->
-            <div class="flex flex-col items-center justify-center py-40 text-center">
-                <div class="mb-10 opacity-20">
-                    <i class="ri-shopping-bag-line text-6xl font-thin"></i>
-                </div>
-                <h2 class="text-xl font-medium uppercase tracking-widest mb-3">Your bag is empty</h2>
-                <p class="text-[#767676] mb-10 max-w-sm text-[0.75rem] leading-relaxed">
-                    Styles you love are waiting for you! Just click the heart icon on your favorites to save them or start filling your bag now.
-                </p>
-                <a href="{% url 'home' %}" class="btn-checkout py-4 px-14 w-auto inline-block">Start Shopping</a>
-            </div>
+        <!-- Empty State (shown on initial load if already empty) -->
         {% endif %}
+
+        <!-- Empty State (shown dynamically after all items removed) -->
+        <div id="emptyState" class="flex-col items-center justify-center py-40 text-center {% if not cart_items %}visible{% endif %}">
+            <div class="mb-10 opacity-20">
+                <i class="ri-shopping-bag-line text-6xl font-thin"></i>
+            </div>
+            <h2 class="text-xl font-medium uppercase tracking-widest mb-3">Your bag is empty</h2>
+            <p class="text-[#767676] mb-10 max-w-sm text-[0.75rem] leading-relaxed">
+                Styles you love are waiting for you! Just click the heart icon on your favorites to save them or start filling your bag now.
+            </p>
+            <a href="{% url 'home' %}" class="btn-checkout py-4 px-14 w-auto inline-block">Start Shopping</a>
+        </div>
     </div>
 </div>
 
-<!-- Minimal H&M Style Remove Modal -->
+<!-- ─── Remove Confirmation Modal ──────────────────────────────── -->
 <div id="removeModal" class="fixed inset-0 z-[9999] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-    <!-- Darkened Background Overlay -->
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onclick="closeRemoveModal()"></div>
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" id="modalOverlay"></div>
 
-    <!-- Modal Content Box -->
-    <div id="removeModalContent" class="relative bg-white w-full max-w-lg mx-4 px-8 py-10 pt-12 transform translate-y-12 transition-transform duration-400 ease-out shadow-2xl">
-        <!-- Header -->
+    <div id="removeModalContent" class="relative bg-white w-full max-w-lg mx-4 px-8 py-10 pt-12 transform translate-y-12 transition-transform duration-300 ease-out shadow-2xl">
         <div class="flex justify-between items-start mb-8">
             <h3 class="text-[0.95rem] font-normal uppercase tracking-wide text-black">Remove an item</h3>
-            <button onclick="closeRemoveModal()" class="absolute top-6 right-6 text-2xl leading-none font-thin text-black hover:opacity-60 transition-opacity outline-none">
+            <button id="closeRemoveModalBtn" class="absolute top-6 right-6 text-2xl leading-none font-thin text-black hover:opacity-60 transition-opacity outline-none">
                 <i class="ri-close-line font-light"></i>
             </button>
         </div>
-
-        <!-- Message -->
         <p class="text-[1rem] font-normal text-black mb-10 pr-4 leading-relaxed">
             Are you sure you would like to remove this item from your shopping bag?
         </p>
-
-        <!-- Actions -->
-        <form method="POST" action="{% url "delete-cart-item" %}">
-            {% csrf_token %}
-            <input type="hidden" name="cart_id" id="cartItemId" value="">
-            <div class="flex flex-row gap-4 mb-2">
-                <button type="button" onclick="closeRemoveModal()" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
-                    Cancel
-                </button>
-                <button type="submit" id="confirmRemoveBtn" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
-                    Remove from bag
-                </button>
-            </div>
-        </form>
+        <div class="flex flex-row gap-4 mb-2">
+            <button type="button" id="cancelRemoveBtn" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
+                Cancel
+            </button>
+            <button type="button" id="confirmRemoveBtn" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
+                Remove from bag
+            </button>
+        </div>
+        <p class="modal-error text-[0.6rem] text-red-500 text-center mt-2 hidden" id="modalError"></p>
     </div>
 </div>
 
+<!-- ─── Inline Toast ─────────────────────────────────────────────── -->
+<div id="inlineToast" class="inline-toast" role="alert" aria-live="polite"></div>
+
+<!-- ─── CSRF token for AJAX ──────────────────────────────────────── -->
+{% csrf_token %}
+
 <script>
-    function openRemoveModal(btnElement) {
-        const itemId = btnElement.getAttribute('data-id');
-        document.getElementById('cartItemId').value = itemId;
+(function () {
+    'use strict';
 
-        const modal = document.getElementById('removeModal');
+    /* ── Helpers ────────────────────────────────────────────────── */
+
+    const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    function ajax(url, data, callback) {
+        const body = new URLSearchParams(data);
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': CSRF,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: body.toString(),
+        })
+        .then(r => r.json())
+        .then(callback)
+        .catch(() => showToast('Something went wrong. Please try again.'));
+    }
+
+    /* ── Toast ──────────────────────────────────────────────────── */
+
+    let toastTimer = null;
+    function showToast(msg, duration = 3000) {
+        const t = document.getElementById('inlineToast');
+        t.textContent = msg;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+    }
+
+    /* ── Price formatting ───────────────────────────────────────── */
+
+    function fmt(val) {
+        // val comes as a number; format to 2 decimal places
+        const n = parseFloat(val);
+        return isNaN(n) ? '—' : n.toFixed(2).replace(/\.00$/, '');
+    }
+
+    /* ── Flash price element ────────────────────────────────────── */
+
+    function flashPrice(el, newText) {
+        if (!el) return;
+        el.textContent = newText;
+        el.classList.remove('updated');
+        void el.offsetWidth; // reflow
+        el.classList.add('updated');
+    }
+
+    /* ── Qty display pop animation ──────────────────────────────── */
+
+    function popQty(id) {
+        ['qty-display-' + id, 'qty-ctrl-' + id].forEach(elId => {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            el.classList.remove('pop');
+            void el.offsetWidth;
+            el.classList.add('pop');
+            setTimeout(() => el.classList.remove('pop'), 200);
+        });
+    }
+
+    /* ── Update summary totals ──────────────────────────────────── */
+
+    function updateSummary(data) {
+        flashPrice(document.getElementById('summary-order-total'), 'Rs. ' + fmt(data.order_total));
+        flashPrice(document.getElementById('summary-delivery'),    'Rs. ' + fmt(data.delivery_fee) + '.00');
+        flashPrice(document.getElementById('summary-full-total'),  'Rs. ' + fmt(data.full_total));
+    }
+
+    /* ── Update a single item row ────────────────────────────────── */
+
+    function updateItemRow(id, qty, itemTotal) {
+        // Quantity badges (meta + control)
+        ['qty-display-' + id, 'qty-ctrl-' + id].forEach(elId => {
+            const el = document.getElementById(elId);
+            if (el) el.textContent = qty;
+        });
+        popQty(id);
+
+        // Item total price
+        flashPrice(document.getElementById('item-total-' + id), 'Rs. ' + fmt(itemTotal));
+
+        // Swap decrease ↔ delete button based on new qty
+        const row = document.getElementById('cart-item-' + id);
+        if (!row) return;
+        const decBtn = row.querySelector('.decrease-btn');
+        const delBtn = row.querySelector('.open-remove-modal');
+
+        if (qty === 1) {
+            if (decBtn) {
+                // Replace with delete icon
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'qty-btn open-remove-modal';
+                btn.setAttribute('data-id', id);
+                btn.setAttribute('aria-label', 'Remove item');
+                btn.innerHTML = '<i class="ri-delete-bin-line text-sm"></i>';
+                btn.addEventListener('click', () => openRemoveModal(id));
+                decBtn.replaceWith(btn);
+            }
+        } else {
+            if (delBtn) {
+                // Replace with decrease icon
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'qty-btn decrease-btn';
+                btn.setAttribute('data-id', id);
+                btn.setAttribute('aria-label', 'Decrease quantity');
+                btn.innerHTML = '<i class="ri-subtract-line text-sm"></i>';
+                btn.addEventListener('click', () => handleQtyChange(btn, 'decrease'));
+                delBtn.replaceWith(btn);
+            }
+        }
+
+        // Enforce max-qty disable on increase btn
+        const incBtn = row.querySelector('.increase-btn');
+        if (incBtn) {
+            incBtn.disabled = qty >= 5;
+        }
+    }
+
+    /* ── Show inline error ──────────────────────────────────────── */
+
+    function showItemError(id, msg) {
+        const el = document.getElementById('err-' + id);
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.remove('hidden');
+        setTimeout(() => el.classList.add('hidden'), 3500);
+    }
+
+    /* ── Quantity change handler ─────────────────────────────────── */
+
+    function handleQtyChange(btn, action) {
+        const id = btn.getAttribute('data-id');
+        const row = document.getElementById('cart-item-' + id);
+        if (!row || row.classList.contains('is-loading')) return;
+
+        row.classList.add('is-loading');
+
+        ajax('{% url "cart" %}', { csrfmiddlewaretoken: CSRF, action: action, cart_id: id }, function (data) {
+            row.classList.remove('is-loading');
+
+            if (data.error) {
+                showItemError(id, data.error);
+                return;
+            }
+
+            updateItemRow(id, data.quantity, data.item_total);
+            updateSummary(data);
+
+            if (action === 'increase' && data.quantity >= 5) {
+                showItemError(id, 'Maximum quantity of 5 reached.');
+            }
+        });
+    }
+
+    /* ── Remove modal ───────────────────────────────────────────── */
+
+    let pendingRemoveId = null;
+
+    function openRemoveModal(id) {
+        pendingRemoveId = id;
+        const modal   = document.getElementById('removeModal');
         const content = document.getElementById('removeModalContent');
-
-        // Show overlay
         modal.classList.remove('opacity-0', 'pointer-events-none');
         modal.classList.add('opacity-100', 'pointer-events-auto');
-
-        // Slide up modal
         content.classList.remove('translate-y-12');
         content.classList.add('translate-y-0');
+        // clear modal error
+        const err = document.getElementById('modalError');
+        if (err) { err.textContent = ''; err.classList.add('hidden'); }
     }
 
     function closeRemoveModal() {
-        const modal = document.getElementById('removeModal');
+        const modal   = document.getElementById('removeModal');
         const content = document.getElementById('removeModalContent');
-
-        // Slide down modal
         content.classList.remove('translate-y-0');
         content.classList.add('translate-y-12');
-
-        // Hide overlay
         modal.classList.remove('opacity-100', 'pointer-events-auto');
         modal.classList.add('opacity-0', 'pointer-events-none');
+        pendingRemoveId = null;
     }
+
+    function confirmRemove() {
+        if (!pendingRemoveId) return;
+        const id = pendingRemoveId;
+        const row = document.getElementById('cart-item-' + id);
+        const confirmBtn = document.getElementById('confirmRemoveBtn');
+
+        if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Removing…'; }
+
+        ajax('{% url "delete-cart-item" %}', { csrfmiddlewaretoken: CSRF, cart_id: id }, function (data) {
+            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Remove from bag'; }
+            closeRemoveModal();
+
+            if (!data.success) {
+                showToast('Could not remove item. Please try again.');
+                return;
+            }
+
+            // Animate row out
+            if (row) {
+                row.classList.add('is-removing');
+                const maxHeight = row.scrollHeight;
+                row.style.maxHeight = maxHeight + 'px';
+                row.style.transition = 'opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease 0.2s, padding 0.3s ease 0.2s, margin 0.3s ease 0.2s';
+
+                setTimeout(() => {
+                    row.style.maxHeight = '0';
+                    row.style.paddingBottom = '0';
+                    row.style.marginBottom  = '0';
+                    row.style.overflow      = 'hidden';
+                }, 10);
+
+                setTimeout(() => {
+                    row.remove();
+                    checkEmpty();
+                }, 520);
+            }
+
+            updateSummary(data);
+        });
+    }
+
+    /* ── Empty state ─────────────────────────────────────────────── */
+
+    function checkEmpty() {
+        const list = document.getElementById('cartItemsList');
+        if (!list) return;
+        const remaining = list.querySelectorAll('.cart-item-row');
+        if (remaining.length === 0) {
+            // Hide the grid, show empty state
+            const grid = list.closest('.grid');
+            if (grid) grid.style.display = 'none';
+            const empty = document.getElementById('emptyState');
+            if (empty) {
+                empty.style.display = 'flex';
+                empty.classList.add('visible');
+            }
+        }
+    }
+
+    /* ── Event delegation ───────────────────────────────────────── */
+
+    document.addEventListener('click', function (e) {
+        // Increase
+        const incBtn = e.target.closest('.increase-btn');
+        if (incBtn) { handleQtyChange(incBtn, 'increase'); return; }
+
+        // Decrease
+        const decBtn = e.target.closest('.decrease-btn');
+        if (decBtn) { handleQtyChange(decBtn, 'decrease'); return; }
+
+        // Open remove modal
+        const delBtn = e.target.closest('.open-remove-modal');
+        if (delBtn) { openRemoveModal(delBtn.getAttribute('data-id')); return; }
+
+        // Close modal (overlay / close button / cancel)
+        if (
+            e.target.id === 'modalOverlay' ||
+            e.target.closest('#closeRemoveModalBtn') ||
+            e.target.closest('#cancelRemoveBtn')
+        ) {
+            closeRemoveModal();
+            return;
+        }
+
+        // Confirm remove
+        if (e.target.closest('#confirmRemoveBtn')) {
+            confirmRemove();
+            return;
+        }
+    });
+
+    // Keyboard: close modal on Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeRemoveModal();
+    });
+
+})();
 </script>
 {% endblock %}
