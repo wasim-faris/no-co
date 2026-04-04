@@ -65,7 +65,7 @@
         color: #111;
     }
     .qty-btn:hover:not(:disabled) { opacity: 1; transform: scale(1.15); }
-    .qty-btn:disabled  { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+    .qty-btn:disabled  { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     .qty-display {
         font-size: 0.875rem;
         font-weight: 500;
@@ -482,14 +482,9 @@
         flashPrice(document.getElementById('summary-delivery'),    'Rs. ' + fmt(data.delivery_fee) + '.00');
         flashPrice(document.getElementById('summary-full-total'),  'Rs. ' + fmt(data.full_total));
 
-        const navBadge = document.getElementById('navbarCartCount');
-        if (navBadge && data.cart_count !== undefined) {
-            navBadge.textContent = data.cart_count;
-            if (data.cart_count > 0) {
-                navBadge.classList.remove('hidden');
-            } else {
-                navBadge.classList.add('hidden');
-            }
+        // Dispatch global event for navbar update
+        if (data.cart_count !== undefined) {
+            window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart_count } }));
         }
     }
 

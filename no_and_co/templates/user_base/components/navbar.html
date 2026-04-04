@@ -80,6 +80,16 @@
         text-decoration: none;
         color: black;
     }
+
+    /* Cart Badge Animation */
+    @keyframes cartPop {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.4); }
+        100% { transform: scale(1); }
+    }
+    .cart-pop {
+        animation: cartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
   </style>
 
   <div class="w-full px-6 md:px-10 flex items-center justify-between h-16">
@@ -150,7 +160,9 @@
       <line x1="3" y1="6" x2="21" y2="6"/>
       <path d="M16 10a4 4 0 0 1-8 0"/>
     </svg>
-    <span id="navbarCartCount" class="absolute -top-1.5 -right-2 bg-black text-white rounded-full w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold {% if cart_count <= 0 %}hidden{% endif %}">
+    <span id="navbarCartCount" 
+          data-initial-count="{{ cart_count|default:0 }}"
+          class="absolute -top-1.5 -right-2 bg-black text-white rounded-full w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold {% if cart_count <= 0 %}hidden{% endif %}">
       {{ cart_count|default:"0" }}
     </span>
   </button>
@@ -174,5 +186,25 @@
             }
         });
     }
+
+    // Global Cart Count Listener
+    window.addEventListener('cartUpdated', (e) => {
+        const badge = document.getElementById('navbarCartCount');
+        if (badge) {
+            const count = e.detail.count;
+            badge.textContent = count;
+            
+            if (count > 0) {
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+
+            // Trigger Pop Animation
+            badge.classList.remove('cart-pop');
+            void badge.offsetWidth; // Force reflow
+            badge.classList.add('cart-pop');
+        }
+    });
   </script>
 </header>

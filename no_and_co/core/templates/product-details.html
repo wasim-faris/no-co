@@ -678,7 +678,7 @@
         <div class="size-row" id="sizeContainer">
             {% for v in variants %}
                 {% if v.color == default_variant.color %}
-                    <div class="size-box {% if forloop.first %}active{% endif %}"
+                    <div class="size-box"
                          data-stock="{{ v.stock }}"
                          onclick="selectSize(this)"
                          style="position:relative;">
@@ -689,6 +689,7 @@
             {% endfor %}
         </div>
         <p id="stockHint" class="low-stock-hint" style="display:none;">Only few left</p>
+        <p id="sizeError" style="display:none; font-size:11px; color:#e02d2d; letter-spacing:.02em; margin:-4px 0 12px;">Please select a size</p>
 
        <form method="POST" action="{% url "add-to-cart" default_variant.id %}" id="addToCartForm" style="display:inline;">
     {% csrf_token %}
@@ -925,7 +926,7 @@
         sizeContainer.innerHTML = '';
         sizesArray.forEach((size, index) => {
             const sizeDiv = document.createElement('div');
-            sizeDiv.className = `size-box ${index === 0 ? 'active' : ''}`;
+            sizeDiv.className = 'size-box';  // no default active — user must choose
             sizeDiv.style.position = 'relative';
             const stock = stockMap[activeColor + '_' + size];
             if (stock !== undefined) sizeDiv.dataset.stock = stock;
@@ -939,14 +940,19 @@
             sizeContainer.appendChild(sizeDiv);
         });
 
-        // Trigger selectSize on newly active box so hint updates
-        const firstSize = sizeContainer.querySelector('.size-box.active');
-        if (firstSize) selectSize(firstSize);
+        // Hide size error and stock hint when color changes
+        const sizeErr = document.getElementById('sizeError');
+        if (sizeErr) sizeErr.style.display = 'none';
+        const hint = document.getElementById('stockHint');
+        if (hint) hint.style.display = 'none';
     }
 
     function selectSize(box) {
         document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
         box.classList.add('active');
+        // Clear size-required error
+        const sizeErr = document.getElementById('sizeError');
+        if (sizeErr) sizeErr.style.display = 'none';
         // Show low-stock hint when selected size has fewer than 5 units
         const hint = document.getElementById('stockHint');
         if (hint) {
@@ -975,13 +981,10 @@
         });
     });
 
-    // Initial binding
+    // Initial binding — no default active size, user must choose
     document.querySelectorAll('.size-box').forEach(box => {
         box.onclick = function() { selectSize(this); };
     });
-    // Initialize low-stock hint for the default active size on page load
-    const initialActiveSize = document.querySelector('.size-box.active');
-    if (initialActiveSize) selectSize(initialActiveSize);
     // ════════════════════════════════════════
     // FULLSCREEN LIGHTBOX LOGIC
     // ════════════════════════════════════════
@@ -1177,9 +1180,28 @@
                 e.preventDefault();
                 const form = this;
                 const btn = form.querySelector('.btn-add');
+
+                // Guard: require size selection
+                const activeSize = document.querySelector('.size-box.active');
+                if (!activeSize) {
+                    const sizeErr = document.getElementById('sizeError');
+                    if (sizeErr) {
+                        sizeErr.style.display = 'block';
+                        // Shake the size grid for attention
+                        const container = document.getElementById('sizeContainer');
+                        if (container) {
+                            container.style.transition = 'transform 0.1s ease';
+                            container.style.transform = 'translateX(4px)';
+                            setTimeout(() => { container.style.transform = 'translateX(-4px)'; }, 100);
+                            setTimeout(() => { container.style.transform = 'translateX(0)'; }, 200);
+                        }
+                    }
+                    return;
+                }
+
                 const url = form.getAttribute('action');
                 const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
-                
+
                 // Loading State
                 btn.disabled = true;
                 btn.style.opacity = '0.7';
