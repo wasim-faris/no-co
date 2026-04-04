@@ -167,7 +167,6 @@ def add_to_cart(request, variant_id):
 def delete_cart_item(request):
     if request.method == "POST":
         cart_id = request.POST.get("cart_id")
-
         if cart_id:
             if request.user.is_authenticated:
                 Cart.objects.filter(id=cart_id, user=request.user).delete()
