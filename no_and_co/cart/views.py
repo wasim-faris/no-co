@@ -59,5 +59,11 @@ def add_to_cart(request, variant_id):
             price = variant.price
         )
 
+
+    count = Cart.objects.filter(
+        user=user,
+        session_key = session_key
+    ).count()
+    
     messages.success(request, "Product Added to cart")
     return redirect(request.META.get('HTTP_REFERER'))

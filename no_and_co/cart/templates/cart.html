@@ -6,41 +6,36 @@
 {% block extra_head %}
 <style>
     .cart-title {
-        font-size: clamp(1.5rem, 5vw, 2.2rem);
-        font-weight: 800;
+        font-size: 1.5rem;
+        font-weight: 700;
         letter-spacing: -0.01em;
         text-transform: uppercase;
-        margin-top: 2rem;
-        margin-bottom: 1.5rem;
+        margin-top: 2.5rem;
+        margin-bottom: 2rem;
     }
     .info-banner {
-        border: 1px solid #eee;
-        padding: 0.75rem 1rem;
-        font-size: 0.7rem;
+        border-bottom: 1px solid #f2f2f2;
+        padding: 1rem 0;
+        font-size: 0.65rem;
         font-weight: 500;
-        letter-spacing: 0.05em;
-        color: #111;
-        margin-bottom: 2rem;
+        letter-spacing: 0.08em;
+        color: #767676;
+        margin-bottom: 2.5rem;
     }
     .item-card {
         display: flex;
-        flex-direction: column;
-        gap: 1rem;
+        flex-direction: row;
+        gap: 1.5rem;
         padding-bottom: 2rem;
-        border-bottom: 1px solid #f3f3f3;
+        border-bottom: 1px solid #f2f2f2;
         margin-bottom: 2rem;
-    }
-    @media (min-width: 640px) {
-        .item-card {
-            flex-direction: row;
-            gap: 1.5rem;
-        }
+        align-items: stretch;
     }
     .item-img-wrap {
-        width: 130px;
+        width: 80px;
         aspect-ratio: 2/3;
         flex-shrink: 0;
-        background: #f7f7f7;
+        background: #fdfdfd;
     }
     .item-img {
         width: 100%;
@@ -51,135 +46,151 @@
         flex-grow: 1;
         display: flex;
         flex-direction: column;
+        justify-content: flex-start;
     }
     .item-brand {
-        font-size: 0.65rem;
-        font-weight: 700;
+        font-size: 0.55rem;
+        font-weight: 500;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #666;
-        margin-bottom: 0.25rem;
+        letter-spacing: 0.1em;
+        color: #767676;
+        margin-bottom: 0.2rem;
     }
     .item-name {
-        font-size: 0.9rem;
-        font-weight: 700;
-        text-transform: uppercase;
+        font-size: 0.75rem;
+        font-weight: 500;
         letter-spacing: 0.02em;
-        margin-bottom: 0.25rem;
+        color: #111;
+        margin-bottom: 0.3rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        line-height: 1.3;
+        text-transform: uppercase;
     }
     .item-price {
-        font-size: 0.9rem;
-        font-weight: 700;
-        margin-bottom: 1rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
     }
     .item-meta {
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         color: #111;
-        display: grid;
-        grid-template-columns: auto 1fr;
-        gap: 0.25rem 1rem;
-        margin-bottom: 1.5rem;
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 1.5rem;
+        row-gap: 0.2rem;
+        margin-bottom: auto;
     }
-    .meta-label { color: #666; }
+    .meta-item { display: flex; gap: 0.3rem }
+    .meta-label { color: #767676; }
     
     .item-actions {
         display: flex;
         align-items: center;
-        gap: 1.5rem;
-        margin-top: auto;
+        justify-content: space-between;
+        margin-top: 1rem;
     }
     .qty-control {
         display: flex;
         align-items: center;
         gap: 1rem;
-        border: 1px solid #ddd;
-        padding: 0.5rem 0.75rem;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
     }
-    .qty-btn { cursor: pointer; color: #111; font-weight: 500; }
-    .delete-btn { color: #111; cursor: pointer; font-size: 1.2rem; }
+    .qty-btn { cursor: pointer; opacity: 0.7; transition: opacity 0.2s; }
+    .qty-btn:hover { opacity: 1; }
+    .delete-btn { color: #111; cursor: pointer; font-size: 0.9rem; opacity: 0.5; transition: opacity 0.2s; }
+    .delete-btn:hover { opacity: 1; color: #d00; }
 
     .summary-panel {
         background: #fff;
         position: sticky;
         top: 2rem;
+        padding-top: 0.5rem;
     }
     .summary-row {
         display: flex;
         justify-content: space-between;
-        font-size: 0.85rem;
-        margin-bottom: 1rem;
+        font-size: 0.8rem;
+        margin-bottom: 0.75rem;
         color: #111;
+        letter-spacing: 0.01em;
     }
     .summary-total {
-        font-size: 1rem;
-        font-weight: 800;
-        margin-top: 1.5rem;
-        padding-top: 1.5rem;
-        /* border-top: 1px solid #eee; */
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #f2f2f2;
     }
     .discount-section {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
-        letter-spacing: 0.05em;
-        margin-bottom: 2rem;
+        letter-spacing: 0.1em;
+        margin-bottom: 1.5rem;
     }
     .add-link {
-        font-size: 0.75rem;
+        font-size: 0.65rem;
         text-decoration: underline;
         cursor: pointer;
+        opacity: 0.7;
     }
     
     .btn-checkout {
         background: #000;
         color: #fff;
         width: 100%;
-        padding: 1rem;
+        padding: 1.1rem;
         text-transform: uppercase;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 700;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.15em;
         margin-top: 2rem;
-        transition: opacity 0.2s;
+        transition: background-color 0.3s;
     }
-    .btn-checkout:hover { opacity: 0.8; }
+    .btn-checkout:hover { background-color: #333; }
     
     .btn-signin {
         background: #fff;
         color: #000;
-        border: 1px solid #000;
+        border: 1px solid #111;
         width: 100%;
-        padding: 1rem;
+        padding: 1.1rem;
         text-transform: uppercase;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         font-weight: 700;
-        letter-spacing: 0.1em;
+        letter-spacing: 0.15em;
         margin-top: 1rem;
+        transition: background-color 0.2s;
     }
+    .btn-signin:hover { background-color: #fafafa; }
     
     .payment-icons {
         display: flex;
-        gap: 1rem;
+        gap: 1.2rem;
         margin-top: 2rem;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.6;
     }
     .info-text {
-        font-size: 0.65rem;
-        color: #666;
-        line-height: 1.6;
+        font-size: 0.6rem;
+        color: #939393;
+        line-height: 1.7;
         margin-bottom: 1rem;
     }
     .info-link {
         text-decoration: underline;
-        color: #111;
+        color: #767676;
     }
     
     @media (max-width: 1024px) {
-        .summary-panel { position: static; margin-top: 2rem; }
+        .summary-panel { position: static; margin-top: 3rem; }
     }
 </style>
 {% endblock %}
@@ -197,44 +208,42 @@
     <!-- Main Grid -->
     <div class="cart-grid">
         {% if cart_items %}
-            <div class="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12">
+            <div class="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-16">
                 <!-- Left Column: Items -->
                 <div class="cart-items">
                     {% for item in cart_items %}
-                    <div class="item-card">
+                    <div class="item-card relative">
                         <div class="item-img-wrap">
                             {% if item.variant.images.all %}
                                 <img src="{{ item.variant.images.all.0.image.url }}" alt="{{ item.variant.product.product_name }}" class="item-img">
                             {% else %}
-                                <div class="w-full h-full bg-gray-100 flex items-center justify-center">
-                                    <span class="text-[0.6rem] text-gray-400 font-bold uppercase">No Image</span>
+                                <div class="w-full h-full bg-gray-50 flex items-center justify-center">
+                                    <span class="text-[0.45rem] text-gray-400 font-bold uppercase tracking-widest text-center w-full">No Image</span>
                                 </div>
                             {% endif %}
                         </div>
                         <div class="item-details">
-                            <div class="flex justify-between items-start">
-                                <div>
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="pr-6">
                                     <p class="item-brand">{{ item.variant.product.category.category_name }}</p>
-                                    <h3 class="item-name">{{ item.variant.product.product_name }}</h3>
+                                    <h3 class="item-name" title="{{ item.variant.product.product_name }}">{{ item.variant.product.product_name }}</h3>
+                                    <p class="item-price">Rs. {{ item.price }}</p>
                                 </div>
-                                <button class="text-xl hover:text-red-500 transition-colors"><i class="ri-heart-line"></i></button>
+                                <button class="absolute top-0 right-0 text-lg opacity-40 hover:opacity-100 transition-opacity"><i class="ri-heart-line"></i></button>
                             </div>
-                            <p class="item-price">Rs. {{ item.price }}</p>
                             
                             <div class="item-meta">
-                                <span class="meta-label">Colour:</span> <span>{{ item.variant.color }}</span>
-                                <span class="meta-label">Size:</span> <span>{{ item.variant.size.name }}</span>
-                                <span class="meta-label">Quantity:</span> <span>{{ item.quantity }}</span>
-                                <span class="meta-label">Total:</span> <span class="font-bold">Rs. {{ item.price }}</span>
+                                <div class="meta-item"><span class="meta-label">Colour:</span> <span>{{ item.variant.color }}</span></div>
+                                <div class="meta-item"><span class="meta-label">Size:</span> <span>{{ item.variant.size.name }}</span></div>
                             </div>
                             
                             <div class="item-actions">
-                                <div class="qty-control group">
-                                    <i class="ri-delete-bin-line cursor-pointer mr-2 hover:text-red-600 transition-colors"></i>
-                                    <span class="qty-btn hover:bg-gray-100 px-1"><i class="ri-subtract-line"></i></span>
-                                    <span class="font-bold w-6 text-center">{{ item.quantity }}</span>
-                                    <span class="qty-btn hover:bg-gray-100 px-1"><i class="ri-add-line"></i></span>
+                                <div class="qty-control">
+                                    <span class="qty-btn"><i class="ri-subtract-line"></i></span>
+                                    <span class="font-medium text-center w-4">{{ item.quantity }}</span>
+                                    <span class="qty-btn"><i class="ri-add-line"></i></span>
                                 </div>
+                                <i class="ri-delete-bin-line delete-btn" title="Remove item"></i>
                             </div>
                         </div>
                     </div>
@@ -250,28 +259,29 @@
                         </div>
                         
                         <div class="summary-row">
-                            <span>Order value</span>
+                            <span class="text-[#767676]">Order value</span>
                             <span class="font-bold">Rs. {{ cart_items.total_value|default:"0.00" }}</span>
                         </div>
                         <div class="summary-row">
-                            <span>Estimated delivery fee</span>
+                            <span class="text-[#767676]">Estimated delivery fee</span>
                             <span class="font-bold">Rs. 0.00</span>
                         </div>
                         
-                        <div class="summary-row summary-total border-t border-gray-400 pt-4">
+                        <div class="summary-row summary-total">
                             <span>TOTAL</span>
                             <span>Rs. {{ cart_items.total_value|default:"0.00" }}</span>
                         </div>
                         
                         <button class="btn-checkout">Continue to Checkout</button>
+                        
                         {% if not user.is_authenticated %}
                         <a href="{% url 'account_login' %}" class="btn-signin block text-center">Sign In</a>
                         {% endif %}
                         
                         <div class="payment-icons">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-3 opacity-80">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-5 opacity-80">
-                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" class="h-4 opacity-80 filter grayscale">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-2.5">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-4">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" class="h-3.5 filter grayscale contrast-0">
                         </div>
                         
                         <p class="info-text">
@@ -281,28 +291,24 @@
                             15 days free returns. Read more about <a href="#" class="info-link">return and refund policy</a>.
                         </p>
                         <p class="info-text">
-                            Need help? Please contact <a href="#" class="info-link">Customer Service</a>. Customers would receive an SMS/WhatsApp notifications regarding deliveries on the registered phone number.
+                            Need help? Please contact <a href="#" class="info-link">Customer Service</a>.
                         </p>
                         
-                        <a href="#" class="block text-[0.7rem] font-bold uppercase tracking-widest underline mt-8">Delivery and return options</a>
+                        <a href="#" class="block text-[0.65rem] font-bold uppercase tracking-widest underline mt-8 opacity-70 hover:opacity-100 transition-opacity">Delivery and return options</a>
                     </div>
                 </div>
             </div>
         {% else %}
             <!-- Empty State -->
-            <div class="flex flex-col items-center justify-center py-32 text-center">
-                <div class="mb-8 p-6 rounded-full bg-gray-50">
-                    <i class="ri-shopping-bag-line text-5xl text-gray-300"></i>
+            <div class="flex flex-col items-center justify-center py-40 text-center">
+                <div class="mb-10 opacity-20">
+                    <i class="ri-shopping-bag-line text-6xl font-thin"></i>
                 </div>
-                <h2 class="text-2xl font-bold uppercase tracking-tight mb-2">Your shopping bag is empty</h2>
-                <p class="text-gray-500 mb-8 max-w-sm text-sm">Styles you love are waiting for you! Just click the heart to save them or start filling your bag now.</p>
-                <a href="{% url 'home' %}" class="btn-checkout py-4 px-12 w-auto inline-block">Start Shopping</a>
-                
-                {% if not user.is_authenticated %}
-                <p class="mt-8 text-xs text-gray-400">
-                    Already have an account? <a href="{% url 'account_login' %}" class="underline font-bold text-black">Sign in</a> to see your bag!
+                <h2 class="text-xl font-medium uppercase tracking-widest mb-3">Your bag is empty</h2>
+                <p class="text-[#767676] mb-10 max-w-sm text-[0.75rem] leading-relaxed">
+                    Styles you love are waiting for you! Just click the heart icon on your favorites to save them or start filling your bag now.
                 </p>
-                {% endif %}
+                <a href="{% url 'home' %}" class="btn-checkout py-4 px-14 w-auto inline-block">Start Shopping</a>
             </div>
         {% endif %}
     </div>

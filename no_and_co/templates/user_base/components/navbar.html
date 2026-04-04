@@ -150,7 +150,9 @@
       <line x1="3" y1="6" x2="21" y2="6"/>
       <path d="M16 10a4 4 0 0 1-8 0"/>
     </svg>
-    <span class="absolute -top-1 -right-2 text-[9px] font-medium">0</span>
+    {% if cart_count > 0 %}
+    <span class="absolute -top-1.5 -right-2 bg-black text-white rounded-full w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold">{{ cart_count }}</span>
+    {% endif %}
   </button>
 </a>
     </div>
