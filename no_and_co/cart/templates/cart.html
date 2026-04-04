@@ -89,7 +89,7 @@
     }
     .meta-item { display: flex; gap: 0.3rem }
     .meta-label { color: #767676; }
-    
+
     .item-actions {
         display: flex;
         align-items: center;
@@ -144,7 +144,7 @@
         cursor: pointer;
         opacity: 0.7;
     }
-    
+
     .btn-checkout {
         background: #000;
         color: #fff;
@@ -158,7 +158,7 @@
         transition: background-color 0.3s;
     }
     .btn-checkout:hover { background-color: #333; }
-    
+
     .btn-signin {
         background: #fff;
         color: #000;
@@ -173,7 +173,7 @@
         transition: background-color 0.2s;
     }
     .btn-signin:hover { background-color: #fafafa; }
-    
+
     .payment-icons {
         display: flex;
         gap: 1.2rem;
@@ -191,7 +191,7 @@
         text-decoration: underline;
         color: #767676;
     }
-    
+
     @media (max-width: 1024px) {
         .summary-panel { position: static; margin-top: 3rem; }
     }
@@ -202,7 +202,7 @@
 <div class="max-w-[1200px] mx-auto px-4 md:px-8 pb-20">
     <!-- Header Section -->
     <h1 class="cart-title">Shopping Bag</h1>
-    
+
     <!-- Info Banner -->
     <div class="info-banner uppercase">
         UPI payment supports quicker refunds
@@ -225,13 +225,13 @@
                                     <span class="text-[0.45rem] text-gray-400 font-bold uppercase tracking-widest text-center w-full px-1">No Image</span>
                                 </div>
                             {% endif %}
-                            
+
                             <!-- Top Right Floating Heart -->
                             <button class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center opacity-80 hover:opacity-100 hover:bg-white rounded-full p-1 transition-all">
                                 <i class="ri-heart-line text-sm text-black"></i>
                             </button>
                         </div>
-                        
+
                         <!-- Right: Stacked Details -->
                         <div class="flex flex-col flex-grow">
                             <!-- Typography Section -->
@@ -240,7 +240,7 @@
                                 <h3 class="text-sm font-medium uppercase leading-tight line-clamp-2 text-black">{{ item.variant.product.product_name }}</h3>
                                 <p class="text-sm font-semibold text-black">Rs. {{ item.price }}</p>
                             </div>
-                            
+
                             <!-- Meta Details (Art, Colour, Size, Etc) -->
                             <div class="grid grid-cols-[65px_1fr] gap-x-2 gap-y-0.5 text-xs text-gray-600 mb-6 leading-tight">
                                 <span>Art no:</span> <span>{{ item.variant.id|stringformat:"06d"|default:"100234" }}</span>
@@ -249,10 +249,10 @@
                                 <span>Quantity</span> <span>{{ item.quantity }}</span>
                                 <span>Total</span> <span class="font-semibold text-black">Rs. {{ item.price }}</span>
                             </div>
-                            
+
                             <!-- Compact Quantity Control -->
                             <div class="flex items-center justify-between border border-black px-4 py-2 w-32 mt-auto">
-                                <button class="hover:text-red-500 transition-colors outline-none"><i class="ri-delete-bin-line text-sm"></i></button>
+                                <button type="button" onclick="openRemoveModal(this)" class="hover:text-red-500 transition-colors outline-none"><i class="ri-delete-bin-line text-sm"></i></button>
                                 <span class="text-sm font-medium">{{ item.quantity }}</span>
                                 <button class="hover:text-black transition-colors outline-none"><i class="ri-add-line text-sm"></i></button>
                             </div>
@@ -268,33 +268,33 @@
                             <span>Discounts</span>
                             <span class="add-link">Add</span>
                         </div>
-                        
+
                         <div class="summary-row">
                             <span class="text-[#767676]">Order value</span>
-                            <span class="font-bold">Rs. {{ cart_items.total_value|default:"0.00" }}</span>
+                            <span class="font-bold">Rs. {{order_total}}</span>
                         </div>
                         <div class="summary-row">
                             <span class="text-[#767676]">Estimated delivery fee</span>
-                            <span class="font-bold">Rs. 0.00</span>
+                            <span class="font-bold">Rs. {{delivery_fee}}.00</span>
                         </div>
-                        
+
                         <div class="summary-row summary-total">
                             <span>TOTAL</span>
-                            <span>Rs. {{ cart_items.total_value|default:"0.00" }}</span>
+                            <span>Rs.{{full_total}}</span>
                         </div>
-                        
+
                         <button class="btn-checkout">Continue to Checkout</button>
-                        
+
                         {% if not user.is_authenticated %}
                         <a href="{% url 'account_login' %}" class="btn-signin block text-center">Sign In</a>
                         {% endif %}
-                        
+
                         <div class="payment-icons">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" class="h-2.5">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" class="h-4">
                             <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg" alt="UPI" class="h-3.5 filter grayscale contrast-0">
                         </div>
-                        
+
                         <p class="info-text">
                             Prices and delivery costs are not confirmed until you've reached the checkout.
                         </p>
@@ -304,7 +304,7 @@
                         <p class="info-text">
                             Need help? Please contact <a href="#" class="info-link">Customer Service</a>.
                         </p>
-                        
+
                         <a href="#" class="block text-[0.65rem] font-bold uppercase tracking-widest underline mt-8 opacity-70 hover:opacity-100 transition-opacity">Delivery and return options</a>
                     </div>
                 </div>
@@ -324,4 +324,80 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Minimal H&M Style Remove Modal -->
+<div id="removeModal" class="fixed inset-0 z-[9999] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+    <!-- Darkened Background Overlay -->
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" onclick="closeRemoveModal()"></div>
+    
+    <!-- Modal Content Box -->
+    <div id="removeModalContent" class="relative bg-white w-full max-w-lg mx-4 px-8 py-10 pt-12 transform translate-y-12 transition-transform duration-400 ease-out shadow-2xl">
+        <!-- Header -->
+        <div class="flex justify-between items-start mb-8">
+            <h3 class="text-[0.95rem] font-normal uppercase tracking-wide text-black">Remove an item</h3>
+            <button onclick="closeRemoveModal()" class="absolute top-6 right-6 text-2xl leading-none font-thin text-black hover:opacity-60 transition-opacity outline-none">
+                <i class="ri-close-line font-light"></i>
+            </button>
+        </div>
+        
+        <!-- Message -->
+        <p class="text-[1rem] font-normal text-black mb-10 pr-4 leading-relaxed">
+            Are you sure you would like to remove this item from your shopping bag?
+        </p>
+        
+        <!-- Actions -->
+        <div class="flex flex-row gap-4 mb-2">
+            <button onclick="closeRemoveModal()" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
+                Cancel
+            </button>
+            <button id="confirmRemoveBtn" onclick="confirmRemove()" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
+                Remove from bag
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let itemToDelete = null; // Store reference to the specific item being deleted
+
+    function openRemoveModal(btnElement) {
+        itemToDelete = btnElement;
+        const modal = document.getElementById('removeModal');
+        const content = document.getElementById('removeModalContent');
+        
+        // Show overlay
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+        
+        // Slide up modal
+        content.classList.remove('translate-y-12');
+        content.classList.add('translate-y-0');
+    }
+
+    function closeRemoveModal() {
+        const modal = document.getElementById('removeModal');
+        const content = document.getElementById('removeModalContent');
+        
+        // Slide down modal
+        content.classList.remove('translate-y-0');
+        content.classList.add('translate-y-12');
+        
+        // Hide overlay
+        modal.classList.remove('opacity-100', 'pointer-events-auto');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        
+        itemToDelete = null;
+    }
+
+    function confirmRemove() {
+        if (itemToDelete) {
+            // Integration Note: In the future, attach backend delete logic here
+            // e.g., fetching a Django url, submitting a hidden form, or triggering an HTMX swap
+            console.log("Item removed!");
+            closeRemoveModal();
+            // Optional: Visually remove item from DOM for immediate feedback
+            // itemToDelete.closest('.flex-row.border-b').remove(); 
+        }
+    }
+</script>
 {% endblock %}

@@ -665,7 +665,7 @@
             {% endfor %}
         </div>
 
-       <form method="POST" action="{% url "add-to-cart"  default_variant.id %}" style="display:inline;">
+       <form method="POST" action="{% url "add-to-cart" default_variant.id %}" id="addToCartForm" style="display:inline;">
     {% csrf_token %}
     <button class="btn-add">Add To cart</button>
 </form>
@@ -811,6 +811,33 @@
 </div>
 
 <script>
+    const variantMap = {
+        {% for v in variants %}
+        "{{ v.color|escapejs }}_{{ v.size.name|escapejs }}": "{{ v.id }}",
+        {% endfor %}
+    };
+
+    function updateCartAction() {
+        const activeColorEl = document.querySelector('.swatch-item.active');
+        const activeSizeEl = document.querySelector('.size-box.active');
+        
+        if (activeColorEl && activeSizeEl) {
+            const color = activeColorEl.getAttribute('data-color');
+            const size = activeSizeEl.innerText.trim();
+            const key = color + '_' + size;
+            const variantId = variantMap[key];
+            
+            if (variantId) {
+                const form = document.getElementById('addToCartForm');
+                if (form) {
+                    const currentAction = form.getAttribute('action');
+                    const newAction = currentAction.replace(/\/\d+(\/)?$/, `/${variantId}$1`);
+                    form.setAttribute('action', newAction);
+                }
+            }
+        }
+    }
+
     const colorLabel = document.getElementById('colorLabel');
     const priceDisplay = document.getElementById('displayPrice');
     const sizeContainer = document.getElementById('sizeContainer');
@@ -871,11 +898,14 @@
             sizeDiv.onclick = function() { selectSize(this); };
             sizeContainer.appendChild(sizeDiv);
         });
+        
+        updateCartAction();
     }
 
     function selectSize(box) {
         document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
         box.classList.add('active');
+        updateCartAction();
     }
 
     // Accordion Logic

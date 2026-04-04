@@ -3,6 +3,8 @@ from django.shortcuts import get_object_or_404
 from products.models import Variant
 from .models import Cart
 from django.contrib import messages
+from django.db.models import F,Sum
+
 def cart_view(request):
     if not request.session.session_key:
         request.session.create()
@@ -21,8 +23,26 @@ def cart_view(request):
         session_key = session
     )
 
+
+    order_total = Cart.objects.filter(
+        user=user,
+        session_key = session
+    ).aggregate(
+        total=Sum(F("price") * F("quantity"))
+    )["total"] or 0
+
+    if order_total > 2000:
+        delivery_fee = 0
+    else:
+        delivery_fee = 149
+        
+    full_total = delivery_fee + order_total
+
     return render(request, 'cart.html',{
-        "cart_items":cart_items
+        "cart_items":cart_items,
+        "order_total":order_total,
+        "delivery_fee":delivery_fee,
+        "full_total":full_total
     })
 
 def add_to_cart(request, variant_id):
@@ -59,11 +79,5 @@ def add_to_cart(request, variant_id):
             price = variant.price
         )
 
-
-    count = Cart.objects.filter(
-        user=user,
-        session_key = session_key
-    ).count()
-    
     messages.success(request, "Product Added to cart")
     return redirect(request.META.get('HTTP_REFERER'))
