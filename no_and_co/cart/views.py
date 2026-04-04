@@ -78,9 +78,12 @@ def cart_view(request):
     cart_items = Cart.objects.filter(
         user = user,
         session_key = session
-    )
+    ).prefetch_related('variant__images')
     for item in cart_items:
         item.total_price = item.price * item.quantity
+        images = list(item.variant.images.all())
+        primary_img = next((img for img in images if img.is_primary), None)
+        item.primary_image = primary_img if primary_img else (images[0] if images else None)
 
     order_total = Cart.objects.filter(
         user=user,
@@ -149,7 +152,6 @@ def add_to_cart(request, variant_id):
                 "error":"Out of stock"
             }, status = 400)
 
-    messages.success(request, "Product Added to cart")
 
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
         cart_count = Cart.objects.filter(

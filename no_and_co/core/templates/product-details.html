@@ -571,6 +571,160 @@
         letter-spacing: .02em;
         margin: -6px 0 14px;
     }
+    /* ════════════════════════════════════════
+       MINI CART POPUP
+    ════════════════════════════════════════ */
+    #miniCartPopup {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 360px;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        z-index: 9999;
+        opacity: 0;
+        transform: translateX(20px) translateY(-10px); /* Slide in from right/top */
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        #miniCartPopup {
+            width: 90%;
+            top: 20px;
+            right: 5%;
+        }
+    }
+
+    #miniCartPopup.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0) translateY(0);
+    }
+
+    .mc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 12px;
+    }
+    
+    .mc-header span {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #111;
+    }
+    
+    .mc-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        opacity: 0.5;
+        padding: 0;
+        transition: opacity 0.2s;
+    }
+    .mc-close:hover { opacity: 1; }
+
+    .mc-item-row {
+        display: flex;
+        gap: 16px;
+    }
+
+    .mc-image-col {
+        width: 90px;
+        flex-shrink: 0;
+    }
+
+    .mc-image-col img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+        aspect-ratio: 2/3;
+        background: #f5f5f5;
+    }
+
+    .mc-info-col {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex-grow: 1;
+    }
+
+    .mc-title {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        line-height: 1.3;
+        margin: 0 0 4px 0;
+        color: #000;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .mc-price {
+        font-size: 13px;
+        font-weight: 700;
+        margin: 0 0 10px 0;
+        color: #000;
+    }
+
+    .mc-meta {
+        font-size: 11px;
+        color: #111;
+        display: grid;
+        grid-template-columns: 65px 1fr;
+        gap: 6px;
+        line-height: 1.3;
+    }
+    .mc-meta span:nth-child(odd) {
+        color: #666;
+    }
+
+    .mc-btn-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 4px;
+    }
+
+    .mc-btn {
+        padding: 16px 12px;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+
+    .mc-btn-bag {
+        background: #fff;
+        color: #000;
+        border: 1px solid #111;
+    }
+    .mc-btn-bag:hover { background: #f9f9f9; }
+
+    .mc-btn-checkout {
+        background: #000;
+        color: #fff;
+        border: 1px solid #000;
+    }
+    .mc-btn-checkout:hover { background: #333; }
 </style>
 
 <div id="toast-container"></div>
@@ -1227,7 +1381,37 @@
                         
                         // Optionally trigger toast
                         if (typeof showToast === "function") {
-                            showToast("Product Added to cart", "success");
+                            // showToast("Product Added to cart", "success"); // Silenced toast to prefer minicart
+                        }
+
+                        // Trigger Mini Cart
+                        const miniCart = document.getElementById('miniCartPopup');
+                        if (miniCart) {
+                            const mcTitle = document.getElementById('mcTitle');
+                            const mcPrice = document.getElementById('mcPrice');
+                            const mcImage = document.getElementById('mcImage');
+                            const mcColour = document.getElementById('mcColour');
+                            const mcSize = document.getElementById('mcSize');
+                            
+                            const prodTitle = document.querySelector('.prod-name').innerText;
+                            const prodPrice = document.getElementById('displayPrice').innerText;
+                            const activeSwatch = document.querySelector('.swatch-item.active');
+                            const pdpImg = document.getElementById('mainImage') ? document.getElementById('mainImage').src : '';
+                            
+                            if (mcTitle) mcTitle.innerText = prodTitle;
+                            if (mcPrice) mcPrice.innerText = prodPrice;
+                            if (mcImage) mcImage.src = pdpImg;
+                            if (mcColour && activeSwatch) mcColour.innerText = activeSwatch.getAttribute('data-color');
+                            if (mcSize && activeSize) mcSize.innerText = activeSize.childNodes[0].nodeValue.trim();
+                            
+                            miniCart.classList.remove('show');
+                            void miniCart.offsetWidth; // Force reflow
+                            miniCart.classList.add('show');
+                            
+                            if (window.miniCartTimer) clearTimeout(window.miniCartTimer);
+                            window.miniCartTimer = setTimeout(() => {
+                                miniCart.classList.remove('show');
+                            }, 4000);
                         }
                         
                         setTimeout(() => {
@@ -1257,6 +1441,34 @@
         }
     });
 </script>
+
+<!-- MINI CART POPUP -->
+<div id="miniCartPopup">
+    <div class="mc-header">
+        <span>Added to bag</span>
+        <button class="mc-close" onclick="document.getElementById('miniCartPopup').classList.remove('show')">✕</button>
+    </div>
+    
+    <div class="mc-item-row">
+        <div class="mc-image-col">
+            <img id="mcImage" src="" alt="Product">
+        </div>
+        <div class="mc-info-col">
+            <h4 class="mc-title" id="mcTitle"></h4>
+            <p class="mc-price" id="mcPrice"></p>
+            <div class="mc-meta">
+                <span>Colour</span><span id="mcColour"></span>
+                <span>Size</span><span id="mcSize"></span>
+                <span>Quantity</span><span>1</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mc-btn-row">
+        <a href="{% url 'cart' %}" class="mc-btn mc-btn-bag">View bag</a>
+        <a href="#" class="mc-btn mc-btn-checkout">Checkout</a>
+    </div>
+</div>
 
 {% endwith %}
 {% endblock %}

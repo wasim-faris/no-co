@@ -212,7 +212,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="max-w-[1200px] mx-auto px-4 md:px-8 pb-20">
+<div class="max-w-7xl mx-auto px-4 md:px-8 pb-20 w-full">
 
     <h1 class="cart-title">Shopping Bag</h1>
 
@@ -239,14 +239,18 @@
                 >
                     <!-- Image -->
                     <div class="relative w-[110px] sm:w-[130px] flex-shrink-0 bg-gray-50 h-max">
-                        {% if item.variant.images.all %}
-                            <img src="{{ item.variant.images.all.0.image.url }}"
-                                 alt="{{ item.variant.product.product_name }}"
-                                 class="w-full h-auto object-cover aspect-[2/3]">
+                        {% if item.primary_image %}
+                            <a href="{% url 'product-details' item.variant.product.id %}">
+                                <img src="{{ item.primary_image.image.url }}"
+                                     alt="{{ item.variant.product.product_name }}"
+                                     class="w-full h-auto object-cover aspect-[2/3]">
+                            </a>
                         {% else %}
-                            <div class="w-full aspect-[2/3] flex items-center justify-center">
-                                <span class="text-[0.45rem] text-gray-400 font-bold uppercase tracking-widest text-center w-full px-1">No Image</span>
-                            </div>
+                            <a href="{% url 'product-details' item.variant.product.id %}">
+                                <div class="w-full aspect-[2/3] flex items-center justify-center">
+                                    <span class="text-[0.45rem] text-gray-400 font-bold uppercase tracking-widest text-center w-full px-1">No Image</span>
+                                </div>
+                            </a>
                         {% endif %}
                         <button class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center opacity-80 hover:opacity-100 hover:bg-white rounded-full p-1 transition-all">
                             <i class="ri-heart-line text-sm text-black"></i>
@@ -257,7 +261,9 @@
                     <div class="flex flex-col flex-grow">
                         <div class="space-y-1 mb-4">
                             <p class="text-[0.65rem] text-gray-500 uppercase tracking-wide">{{ item.variant.product.category.category_name }} PREMIUM SELECTION</p>
-                            <h3 class="text-sm font-medium uppercase leading-tight line-clamp-2 text-black">{{ item.variant.product.product_name }}</h3>
+                            <a href="{% url 'product-details' item.variant.product.id %}" style="text-decoration: none; color: inherit;">
+                                <h3 class="text-sm font-medium uppercase leading-tight line-clamp-2 text-black cursor-pointer hover:opacity-80 transition-opacity">{{ item.variant.product.product_name }}</h3>
+                            </a>
                             <p class="text-sm font-semibold text-black">Rs. {{ item.price }}</p>
                         </div>
 
