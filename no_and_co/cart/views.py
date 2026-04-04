@@ -6,6 +6,26 @@ from django.contrib import messages
 from django.db.models import F,Sum
 
 def cart_view(request):
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "decrease":
+            cart_id = request.POST.get("cart_id")
+            cart_obj = get_object_or_404(Cart, id=cart_id)
+            if cart_obj.quantity > 1:
+                 cart_obj.quantity -=1
+                 cart_obj.save()
+            return redirect("cart")
+        elif action == "increase":
+            cart_id = request.POST.get("cart_id")
+            cart_obj = get_object_or_404(Cart, id=cart_id)
+            if cart_obj.quantity < 5:
+                cart_obj.quantity +=1
+                cart_obj.save()
+
+            return redirect("cart")
+
     if not request.session.session_key:
         request.session.create()
 
@@ -31,7 +51,7 @@ def cart_view(request):
         total=Sum(F("price") * F("quantity"))
     )["total"] or 0
 
-    if order_total > 2000:
+    if order_total < 1999:
         delivery_fee = 0
     else:
         delivery_fee = 149
@@ -42,7 +62,7 @@ def cart_view(request):
         "cart_items":cart_items,
         "order_total":order_total,
         "delivery_fee":delivery_fee,
-        "full_total":full_total
+        "full_total":full_total,
     })
 
 def add_to_cart(request, variant_id):

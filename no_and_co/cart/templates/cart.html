@@ -247,15 +247,23 @@
                                 <span>Colour</span> <span>{{ item.variant.color|default:"Neutral" }}</span>
                                 <span>Size</span> <span>{{ item.variant.size.name }}</span>
                                 <span>Quantity</span> <span>{{ item.quantity }}</span>
-                                <span>Total</span> <span class="font-semibold text-black">Rs. {{ item.price }}</span>
+                                <span>Total</span> <span class="font-semibold text-black">Rs. {{item.price}}</span>
                             </div>
 
                             <!-- Compact Quantity Control -->
-                            <div class="flex items-center justify-between border border-black px-4 py-2 w-32 mt-auto">
-                                <button type="button" data-id="{{ item.id }}" onclick="openRemoveModal(this)" class="hover:text-red-500 transition-colors outline-none"><i class="ri-delete-bin-line text-sm"></i></button>
+                            <form method="POST" action="" class="flex items-center justify-between border border-black px-4 py-2 w-32 mt-auto">
+                                {% csrf_token %}
+                                <input type="hidden" name="cart_id" value="{{ item.id }}">
+
+                                {% if item.quantity == 1 %}
+                                    <button type="button" data-id="{{ item.id }}" onclick="openRemoveModal(this)" class="hover:text-red-500 transition-colors outline-none"><i class="ri-delete-bin-line text-sm"></i></button>
+                                {% else %}
+                                    <button type="submit" name="action" value="decrease" class="hover:text-black transition-colors outline-none"><i class="ri-subtract-line text-sm"></i></button>
+                                {% endif %}
+
                                 <span class="text-sm font-medium">{{ item.quantity }}</span>
-                                <button class="hover:text-black transition-colors outline-none"><i class="ri-add-line text-sm"></i></button>
-                            </div>
+                                <button type="submit" name="action" value="increase" class="hover:text-black transition-colors outline-none"><i class="ri-add-line text-sm"></i></button>
+                            </form>
                         </div>
                     </div>
                     {% endfor %}
