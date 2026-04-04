@@ -19,7 +19,7 @@ def cart_view(request):
             cart_obj = get_object_or_404(Cart, id=cart_id ,user = request.user if request.user.is_authenticated else None,
                                          session_key = None if request.user.is_authenticated else request.session.session_key)
 
-            if action == "decrease" and cart_obj.quantity > 1:
+            if action =="decrease" and cart_obj.quantity > 1:
                 cart_obj.quantity -= 1
                 cart_obj.save()
             elif action == "increase":

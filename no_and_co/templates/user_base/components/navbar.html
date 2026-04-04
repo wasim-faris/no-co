@@ -187,13 +187,14 @@
         });
     }
 
-    // Global Cart Count Listener
+    // Global Cart Count Listener — updates BOTH desktop & mobile badges
     window.addEventListener('cartUpdated', (e) => {
-        const badge = document.getElementById('navbarCartCount');
-        if (badge) {
-            const count = e.detail.count;
+        const count = e.detail.count;
+        ['navbarCartCount', 'mobileCartCount'].forEach(id => {
+            const badge = document.getElementById(id);
+            if (!badge) return;
             badge.textContent = count;
-            
+
             if (count > 0) {
                 badge.classList.remove('hidden');
             } else {
@@ -204,7 +205,7 @@
             badge.classList.remove('cart-pop');
             void badge.offsetWidth; // Force reflow
             badge.classList.add('cart-pop');
-        }
+        });
     });
   </script>
 </header>
