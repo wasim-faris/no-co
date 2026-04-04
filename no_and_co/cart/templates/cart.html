@@ -955,6 +955,56 @@
         if (e.key === 'Escape') closeRemoveModal();
     });
 
+    /* ── Carousel Arrows ────────────────────────────────────────── */
+
+    function setupCarousel(carouselId, prevBtnId, nextBtnId) {
+        const carousel = document.getElementById(carouselId);
+        const prevBtn = document.getElementById(prevBtnId);
+        const nextBtn = document.getElementById(nextBtnId);
+
+        if (!carousel || !prevBtn || !nextBtn) return;
+
+        function getScrollAmount() {
+            // Scroll by roughly 80% of the container width
+            return carousel.clientWidth * 0.8;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            carousel.scrollBy({
+                left: -300,
+                behavior: 'smooth'
+            });
+        });
+
+        nextBtn.addEventListener('click', () => {
+            carousel.scrollBy({
+                left: 300,
+                behavior: 'smooth'
+            });
+        });
+
+        // Optional: Toggle button visibility based on scroll position
+        const toggleButtons = () => {
+            const isAtStart = carousel.scrollLeft <= 5;
+            const isAtEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 5;
+            
+            prevBtn.style.opacity = isAtStart ? '0.3' : '1';
+            prevBtn.style.pointerEvents = isAtStart ? 'none' : 'auto';
+            
+            nextBtn.style.opacity = isAtEnd ? '0.3' : '1';
+            nextBtn.style.pointerEvents = isAtEnd ? 'none' : 'auto';
+        };
+
+        carousel.addEventListener('scroll', toggleButtons);
+        window.addEventListener('resize', toggleButtons);
+        // Initial check
+        setTimeout(toggleButtons, 100);
+    }
+
+    // Initialize carousels
+    setupCarousel('similarCarousel', 'simPrev', 'simNext');
+    setupCarousel('othersCarousel', 'othersPrev', 'othersNext');
+
 })();
 </script>
 {% endblock %}
