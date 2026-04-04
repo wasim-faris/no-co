@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect
 from django.shortcuts import get_object_or_404
-from products.models import Variant
+from products.models import Variant, Product
 from .models import Cart
 from django.contrib import messages
 from django.db.models import F, Sum
@@ -99,11 +99,23 @@ def cart_view(request):
 
     full_total = delivery_fee + order_total
 
+    # ════════════════════════ SIMILAR ITEMS LOGIC (Reused from PDP) ════════════════════════
+    similar_items = []
+    if cart_items.exists():
+        first_product = cart_items.first().variant.product
+        similar_products = Product.objects.filter(is_active=True, is_deleted=False).exclude(id=first_product.id).order_by('-created_at')[:6]
+        
+        for p in similar_products:
+            rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
+            if rep_variant:
+                similar_items.append(rep_variant)
+                
     return render(request, 'cart.html', {
         "cart_items": cart_items,
         "order_total": order_total,
         "delivery_fee": delivery_fee,
         "full_total": full_total,
+        "similar_items": similar_items,
     })
 
 def add_to_cart(request, variant_id):
