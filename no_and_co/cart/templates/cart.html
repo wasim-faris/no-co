@@ -480,6 +480,16 @@
         flashPrice(document.getElementById('summary-order-total'), 'Rs. ' + fmt(data.order_total));
         flashPrice(document.getElementById('summary-delivery'),    'Rs. ' + fmt(data.delivery_fee) + '.00');
         flashPrice(document.getElementById('summary-full-total'),  'Rs. ' + fmt(data.full_total));
+
+        const navBadge = document.getElementById('navbarCartCount');
+        if (navBadge && data.cart_count !== undefined) {
+            navBadge.textContent = data.cart_count;
+            if (data.cart_count > 0) {
+                navBadge.classList.remove('hidden');
+            } else {
+                navBadge.classList.add('hidden');
+            }
+        }
     }
 
     /* ── Update a single item row ────────────────────────────────── */

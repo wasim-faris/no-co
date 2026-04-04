@@ -12,22 +12,41 @@ def cart_view(request):
         action = request.POST.get("action")
         cart_id = request.POST.get("cart_id")
 
+        if not request.session.session_key:
+            request.session.create()
+
         if action in ["increase", "decrease"] and cart_id:
-            cart_obj = get_object_or_404(Cart, id=cart_id)
+            cart_obj = get_object_or_404(Cart, id=cart_id ,user = request.user if request.user.is_authenticated else None,
+                                         session_key = None if request.user.is_authenticated else request.session.session_key)
+
             if action == "decrease" and cart_obj.quantity > 1:
                 cart_obj.quantity -= 1
                 cart_obj.save()
-            elif action == "increase" and cart_obj.quantity < 5:
-                cart_obj.quantity += 1
-                cart_obj.save()
+            elif action == "increase":
+                if cart_obj.quantity < cart_obj.variant.stock:
+                    cart_obj.quantity += 1
+                    cart_obj.save()
+                else:
+                    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                        return JsonResponse({
+                        "error": f"Only {cart_obj.variant.stock} items available"
+                    }, status = 400)
+                    return redirect("cart")
 
-            if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
                 user = request.user if request.user.is_authenticated else None
+                if not request.session.session_key:
+                    request.session.create()
+
                 session = None if request.user.is_authenticated else request.session.session_key
 
                 order_total = Cart.objects.filter(
                     user=user, session_key=session
                 ).aggregate(total=Sum(F("price") * F("quantity")))["total"] or 0
+
+                cart_count = Cart.objects.filter(
+                    user=user, session_key=session
+                ).aggregate(total=Sum('quantity'))['total'] or 0
 
                 delivery_fee = 0 if order_total < 1999 else 149
                 full_total = delivery_fee + order_total
@@ -38,7 +57,8 @@ def cart_view(request):
                     "item_total": item_total,
                     "order_total": order_total,
                     "full_total": full_total,
-                    "delivery_fee": delivery_fee
+                    "delivery_fee": delivery_fee,
+                    "cart_count": cart_count
                 })
 
             return redirect("cart")
@@ -62,9 +82,9 @@ def cart_view(request):
     for item in cart_items:
         item.total_price = item.price * item.quantity
 
-        order_total = Cart.objects.filter(
+    order_total = Cart.objects.filter(
         user=user,
-        session_key = session
+        session_key=session
     ).aggregate(
         total=Sum(F("price") * F("quantity"))
     )["total"] or 0
@@ -76,14 +96,17 @@ def cart_view(request):
 
     full_total = delivery_fee + order_total
 
-    return render(request, 'cart.html',{
-        "cart_items":cart_items,
-        "order_total":order_total,
-        "delivery_fee":delivery_fee,
-        "full_total":full_total,
+    return render(request, 'cart.html', {
+        "cart_items": cart_items,
+        "order_total": order_total,
+        "delivery_fee": delivery_fee,
+        "full_total": full_total,
     })
 
 def add_to_cart(request, variant_id):
+    if request.method != "POST":
+        return redirect(request.META.get('HTTP_REFERER', '/'))
+
     if not request.session.session_key:
         request.session.create()
 
@@ -98,30 +121,43 @@ def add_to_cart(request, variant_id):
 
     variant = get_object_or_404(Variant, id=variant_id)
 
-
     cart_item = Cart.objects.filter(
         user=user,
         session_key=session,
         variant=variant
     ).first()
 
-
     if cart_item:
-        cart_item.quantity+=1
-        cart_item.save()
+        if cart_item.quantity < variant.stock:
+            cart_item.quantity += 1
+            cart_item.save()
+        else:
+            return JsonResponse({
+                "error":f"Only {variant.stock} items available"
+            }, status = 400)
     else:
-        Cart.objects.create(
-            variant = variant,
-            user=user,
-            session_key = session,
-            quantity = 1,
-            price = variant.price
-        )
+        if variant.stock > 0:
+            Cart.objects.create(
+                variant=variant,
+                user=user,
+                session_key=session,
+                quantity=1,
+                price=variant.price
+            )
+        else:
+            return JsonResponse({
+                "error":"Out of stock"
+            }, status = 400)
 
     messages.success(request, "Product Added to cart")
 
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        cart_count = Cart.objects.filter(user=user).count() if user else Cart.objects.filter(session_key=session).count()
+    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+        cart_count = Cart.objects.filter(
+        user=user,
+        session_key=session
+).      aggregate(total=Sum('quantity'))['total'] or 0
+
+        cart_count = cart_count or 0
         return JsonResponse({"success": True, "cart_count": cart_count})
 
     return redirect(request.META.get('HTTP_REFERER', '/'))
@@ -148,7 +184,8 @@ def delete_cart_item(request):
 
                 delivery_fee = 0 if order_total < 1999 else 149
                 full_total = delivery_fee + order_total
-                cart_count = Cart.objects.filter(user=user).count() if user else Cart.objects.filter(session_key=session).count()
+                cart_count = Cart.objects.filter(user=user).aggregate(total=Sum('quantity'))['total'] if user else Cart.objects.filter(session_key=session).aggregate(total=Sum('quantity'))['total']
+                cart_count = cart_count or 0
 
                 return JsonResponse({
                     "success": True,
