@@ -511,6 +511,46 @@
         .similar-header { padding: 0 20px; }
         .similar-card { flex: 0 0 50%; min-width: 200px; }
     }
+
+        /* --- DYNAMIC BLACK PILL TOAST --- */
+    #toast-container {
+        position: fixed;
+        top: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+    }
+
+    .custom-pill-toast {
+        width: max-content;
+        max-width: 90vw;
+        padding: 10px 22px 10px 14px;
+        border-radius: 50px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        pointer-events: auto;
+        background: #000;
+        color: #fff;
+    }
+
+    .custom-pill-toast.show { opacity: 1; transform: translateY(0); }
+    .toast-left-content { display: flex; align-items: center; gap: 12px; }
+    .toast-icon-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .toast-success .toast-icon-circle { background: #2F8D46; }
+    .toast-error .toast-icon-circle { background: #E03B2A; }
+    .toast-message-wrapper { display: flex; flex-direction: column; white-space: nowrap; margin-right: 15px; }
+    .toast-main-text { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; line-height: 1.2; }
+    .toast-sub-text { font-size: 9px; opacity: 0.7; margin-top: 1px; }
+    .toast-close-btn { cursor: pointer; font-size: 16px; opacity: 0.6; transition: opacity 0.2s; }
+    .toast-close-btn:hover { opacity: 1; }
 </style>
 
 <main class="pdp-wrapper">
@@ -623,7 +663,10 @@
             {% endfor %}
         </div>
 
-        <button class="btn-add">Add</button>
+       <form method="POST" action="{% url "add-to-cart"  default_variant.id %}" style="display:inline;">
+    {% csrf_token %}
+    <button class="btn-add">Add To cart</button>
+</form>
 
         <div class="link-group">
             <span class="secondary-link">Find in store</span>
