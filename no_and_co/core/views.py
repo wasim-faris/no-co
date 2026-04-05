@@ -114,7 +114,6 @@ def product_listing(request):
     if action == "delete_history":
 
         request.session["search_history"] = []
-        return redirect("product-listing")
 
     variants = Variant.objects.filter(
         product__is_active=True,

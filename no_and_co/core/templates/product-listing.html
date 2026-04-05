@@ -770,6 +770,24 @@
     function setTab(el) {
         document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
+        
+        const subText = el.innerText.trim();
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+
+        // If 'Linen Clothing' or 'All' is selected, we reset subcategory to show broad category view
+        if (subText === "Linen Clothing") {
+            params.delete('subcategory');
+        } else {
+            // Convert 'Linen Shirts' -> 'LINEN-SHIRTS' or 'Shirts' -> 'SHIRTS'
+            const subSlug = subText.toUpperCase().replace(/\s+/g, '-');
+            params.set('subcategory', subSlug);
+        }
+
+        // Prevention: When picking a specific subcategory, we keep category if it exists
+        // as they are a valid combined filter (e.g. Mens + Shirts)
+        
+        if (typeof fetchProducts === 'function') fetchProducts(url);
     }
 
     /* ── UI Logic ── */
@@ -881,6 +899,28 @@
     }
 
     /* ── AJAX Filtering & Sorting ── */
+    function updatePageHeader(params) {
+        const h1 = document.querySelector('h1');
+        if (!h1) return;
+
+        const q = params.get('q');
+        const sub = params.get('subcategory');
+        const cats = params.getAll('category');
+
+        if (q && q !== 'None') {
+            h1.textContent = q;
+            // Update subtitle if exists
+            const subtitle = h1.parentElement.querySelector('p');
+            if (subtitle) subtitle.innerHTML = `Results for "<span style="color: #000;">${q}</span>"`;
+        } else if (sub) {
+            h1.textContent = sub.replace(/-/g, ' ');
+        } else if (cats.length === 1) {
+            h1.textContent = cats[0];
+        } else {
+            h1.textContent = "All Products";
+        }
+    }
+
     async function fetchProducts(url, updateHistory = true) {
         const grid = document.querySelector('.plp-grid') || document.querySelector('.empty-state');
         if (grid) {
@@ -912,6 +952,9 @@
             const newTags = newDoc.querySelector('.active-filters');
             if (oldTags && newTags) oldTags.outerHTML = newTags.outerHTML;
 
+            // Update Header UX
+            updatePageHeader(url.searchParams);
+
             if (updateHistory) {
                 window.history.pushState({}, '', url.toString());
             }
@@ -932,22 +975,30 @@
         filterForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(filterForm);
-            
-            const sortFormEl = document.getElementById('sortForm');
-            if(sortFormEl) {
-                const sortVal = new FormData(sortFormEl).get('sort');
-                if (sortVal) formData.set('sort', sortVal);
-            }
-
             const url = new URL(window.location.href);
-            url.searchParams.delete('category');
-            url.searchParams.delete('price_min');
-            url.searchParams.delete('price_max');
-            url.searchParams.delete('sort');
+            const params = url.searchParams;
+            
+            // 1. Logic: If category/price/sort manipulated in drawer, subcategory is secondary
+            params.delete('subcategory');
+            
+            // 2. Handle Categories: Clean replacement
+            const newCategories = formData.getAll('category');
+            params.delete('category');
+            newCategories.forEach(c => params.append('category', c));
 
-            for (const [key, value] of formData.entries()) {
-                if (value) url.searchParams.append(key, value);
+            // 3. Handle Price & Sort
+            const newPriceMin = formData.get('price_min');
+            const newPriceMax = formData.get('price_max');
+            if (newPriceMin) params.set('price_min', newPriceMin);
+            if (newPriceMax) params.set('price_max', newPriceMax);
+
+            const sortFormEl = document.getElementById('sortForm');
+            if (sortFormEl) {
+                const newSort = new FormData(sortFormEl).get('sort');
+                if (newSort) params.set('sort', newSort);
             }
+
+            // Note: 'q' persists naturally from current URL unless searchForm is used
             
             fetchProducts(url);
         });
@@ -959,10 +1010,14 @@
             e.preventDefault();
             const formData = new FormData(sortFormEl);
             const url = new URL(window.location.href);
+            const params = url.searchParams;
             
-            url.searchParams.delete('sort');
+            // Requirement B: Change sort -> Move from subcategory to general view
+            params.delete('subcategory');
+            
             const sortVal = formData.get('sort');
-            if (sortVal) url.searchParams.set('sort', sortVal);
+            params.delete('sort');
+            if (sortVal) params.set('sort', sortVal);
             
             fetchProducts(url);
         });
@@ -972,6 +1027,10 @@
     window.removeFilter = function(key, value) {
         const url = new URL(window.location.href);
         const params = url.searchParams;
+        
+        // As per broader filtering rules
+        params.delete('subcategory');
+
         if (key === 'category') {
             const currentValues = params.getAll('category');
             params.delete('category');

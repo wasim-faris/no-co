@@ -183,6 +183,22 @@
             }
         }
 
+        // Prevent accidental form submission IF input empty AND no action set
+        if (searchForm) {
+            searchForm.onsubmit = (e) => {
+                const actionValue = searchAction ? searchAction.value : '';
+                
+                // Requirement 2-D: Global search resets everything
+                if (!actionValue && input.value.trim()) {
+                   // Let the browser handle GET submission normally.
+                   // Since the form has no category/subcategory inputs, they won't be sent.
+                   // The browser will go to /products/?q=value
+                } else if (!input.value.trim() && !actionValue) {
+                    e.preventDefault();
+                }
+            };
+        }
+
         // Hide history on outside click
         document.addEventListener('click', (e) => {
             if (historyContainer && !historyContainer.contains(e.target) && !input.contains(e.target)) {
@@ -190,22 +206,33 @@
             }
         });
 
-        // Prevent accidental form submission IF input empty AND no action set
-        if (searchForm) {
-            searchForm.onsubmit = (e) => {
-                const actionValue = searchAction ? searchAction.value : '';
-                if (!input.value.trim() && !actionValue) {
-                    e.preventDefault();
-                }
-            };
-        }
-
-        // Search History Clear Trigger
-        if (clearHistoryBtn && searchAction && searchForm) {
-            clearHistoryBtn.onclick = (e) => {
+        // Search History Clear (AJAX Modern UX)
+        if (clearHistoryBtn && historyContainer && searchForm) {
+            clearHistoryBtn.onclick = async (e) => {
                 e.preventDefault();
-                searchAction.value = 'delete_history';
-                searchForm.submit();
+                e.stopPropagation();
+
+                // 1. Instant UI Feedback (Fade out)
+                historyContainer.style.transition = 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                historyContainer.style.opacity = '0';
+                historyContainer.style.transform = 'translateY(-10px)';
+
+                // 2. Background Request (No reload)
+                const baseUrl = searchForm.action || window.location.pathname;
+                const url = `${baseUrl}?action=delete_history&t=${Date.now()}`;
+                
+                try {
+                    // Send to background, don't wait for response to update UI
+                    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                } catch (err) {
+                    console.error('Failed to clear history in background:', err);
+                }
+
+                // 3. Final DOM removal
+                setTimeout(() => {
+                    historyContainer.innerHTML = '';
+                    historyContainer.style.display = 'none';
+                }, 400);
             };
         }
     }
