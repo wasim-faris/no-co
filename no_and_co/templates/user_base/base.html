@@ -275,7 +275,7 @@
                 </svg>
                 <span class="text-[10px] font-light uppercase tracking-[0.08em] opacity-80">Search</span>
             </button>
-            <a href="#">
+            <a href="#" class="{% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                     stroke-linejoin="round">
                     <path
@@ -283,8 +283,7 @@
                 </svg>
                 <span>Wishlist</span>
             </a>
-            <a
-                href="{% if user.is_authenticated %}{% url 'user-profile' user.id %}{% else %}{% url 'login' %}{% endif %}">
+            <a href="{% if user.is_authenticated %}{% url 'user-profile' user.id %}{% else %}{% url 'login' %}{% endif %}" class="{% if request.resolver_match.url_name in 'user-profile login signup' %}active{% endif %}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                     stroke-linejoin="round">
                     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
@@ -292,7 +291,7 @@
                 </svg>
                 <span>Account</span>
             </a>
-            <a href="{% url "cart" %}" class="relative">
+            <a href="{% url "cart" %}" class="relative {% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
                 <div class="relative">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                         stroke-linejoin="round">
