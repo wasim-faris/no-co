@@ -108,6 +108,17 @@ def product_listing(request):
     )
 
     if query:
+        history = request.session.get("search_history",[])
+
+        if query in history:
+            history.remove(query)
+
+        history.insert(0, query)
+
+        history = history[:5]
+
+        request.session["search_history"] = history
+
         variants = variants.filter(
             Q(product__product_name__icontains = query) | Q(product__description_fit__icontains = query)
         )
@@ -142,5 +153,6 @@ def product_listing(request):
 
     return render(request, "product-listing.html", {
         "variants": variants,
-        "query":query
+        "query":query,
+        "search_history":request.session.get("search_history",[])
     })
