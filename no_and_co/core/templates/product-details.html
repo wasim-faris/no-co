@@ -1385,7 +1385,7 @@
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 400);
             }
-        }, 2500);
+        }, 2500); // 2.5s auto-hide requirement
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1422,15 +1422,19 @@
                     return;
                 }
 
-                // Global Limit Enforcer (Max 5 per variant)
-                // We use a simple session-based-like tracker here
-                if (!window.cartTracker) window.cartTracker = {};
-                const variantId = activeSize.dataset.variantId || 'default';
-                const currentQty = window.cartTracker[variantId] || 0;
+                // Persistent Global Limit Enforcer (Sync with LocalStorage)
+                let cartQuantities = {};
+                try {
+                    cartQuantities = JSON.parse(localStorage.getItem('cartQuantities') || '{}');
+                } catch(e) {}
 
-                if (currentQty >= 5) {
+                const variantId = activeSize.getAttribute('data-variant-id') || activeSize.innerText.trim();
+                const currentQty = cartQuantities[variantId] || 0;
+
+                // Prospective Limit Check: block if next add would exceed 5
+                if (currentQty + 1 > 5) {
                     if (typeof showToast === "function") {
-                        showToast("Maximum limit reached (5 items per product)", "error");
+                        showToast("Only 5 items allowed per product", "error");
                     }
                     return;
                 }
@@ -1470,11 +1474,14 @@
                         btn.innerText = 'ADDED TO BAG ✓';
                         btn.style.opacity = '1';
                         
-                        // Update local tracker
-                        if (!window.cartTracker) window.cartTracker = {};
-                        const activeSize = document.querySelector('.size-box.active');
-                        const vId = activeSize ? activeSize.dataset.variantId : 'default';
-                        window.cartTracker[vId] = (window.cartTracker[vId] || 0) + 1;
+                        // Update local sync storage
+                        let currentSync = {};
+                        try { currentSync = JSON.parse(localStorage.getItem('cartQuantities') || '{}'); } catch(e) {}
+                        
+                        const actSize = document.querySelector('.size-box.active');
+                        const vId = actSize ? (actSize.getAttribute('data-variant-id') || actSize.innerText.trim()) : 'default';
+                        currentSync[vId] = (currentSync[vId] || 0) + 1;
+                        localStorage.setItem('cartQuantities', JSON.stringify(currentSync));
                         
                         // Broadcast the event forward so Navbars can update globally
                         window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart_count } }));

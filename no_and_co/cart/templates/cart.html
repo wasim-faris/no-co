@@ -423,6 +423,7 @@
                     id="cart-item-{{ item.id }}"
                     class="cart-item-row flex flex-row gap-3 md:gap-5 items-start border-b border-gray-200 pb-2 mb-2 md:pb-8 md:mb-8"
                     data-cart-id="{{ item.id }}"
+                    data-variant-id="{{ item.variant.id }}"
                     data-quantity="{{ item.quantity }}"
                     data-price="{{ item.price }}"
                     data-stock="{{ item.variant.stock }}"
@@ -743,6 +744,19 @@
         toastTimer = setTimeout(() => t.classList.remove('show'), duration);
     }
 
+    /* ── Local Storage Sync ────────────────────────────────────── */
+    function syncCartToStorage() {
+        const quantities = {};
+        document.querySelectorAll('.cart-item-row').forEach(row => {
+            const vId = row.dataset.variantId;
+            const qty = parseInt(row.dataset.quantity, 10);
+            if (vId) quantities[vId] = qty;
+        });
+        localStorage.setItem('cartQuantities', JSON.stringify(quantities));
+    }
+
+    window.addEventListener('load', syncCartToStorage);
+
     /* ── Price formatting ───────────────────────────────────────── */
 
     function fmt(val) {
@@ -875,6 +889,7 @@
 
             updateItemRow(id, data.quantity, data.item_total);
             updateSummary(data);
+            syncCartToStorage(); // Real-time sync to PDP
         });
     }
 
@@ -956,6 +971,7 @@
                 setTimeout(() => {
                     row.remove();
                     checkEmpty();
+                    syncCartToStorage(); // Real-time sync to PDP
                 }, 520);
             }
 
