@@ -516,26 +516,22 @@
                       <label class="sort-option">
                           Recommended
                           <input type="radio" name="sort" value="recommended"
-                          {% if not request.GET.sort or request.GET.sort == "recommended" %}checked{% endif %}
-                          onchange="this.form.submit()">
+                          {% if not request.GET.sort or request.GET.sort == "recommended" %}checked{% endif %}>
                       </label>
                       <label class="sort-option">
                           Newest
                           <input type="radio" name="sort" value="newest"
-                          {% if request.GET.sort == "newest" %}checked{% endif %}
-                          onchange="this.form.submit()">
+                          {% if request.GET.sort == "newest" %}checked{% endif %}>
                       </label>
                       <label class="sort-option">
                           Lowest Price
                           <input type="radio" name="sort" value="low_price"
-                          {% if request.GET.sort == "low_price" %}checked{% endif %}
-                          onchange="this.form.submit()">
+                          {% if request.GET.sort == "low_price" %}checked{% endif %}>
                       </label>
                       <label class="sort-option">
                           Highest Price
                           <input type="radio" name="sort" value="high_price"
-                          {% if request.GET.sort == "high_price" %}checked{% endif %}
-                          onchange="this.form.submit()">
+                          {% if request.GET.sort == "high_price" %}checked{% endif %}>
                       </label>
                   </form>
               </div>
@@ -809,8 +805,13 @@
         filterReset.addEventListener('click', () => {
             const url = new URL(window.location.href);
             const sub = url.searchParams.get('subcategory');
-            // Reset to clean path + subcategory if present
-            window.location.href = url.pathname + (sub ? '?subcategory=' + sub : '');
+            const q = url.searchParams.get('q');
+            url.search = '';
+            if (sub) url.searchParams.set('subcategory', sub);
+            if (q) url.searchParams.set('q', q);
+            if (typeof fetchProducts === 'function') fetchProducts(url);
+            else window.location.href = url.pathname + url.search;
+            setTimeout(syncUIWithURL, 50);
         });
     }
 
@@ -869,11 +870,96 @@
         updatePriceUI();
     }
 
-    // Call sync on load
-    window.addEventListener('load', syncUIWithURL);
+    /* ── AJAX Filtering & Sorting ── */
+    async function fetchProducts(url, updateHistory = true) {
+        const grid = document.querySelector('.plp-grid') || document.querySelector('.empty-state');
+        if (grid) {
+            grid.style.opacity = '0.5';
+            grid.style.pointerEvents = 'none';
+        }
+
+        try {
+            const response = await fetch(url.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const html = await response.text();
+            const parser = new DOMParser();
+            const newDoc = parser.parseFromString(html, 'text/html');
+
+            const newGrid = newDoc.querySelector('.plp-grid') || newDoc.querySelector('.empty-state');
+            if (newGrid && grid) {
+                grid.outerHTML = newGrid.outerHTML;
+            }
+
+            const oldCount = document.querySelector('.plp-count');
+            const newCount = newDoc.querySelector('.plp-count');
+            if (oldCount && newCount) oldCount.outerHTML = newCount.outerHTML;
+
+            const oldTags = document.querySelector('.active-filters');
+            const newTags = newDoc.querySelector('.active-filters');
+            if (oldTags && newTags) oldTags.outerHTML = newTags.outerHTML;
+
+            if (updateHistory) {
+                window.history.pushState({}, '', url.toString());
+            }
+
+            // Sync visual controls with the newly pushed URL
+            if (updateHistory) setTimeout(syncUIWithURL, 50);
+
+        } catch (error) {
+            console.error('AJAX fetch failed, falling back to reload:', error);
+            window.location.href = url.toString();
+        } finally {
+            toggleFilter(false);
+            if (sortMenu) sortMenu.classList.remove('active');
+        }
+    }
+
+    if (filterForm) {
+        filterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(filterForm);
+            
+            const sortFormEl = document.getElementById('sortForm');
+            if(sortFormEl) {
+                const sortVal = new FormData(sortFormEl).get('sort');
+                if (sortVal) formData.set('sort', sortVal);
+            }
+
+            const url = new URL(window.location.href);
+            url.searchParams.delete('category');
+            url.searchParams.delete('price_min');
+            url.searchParams.delete('price_max');
+            url.searchParams.delete('sort');
+
+            for (const [key, value] of formData.entries()) {
+                if (value) url.searchParams.append(key, value);
+            }
+            
+            fetchProducts(url);
+        });
+    }
+
+    const sortFormEl = document.getElementById('sortForm');
+    if (sortFormEl) {
+        sortFormEl.addEventListener('change', (e) => {
+            e.preventDefault();
+            const formData = new FormData(sortFormEl);
+            const url = new URL(window.location.href);
+            
+            url.searchParams.delete('sort');
+            const sortVal = formData.get('sort');
+            if (sortVal) url.searchParams.set('sort', sortVal);
+            
+            fetchProducts(url);
+        });
+    }
 
     /* ── Filter Tag Helper ── */
-    function removeFilter(key, value) {
+    window.removeFilter = function(key, value) {
         const url = new URL(window.location.href);
         const params = url.searchParams;
         if (key === 'category') {
@@ -883,8 +969,18 @@
         } else if (key === 'price_min' || key === 'price_max') {
             params.delete(key);
         }
-        window.location.href = url.pathname + '?' + params.toString();
-    }
+        
+        fetchProducts(url);
+    };
+
+    // Handle Browser Back/Forward navigation correctly visually and functionally
+    window.addEventListener('popstate', () => {
+        syncUIWithURL();
+        fetchProducts(new URL(window.location.href), false);
+    });
+
+    // Call sync on load mapping initial controls to correct state
+    window.addEventListener('load', syncUIWithURL);
 </script>
 
 {% endblock %}
