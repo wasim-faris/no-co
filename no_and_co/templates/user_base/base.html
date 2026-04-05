@@ -299,8 +299,7 @@
                         <path d="M16 10a4 4 0 0 1-8 0" />
                     </svg>
                     <span id="mobileCartCount"
-                        class="absolute -top-1.5 -right-2 bg-black text-white rounded-full w-[14px] h-[14px] flex items-center justify-center text-[8px] font-bold {% if cart_count <= 0 %}hidden{% endif %}">{{
-                        cart_count|default:"0" }}</span>
+                        class="absolute -top-1.5 -right-2 bg-black text-white rounded-full w-[14px] h-[14px] flex items-center justify-center text-[8px] font-bold {% if not cart_count or cart_count <= 0 %}hidden{% endif %}">{{ cart_count|default:"0" }}</span>
                 </div>
                 <span>Bag</span>
             </a>
