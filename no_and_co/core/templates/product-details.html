@@ -198,6 +198,21 @@
         z-index: 2;
     }
 
+    .size-box.out-of-stock {
+        opacity: 1;
+        text-decoration: line-through underline;
+        text-underline-offset: 5px;
+        text-decoration-thickness: 1px;
+        color: #000;
+        cursor: default; /* Smooth hover feel */
+        background: #fff;
+    }
+
+    .btn-add.out-of-stock {
+        background: #e02d2d !important;
+        cursor: not-allowed;
+    }
+
     /* ════════════════════════════════════════
        BUTTONS & LINKS
     ════════════════════════════════════════ */
@@ -833,11 +848,11 @@
         <div class="size-row" id="sizeContainer">
             {% for v in variants %}
                 {% if v.color == default_variant.color %}
-                    <div class="size-box"
+                    <div class="size-box {% if v.stock <= 0 %}out-of-stock{% endif %}"
                          data-stock="{{ v.stock }}"
                          onclick="selectSize(this)"
                          style="position:relative;">
-                        {{ v.size.name }}
+                        <span>{{ v.size.name }}</span>
                         {% if v.stock > 0 and v.stock < 5 %}<span class="low-stock-dot"></span>{% endif %}
                     </div>
                 {% endif %}
@@ -848,7 +863,7 @@
 
        <form method="POST" action="{% url "add-to-cart" default_variant.id %}" id="addToCartForm" style="display:inline;">
     {% csrf_token %}
-    <button class="btn-add">Add To cart</button>
+    <button class="btn-add">ADD TO BAG</button>
 </form>
 
         <div class="link-group">
@@ -1081,17 +1096,29 @@
         sizeContainer.innerHTML = '';
         sizesArray.forEach((size, index) => {
             const sizeDiv = document.createElement('div');
-            sizeDiv.className = 'size-box';  // no default active — user must choose
-            sizeDiv.style.position = 'relative';
             const stock = stockMap[activeColor + '_' + size];
+            
+            sizeDiv.className = 'size-box';
+            if (stock <= 0) {
+                sizeDiv.classList.add('out-of-stock');
+            }
+            
+            sizeDiv.style.position = 'relative';
             if (stock !== undefined) sizeDiv.dataset.stock = stock;
-            sizeDiv.appendChild(document.createTextNode(size));
-            if (stock !== undefined && stock > 0 && stock < 5) {
+            
+            // Wrap text in span to ensure underline/strike only affects text width
+            const span = document.createElement('span');
+            span.appendChild(document.createTextNode(size));
+            sizeDiv.appendChild(span);
+            
+            if (stock !== undefined && stock > 1 && stock < 5) {
                 const dot = document.createElement('span');
                 dot.className = 'low-stock-dot';
                 sizeDiv.appendChild(dot);
             }
+            
             sizeDiv.onclick = function() { selectSize(this); };
+            
             sizeContainer.appendChild(sizeDiv);
         });
 
@@ -1103,16 +1130,43 @@
     }
 
     function selectSize(box) {
+        const addBtn = document.querySelector('.btn-add');
+        const stock = parseInt(box.dataset.stock, 10);
+
+        if (box.classList.contains('out-of-stock') || stock <= 0) {
+            // Interaction for out-of-stock: Show Red button, prevent selection
+            if (addBtn) {
+                addBtn.innerText = 'OUT OF STOCK';
+                addBtn.classList.add('out-of-stock');
+                addBtn.disabled = true;
+            }
+            // Do NOT add active class to the box
+            document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
+            // Hide stock hint
+            const hint = document.getElementById('stockHint');
+            if (hint) hint.style.display = 'none';
+            return;
+        }
+
+        // Normal path for available sizes
         document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
         box.classList.add('active');
+        
+        // Restore button state
+        if (addBtn) {
+            addBtn.innerText = 'ADD TO BAG';
+            addBtn.classList.remove('out-of-stock');
+            addBtn.disabled = false;
+        }
+
         // Clear size-required error
         const sizeErr = document.getElementById('sizeError');
         if (sizeErr) sizeErr.style.display = 'none';
+        
         // Show low-stock hint when selected size has fewer than 5 units
         const hint = document.getElementById('stockHint');
         if (hint) {
-            const stock = parseInt(box.dataset.stock, 10);
-            hint.style.display = (!isNaN(stock) && stock > 0 && stock < 5) ? 'block' : 'none';
+            hint.style.display = (stock > 0 && stock < 5) ? 'block' : 'none';
         }
         updateCartAction();
     }
@@ -1362,8 +1416,12 @@
                 // Loading State
                 btn.disabled = true;
                 btn.style.opacity = '0.7';
-                const originalText = btn.innerText;
-                btn.innerText = 'Adding...';
+                const originalText = 'ADD TO BAG';
+                btn.innerText = 'ADDING TO BAG...';
+                
+                // Track start time to ensure "ADDING" state is visible
+                const startTime = Date.now();
+                const minLoadingTime = 600; // ms
                 
                 fetch(url, {
                     method: 'POST',
@@ -1372,12 +1430,20 @@
                         'X-CSRFToken': csrfToken,
                     }
                 })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) {
+                        return res.json().then(data => { throw new Error(data.error || data.message || 'Error adding to cart') });
+                    }
+                    return res.json();
+                })
                 .then(data => {
-                    if (data.success) {
-                        btn.innerText = 'Added ✓';
-                        btn.style.backgroundColor = '#15803d'; // Tailwind green-700
-                        btn.style.borderColor = '#15803d';
+                    const elapsedTime = Date.now() - startTime;
+                    const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+                    
+                    setTimeout(() => {
+                        if (data.success) {
+                        btn.innerText = 'ADDED TO BAG ✓';
+                        btn.style.opacity = '1';
                         
                         // Broadcast the event forward so Navbars can update globally
                         window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart_count } }));
@@ -1405,7 +1471,7 @@
                             if (mcPrice) mcPrice.innerText = prodPrice;
                             if (mcImage) mcImage.src = pdpImg;
                             if (mcColour && activeSwatch) mcColour.innerText = activeSwatch.getAttribute('data-color');
-                            if (mcSize && activeSize) mcSize.innerText = activeSize.childNodes[0].nodeValue.trim();
+                            if (mcSize && activeSize) mcSize.innerText = activeSize.innerText.trim();
                             
                             miniCart.classList.remove('show');
                             void miniCart.offsetWidth; // Force reflow
@@ -1416,17 +1482,15 @@
                                 miniCart.classList.remove('show');
                             }, 4000);
                         }
-                        
-                        setTimeout(() => {
-                            btn.innerText = originalText;
-                            btn.disabled = false;
-                            btn.style.opacity = '1';
-                            btn.style.backgroundColor = '';
-                            btn.style.borderColor = '';
-                        }, 2000);
-                    } else {
-                        throw new Error(data.error || data.message || 'Error adding to cart');
-                    }
+                            setTimeout(() => {
+                                btn.innerText = originalText;
+                                btn.disabled = false;
+                                btn.style.opacity = '1';
+                                btn.style.backgroundColor = '';
+                                btn.style.borderColor = '';
+                            }, 1000);
+                        }
+                    }, remainingTime);
                 })
                 .catch(error => {
                     console.error(error);
