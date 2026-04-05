@@ -288,11 +288,12 @@
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
         background: rgba(0, 0, 0, 0.95);
-        z-index: 9999;
+        z-index: 10001; /* Above navbar (50) and toasts (10000) */
         align-items: center;
         justify-content: center;
         opacity: 0;
         transition: opacity 0.2s ease-in-out;
+        overflow-y: auto; /* Allow scrolling content if needed */
     }
     .lightbox-modal.active {
         display: flex;
@@ -899,15 +900,15 @@
 
         </div> <!-- end info-inner -->
     </div> <!-- end pdp-info-column -->
-
-    <!-- Lightbox Modal -->
-    <div class="lightbox-modal" id="lightboxModal">
-        <span class="lightbox-close" id="lightboxClose">&times;</span>
-        <button class="lightbox-btn prev" id="lightboxPrev">&#8249;</button>
-        <img src="" class="lightbox-img" id="lightboxImg" alt="Zoomed Product">
-        <button class="lightbox-btn next" id="lightboxNext">&#8250;</button>
-    </div>
 </main>
+
+<!-- Lightbox Modal (Moved outside main to bypass relative stacking context) -->
+<div class="lightbox-modal" id="lightboxModal">
+    <span class="lightbox-close" id="lightboxClose">&times;</span>
+    <button class="lightbox-btn prev" id="lightboxPrev">&#8249;</button>
+    <img src="" class="lightbox-img" id="lightboxImg" alt="Zoomed Product">
+    <button class="lightbox-btn next" id="lightboxNext">&#8250;</button>
+</div>
 
 <!-- SIMILAR ITEMS SECTION (OUTSIDE WRAPPER FOR FULL WIDTH) -->
 <div class="mt-20">
@@ -1174,7 +1175,8 @@
             if (currentGalleryIndex > -1) {
                 lightboxImg.src = clickedSrc;
                 lightboxModal.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Lock background scrolling
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
             }
         }
     });
@@ -1182,7 +1184,8 @@
     // Close Modal
     function closeLightbox() {
         lightboxModal.classList.remove('active');
-        document.body.style.overflow = ''; // Restore background scrolling
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
     }
 
     // Click Close Button OR Click strictly on the dark background
