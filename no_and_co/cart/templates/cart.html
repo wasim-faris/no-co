@@ -180,25 +180,48 @@
     /* ─── Inline Error / Notification ───────────────────────── */
     .inline-toast {
         position: fixed;
-        bottom: 2rem;
-        left: 50%;
-        transform: translateX(-50%) translateY(2rem);
-        background: #111;
+        top: 20px;
+        right: 20px;
+        width: 320px;
+        max-width: 90vw;
+        background: #000;
         color: #fff;
-        font-size: 0.7rem;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        padding: 0.85rem 2rem;
+        padding: 16px 20px;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s ease, transform 0.25s ease;
+        transform: translateX(30px);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
         z-index: 99999;
-        white-space: nowrap;
+        pointer-events: auto;
     }
     .inline-toast.show {
         opacity: 1;
-        transform: translateX(-50%) translateY(0);
+        transform: translateX(0);
     }
+    .toast-left-content { display: flex; align-items: center; gap: 14px; }
+    .toast-icon-circle { 
+        width: 24px; height: 24px; border-radius: 50%; 
+        display: flex; align-items: center; justify-content: center; 
+        font-size: 11px; flex-shrink: 0; 
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #fff; background: transparent;
+    }
+    .toast-message-wrapper { display: flex; flex-direction: column; }
+    .toast-main-text { 
+        font-size: 12px; font-weight: 700; 
+        text-transform: uppercase; letter-spacing: 0.1em; 
+        line-height: 1.2; 
+    }
+    .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .toast-close-btn { 
+        cursor: pointer; font-size: 14px; opacity: 0.4; 
+        transition: opacity 0.2s; padding: 4px; line-height: 1;
+    }
+    .toast-close-btn:hover { opacity: 1; }
 
     /* ─── Empty State ────────────────────────────────────────── */
     #emptyState { display: none; }
@@ -470,7 +493,6 @@
                                 type="button"
                                 class="qty-btn increase-btn"
                                 data-id="{{ item.id }}"
-                                {% if item.quantity >= item.variant.stock %}disabled{% endif %}
                                 aria-label="Increase quantity"
                             >
                                 <i class="ri-add-line text-sm"></i>
@@ -691,10 +713,26 @@
     /* ── Toast ──────────────────────────────────────────────────── */
 
     let toastTimer = null;
-    function showToast(msg, duration = 3000) {
+    function showToast(msg, duration = 4000) {
         const t = document.getElementById('inlineToast');
-        t.textContent = msg;
+        if (!t) return;
+        
+        // Match the identical structure of the product-details page
+        t.innerHTML = `
+            <div class="toast-left-content">
+                <div class="toast-icon-circle">✕</div>
+                <div class="toast-message-wrapper">
+                    <span class="toast-main-text">${msg}</span>
+                    <span class="toast-sub-text">Notification</span>
+                </div>
+            </div>
+            <div class="toast-close-btn" onclick="this.parentElement.classList.remove('show')">✕</div>
+        `;
+
+        t.classList.remove('show');
+        void t.offsetWidth; // force reflow
         t.classList.add('show');
+        
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => t.classList.remove('show'), duration);
     }
@@ -788,11 +826,10 @@
             }
         }
 
-        // Enforce max-qty disable on increase btn based on real stock
+        // We no longer strictly disable increase btn to allow toast feedback
         const incBtn = row.querySelector('.increase-btn');
         if (incBtn) {
-            const stock = parseInt(row.dataset.stock, 10);
-            incBtn.disabled = !isNaN(stock) ? qty >= stock : qty >= 5;
+            incBtn.disabled = false;
         }
     }
 
@@ -819,16 +856,12 @@
             row.classList.remove('is-loading');
 
             if (data.error) {
-                showItemError(id, data.error);
+                showToast(data.error); // Show professional top-right toast for stock limits
                 return;
             }
 
             updateItemRow(id, data.quantity, data.item_total);
             updateSummary(data);
-
-            if (action === 'increase' && data.quantity >= 5) {
-                showItemError(id, 'Maximum quantity of 5 reached.');
-            }
         });
     }
 

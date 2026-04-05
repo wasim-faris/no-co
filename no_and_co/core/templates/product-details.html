@@ -528,44 +528,57 @@
         .similar-card { flex: 0 0 50%; min-width: 200px; }
     }
 
-        /* --- DYNAMIC BLACK PILL TOAST --- */
+    /* --- DYNAMIC BLACK PILL TOAST --- */
     #toast-container {
         position: fixed;
-        top: 30px;
-        left: 50%;
-        transform: translateX(-50%);
+        top: 20px;
+        right: 20px;
         z-index: 10000;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 12px;
         pointer-events: none;
     }
 
     .custom-pill-toast {
-        width: max-content;
+        width: 320px;
         max-width: 90vw;
-        padding: 10px 22px 10px 14px;
-        border-radius: 50px;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        opacity: 0;
-        transform: translateY(-20px);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        pointer-events: auto;
+        padding: 16px 20px;
         background: #000;
         color: #fff;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        opacity: 0;
+        transform: translateX(30px);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        pointer-events: auto;
     }
 
-    .custom-pill-toast.show { opacity: 1; transform: translateY(0); }
-    .toast-left-content { display: flex; align-items: center; gap: 12px; }
-    .toast-icon-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-    .toast-success .toast-icon-circle { background: #2F8D46; }
-    .toast-error .toast-icon-circle { background: #E03B2A; }
-    .toast-message-wrapper { display: flex; flex-direction: column; white-space: nowrap; margin-right: 15px; }
-    .toast-main-text { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; line-height: 1.2; }
-    .toast-sub-text { font-size: 9px; opacity: 0.7; margin-top: 1px; }
-    .toast-close-btn { cursor: pointer; font-size: 16px; opacity: 0.6; transition: opacity 0.2s; }
+    .custom-pill-toast.show { opacity: 1; transform: translateX(0); }
+    .toast-left-content { display: flex; align-items: center; gap: 14px; }
+    .toast-icon-circle { 
+        width: 24px; height: 24px; border-radius: 50%; 
+        display: flex; align-items: center; justify-content: center; 
+        font-size: 11px; flex-shrink: 0; 
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .toast-success .toast-icon-circle { color: #fff; background: #000; }
+    .toast-error .toast-icon-circle { color: #fff; background: #000; }
+    
+    .toast-message-wrapper { display: flex; flex-direction: column; }
+    .toast-main-text { 
+        font-size: 12px; font-weight: 500; 
+        text-transform: uppercase; letter-spacing: 0.1em; 
+        line-height: 1.2; 
+    }
+    .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .toast-close-btn { 
+        cursor: pointer; font-size: 14px; opacity: 0.4; 
+        transition: opacity 0.2s; padding: 4px;
+    }
     .toast-close-btn:hover { opacity: 1; }
 
     /* ─── Low Stock Indicator ────────────────────── */
@@ -1494,15 +1507,15 @@
                 })
                 .catch(error => {
                     console.error(error);
-                    btn.innerText = 'Error';
+                    // Soft validation: Use professional toast instead of breaking button text
                     if (typeof showToast === "function") {
-                        showToast("Error adding product to cart", "error");
+                        showToast(error.message, "error");
                     }
-                    setTimeout(() => {
-                        btn.innerText = originalText;
-                        btn.disabled = false;
-                        btn.style.opacity = '1';
-                    }, 2000);
+                    
+                    // Restore button instantly
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
                 });
             });
         }
