@@ -5,7 +5,7 @@
 
     <!-- Search Input Area -->
     <div class="px-8 pt-12 pb-10 md:px-12">
-        <form action="/products" method="GET" id="searchForm">
+        <form action="{% url "product-listing" %}" method="GET" id="searchForm">
             <div class="flex items-center gap-4 border-b border-black pb-3 relative group">
                 <!-- Search Icon (Left) -->
                 <svg class="w-4 h-4 text-black flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -202,11 +202,11 @@
             }
         });
 
-        // Prevent accidental form submission unless Enter is pressed in input
+        // Prevent accidental form submission if input is empty
         if (searchForm) {
             searchForm.onsubmit = (e) => {
-                // Ensure form only submits if input is focused and contains text
-                if (document.activeElement !== input || !input.value.trim()) {
+                // Ensure form only submits if input contains text
+                if (!input.value.trim()) {
                     e.preventDefault();
                 }
             };
