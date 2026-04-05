@@ -104,12 +104,12 @@ def cart_view(request):
     if cart_items.exists():
         first_product = cart_items.first().variant.product
         similar_products = Product.objects.filter(is_active=True, is_deleted=False).exclude(id=first_product.id).order_by('-created_at')[:6]
-        
+
         for p in similar_products:
             rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
             if rep_variant:
                 similar_items.append(rep_variant)
-    
+
     # FALLBACK: If cart is empty or no similar products found, display latest products
     if not similar_items:
         fallback_products = Product.objects.filter(is_active=True, is_deleted=False).order_by('-id')[:8]
@@ -117,7 +117,7 @@ def cart_view(request):
             rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
             if rep_variant:
                 similar_items.append(rep_variant)
-                
+
     return render(request, 'cart.html', {
         "cart_items": cart_items,
         "order_total": order_total,
@@ -218,3 +218,35 @@ def delete_cart_item(request):
 
             messages.success(request, "Product deleted from cart")
             return redirect("cart")
+def merge_cart_after_login(request, user , old_session_key):
+
+    if not old_session_key:
+        return
+
+    print("MERGE FUNCTION CALLED")
+    session_key = request.session.session_key
+
+    if not session_key:
+        return
+
+    guest_items = Cart.objects.filter(
+        session_key = old_session_key,
+        user = None
+    )
+
+    print("Guest items:", guest_items)
+
+    for item in guest_items:
+        existing_item = Cart.objects.filter(
+            user = user,
+            variant = item.variant
+        ).first()
+
+        if existing_item:
+            existing_item.quantity += item.quantity
+            existing_item.save()
+            item.delete()
+        else:
+            item.user = user
+            item.session_key = None
+            item.save()

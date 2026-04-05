@@ -48,7 +48,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     "users",
     "admin_dashboard",
-    "accounts",
+    'accounts.apps.AccountsConfig',
     "core",
     "category",
     "products",

@@ -17,7 +17,7 @@ from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.hashers import check_password
 from django.db.models import Q
 from django.contrib.auth.hashers import make_password
-
+from cart.views import merge_cart_after_login
 email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 password_pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$"
 username_pattern = r"^[a-zA-Z0-9_]{4,20}$"
@@ -29,6 +29,10 @@ User = get_user_model()
 @never_cache
 def signup(request):
 
+    if not request.session.session_key:
+        request.session.create()
+
+    request.session["pre_login_session_key"] = request.session.session_key
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect("admin-dashboard")
 
@@ -41,11 +45,12 @@ def signup(request):
         return redirect("signup-otp-verification")
     else:
         if request.method == "POST":
+            print(request.POST)
             username = request.POST.get("username", "").strip()
             email = request.POST.get("email")
             password = request.POST.get("password")
             confirm_password = request.POST.get("confirm_password")
-
+            print(password)
             if not username or not email or not password or not confirm_password:
                 messages.error(request, "All fields are required")
                 return redirect("signup")
@@ -83,7 +88,7 @@ def signup(request):
             request.session["signup_values"] = {
                 "username": username,
                 "email": email,
-                "password": make_password(password)
+                "password": password
             }
 
             otp = random.randint(100000, 999999)
@@ -113,6 +118,10 @@ def signup(request):
 
 @never_cache
 def login_user(request):
+    if not request.session.session_key:
+        request.session.create()
+        
+    request.session["pre_login_session_key"] = request.session.session_key
 
     if request.session.get("created_at",0):
         return redirect("signup-otp-verification")
@@ -126,9 +135,11 @@ def login_user(request):
     login_attempts = request.session.get("login_attempts", 0)
 
     if request.method == "POST":
-
+        print(request.POST)
         username = request.POST.get("username", "").strip()
         password = request.POST.get("password")
+
+        print(password)
 
         if not username or not password:
             messages.error(request, "All fields are required")
@@ -151,7 +162,13 @@ def login_user(request):
             if user.is_blocked:
                 messages.error(request, "you are currently blocked")
                 return redirect("login")
+            old_session_key = request.session.session_key
+            print("Before login session:", request.session.session_key)
             login(request, user)
+            print("OLD session:", old_session_key)
+            print("NEW session:", request.session.session_key)
+            print("LOGIN SUCCESS")
+            merge_cart_after_login(request, user , old_session_key)
             request.session["login_attempts"] = 0
 
             messages.success(request, "login succesfuly")
@@ -210,8 +227,21 @@ def signup_otp_verification(request):
 
 
             user = User.objects.create_user(username=username, email=email, password=password)
-            request.session.flush()
+
+            old_session_key = request.session.session_key
+
+            request.session.pop("signup_values", None)
+            request.session.pop("otp", None)
+            request.session.pop("email", None)
+            request.session.pop("otp_created_time", None)
+            request.session.pop("otp_count", None)
+
+            print("Signup OLD:", old_session_key)
+            print("Signup NEW:", request.session.session_key)
+
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+
+            merge_cart_after_login(request, user, old_session_key)
 
             messages.success(request, "Account created successfully")
             return redirect("home")
