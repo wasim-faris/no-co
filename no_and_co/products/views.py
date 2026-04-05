@@ -7,6 +7,11 @@ from django.db.models import Min, Sum, Prefetch, Q
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.db import transaction
+from admin_dashboard.decorators import admin_required
+from django.views.decorators.cache import never_cache
+
+@admin_required
+@never_cache
 def admin_products(request):
     status = request.GET.get("status")
     if status == "archived":
@@ -58,6 +63,8 @@ def get_subcategories(request, category_id):
     subs = Subcategory.objects.filter(category_id=category_id, is_active=True, is_deleted=False)
     return JsonResponse({"subcategories": list(subs.values("id", "subcategory_name"))})
 
+@admin_required
+@never_cache
 def admin_product_details(request, id):
     product = get_object_or_404(Product, id=id)
 
@@ -67,7 +74,7 @@ def admin_product_details(request, id):
         if action == "add_variant":
             size_name = request.POST.get("size")
             size_obj, _ = Size.objects.get_or_create(name=size_name)
-            
+
             Variant.objects.create(
                 product = product,
                 size = size_obj,
@@ -132,7 +139,8 @@ def admin_product_details(request, id):
         "subcategory": subcategory,
     })
 
-
+@admin_required
+@never_cache
 def admin_product_management(request, id=None):
     if id:
         product = get_object_or_404(Product, id=id)
@@ -204,6 +212,8 @@ def admin_product_toggle(request, id):
     messages.success(request, f"Product {'active' if product.is_active else 'inactive'} successfully")
     return redirect(request.META.get('HTTP_REFERER'))
 
+@admin_required
+@never_cache
 def admin_variants(request, id):
     product = get_object_or_404(Product, id=id)
 
