@@ -26,12 +26,18 @@ def home(request):
         )
     ).order_by("-created_at")[:6]
 
+    search_history = request.session.get("search_history",[])
+
     return render(request, "index.html",{
-        "variants":variants
+        "variants":variants,
+        "search_history":search_history
     })
 
 def ladies(request):
-    return render(request, "ladies.html")
+    search_history = request.session.get("search_history",[])
+    return render(request, "ladies.html",{
+        "search_history":search_history
+    })
 
 def product_details(request, id):
     product = get_object_or_404(Product , id=id)
@@ -86,6 +92,8 @@ def product_details(request, id):
             if not product_image:
                 product_image = v_fallback.images.first()
 
+    search_history = request.session.get("search_history",[])
+
     return render(request, "product-details.html",{
         "product":product,
         "variants":variants,
@@ -93,7 +101,8 @@ def product_details(request, id):
         "unique_sizes":unique_sizes,
         "default_variant":default_variant,
         "product_image":product_image,
-        "similar_items":similar_items
+        "similar_items":similar_items,
+        "search_history":search_history
     })
 
 def product_listing(request):

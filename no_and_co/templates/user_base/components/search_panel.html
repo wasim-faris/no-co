@@ -39,49 +39,23 @@
     </div>
 
     <!-- Content Area -->
-    <div class="flex-grow overflow-y-auto px-8 md:px-12 py-10 scroll-smooth custom-scrollbar">
-
-        <!-- Search History Section -->
-        <div class="mb-14">
-            <div class="flex items-center justify-between mb-8">
-                <h3 class="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">Search History</h3>
-                <button type="button" id="clearSearchHistory" class="text-[10px] font-medium uppercase tracking-widest text-black hover:opacity-100 opacity-60 underline underline-offset-4 decoration-current transition-all">Clear</button>
-            </div>
-            <div id="search-history-list" class="flex flex-col -mx-4">
-                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Baggy Jeans">
-                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Baggy Jeans</span>
-                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
+    <div id="search-history-container" class="flex-grow overflow-y-auto px-8 md:px-12 py-6 opacity-0 transition-opacity duration-300 pointer-events-none">
+        {% if search_history %}
+            <div class="mb-10">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-black">Search History</h3>
+                    <button type="button" id="clearSearchHistory" class="text-[10px] font-medium uppercase tracking-widest text-black hover:opacity-100 opacity-60 underline underline-offset-4 decoration-current transition-all">Clear</button>
                 </div>
-                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Pants">
-                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Pants</span>
-                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
-                </div>
-                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Pant Mens">
-                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Pant Mens</span>
-                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
+                <div class="flex flex-col -mx-4">
+                    {% for query in search_history %}
+                        <a href="{% url 'product-listing' %}?q={{ query|urlencode }}" 
+                           class="flex items-center px-4 py-3 hover:bg-gray-50 transition-all cursor-pointer no-underline group">
+                            <span class="text-[14px] font-medium text-black tracking-tight transition-colors">{{ query }}</span>
+                        </a>
+                    {% endfor %}
                 </div>
             </div>
-        </div>
-
-        <!-- Popular Searches Section -->
-        <div class="mb-12">
-            <h3 class="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-8">Popular Searches</h3>
-            <div id="popular-search-list" class="flex flex-col -mx-4">
-                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Tops Women">
-                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Tops Women</span>
-                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
-                </div>
-                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Shirt Men">
-                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Shirt Men</span>
-                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
-                </div>
-                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Tops & T-Shirts Kids">
-                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Tops & T-Shirts Kids</span>
-                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
-                </div>
-            </div>
-        </div>
-
+        {% endif %}
     </div>
 </div>
 
@@ -97,6 +71,11 @@
     }
 
     #search-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    #search-history-container.visible {
         opacity: 1;
         pointer-events: auto;
     }
@@ -129,6 +108,7 @@
         const input = document.getElementById('search-input');
         const clearInputBtn = document.getElementById('clear-input-btn');
         const searchForm = document.getElementById('searchForm');
+        const historyContainer = document.getElementById('search-history-container');
 
         if (!panel || !overlay) return;
 
@@ -150,6 +130,7 @@
             panel.classList.remove('active');
             overlay.classList.remove('active');
             document.body.classList.remove('search-open');
+            if(historyContainer) historyContainer.classList.remove('visible');
         }
 
         triggers.forEach(t => {
@@ -169,8 +150,8 @@
             if (e.key === 'Escape' && panel.classList.contains('active')) close();
         });
 
-        // Input clear logic
-        if (input && clearInputBtn) {
+        // Input clear logic & History Visibility
+        if (input) {
             input.oninput = () => {
                 if (input.value.length > 0) {
                     clearInputBtn.classList.remove('opacity-0', 'pointer-events-none');
@@ -181,31 +162,32 @@
                 }
             };
 
-            clearInputBtn.onclick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                input.value = '';
-                input.focus();
-                clearInputBtn.classList.add('opacity-0', 'pointer-events-none');
-                clearInputBtn.classList.remove('opacity-100', 'pointer-events-auto');
+            input.onfocus = () => {
+                if(historyContainer) historyContainer.classList.add('visible');
             };
+
+            if (clearInputBtn) {
+                clearInputBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    input.value = '';
+                    input.focus();
+                    clearInputBtn.classList.add('opacity-0', 'pointer-events-none');
+                    clearInputBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                };
+            }
         }
 
-        // Search item selection delegate
+        // Hide history on outside click
         document.addEventListener('click', (e) => {
-            const item = e.target.closest('.search-item');
-            if (item && input) {
-                const query = item.getAttribute('data-query') || '';
-                input.value = query;
-                input.dispatchEvent(new Event('input')); // Trigger clear button check
-                // Note: No auto-submit, leave control to backend later
+            if (historyContainer && !historyContainer.contains(e.target) && !input.contains(e.target)) {
+                historyContainer.classList.remove('visible');
             }
         });
 
         // Prevent accidental form submission if input is empty
         if (searchForm) {
             searchForm.onsubmit = (e) => {
-                // Ensure form only submits if input contains text
                 if (!input.value.trim()) {
                     e.preventDefault();
                 }

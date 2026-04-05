@@ -118,12 +118,15 @@ def cart_view(request):
             if rep_variant:
                 similar_items.append(rep_variant)
 
+    search_history = request.session.get("search_history", [])
+
     return render(request, 'cart.html', {
         "cart_items": cart_items,
         "order_total": order_total,
         "delivery_fee": delivery_fee,
         "full_total": full_total,
         "similar_items": similar_items,
+        "search_history":search_history
     })
 
 def add_to_cart(request, variant_id):
