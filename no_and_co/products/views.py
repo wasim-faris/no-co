@@ -147,6 +147,14 @@ def admin_product_details(request, id):
             messages.success(request,"Product variant deleted succesfully")
             return redirect("admin-product-details", id=product.id)
 
+        if action == "set_default":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant, id=variant_id)
+            variant.is_default = True
+            variant.save()
+            messages.success(request, "Default variant updated")
+            return redirect("admin-product-details", id=product.id)
+
         deleted_product = request.POST.get("deleted_product")
         if deleted_product:
             product.is_deleted = True

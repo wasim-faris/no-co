@@ -79,23 +79,41 @@ class Variant(models.Model):
         if not self.sku:
             self.sku = self.generate_sku()
 
-        # Step 1: Save FIRST to ensure instance exists
+        if self.is_deleted and self.is_default:
+            self.is_default = False
+
         super().save(*args, **kwargs)
 
-        # Step 2: Apply Default Logic conditionally
-        # Case 1: If NO default variant currently exists for this product
-        if not Variant.objects.filter(product=self.product, is_default=True, is_deleted=False).exclude(pk=self.pk).exists():
-            # Promote this variant to be the active default
-            Variant.objects.filter(pk=self.pk).update(is_default=True, is_active=True)
-            self.is_default = True
-            self.is_active = True
+        if not self.is_deleted:
+            if self.is_default:
+                Variant.objects.filter(product=self.product, is_default=True).exclude(pk=self.pk).update(is_default=False)
+                if not self.is_active:
+                    Variant.objects.filter(pk=self.pk).update(is_active=True)
+                    self.is_active = True
+            else:
+                if not Variant.objects.filter(product=self.product, is_default=True, is_deleted=False).exists():
+                    self.is_default = True
+                    self.is_active = True
+                    Variant.objects.filter(pk=self.pk).update(is_default=True, is_active=True)
+        else:
+            if not Variant.objects.filter(product=self.product, is_default=True, is_deleted=False).exists():
+                next_default = Variant.objects.filter(product=self.product, is_deleted=False).first()
+                if next_default:
+                    next_default.is_default = True
+                    next_default.is_active = True
+                    next_default.save()
 
-        # Case 2: If this variant was manually set as default, unset the previous default
-        elif self.is_default and not self.is_deleted:
-            Variant.objects.filter(product=self.product, is_default=True).exclude(pk=self.pk).update(is_default=False)
-            if not self.is_active:
-                Variant.objects.filter(pk=self.pk).update(is_active=True)
-                self.is_active = True
+    def delete(self, *args, **kwargs):
+        is_def = self.is_default
+        prod = self.product
+        super().delete(*args, **kwargs)
+        if is_def:
+            if not Variant.objects.filter(product=prod, is_default=True, is_deleted=False).exists():
+                next_default = Variant.objects.filter(product=prod, is_deleted=False).first()
+                if next_default:
+                    next_default.is_default = True
+                    next_default.is_active = True
+                    next_default.save()
 
     def __str__(self):
         return f"{self.product.product_name} - {self.size.name} - {self.color}"

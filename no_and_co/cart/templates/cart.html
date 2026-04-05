@@ -429,12 +429,13 @@
                     data-stock="{{ item.variant.stock }}"
                 >
                     <!-- Image -->
-                    <div class="relative w-[110px] sm:w-[130px] flex-shrink-0 bg-gray-50 h-max">
+                    <div class="relative w-[110px] sm:w-[130px] flex-shrink-0 bg-gray-50 h-max skeleton-wrapper block">
                         {% if item.primary_image %}
-                            <a href="{% url 'product-details' item.variant.product.id %}">
-                                <img src="{{ item.primary_image.image.url }}"
+                            <a href="{% url 'product-details' item.variant.product.id %}" class="block relative w-full h-full">
+                                <div class="skeleton skeleton-img"></div>
+                                <img data-src="{{ item.primary_image.image.url }}"
                                      alt="{{ item.variant.product.product_name }}"
-                                     class="w-full h-auto object-cover aspect-[2/3]">
+                                     class="w-full h-auto object-cover aspect-[2/3] lazy-image">
                             </a>
                         {% else %}
                             <a href="{% url 'product-details' item.variant.product.id %}">
@@ -588,13 +589,14 @@
         <div class="similar-carousel" id="similarCarousel">
             {% for item in similar_items|slice:":6" %}
             <a href="{% url 'product-details' item.product.id %}" class="similar-card group">
-                <div class="similar-img-wrapper relative">
+                <div class="similar-img-wrapper relative skeleton-wrapper block">
+                    <div class="skeleton skeleton-img"></div>
                     {% with all_imgs=item.images.all %}
                     {% if all_imgs|length > 1 %}
-                        <img src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0" alt="{{ item.color }}">
-                        <img src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
                     {% else %}
-                        <img src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover" alt="{{ item.color }}">
+                        <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
                     {% endif %}
                     {% endwith %}
                     <button class="similar-heart" aria-label="Add to Wishlist">
@@ -630,13 +632,14 @@
         <div class="similar-carousel" id="othersCarousel">
             {% for item in similar_items reversed %}
             <a href="{% url 'product-details' item.product.id %}" class="similar-card group">
-                <div class="similar-img-wrapper relative">
+                <div class="similar-img-wrapper relative skeleton-wrapper block">
+                    <div class="skeleton skeleton-img"></div>
                     {% with all_imgs=item.images.all %}
                     {% if all_imgs|length > 1 %}
-                        <img src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0" alt="{{ item.color }}">
-                        <img src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
                     {% else %}
-                        <img src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover" alt="{{ item.color }}">
+                        <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
                     {% endif %}
                     {% endwith %}
                     <button class="similar-heart" aria-label="Add to Wishlist">

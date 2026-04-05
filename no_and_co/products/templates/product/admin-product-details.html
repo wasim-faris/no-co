@@ -636,6 +636,16 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
 
                                 <!-- Actions -->
                                 <div class="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                    {% if not variant.is_default %}
+                                    <form method="POST" action="{% url 'admin-product-details' product.id %}" class="m-0 p-0 inline-flex" title="Set as default">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="set_default">
+                                        <input type="hidden" name="variant_id" value="{{ variant.id }}">
+                                        <button type="submit" class="text-[9px] uppercase font-bold text-gray-400 hover:text-black hover:underline underline-offset-2 transition-all">
+                                            Make Default
+                                        </button>
+                                    </form>
+                                    {% endif %}
                                     <button type="button"
                                         class="editVariantBtn text-[9px] uppercase font-bold text-gray-400 hover:text-black hover:underline underline-offset-2 transition-all"
                                         data-id="{{ variant.id }}"
