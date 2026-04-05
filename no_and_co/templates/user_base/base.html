@@ -1,208 +1,339 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>{% block title %}NO&CO – Men's Fashion{% endblock %}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet"/>
-  <style>
-    html, body {
-        font-family: 'Manrope', sans-serif;
-        margin: 0;
-        padding: 0;
-        width: 100%;
-        overflow-x: hidden;
-        position: relative;
-    }
-    .brand { font-weight: 800; letter-spacing: -0.02em; }
-    .nav-link { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; }
-    .section-label { font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
-    .sub-label { font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; color: #666; }
-    .no-gap { gap: 0 !important; }
-    .product-grid-item { position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; background-color: #fff; }
-    .product-grid-item img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* ════════════════════════════════════════
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}NO&CO – Men's Fashion{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Figtree:wght@300;400;500;600&display=swap"
+        rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+    <style>
+        html,
+        body {
+            font-family: 'Manrope', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        .brand {
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-link {
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .section-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .sub-label {
+            font-size: 0.55rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #666;
+        }
+
+        .no-gap {
+            gap: 0 !important;
+        }
+
+        .product-grid-item {
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+        }
+
+        .product-grid-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* ════════════════════════════════════════
        MOBILE BOTTOM NAVBAR – GLASS ISLAND
     ════════════════════════════════════════ */
-    @media (max-width: 767px) {
-      .mobile-nav-container {
-        position: fixed;
-        bottom: 24px;
-        left: 0;
-        right: 0;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        z-index: 1000;
-        pointer-events: none;
-        margin: 0 auto;
-      }
-      .mobile-bottom-nav {
-        width: 92%;
-        max-width: 420px;
-        height: 72px;
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 9999px;
-        border: 0.5px solid rgba(0,0,0,0.1);
-        box-shadow: 0 10px 40px rgba(0,0,0,0.06);
-        display: flex;
-        align-items: center;
-        justify-content: space-around;
-        padding: 0 16px;
-        pointer-events: auto;
-      }
-      .mobile-bottom-nav a {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        flex: 1;
-        height: 100%;
-        text-decoration: none;
-        color: rgba(0,0,0,0.5);
-        transition: all 0.2s ease;
-      }
-      .mobile-bottom-nav a:active { transform: scale(0.92); }
-      .mobile-bottom-nav a.active { color: #000; }
+        @media (max-width: 767px) {
+            .mobile-nav-container {
+                position: fixed;
+                bottom: 24px;
+                left: 0;
+                right: 0;
+                width: 100%;
+                display: flex;
+                justify-content: center;
+                z-index: 1000;
+                pointer-events: none;
+                margin: 0 auto;
+            }
 
-      .mobile-bottom-nav a svg {
-        width: 21px;
-        height: 21px;
-        stroke-width: 0.75; /* Premium ultra-fine weight */
-      }
+            .mobile-bottom-nav {
+                width: 92%;
+                max-width: 420px;
+                height: 72px;
+                background: rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-radius: 9999px;
+                border: 0.5px solid rgba(0, 0, 0, 0.1);
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+                display: flex;
+                align-items: center;
+                justify-content: space-around;
+                padding: 0 16px;
+                pointer-events: auto;
+            }
 
-      .mobile-bottom-nav a span {
-        font-size: 10px;
-        font-weight: 300;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        line-height: 1;
-        opacity: 0.8;
-      }
+            .mobile-bottom-nav a {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                flex: 1;
+                height: 100%;
+                text-decoration: none;
+                color: rgba(0, 0, 0, 0.5);
+                transition: all 0.2s ease;
+            }
 
-      /* Active Highlight */
-      .mobile-bottom-nav a.active span { opacity: 1; font-weight: 400; }
+            .mobile-bottom-nav a:active {
+                transform: scale(0.92);
+            }
 
-      /* Grid images — consistent sizing for mobile grid items */
-      .product-grid-item { height: 240px; aspect-ratio: unset; }
-    }
-    .footer-title { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: #000; margin-bottom: 1rem; }
-    .footer-link { font-size: 0.65rem; color: #6b7280; display: block; margin-bottom: 0.65rem; transition: color 0.2s; text-decoration: none; }
-    .footer-link:hover { color: #000; }
+            .mobile-bottom-nav a.active {
+                color: #000;
+            }
 
-    /* ════════════════════════════════════════
+            .mobile-bottom-nav a svg {
+                width: 21px;
+                height: 21px;
+                stroke-width: 0.75;
+                /* Premium ultra-fine weight */
+            }
+
+            .mobile-bottom-nav a span {
+                font-size: 10px;
+                font-weight: 300;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                line-height: 1;
+                opacity: 0.8;
+            }
+
+            /* Active Highlight */
+            .mobile-bottom-nav a.active span {
+                opacity: 1;
+                font-weight: 400;
+            }
+
+            /* Grid images — consistent sizing for mobile grid items */
+            .product-grid-item {
+                height: 240px;
+                aspect-ratio: unset;
+            }
+        }
+
+        .footer-title {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #000;
+            margin-bottom: 1rem;
+        }
+
+        .footer-link {
+            font-size: 0.65rem;
+            color: #6b7280;
+            display: block;
+            margin-bottom: 0.65rem;
+            transition: color 0.2s;
+            text-decoration: none;
+        }
+
+        .footer-link:hover {
+            color: #000;
+        }
+
+        /* ════════════════════════════════════════
        SKELETON ANIMATION & SHIMMER
     ════════════════════════════════════════ */
-    .skeleton {
-        background: #e5e5e5;
-        background: linear-gradient(90deg, #e5e5e5 25%, #f2f2f2 50%, #e5e5e5 75%);
-        background-size: 200% 100%;
-        animation: shimmer 1.5s infinite linear;
-        border-radius: 2px;
-    }
-    @keyframes shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
+        .skeleton {
+            background: #e5e5e5;
+            background: linear-gradient(90deg, #e5e5e5 25%, #f2f2f2 50%, #e5e5e5 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+            border-radius: 2px;
+        }
 
-    .skeleton-img {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 10;
-        pointer-events: none;
-    }
-    .skeleton-text {
-        height: 12px;
-        margin-bottom: 8px;
-    }
-    .skeleton-swatch {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-    }
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
 
-    /* LAZY LOAD LOGIC & REVEAL */
-    .lazy-image {
-        opacity: 0;
-        transition: opacity 0.4s ease-in-out;
-    }
-    .skeleton-wrapper .actual-content {
-        display: none;
-    }
-    .skeleton-wrapper.is-loaded .skeleton {
-        display: none !important;
-        animation: none;
-    }
-    .skeleton-wrapper.is-loaded .actual-content {
-        display: block;
-    }
-    .skeleton-wrapper.is-loaded .lazy-image {
-        opacity: 1;
-    }
-  </style>
-  {% block extra_head %}{% endblock %}
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        .skeleton-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .skeleton-text {
+            height: 12px;
+            margin-bottom: 8px;
+        }
+
+        .skeleton-swatch {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* LAZY LOAD LOGIC & REVEAL */
+        .lazy-image {
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+
+        .skeleton-wrapper .actual-content {
+            display: none;
+        }
+
+        .skeleton-wrapper.is-loaded .skeleton {
+            display: none !important;
+            animation: none;
+        }
+
+        .skeleton-wrapper.is-loaded .actual-content {
+            display: block;
+        }
+
+        .skeleton-wrapper.is-loaded .lazy-image {
+            opacity: 1;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
+
 <body class="bg-white text-black">
 
-<!-- Announcement Bar -->
-<div class="w-full bg-white py-3 px-6 flex items-center justify-between border-b border-gray-100">
-    <span class="text-[#e03b2a] text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em]">
-        FLAT 20% OFF ALL MENSWEAR
-    </span>
-    <span class="text-[#e03b2a] text-sm leading-none font-light cursor-pointer">+</span>
-</div>
+    <!-- Announcement Bar -->
+    <div class="w-full bg-white py-3 px-6 flex items-center justify-between border-b border-gray-100">
+        <span class="text-[#e03b2a] text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em]">
+            FLAT 20% OFF ALL MENSWEAR
+        </span>
+        <span class="text-[#e03b2a] text-sm leading-none font-light cursor-pointer">+</span>
+    </div>
 
-{% include 'user_base/components/navbar.html' %}
-  <main class="pb-20 md:pb-0">
-    {% block content %}
-    {% endblock %}
-  </main>
+    {% include 'user_base/components/navbar.html' %}
+    <main class="pb-20 md:pb-0">
+        {% block content %}
+        {% endblock %}
+    </main>
 
-<!-- Mobile Bottom Navigation -->
-<div class="mobile-nav-container md:hidden">
-    <nav class="mobile-bottom-nav">
-        <a href="/" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-            <span>Home</span>
-        </a>
-        <a href="#">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <span>Search</span>
-        </a>
-        <a href="#">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-            <span>Wishlist</span>
-        </a>
-        <a href="{% if user.is_authenticated %}{% url 'user-profile' user.id %}{% else %}{% url 'login' %}{% endif %}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <span>Account</span>
-        </a>
-        <a href="{% url "cart" %}" class="relative">
-            <div class="relative">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="6" width="16" height="14" rx="2"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                <span id="mobileCartCount" class="absolute -top-1.5 -right-2 bg-black text-white rounded-full w-[14px] h-[14px] flex items-center justify-center text-[8px] font-bold {% if cart_count <= 0 %}hidden{% endif %}">{{ cart_count|default:"0" }}</span>
-            </div>
-            <span>Bag</span>
-        </a>
-    </nav>
-</div>
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-nav-container md:hidden">
+        <nav class="mobile-bottom-nav">
+            <a href="/" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                    <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+                <span>Home</span>
+            </a>
+            <button id="mobileSearchTrigger" class="flex flex-col items-center justify-center gap-6 flex-1 h-full text-gray-500/50 hover:text-black transition-all outline-none bg-transparent p-0 border-none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round" class="w-[21px] h-[21px] stroke-[0.75]">
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                </svg>
+                <span class="text-[10px] font-light uppercase tracking-[0.08em] opacity-80">Search</span>
+            </button>
+            <a href="#">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path
+                        d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                </svg>
+                <span>Wishlist</span>
+            </a>
+            <a
+                href="{% if user.is_authenticated %}{% url 'user-profile' user.id %}{% else %}{% url 'login' %}{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+                <span>Account</span>
+            </a>
+            <a href="{% url "cart" %}" class="relative">
+                <div class="relative">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="4" y="6" width="16" height="14" rx="2" />
+                        <path d="M16 10a4 4 0 0 1-8 0" />
+                    </svg>
+                    <span id="mobileCartCount"
+                        class="absolute -top-1.5 -right-2 bg-black text-white rounded-full w-[14px] h-[14px] flex items-center justify-center text-[8px] font-bold {% if cart_count <= 0 %}hidden{% endif %}">{{
+                        cart_count|default:"0" }}</span>
+                </div>
+                <span>Bag</span>
+            </a>
+        </nav>
+    </div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    const lazyImages = document.querySelectorAll('img.lazy-image');
-    if ('IntersectionObserver' in window) {
-        const imageObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const lazyImages = document.querySelectorAll('img.lazy-image');
+            if ('IntersectionObserver' in window) {
+                const imageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            if (img.dataset.src) {
+                                img.src = img.dataset.src;
+                                img.removeAttribute('data-src');
+                            }
+                            img.onload = () => {
+                                const wrapper = img.closest('.skeleton-wrapper');
+                                if (wrapper) wrapper.classList.add('is-loaded');
+                                else img.classList.add('is-loaded');
+                            };
+                            observer.unobserve(img);
+                        }
+                    });
+                }, { rootMargin: "200px 0px", threshold: 0.01 });
+
+                lazyImages.forEach(image => imageObserver.observe(image));
+            } else {
+                // Fallback for older browsers
+                lazyImages.forEach(img => {
                     if (img.dataset.src) {
                         img.src = img.dataset.src;
                         img.removeAttribute('data-src');
@@ -210,62 +341,46 @@ document.addEventListener("DOMContentLoaded", function() {
                     img.onload = () => {
                         const wrapper = img.closest('.skeleton-wrapper');
                         if (wrapper) wrapper.classList.add('is-loaded');
-                        else img.classList.add('is-loaded');
                     };
-                    observer.unobserve(img);
-                }
-            });
-        }, { rootMargin: "200px 0px", threshold: 0.01 });
-
-        lazyImages.forEach(image => imageObserver.observe(image));
-    } else {
-        // Fallback for older browsers
-        lazyImages.forEach(img => {
-            if (img.dataset.src) {
-                img.src = img.dataset.src;
-                img.removeAttribute('data-src');
+                });
             }
-            img.onload = () => {
-                const wrapper = img.closest('.skeleton-wrapper');
-                if (wrapper) wrapper.classList.add('is-loaded');
-            };
         });
-    }
-});
-</script>
+    </script>
 
- <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Shared listener for local dropdown triggers
-    document.addEventListener('click', function(e) {
-        const trigger = e.target.closest('#categoryDropdownTrigger');
-        if (trigger) {
-            const dropdown = trigger.parentElement.querySelector('#categoryDropdown');
-            if (dropdown) {
-                e.preventDefault();
-                e.stopPropagation();
-                const isOpen = dropdown.style.maxHeight !== '0px' && dropdown.style.maxHeight !== '';
-                if (isOpen) {
-                    dropdown.style.maxHeight = '0px';
-                    dropdown.style.opacity = '0';
-                    dropdown.style.visibility = 'hidden';
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Shared listener for local dropdown triggers
+            document.addEventListener('click', function (e) {
+                const trigger = e.target.closest('#categoryDropdownTrigger');
+                if (trigger) {
+                    const dropdown = trigger.parentElement.querySelector('#categoryDropdown');
+                    if (dropdown) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const isOpen = dropdown.style.maxHeight !== '0px' && dropdown.style.maxHeight !== '';
+                        if (isOpen) {
+                            dropdown.style.maxHeight = '0px';
+                            dropdown.style.opacity = '0';
+                            dropdown.style.visibility = 'hidden';
+                        } else {
+                            dropdown.style.maxHeight = '300px';
+                            dropdown.style.opacity = '1';
+                            dropdown.style.visibility = 'visible';
+                        }
+                    }
                 } else {
-                    dropdown.style.maxHeight = '300px';
-                    dropdown.style.opacity = '1';
-                    dropdown.style.visibility = 'visible';
+                    // Close all dropdowns on outside click
+                    document.querySelectorAll('#categoryDropdown').forEach(d => {
+                        d.style.maxHeight = '0px';
+                        d.style.opacity = '0';
+                        d.style.visibility = 'hidden';
+                    });
                 }
-            }
-        } else {
-            // Close all dropdowns on outside click
-            document.querySelectorAll('#categoryDropdown').forEach(d => {
-                d.style.maxHeight = '0px';
-                d.style.opacity = '0';
-                d.style.visibility = 'hidden';
             });
-        }
-    });
-});
-</script>
+        });
+    </script>
 
+    {% include 'user_base/components/search_panel.html' %}
 </body>
+
 </html>

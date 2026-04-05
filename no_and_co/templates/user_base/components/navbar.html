@@ -1,211 +1,241 @@
 <header class="hidden md:block w-full bg-white border-b border-gray-100 sticky top-0 z-50 font-sans">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&display=swap');
 
-    :root {
-        --hm-black: #000000;
-        --hm-gray: #767676;
-    }
+        :root {
+            --hm-black: #000000;
+            --hm-gray: #767676;
+        }
 
-    /* Custom Dropdown Styling */
-    .user-dropdown {
-        display: none;
-        position: absolute;
-        top: calc(100% + 10px);
-        right: -10px;
-        background: white;
-        width: 220px;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-        border: 1px solid #eee;
-        z-index: 100;
-        animation: slideUp 0.3s ease-out;
-    }
+        /* Custom Dropdown Styling */
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            top: calc(100% + 10px);
+            right: -10px;
+            background: white;
+            width: 220px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            border: 1px solid #eee;
+            z-index: 100;
+            animation: slideUp 0.3s ease-out;
+        }
 
-    .user-dropdown.active {
-        display: block;
-    }
+        .user-dropdown.active {
+            display: block;
+        }
 
-    @keyframes slideUp {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
 
-    .dropdown-item {
-        display: block;
-        padding: 14px 24px;
-        font-size: 11px;
-        font-weight: 400;
-        text-transform: uppercase;
-        letter-spacing: 0.1em;
-        color: var(--hm-black);
-        transition: all 0.2s;
-        text-decoration: none;
-    }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
-    .dropdown-item:hover {
-        background: #f5f5f5;
-        padding-left: 28px;
-    }
+        .dropdown-item {
+            display: block;
+            padding: 14px 24px;
+            font-size: 11px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--hm-black);
+            transition: all 0.2s;
+            text-decoration: none;
+        }
 
-    /* Minimalist Nav Hover Effect */
-    .nav-link {
-        position: relative;
-        padding-bottom: 2px;
-        transition: color 0.3s ease;
-        text-decoration: none;
-    }
+        .dropdown-item:hover {
+            background: #f5f5f5;
+            padding-left: 28px;
+        }
 
-    .nav-link::after {
-        content: '';
-        position: absolute;
-        bottom: -2px;
-        left: 50%;
-        width: 0;
-        height: 1.5px;
-        background: black;
-        transition: all 0.3s ease;
-        transform: translateX(-50%);
-    }
+        /* Minimalist Nav Hover Effect */
+        .nav-link {
+            position: relative;
+            padding-bottom: 2px;
+            transition: color 0.3s ease;
+            text-decoration: none;
+        }
 
-    .nav-link.active::after {
-        width: 100%;
-    }
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 50%;
+            width: 0;
+            height: 1.5px;
+            background: black;
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
 
-    .nav-link.active {
-        color: black !important;
-    }
+        .nav-link.active::after {
+            width: 100%;
+        }
 
-    .brand {
-        letter-spacing: -0.05em;
-        text-decoration: none;
-        color: black;
-    }
+        .nav-link.active {
+            color: black !important;
+        }
 
-    /* Cart Badge Animation */
-    @keyframes cartPop {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.4); }
-        100% { transform: scale(1); }
-    }
-    .cart-pop {
-        animation: cartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-  </style>
+        .brand {
+            letter-spacing: -0.05em;
+            text-decoration: none;
+            color: black;
+        }
 
-  <div class="w-full px-6 md:px-10 flex items-center justify-between h-16">
+        /* Cart Badge Animation */
+        @keyframes cartPop {
+            0% {
+                transform: scale(1);
+            }
 
-    <a href="/" class="brand text-2xl font-medium">NØ&CO</a>
+            50% {
+                transform: scale(1.4);
+            }
 
-    <nav class="hidden md:flex items-center gap-10">
-      <a href="{% url 'home' %}"
-         class="nav-link text-[11px] uppercase font-medium tracking-[0.15em] {% if request.resolver_match.url_name == 'home' %}active text-black{% else %}text-gray-400 hover:text-black{% endif %}">
-         Mens
-      </a>
+            100% {
+                transform: scale(1);
+            }
+        }
 
-      <a href="{% url 'ladies' %}"
-         class="nav-link text-[11px] uppercase font-medium tracking-[0.15em] {% if request.resolver_match.url_name == 'ladies' %}active text-black{% else %}text-gray-400 hover:text-black{% endif %}">
-         Ladies
-      </a>
+        .cart-pop {
+            animation: cartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+    </style>
 
-      <a href="#"
-         class="nav-link text-[11px] uppercase font-medium tracking-[0.15em] text-gray-400 hover:text-black">
-         Kids
-      </a>
-    </nav>
+    <div class="w-full px-6 md:px-10 flex items-center justify-between h-16">
 
-    <div class="flex items-center gap-6 text-black">
-      <button class="hover:opacity-60 transition-opacity bg-transparent border-none p-0 cursor-pointer">
-        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-      </button>
+        <a href="/" class="brand text-2xl font-medium">NØ&CO</a>
 
-      <button class="hover:opacity-60 transition-opacity bg-transparent border-none p-0 cursor-pointer">
-        <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-      </button>
+        <nav class="hidden md:flex items-center gap-10">
+            <a href="{% url 'home' %}"
+                class="nav-link text-[11px] uppercase font-medium tracking-[0.15em] {% if request.resolver_match.url_name == 'home' %}active text-black{% else %}text-gray-400 hover:text-black{% endif %}">
+                Mens
+            </a>
 
-      <div class="relative">
-        {% if user.is_authenticated %}
-            <button id="userMenuTrigger" class="flex items-center gap-1 hover:opacity-60 transition-opacity bg-transparent border-none p-0 cursor-pointer">
+            <a href="{% url 'ladies' %}"
+                class="nav-link text-[11px] uppercase font-medium tracking-[0.15em] {% if request.resolver_match.url_name == 'ladies' %}active text-black{% else %}text-gray-400 hover:text-black{% endif %}">
+                Ladies
+            </a>
+
+            <a href="#"
+                class="nav-link text-[11px] uppercase font-medium tracking-[0.15em] text-gray-400 hover:text-black">
+                Kids
+            </a>
+        </nav>
+
+        <div class="flex items-center gap-6 text-black">
+            <button id="searchTrigger" class="hover:opacity-60 transition-opacity bg-transparent border-none p-0 cursor-pointer">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    <circle cx="11" cy="11" r="7" />
+                    <path d="M21 21l-4.35-4.35" />
                 </svg>
             </button>
 
-            <div id="userDropdown" class="user-dropdown">
-                <div class="px-6 py-4 bg-gray-50/50 border-b border-gray-100">
-                    <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Membership</p>
-                    <p class="text-[12px] font-medium truncate uppercase tracking-tighter">{{ user.username }}</p>
-                </div>
-                <a href="{% url 'user-profile' user.id %}" class="dropdown-item">My Account</a>
-                <a href="#" class="dropdown-item">Orders</a>
-                <a href="#" class="dropdown-item">Settings</a>
-                <div class="h-[1px] bg-gray-100"></div>
-                <form action="{% url 'logout-user' %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit" class="dropdown-item w-full text-left text-red-500 hover:bg-red-50 border-none bg-transparent cursor-pointer">Sign Out</button>
-                </form>
-            </div>
-        {% else %}
-            <a href="{% url 'login' %}" class="hover:opacity-60 transition-opacity">
+            <button class="hover:opacity-60 transition-opacity bg-transparent border-none p-0 cursor-pointer">
                 <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    <path
+                        d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
+            </button>
+
+            <div class="relative">
+                {% if user.is_authenticated %}
+                <button id="userMenuTrigger"
+                    class="flex items-center gap-1 hover:opacity-60 transition-opacity bg-transparent border-none p-0 cursor-pointer">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.2"
+                        viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                </button>
+
+                <div id="userDropdown" class="user-dropdown">
+                    <div class="px-6 py-4 bg-gray-50/50 border-b border-gray-100">
+                        <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Membership</p>
+                        <p class="text-[12px] font-medium truncate uppercase tracking-tighter">{{ user.username }}</p>
+                    </div>
+                    <a href="{% url 'user-profile' user.id %}" class="dropdown-item">My Account</a>
+                    <a href="#" class="dropdown-item">Orders</a>
+                    <a href="#" class="dropdown-item">Settings</a>
+                    <div class="h-[1px] bg-gray-100"></div>
+                    <form action="{% url 'logout-user' %}" method="post">
+                        {% csrf_token %}
+                        <button type="submit"
+                            class="dropdown-item w-full text-left text-red-500 hover:bg-red-50 border-none bg-transparent cursor-pointer">Sign
+                            Out</button>
+                    </form>
+                </div>
+                {% else %}
+                <a href="{% url 'login' %}" class="hover:opacity-60 transition-opacity">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.2"
+                        viewBox="0 0 24 24">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
+                </a>
+                {% endif %}
+            </div>
+
+            <a href="/cart/">
+                <button
+                    class="hover:opacity-60 transition-opacity relative bg-transparent border-none p-0 cursor-pointer">
+                    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.2"
+                        viewBox="0 0 24 24">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <path d="M16 10a4 4 0 0 1-8 0" />
+                    </svg>
+                    <span id="navbarCartCount" data-initial-count="{{ cart_count|default:0 }}"
+                        class="absolute -top-1.5 -right-2 bg-black text-white rounded-full w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold {% if cart_count <= 0 %}hidden{% endif %}">
+                        {{ cart_count|default:"0" }}
+                    </span>
+                </button>
             </a>
-        {% endif %}
-      </div>
-
-      <a href="/cart/">
-  <button class="hover:opacity-60 transition-opacity relative bg-transparent border-none p-0 cursor-pointer">
-    <svg class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-      <line x1="3" y1="6" x2="21" y2="6"/>
-      <path d="M16 10a4 4 0 0 1-8 0"/>
-    </svg>
-    <span id="navbarCartCount" 
-          data-initial-count="{{ cart_count|default:0 }}"
-          class="absolute -top-1.5 -right-2 bg-black text-white rounded-full w-[16px] h-[16px] flex items-center justify-center text-[9px] font-bold {% if cart_count <= 0 %}hidden{% endif %}">
-      {{ cart_count|default:"0" }}
-    </span>
-  </button>
-</a>
+        </div>
     </div>
-  </div>
 
-  <script>
-    const trigger = document.getElementById('userMenuTrigger');
-    const dropdown = document.getElementById('userDropdown');
+    <script>
+        const trigger = document.getElementById('userMenuTrigger');
+        const dropdown = document.getElementById('userDropdown');
 
-    if (trigger && dropdown) {
-        trigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdown.classList.toggle('active');
+        if (trigger && dropdown) {
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('active');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        }
+
+        // Global Cart Count Listener — updates BOTH desktop & mobile badges
+        window.addEventListener('cartUpdated', (e) => {
+            const count = e.detail.count;
+            ['navbarCartCount', 'mobileCartCount'].forEach(id => {
+                const badge = document.getElementById(id);
+                if (!badge) return;
+                badge.textContent = count;
+
+                if (count > 0) {
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+
+                // Trigger Pop Animation
+                badge.classList.remove('cart-pop');
+                void badge.offsetWidth; // Force reflow
+                badge.classList.add('cart-pop');
+            });
         });
-
-        document.addEventListener('click', (e) => {
-            if (!trigger.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.classList.remove('active');
-            }
-        });
-    }
-
-    // Global Cart Count Listener — updates BOTH desktop & mobile badges
-    window.addEventListener('cartUpdated', (e) => {
-        const count = e.detail.count;
-        ['navbarCartCount', 'mobileCartCount'].forEach(id => {
-            const badge = document.getElementById(id);
-            if (!badge) return;
-            badge.textContent = count;
-
-            if (count > 0) {
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-
-            // Trigger Pop Animation
-            badge.classList.remove('cart-pop');
-            void badge.offsetWidth; // Force reflow
-            badge.classList.add('cart-pop');
-        });
-    });
-  </script>
+    </script>
 </header>

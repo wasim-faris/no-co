@@ -1,0 +1,208 @@
+<!-- Search Overlay & Panel (H&M Style) -->
+<div id="search-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-[1000] opacity-0 pointer-events-none transition-opacity duration-300 ease-out"></div>
+
+<div id="search-panel" class="fixed top-0 right-0 h-full w-full md:w-[480px] bg-white z-[1001] translate-x-full transition-transform duration-300 cubic-bezier(0.165, 0.84, 0.44, 1) flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.03)]">
+    
+    <!-- Search Input Area -->
+    <div class="px-8 pt-12 pb-10 md:px-12">
+        <div class="flex items-center gap-4 border-b border-black pb-3 relative group">
+            <!-- Search Icon (Left) -->
+            <svg class="w-4 h-4 text-black flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7"></circle>
+                <path d="M21 21l-4.35-4.35"></path>
+            </svg>
+            
+            <!-- Input Field -->
+            <input 
+                type="text" 
+                id="search-input" 
+                placeholder="Search" 
+                autocomplete="off"
+                class="flex-grow text-[15px] font-medium tracking-wide placeholder-gray-400 focus:outline-none bg-transparent"
+            >
+            
+            <!-- NEW: Clear Text Button (Right side of input, same line) -->
+            <button id="clear-input-btn" class="opacity-0 pointer-events-none text-[9px] font-medium uppercase tracking-[0.1em] text-[#767676] hover:text-black hover:underline underline-offset-2 transition-all duration-200 outline-none flex-shrink-0">
+                Clear
+            </button>
+
+            <!-- Close Panel Button (X) -->
+            <button id="closeSearchPanel" class="p-1 hover:opacity-50 transition-opacity outline-none flex-shrink-0">
+                <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                    <path d="M18 6L6 18M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="flex-grow overflow-y-auto px-8 md:px-12 py-10 scroll-smooth custom-scrollbar">
+        
+        <!-- Search History Section -->
+        <div class="mb-14">
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">Search History</h3>
+                <button id="clearSearchHistory" class="text-[10px] font-medium uppercase tracking-widest text-black hover:opacity-100 opacity-60 underline underline-offset-4 decoration-current transition-all">Clear</button>
+            </div>
+            <div id="search-history-list" class="flex flex-col -mx-4">
+                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Baggy Jeans">
+                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Baggy Jeans</span>
+                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
+                </div>
+                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Pants">
+                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Pants</span>
+                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
+                </div>
+                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Pant Mens">
+                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Pant Mens</span>
+                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Searches Section -->
+        <div class="mb-12">
+            <h3 class="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-8">Popular Searches</h3>
+            <div id="popular-search-list" class="flex flex-col -mx-4">
+                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Tops Women">
+                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Tops Women</span>
+                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
+                </div>
+                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Shirt Men">
+                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Shirt Men</span>
+                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
+                </div>
+                <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Tops & T-Shirts Kids">
+                    <span class="text-[13px] font-medium uppercase tracking-[0.12em] text-black opacity-90 group-hover:opacity-100 transition-opacity">Tops & T-Shirts Kids</span>
+                    <i class="ri-arrow-right-up-line text-black opacity-0 group-hover:opacity-100 transition-opacity text-[14px]"></i>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    /* Prevent body scroll when panel is active */
+    body.search-open {
+        overflow: hidden !important;
+        padding-right: var(--scrollbar-width, 0px);
+    }
+
+    #search-panel.active {
+        transform: translateX(0);
+    }
+
+    #search-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Custom thin scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #f0f0f0;
+        border-radius: 10px;
+    }
+</style>
+
+<script>
+(function() {
+    'use strict';
+
+    function initSearchOverlay() {
+        const triggers = [
+            document.getElementById('searchTrigger'),
+            document.getElementById('mobileSearchTrigger')
+        ];
+        const panel = document.getElementById('search-panel');
+        const overlay = document.getElementById('search-overlay');
+        const closeBtn = document.getElementById('closeSearchPanel');
+        const input = document.getElementById('search-input');
+        const clearInputBtn = document.getElementById('clear-input-btn');
+
+        if (!panel || !overlay) return;
+
+        // Calculate scrollbar width for smooth body lock
+        function updateScrollbarWidth() {
+            const scrollbarWidth = (window.innerWidth - document.documentElement.clientWidth);
+            document.documentElement.style.setProperty('--scrollbar-width', scrollbarWidth + 'px');
+        }
+
+        function open() {
+            updateScrollbarWidth();
+            panel.classList.add('active');
+            overlay.classList.add('active');
+            document.body.classList.add('search-open');
+            setTimeout(() => { if(input) input.focus(); }, 400);
+        }
+
+        function close() {
+            panel.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.classList.remove('search-open');
+        }
+
+        triggers.forEach(t => {
+            if (t) {
+                t.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    open();
+                };
+            }
+        });
+
+        if (overlay) overlay.onclick = close;
+        if (closeBtn) closeBtn.onclick = close;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && panel.classList.contains('active')) close();
+        });
+
+        // Input clear logic (H&M Style: "CLEAR" text button same line as input)
+        if (input && clearInputBtn) {
+            input.oninput = () => {
+                if (input.value.length > 0) {
+                    clearInputBtn.classList.remove('opacity-0', 'pointer-events-none');
+                    clearInputBtn.classList.add('opacity-100', 'pointer-events-auto');
+                } else {
+                    clearInputBtn.classList.add('opacity-0', 'pointer-events-none');
+                    clearInputBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                }
+            };
+
+            clearInputBtn.onclick = (e) => {
+                e.stopPropagation();
+                input.value = '';
+                input.focus();
+                clearInputBtn.classList.add('opacity-0', 'pointer-events-none');
+                clearInputBtn.classList.remove('opacity-100', 'pointer-events-auto');
+            };
+        }
+
+        // Search item selection delegate
+        document.addEventListener('click', (e) => {
+            const item = e.target.closest('.search-item');
+            if (item && input) {
+                const query = item.getAttribute('data-query') || '';
+                input.value = query;
+                input.dispatchEvent(new Event('input')); // Trigger clear button check
+                // logic to filter products would trigger here
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSearchOverlay);
+    } else {
+        initSearchOverlay();
+    }
+
+})();
+</script>
