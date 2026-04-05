@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Product(models.Model):
@@ -48,7 +49,10 @@ class Variant(models.Model):
     color_hex = models.CharField(max_length=7, blank=True, null=True)
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.PositiveIntegerField(default=0)
+    stock = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100000)]
+    )
 
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
@@ -75,7 +79,23 @@ class Variant(models.Model):
         if not self.sku:
             self.sku = self.generate_sku()
 
+        # Step 1: Save FIRST to ensure instance exists
         super().save(*args, **kwargs)
+
+        # Step 2: Apply Default Logic conditionally
+        # Case 1: If NO default variant currently exists for this product
+        if not Variant.objects.filter(product=self.product, is_default=True, is_deleted=False).exclude(pk=self.pk).exists():
+            # Promote this variant to be the active default
+            Variant.objects.filter(pk=self.pk).update(is_default=True, is_active=True)
+            self.is_default = True
+            self.is_active = True
+
+        # Case 2: If this variant was manually set as default, unset the previous default
+        elif self.is_default and not self.is_deleted:
+            Variant.objects.filter(product=self.product, is_default=True).exclude(pk=self.pk).update(is_default=False)
+            if not self.is_active:
+                Variant.objects.filter(pk=self.pk).update(is_active=True)
+                self.is_active = True
 
     def __str__(self):
         return f"{self.product.product_name} - {self.size.name} - {self.color}"

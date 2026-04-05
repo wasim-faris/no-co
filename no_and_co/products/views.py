@@ -75,13 +75,22 @@ def admin_product_details(request, id):
             size_name = request.POST.get("size")
             size_obj, _ = Size.objects.get_or_create(name=size_name)
 
+            try:
+                stock_val = int(request.POST.get("stock", 0))
+                if stock_val < 0 or stock_val > 100000:
+                    messages.error(request, "Stock must be between 0 and 100,000")
+                    return redirect("admin-product-details", id=product.id)
+            except ValueError:
+                messages.error(request, "Invalid stock value")
+                return redirect("admin-product-details", id=product.id)
+
             Variant.objects.create(
                 product = product,
                 size = size_obj,
                 color = request.POST.get("color"),
                 color_hex = request.POST.get("color_hex"),
                 price = request.POST.get("price"),
-                stock = request.POST.get("stock"),
+                stock = stock_val,
                 is_active = request.POST.get("is_active") == "true",
                 is_default = request.POST.get("is_default") == "true",
             )
@@ -93,7 +102,16 @@ def admin_product_details(request, id):
             variant = get_object_or_404(Variant , id=variant_id)
             size = request.POST.get("size")
             price = request.POST.get("price")
-            stock = request.POST.get("stock")
+            
+            try:
+                stock_val = int(request.POST.get("stock", 0))
+                if stock_val < 0 or stock_val > 100000:
+                    messages.error(request, "Stock must be between 0 and 100,000")
+                    return redirect("admin-product-details", id=product.id)
+            except ValueError:
+                messages.error(request, "Invalid stock value")
+                return redirect("admin-product-details", id=product.id)
+
             color = request.POST.get("color")
             is_active = request.POST.get("is_active") == "true"
             is_default = request.POST.get("is_default") == "true"
@@ -104,7 +122,7 @@ def admin_product_details(request, id):
             size_obj, _ = Size.objects.get_or_create(name=size)
             variant.size = size_obj
             variant.price = price
-            variant.stock = stock
+            variant.stock = stock_val
             variant.color = color
             variant.color_hex = request.POST.get("color_hex")
             variant.is_active = is_active
@@ -225,77 +243,76 @@ def admin_variants(request, id):
             color = request.POST.get("color")
             color_hex = request.POST.get("color_hex")
             price = request.POST.get("price")
-            stock = request.POST.get("stock")
+            
+            try:
+                stock_val = int(request.POST.get("stock", 0))
+                if stock_val < 0 or stock_val > 100000:
+                    messages.error(request, "Stock must be between 0 and 100,000")
+                    return redirect("admin-variants", id=product.id)
+            except ValueError:
+                messages.error(request, "Invalid stock value")
+                return redirect("admin-variants", id=product.id)
+
             is_active = request.POST.get("is_active") == "true"
-            is_default = request.POST.get("is_default") == "true"
-
-            if is_default:
-                Variant.objects.filter(product=product, is_default=True).update(is_default=False)
-
 
             if not sizes:
-                messages.error(request, "Selet atleast one size", id=product.id)
-                return redirect("admin-variants", id = product.id)
+                messages.error(request, "Select at least one size")
+                return redirect("admin-variants", id=product.id)
 
-            for i , size_id in enumerate(sizes):
-
-                exists = Variant.objects.filter(product = product , size_id = size_id , color = color).exists()
-
+            for size_id in sizes:
+                exists = Variant.objects.filter(product=product, size_id=size_id, color=color).exists()
                 if not exists:
                     variant = Variant.objects.create(
-                    product=product,
-                    size_id=size_id,
-                    color=color,
-                    price=price,
-                    stock=stock,
-                    color_hex=color_hex,
-                    is_active=is_active,
-                    is_default=is_default
-            )
+                        product=product,
+                        size_id=size_id,
+                        color=color,
+                        price=price,
+                        stock=stock_val,
+                        color_hex=color_hex,
+                        is_active=is_active
+                    )
 
-            # Handle Images
-                primary_val = request.POST.get("primary_image", "new_0")
-                for i in range(4):
-                    img = request.FILES.get(f"image_{i}")
-                    if img:
-                        is_primary = (f"new_{i}" == primary_val)
-                        VariantImage.objects.create(variant=variant, image=img, is_primary=is_primary)
+                    # Handle Images
+                    primary_val = request.POST.get("primary_image", "new_0")
+                    for i in range(4):
+                        img = request.FILES.get(f"image_{i}")
+                        if img:
+                            is_primary = (f"new_{i}" == primary_val)
+                            VariantImage.objects.create(variant=variant, image=img, is_primary=is_primary)
 
-                if variant.images.exists() and not variant.images.filter(is_primary=True).exists():
-                    first_img = variant.images.first()
-                    first_img.is_primary = True
-                    first_img.save()
+                    if variant.images.exists() and not variant.images.filter(is_primary=True).exists():
+                        first_img = variant.images.first()
+                        first_img.is_primary = True
+                        first_img.save()
 
-                messages.success(request, "Variant added successfully")
-
+            messages.success(request, "Variant(s) added successfully")
+            return redirect("admin-variants", id=product.id)
 
         elif action == "edit_variant":
             variant_id = request.POST.get("variant_id")
-
             variant = get_object_or_404(Variant, id=variant_id)
-
             sizes = request.POST.getlist("sizes")
 
-            variant.stock = int(request.POST.get("stock", 0))
-            variant.price = float(request.POST.get("price", 0))
-            variant.size_id = int(sizes[0])
+            try:
+                stock_val = int(request.POST.get("stock", 0))
+                if stock_val < 0 or stock_val > 100000:
+                    messages.error(request, "Stock must be between 0 and 100,000")
+                    return redirect("admin-variants", id=product.id)
+                variant.stock = stock_val
+            except ValueError:
+                messages.error(request, "Invalid stock value")
+                return redirect("admin-variants", id=product.id)
 
+            variant.price = float(request.POST.get("price", 0))
             if sizes:
-                variant.size_id = sizes[0]
+                variant.size_id = int(sizes[0])
 
             variant.color = request.POST.get("color")
             variant.color_hex = request.POST.get("color_hex")
-
             variant.is_active = "true" in request.POST.getlist("is_active")
             variant.is_default = "true" in request.POST.getlist("is_default")
 
-            if variant.is_default:
-                other_variants = Variant.objects.filter(product=variant.product).exclude(id=variant.id)
-                for v in other_variants:
-                    v.is_default = False
-                    v.save()
-
-            # Image Management (Deletions & Uploads)
+            # Image Management
             for key in request.POST:
                 if key.startswith("delete_image_") and request.POST.get(key) == "true":
                     img_id = key.split("_")[-1]
@@ -322,23 +339,25 @@ def admin_variants(request, id):
                 first.is_primary = True
                 first.save()
 
-            # 🔥 FORCE COMMIT
             with transaction.atomic():
                 variant.save()
 
+            messages.success(request, "Variant updated successfully")
             return redirect("admin-variants", id=variant.product.id)
 
         elif action == "toggle_variant":
             variant_id = request.POST.get("variant_id")
             variant = get_object_or_404(Variant, id=variant_id)
-            variant.is_active = not variant.is_active
-            variant.save()
-            messages.success(request, f"Variant {'active' if variant.is_active else 'inactive'} successfully")
+            if variant.is_default:
+                messages.warning(request, "Default variant must stay active")
+            else:
+                variant.is_active = not variant.is_active
+                variant.save()
+                messages.success(request, f"Variant {'active' if variant.is_active else 'inactive'} successfully")
 
         elif action == "set_default":
             variant_id = request.POST.get("variant_id")
             variant = get_object_or_404(Variant, id=variant_id)
-            Variant.objects.filter(product=product, is_default=True).update(is_default=False)
             variant.is_default = True
             variant.save()
             messages.success(request, "Default variant updated")

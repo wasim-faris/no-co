@@ -828,7 +828,7 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                         <!-- Stock -->
                         <div class="space-y-2">
                             <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Stock</label>
-                            <input type="number" name="stock" placeholder="0" required
+                            <input type="number" name="stock" placeholder="0" required min="0" max="100000" step="1"
                                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all">
                         </div>
                     </div>
@@ -926,7 +926,7 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                         <!-- Stock -->
                         <div class="space-y-2">
                             <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Stock</label>
-                            <input type="number" name="stock" id="edit-stock" required
+                            <input type="number" name="stock" id="edit-stock" required min="0" max="100000" step="1"
                                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all">
                         </div>
                     </div>
