@@ -109,6 +109,12 @@ def product_listing(request):
     sort = request.GET.get("sort")
     subcategory = request.GET.get("subcategory")
     query = request.GET.get("q")
+    action = request.GET.get("action")
+
+    if action == "delete_history":
+
+        request.session["search_history"] = []
+        return redirect("product-listing")
 
     variants = Variant.objects.filter(
         product__is_active=True,
@@ -159,6 +165,10 @@ def product_listing(request):
         variants = variants.order_by("price")
     elif sort == "high_price":
         variants = variants.order_by("-price")
+    elif sort == "name_asc":
+        variants = variants.order_by("product__product_name")
+    elif sort == "name_desc":
+        variants = variants.order_by("-product__product_name")
 
     return render(request, "product-listing.html", {
         "variants": variants,

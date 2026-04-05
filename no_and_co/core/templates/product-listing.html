@@ -533,6 +533,16 @@
                           <input type="radio" name="sort" value="high_price"
                           {% if request.GET.sort == "high_price" %}checked{% endif %}>
                       </label>
+                      <label class="sort-option">
+                          Name: A to Z
+                          <input type="radio" name="sort" value="name_asc"
+                          {% if request.GET.sort == "name_asc" %}checked{% endif %}>
+                      </label>
+                      <label class="sort-option">
+                          Name: Z to A
+                          <input type="radio" name="sort" value="name_desc"
+                          {% if request.GET.sort == "name_desc" %}checked{% endif %}>
+                      </label>
                   </form>
               </div>
           </div>

@@ -13,6 +13,9 @@
                     <path d="M21 21l-4.35-4.35"></path>
                 </svg>
 
+                <!-- Hidden action input for specific commands (e.g. clear history) -->
+                <input type="hidden" name="action" id="search-action" value="">
+
                 <!-- Input Field (Backend-friendly with name="q") -->
                 <input
                     type="text"
@@ -109,6 +112,8 @@
         const clearInputBtn = document.getElementById('clear-input-btn');
         const searchForm = document.getElementById('searchForm');
         const historyContainer = document.getElementById('search-history-container');
+        const searchAction = document.getElementById('search-action');
+        const clearHistoryBtn = document.getElementById('clearSearchHistory');
 
         if (!panel || !overlay) return;
 
@@ -185,12 +190,22 @@
             }
         });
 
-        // Prevent accidental form submission if input is empty
+        // Prevent accidental form submission IF input empty AND no action set
         if (searchForm) {
             searchForm.onsubmit = (e) => {
-                if (!input.value.trim()) {
+                const actionValue = searchAction ? searchAction.value : '';
+                if (!input.value.trim() && !actionValue) {
                     e.preventDefault();
                 }
+            };
+        }
+
+        // Search History Clear Trigger
+        if (clearHistoryBtn && searchAction && searchForm) {
+            clearHistoryBtn.onclick = (e) => {
+                e.preventDefault();
+                searchAction.value = 'delete_history';
+                searchForm.submit();
             };
         }
     }

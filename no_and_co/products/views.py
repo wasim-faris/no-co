@@ -44,15 +44,15 @@ def admin_products(request):
             return redirect("admin-products")
 
     all_products = Product.objects.filter(is_deleted=False)
-    
+
     product = product.prefetch_related(
         Prefetch(
-            'variants', 
-            queryset=Variant.objects.filter(is_default=True, is_deleted=False), 
+            'variants',
+            queryset=Variant.objects.filter(is_default=True, is_deleted=False),
             to_attr='default_variants'
         )
     ).order_by("-id")
-    
+
     count = all_products.count()
     active_count = all_products.filter(is_active=True).count()
     inactive_count = all_products.filter(is_active=False).count()
@@ -110,7 +110,7 @@ def admin_product_details(request, id):
             variant = get_object_or_404(Variant , id=variant_id)
             size = request.POST.get("size")
             price = request.POST.get("price")
-            
+
             try:
                 stock_val = int(request.POST.get("stock", 0))
                 if stock_val < 0 or stock_val > 100000:
@@ -259,7 +259,7 @@ def admin_variants(request, id):
             color = request.POST.get("color")
             color_hex = request.POST.get("color_hex")
             price = request.POST.get("price")
-            
+
             try:
                 stock_val = int(request.POST.get("stock", 0))
                 if stock_val < 0 or stock_val > 100000:
