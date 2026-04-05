@@ -18,7 +18,7 @@ def home(request):
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect("admin-dashboard")
 
-    variants = Variant.objects.filter(is_default = True).prefetch_related(
+    variants = Variant.objects.filter(is_default = True ,is_deleted = False, product__is_deleted = False).prefetch_related(
         Prefetch(
             "images",
             queryset = VariantImage.objects.filter(is_primary = True),

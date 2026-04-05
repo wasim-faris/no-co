@@ -357,9 +357,9 @@
 
             <!-- Price -->
             <td class="px-3 py-3 align-middle">
-              {% if i.variant_set.exists %}
-                {% with min_price=i.variant_set.all|dictsort:"price"|first %}
-                  <span class="font-bold text-gray-900 text-[13px]">₹{{ min_price.price }}</span>
+              {% if i.default_variants %}
+                {% with default_variant=i.default_variants|first %}
+                  <span class="font-bold text-gray-900 text-[13px]">₹{{ default_variant.price }}</span>
                 {% endwith %}
               {% else %}
                 <span class="text-gray-400 text-[13px]">No price yet</span>
@@ -368,15 +368,13 @@
 
             <!-- Stock -->
             <td class="px-3 py-3 align-middle">
-              {% if i.variant_set.exists %}
-                {% with variants=i.variant_set.all %}
-                  {% with total=i.total_stock %}
-                    {% if total == 0 %}
-                      <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-500">Out of stock</span>
-                    {% else %}
-                      <span class="font-bold text-gray-900 text-[13px]">{{ total }}</span>
-                    {% endif %}
-                  {% endwith %}
+              {% if i.default_variants %}
+                {% with default_variant=i.default_variants|first %}
+                  {% if default_variant.stock == 0 %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-500">Out of stock</span>
+                  {% else %}
+                    <span class="font-bold text-gray-900 text-[13px]">{{ default_variant.stock }}</span>
+                  {% endif %}
                 {% endwith %}
               {% else %}
                 <span class="text-gray-400 text-[13px]">No stock</span>

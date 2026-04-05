@@ -44,7 +44,15 @@ def admin_products(request):
             return redirect("admin-products")
 
     all_products = Product.objects.filter(is_deleted=False)
-    product = all_products.order_by("-id")
+    
+    product = product.prefetch_related(
+        Prefetch(
+            'variants', 
+            queryset=Variant.objects.filter(is_default=True, is_deleted=False), 
+            to_attr='default_variants'
+        )
+    ).order_by("-id")
+    
     count = all_products.count()
     active_count = all_products.filter(is_active=True).count()
     inactive_count = all_products.filter(is_active=False).count()
