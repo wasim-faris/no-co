@@ -15,11 +15,17 @@
         position: relative;
     }
 
-    .pdp-image-column {
+    .pdp-image-section {
         flex: 0 0 55%;
         width: 55%;
         min-width: 0;
+        position: relative;
         height: 100vh;
+    }
+
+    .pdp-image-column {
+        width: 100%;
+        height: 100%;
         overflow-y: auto;
         display: flex;
         flex-direction: column;
@@ -266,6 +272,11 @@
 
     @media (max-width: 900px) {
         .pdp-wrapper { flex-direction: column; }
+        .pdp-image-section {
+            width: 100%;
+            height: auto;
+            flex: none;
+        }
         .pdp-image-column {
             flex: none;
             width: 100%;
@@ -598,6 +609,51 @@
     }
     .toast-close-btn:hover { opacity: 1; }
 
+    /* ─── PDP Gallery Indicators (Mobile-First) ─── */
+    .pdp-indicators-wrapper {
+        display: none; /* Hidden on desktop */
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        pointer-events: none;
+    }
+
+    .pdp-indicators {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        padding: 4px; /* Space for the active moving box */
+    }
+
+    .indicator-box {
+        width: 6px;
+        height: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        box-sizing: border-box;
+        transition: border-color 0.3s ease;
+    }
+
+    .active-indicator-box {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: #000;
+        top: 4px;
+        left: 4px;
+        transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        will-change: transform;
+    }
+
+    @media (max-width: 900px) {
+        .pdp-indicators-wrapper {
+            display: flex;
+        }
+        .pdp-image-column {
+            position: relative; /* Container for absolute indicators */
+        }
+    }
     /* ─── Low Stock Indicator ────────────────────── */
     .low-stock-dot {
         position: absolute;
@@ -776,57 +832,67 @@
 <div id="toast-container"></div>
 
 <main class="pdp-wrapper">
+    <div class="pdp-image-section">
+        <div class="pdp-image-column" id="imageContainer">
+            {% with all_imgs=default_variant.images.all %}
+                {% if all_imgs|length == 1 %}
+                    <!-- Case 1: Single image takes full width -->
+                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="{{ product.product_name }}"
+                         style="width: 100%; aspect-ratio: 2/3; object-fit: cover; object-position: center;">
 
-    <div class="pdp-image-column" id="imageContainer">
-        {% with all_imgs=default_variant.images.all %}
-            {% if all_imgs|length == 1 %}
-                <!-- Case 1: Single image takes full width -->
-                <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="{{ product.product_name }}"
-                     style="width: 100%; aspect-ratio: 2/3; object-fit: cover; object-position: center;">
+                {% elif all_imgs|length == 2 %}
+                    <!-- Case 2: Vertical stack (Full Width each) per requirement -->
+                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                    <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
 
-            {% elif all_imgs|length == 2 %}
-                <!-- Case 2: Vertical stack (Full Width each) per requirement -->
-                <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-
-            {% elif all_imgs|length == 3 %}
-                <!-- Case 3: 1st dominant large, then two small below -->
-                <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                <div class="image-sub-grid">
-                    <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                    <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                </div>
-
-            {% elif all_imgs|length == 4 %}
-                <!-- Case 4: 1st Large -> 2nd/3rd Grid -> 4th Large per requirement -->
-                <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                <div class="image-sub-grid">
-                    <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                    <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                </div>
-                <img id="image4" src="{{ all_imgs.3.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-
-            {% elif all_imgs|length > 4 %}
-                <!-- Fallback for more images: Dominant then rows of grids -->
-                <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                <div class="image-sub-grid">
-                    {% for img_obj in all_imgs|slice:"1:" %}
-                        <img id="image{{ forloop.counter|add:1 }}" src="{{ img_obj.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                    {% endfor %}
-                </div>
-
-            {% else %}
-                <!-- Safety Fallback (Single image or Placeholder) -->
-                {% if product_image %}
-                    <img id="mainImage" src="{{ product_image.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                {% else %}
-                    <div id="mainImagePlaceholder" class="w-full bg-gray-100 flex items-center justify-center" style="aspect-ratio: 2/3; min-height: 600px;">
-                        <span class="text-gray-300 text-[10px] uppercase font-bold tracking-widest">No Image Available</span>
+                {% elif all_imgs|length == 3 %}
+                    <!-- Case 3: 1st dominant large, then two small below -->
+                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                    <div class="image-sub-grid">
+                        <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                        <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
                     </div>
-                {% endif %}
-            {% endif %}
-        {% endwith %}
 
+                {% elif all_imgs|length == 4 %}
+                    <!-- Case 4: 1st Large -> 2nd/3rd Grid -> 4th Large per requirement -->
+                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                    <div class="image-sub-grid">
+                        <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                        <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                    </div>
+                    <img id="image4" src="{{ all_imgs.3.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+
+                {% elif all_imgs|length >= 5 %}
+                    <!-- Case 5: 1st Large -> 2nd/3rd Grid -> 4th/5th Grid per requirement -->
+                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                    <div class="image-sub-grid">
+                        <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                        <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                    </div>
+                    <div class="image-sub-grid">
+                        <img id="image4" src="{{ all_imgs.3.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                        <img id="image5" src="{{ all_imgs.4.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                    </div>
+
+                {% else %}
+                    <!-- Safety Fallback (Single image or Placeholder) -->
+                    {% if product_image %}
+                        <img id="mainImage" src="{{ product_image.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                    {% else %}
+                        <div id="mainImagePlaceholder" class="w-full bg-gray-100 flex items-center justify-center" style="aspect-ratio: 2/3; min-height: 600px;">
+                            <span class="text-gray-300 text-[10px] uppercase font-bold tracking-widest">No Image Available</span>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Image Gallery Indicators (Mobile Only) -->
+        <div class="pdp-indicators-wrapper" id="galleryIndicatorsWrapper">
+            <div class="pdp-indicators" id="galleryIndicators">
+                <!-- Dynamically injected squares -->
+            </div>
+        </div>
     </div>
 
     <div class="pdp-info-column">
@@ -1189,6 +1255,9 @@
         if (sizeErr) sizeErr.style.display = 'none';
         const hint = document.getElementById('stockHint');
         if (hint) hint.style.display = 'none';
+        if (window.refreshGalleryIndicators) {
+            window.refreshGalleryIndicators();
+        }
     }
 
     function selectSize(box) {
@@ -1438,6 +1507,60 @@
             } catch (e) {}
         }
         
+        // --- Gallery Indicators Initialization ---
+        initGalleryIndicators();
+        
+        // Gallery Indicators Logic
+    function initGalleryIndicators() {
+        const container = document.getElementById('imageContainer');
+        const wrapper = document.getElementById('galleryIndicators');
+        if (!container || !wrapper) return;
+
+        function refreshIndicators() {
+            const visibleImages = Array.from(container.querySelectorAll('img')).filter(img => {
+                return img.style.display !== 'none' && img.src && !img.src.endsWith('#');
+            });
+
+            if (visibleImages.length <= 1) {
+                document.getElementById('galleryIndicatorsWrapper').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('galleryIndicatorsWrapper').style.display = 'flex';
+            
+            // Build base squares
+            let html = '';
+            visibleImages.forEach(() => {
+                html += '<div class="indicator-box"></div>';
+            });
+            // Add the moving active square
+            html += '<div class="active-indicator-box" id="activeIndicatorBox"></div>';
+            wrapper.innerHTML = html;
+
+            updateActiveIndicator();
+        }
+
+        function updateActiveIndicator() {
+            const activeBox = document.getElementById('activeIndicatorBox');
+            if (!activeBox) return;
+
+            const scrollLeft = container.scrollLeft;
+            const width = container.clientWidth;
+            const index = Math.round(scrollLeft / width);
+            
+            // 6px box + 8px gap = 14px step
+            activeBox.style.transform = `translateX(${index * 14}px)`;
+        }
+
+        // Attach scroll listener
+        container.addEventListener('scroll', updateActiveIndicator, { passive: true });
+        
+        // Initial build
+        refreshIndicators();
+
+        // Expose to selectVariant
+        window.refreshGalleryIndicators = refreshIndicators;
+    }        
         // AJAX Add To Cart
         const addToCartForm = document.getElementById('addToCartForm');
         if (addToCartForm) {
