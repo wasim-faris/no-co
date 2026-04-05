@@ -191,27 +191,22 @@
 
     .size-box:hover { background: #f5f5f5; }
 
-    .size-box.active {
-        background: #000;
-        color: #fff;
-        border-color: #000;
-        z-index: 2;
-    }
-
     .size-box.out-of-stock {
-        opacity: 1;
-        text-decoration: line-through underline;
-        text-underline-offset: 5px;
-        text-decoration-thickness: 1px;
+        text-decoration: line-through;
         color: #000;
-        cursor: default; /* Smooth hover feel */
+        cursor: pointer;
         background: #fff;
     }
 
-    .btn-add.out-of-stock {
-        background: #e02d2d !important;
-        cursor: not-allowed;
+    .size-box.active {
+        background: #000 !important;
+        color: #fff !important;
+        border-color: #000 !important;
+        z-index: 2;
+        text-decoration: none !important;
     }
+    .size-box.active.out-of-stock { text-decoration: line-through !important; }
+    .size-box.active span { color: #fff !important; text-decoration: inherit; }
 
     /* ════════════════════════════════════════
        BUTTONS & LINKS
@@ -253,6 +248,7 @@
         font-size: 12px; font-weight: 400;
         text-transform: uppercase; letter-spacing: .06em; cursor: pointer;
     }
+    .acc-item.last-acc { border-bottom: 1px solid #e5e5e5; margin-bottom: 40px; }
     .acc-plus { font-size: 20px; font-weight: 300; color: #111; line-height: 1; min-width: 20px; text-align: right; }
     .acc-content {
         max-height: 0;
@@ -274,6 +270,7 @@
             flex: none;
             width: 100%;
             height: auto !important;
+            min-height: 0 !important;
             max-height: none !important;
             overflow-y: visible !important;
             flex-direction: row;
@@ -304,10 +301,12 @@
             height: auto !important;
             max-height: none !important;
             overflow-y: visible !important;
-            padding: 28px 20px 60px;
+            padding: 24px 20px 0; /* Minimized bottom padding on mobile */
             align-items: flex-start;
         }
+        .acc-item.last-acc { margin-bottom: 0 !important; } /* Removed bottom margin on mobile */
         .info-inner { max-width: 100%; }
+        .similar-items-section { padding-top: 15px !important; } /* Tightened top gap on mobile */
     }
     /* ════════════════════════════════════════
        FULLSCREEN LIGHTBOX MODAL
@@ -968,7 +967,7 @@
                 {{ product.care_guide|linebreaks|default:"No information available" }}
             </div>
 
-            <div class="acc-item" style="border-bottom: 1px solid #e5e5e5; margin-bottom: 40px;">
+            <div class="acc-item last-acc">
                 <span>Delivery, Payment and Returns</span>
                 <span class="acc-plus">+</span>
             </div>
@@ -989,7 +988,7 @@
 </div>
 
 <!-- SIMILAR ITEMS SECTION (OUTSIDE WRAPPER FOR FULL WIDTH) -->
-<div class="mt-20">
+<div class="mt-4 md:mt-20">
     <!-- SIMILAR ITEMS SECTION -->
     <section class="similar-items-section">
         <div class="similar-header">
@@ -1196,29 +1195,13 @@
         const addBtn = document.querySelector('.btn-add');
         const stock = parseInt(box.dataset.stock, 10);
 
-        if (box.classList.contains('out-of-stock') || stock <= 0) {
-            // Interaction for out-of-stock: Show Red button, prevent selection
-            if (addBtn) {
-                addBtn.innerText = 'OUT OF STOCK';
-                addBtn.classList.add('out-of-stock');
-                addBtn.disabled = true;
-            }
-            // Do NOT add active class to the box
-            document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
-            // Hide stock hint
-            const hint = document.getElementById('stockHint');
-            if (hint) hint.style.display = 'none';
-            return;
-        }
-
-        // Normal path for available sizes
+        // ALWAYS allow selection now
         document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
         box.classList.add('active');
-        
-        // Restore button state
+
+        // Restore button state (never show red/disabled)
         if (addBtn) {
             addBtn.innerText = 'ADD TO BAG';
-            addBtn.classList.remove('out-of-stock');
             addBtn.disabled = false;
         }
 
@@ -1476,6 +1459,15 @@
                             setTimeout(() => { container.style.transform = 'translateX(-4px)'; }, 100);
                             setTimeout(() => { container.style.transform = 'translateX(0)'; }, 200);
                         }
+                    }
+                    return;
+                }
+                
+                // Out-of-Stock Redirect to Toast
+                const stock = parseInt(activeSize.dataset.stock, 10);
+                if (stock <= 0) {
+                    if (typeof showToast === "function") {
+                        showToast("This size is out of stock", "error");
                     }
                     return;
                 }
