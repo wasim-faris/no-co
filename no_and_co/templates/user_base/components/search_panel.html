@@ -2,47 +2,50 @@
 <div id="search-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-[1000] opacity-0 pointer-events-none transition-opacity duration-300 ease-out"></div>
 
 <div id="search-panel" class="fixed top-0 right-0 h-full w-full md:w-[480px] bg-white z-[1001] translate-x-full transition-transform duration-300 cubic-bezier(0.165, 0.84, 0.44, 1) flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.03)]">
-    
+
     <!-- Search Input Area -->
     <div class="px-8 pt-12 pb-10 md:px-12">
-        <div class="flex items-center gap-4 border-b border-black pb-3 relative group">
-            <!-- Search Icon (Left) -->
-            <svg class="w-4 h-4 text-black flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                <circle cx="11" cy="11" r="7"></circle>
-                <path d="M21 21l-4.35-4.35"></path>
-            </svg>
-            
-            <!-- Input Field -->
-            <input 
-                type="text" 
-                id="search-input" 
-                placeholder="Search" 
-                autocomplete="off"
-                class="flex-grow text-[15px] font-medium tracking-wide placeholder-gray-400 focus:outline-none bg-transparent"
-            >
-            
-            <!-- NEW: Clear Text Button (Right side of input, same line) -->
-            <button id="clear-input-btn" class="opacity-0 pointer-events-none text-[9px] font-medium uppercase tracking-[0.1em] text-[#767676] hover:text-black hover:underline underline-offset-2 transition-all duration-200 outline-none flex-shrink-0">
-                Clear
-            </button>
-
-            <!-- Close Panel Button (X) -->
-            <button id="closeSearchPanel" class="p-1 hover:opacity-50 transition-opacity outline-none flex-shrink-0">
-                <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
-                    <path d="M18 6L6 18M6 6l12 12"></path>
+        <form action="/products" method="GET" id="searchForm">
+            <div class="flex items-center gap-4 border-b border-black pb-3 relative group">
+                <!-- Search Icon (Left) -->
+                <svg class="w-4 h-4 text-black flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
                 </svg>
-            </button>
-        </div>
+
+                <!-- Input Field (Backend-friendly with name="q") -->
+                <input
+                    type="text"
+                    name="q"
+                    id="search-input"
+                    placeholder="Search"
+                    autocomplete="off"
+                    class="flex-grow text-[15px] font-medium tracking-wide placeholder-gray-400 focus:outline-none bg-transparent"
+                >
+
+                <!-- Clear Text Button (H&M Style) -->
+                <button type="button" id="clear-input-btn" class="opacity-0 pointer-events-none text-[9px] font-medium uppercase tracking-[0.1em] text-[#767676] hover:text-black hover:underline underline-offset-2 transition-all duration-200 outline-none flex-shrink-0">
+                    Clear
+                </button>
+
+                <!-- Close Panel Button (X) -->
+                <button type="button" id="closeSearchPanel" class="p-1 hover:opacity-50 transition-opacity outline-none flex-shrink-0">
+                    <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                        <path d="M18 6L6 18M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
     </div>
 
     <!-- Content Area -->
     <div class="flex-grow overflow-y-auto px-8 md:px-12 py-10 scroll-smooth custom-scrollbar">
-        
+
         <!-- Search History Section -->
         <div class="mb-14">
             <div class="flex items-center justify-between mb-8">
                 <h3 class="text-[11px] font-bold uppercase tracking-[0.2em] text-gray-500">Search History</h3>
-                <button id="clearSearchHistory" class="text-[10px] font-medium uppercase tracking-widest text-black hover:opacity-100 opacity-60 underline underline-offset-4 decoration-current transition-all">Clear</button>
+                <button type="button" id="clearSearchHistory" class="text-[10px] font-medium uppercase tracking-widest text-black hover:opacity-100 opacity-60 underline underline-offset-4 decoration-current transition-all">Clear</button>
             </div>
             <div id="search-history-list" class="flex flex-col -mx-4">
                 <div class="search-item group cursor-pointer px-4 py-3.5 hover:bg-gray-50 transition-colors flex items-center justify-between" data-query="Baggy Jeans">
@@ -125,6 +128,7 @@
         const closeBtn = document.getElementById('closeSearchPanel');
         const input = document.getElementById('search-input');
         const clearInputBtn = document.getElementById('clear-input-btn');
+        const searchForm = document.getElementById('searchForm');
 
         if (!panel || !overlay) return;
 
@@ -165,7 +169,7 @@
             if (e.key === 'Escape' && panel.classList.contains('active')) close();
         });
 
-        // Input clear logic (H&M Style: "CLEAR" text button same line as input)
+        // Input clear logic
         if (input && clearInputBtn) {
             input.oninput = () => {
                 if (input.value.length > 0) {
@@ -178,6 +182,7 @@
             };
 
             clearInputBtn.onclick = (e) => {
+                e.preventDefault();
                 e.stopPropagation();
                 input.value = '';
                 input.focus();
@@ -193,9 +198,19 @@
                 const query = item.getAttribute('data-query') || '';
                 input.value = query;
                 input.dispatchEvent(new Event('input')); // Trigger clear button check
-                // logic to filter products would trigger here
+                // Note: No auto-submit, leave control to backend later
             }
         });
+
+        // Prevent accidental form submission unless Enter is pressed in input
+        if (searchForm) {
+            searchForm.onsubmit = (e) => {
+                // Ensure form only submits if input is focused and contains text
+                if (document.activeElement !== input || !input.value.trim()) {
+                    e.preventDefault();
+                }
+            };
+        }
     }
 
     if (document.readyState === 'loading') {

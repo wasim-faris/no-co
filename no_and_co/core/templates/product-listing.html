@@ -465,10 +465,24 @@
       <!-- ══ PAGE TITLE ══ -->
       <div style="padding: 32px 0 20px;">
           <h1 style="font-size: clamp(28px, 6vw, 42px); font-weight: 800; letter-spacing: -0.01em; text-transform: uppercase; margin: 0; line-height: 1.1; color: #000;">
-              {% if request.GET.subcategory %}{{ request.GET.subcategory }}
-              {% elif request.GET.category %}{{ request.GET.category }}
-              {% else %}All Products{% endif %}
+              {% if query and query.strip and query != "None" %}
+                  {{ query }}
+              {% elif request.GET.sort or request.GET.price_min or request.GET.price_max or request.GET.getlist.category|length > 1 %}
+                  All Products
+              {% elif request.GET.subcategory and request.GET.subcategory.strip %}
+                  {{ request.GET.subcategory }}
+              {% elif request.GET.category and request.GET.category.strip %}
+                  {{ request.GET.category }}
+              {% else %}
+                  All Products
+              {% endif %}
           </h1>
+          
+          {% if query and query.strip and query != "None" %}
+          <p style="font-size: 14px; font-weight: 500; color: #767676; margin-top: 12px; text-transform: none; letter-spacing: 0.02em;">
+              Results for "<span style="color: #000;">{{ query }}</span>"
+          </p>
+          {% endif %}
       </div>
 
       <!-- ══ CATEGORY TABS ══ -->
@@ -495,7 +509,6 @@
               <div class="sort-menu" id="sortMenu">
                   <form method="GET" action="." id="sortForm">
                       <!-- PRESERVE EXISTING PARAMS -->
-                      <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}">
                       <input type="hidden" name="category" value="{{ request.GET.category }}">
                       <input type="hidden" name="price_min" value="{{ request.GET.price_min }}">
                       <input type="hidden" name="price_max" value="{{ request.GET.price_max }}">
@@ -826,6 +839,38 @@
     }
 
     if (priceMin) { priceMin.addEventListener('input', updatePriceUI); priceMax.addEventListener('input', updatePriceUI); updatePriceUI(); }
+
+    /* ── Sync UI with URL Params ── */
+    function syncUIWithURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Sync Categories (Checkboxes)
+        const categories = urlParams.getAll('category');
+        if (categories.length > 0) {
+            document.querySelectorAll('input[name="category"]').forEach(checkbox => {
+                checkbox.checked = categories.includes(checkbox.value);
+            });
+        }
+
+        // Sync Sort (Radios)
+        const sort = urlParams.get('sort');
+        if (sort) {
+            document.querySelectorAll('input[name="sort"]').forEach(radio => {
+                radio.checked = (radio.value === sort);
+            });
+        }
+        
+        // Sync Prices (Ranges)
+        const min = urlParams.get('price_min');
+        const max = urlParams.get('price_max');
+        if (min) priceMin.value = min;
+        if (max) priceMax.value = max;
+        
+        updatePriceUI();
+    }
+
+    // Call sync on load
+    window.addEventListener('load', syncUIWithURL);
 
     /* ── Filter Tag Helper ── */
     function removeFilter(key, value) {

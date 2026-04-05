@@ -8,6 +8,7 @@ from products.models import Variant, VariantImage,Product
 from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from category.models import Category,Subcategory
+from django.db.models import Q
 # Create your views here.
 
 @never_cache
@@ -70,16 +71,14 @@ def product_details(request, id):
         if rep_variant:
             similar_items.append(rep_variant)
 
-    # ════════════════════════ PRODUCT IMAGE LOGIC (FORCE FIX) ════════════════════════
+
     product_image = None
 
-    # 1. & 2. Try Default Variant
     if default_variant:
         product_image = default_variant.images.filter(is_primary=True).first()
         if not product_image:
             product_image = default_variant.images.first()
 
-    # 3. & 4. Try First Variant fallback if still no image
     if not product_image:
         v_fallback = variants.first()
         if v_fallback:
@@ -100,6 +99,7 @@ def product_details(request, id):
 def product_listing(request):
     sort = request.GET.get("sort")
     subcategory = request.GET.get("subcategory")
+    query = request.GET.get("q")
 
     variants = Variant.objects.filter(
         product__is_active=True,
@@ -107,6 +107,10 @@ def product_listing(request):
         is_default=True
     )
 
+    if query:
+        variants = variants.filter(
+            Q(product__product_name__icontains = query) | Q(product__description_fit__icontains = query)
+        )
 
     if subcategory:
         subcategory = subcategory.upper()
@@ -137,5 +141,6 @@ def product_listing(request):
         variants = variants.order_by("-price")
 
     return render(request, "product-listing.html", {
-        "variants": variants
+        "variants": variants,
+        "query":query
     })
