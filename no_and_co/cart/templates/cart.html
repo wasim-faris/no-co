@@ -66,15 +66,20 @@
     }
     .qty-btn:hover:not(:disabled) { opacity: 1; transform: scale(1.15); }
     .qty-btn:disabled  { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
-    .qty-display {
-        font-size: 0.875rem;
+    .qty-limit-warning {
+        font-size: 0.6rem;
+        color: #ef4444; 
         font-weight: 500;
-        min-width: 1.5ch;
-        text-align: center;
-        transition: transform 0.18s ease;
+        margin-top: 6px;
+        opacity: 0;
+        transform: translateY(-4px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+        display: block;
     }
-    .qty-display.pop {
-        transform: scale(1.35);
+    .qty-limit-warning.visible {
+        opacity: 1;
+        transform: translateY(0);
     }
 
     /* ─── Price flash ────────────────────────────────────────── */
@@ -498,6 +503,7 @@
                                 <i class="ri-add-line text-sm"></i>
                             </button>
                         </div>
+                        <p class="qty-limit-warning" id="limit-warning-{{ item.id }}">Maximum 5 items allowed per product</p>
 
                         <!-- Inline error per item -->
                         <p class="item-error text-[0.6rem] text-red-500 mt-2 hidden" id="err-{{ item.id }}"></p>
@@ -713,7 +719,7 @@
     /* ── Toast ──────────────────────────────────────────────────── */
 
     let toastTimer = null;
-    function showToast(msg, duration = 4000) {
+    function showToast(msg, duration = 2500) {
         const t = document.getElementById('inlineToast');
         if (!t) return;
         
@@ -826,10 +832,17 @@
             }
         }
 
-        // We no longer strictly disable increase btn to allow toast feedback
+        // Re-enforce the global limit of 5 per product
         const incBtn = row.querySelector('.increase-btn');
+        const limitWarn = document.getElementById('limit-warning-' + id);
+        
         if (incBtn) {
-            incBtn.disabled = false;
+            const atLimit = parseInt(qty, 10) >= 5;
+            incBtn.disabled = atLimit;
+            if (limitWarn) {
+                if (atLimit) limitWarn.classList.add('visible');
+                else limitWarn.classList.remove('visible');
+            }
         }
     }
 
@@ -864,6 +877,23 @@
             updateSummary(data);
         });
     }
+
+    /* ── Initial State Sync ────────────────────────────────────── */
+    function initQtyState() {
+        document.querySelectorAll('.cart-item-row').forEach(row => {
+            const id = row.dataset.cartId;
+            const qty = parseInt(row.dataset.quantity, 10);
+            const incBtn = row.querySelector('.increase-btn');
+            const limitWarn = document.getElementById('limit-warning-' + id);
+            
+            if (incBtn && qty >= 5) {
+                incBtn.disabled = true;
+                if (limitWarn) limitWarn.classList.add('visible');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initQtyState);
 
     /* ── Remove modal ───────────────────────────────────────────── */
 

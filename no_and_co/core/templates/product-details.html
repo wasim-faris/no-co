@@ -1385,7 +1385,7 @@
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 400);
             }
-        }, 4000);
+        }, 2500);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
@@ -1411,7 +1411,6 @@
                     const sizeErr = document.getElementById('sizeError');
                     if (sizeErr) {
                         sizeErr.style.display = 'block';
-                        // Shake the size grid for attention
                         const container = document.getElementById('sizeContainer');
                         if (container) {
                             container.style.transition = 'transform 0.1s ease';
@@ -1419,6 +1418,19 @@
                             setTimeout(() => { container.style.transform = 'translateX(-4px)'; }, 100);
                             setTimeout(() => { container.style.transform = 'translateX(0)'; }, 200);
                         }
+                    }
+                    return;
+                }
+
+                // Global Limit Enforcer (Max 5 per variant)
+                // We use a simple session-based-like tracker here
+                if (!window.cartTracker) window.cartTracker = {};
+                const variantId = activeSize.dataset.variantId || 'default';
+                const currentQty = window.cartTracker[variantId] || 0;
+
+                if (currentQty >= 5) {
+                    if (typeof showToast === "function") {
+                        showToast("Maximum limit reached (5 items per product)", "error");
                     }
                     return;
                 }
@@ -1457,6 +1469,12 @@
                         if (data.success) {
                         btn.innerText = 'ADDED TO BAG ✓';
                         btn.style.opacity = '1';
+                        
+                        // Update local tracker
+                        if (!window.cartTracker) window.cartTracker = {};
+                        const activeSize = document.querySelector('.size-box.active');
+                        const vId = activeSize ? activeSize.dataset.variantId : 'default';
+                        window.cartTracker[vId] = (window.cartTracker[vId] || 0) + 1;
                         
                         // Broadcast the event forward so Navbars can update globally
                         window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart_count } }));
