@@ -350,7 +350,7 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
 
 
     <div class="flex-1 flex flex-col">
-        <form action="" method="POST" enctype="multipart/form-data" class="contents">
+        <div class="contents">
             {% csrf_token %}
 
             <div class="px-8 pt-6 pb-4 bg-[#f5f1eb]">
@@ -674,7 +674,7 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                     </section>
                 </aside>
             </main>
-        </form>
+        </div>
     </div>
 
     <div x-show="showToast" x-cloak x-transition class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">

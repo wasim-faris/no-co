@@ -57,7 +57,7 @@ def admin_products(request):
     active_count = all_products.filter(is_active=True).count()
     inactive_count = all_products.filter(is_active=False).count()
 
-    paginator = Paginator(product, 4)
+    paginator = Paginator(product, 12)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     return render(request, "product/admin-products.html", {
@@ -92,6 +92,11 @@ def admin_product_details(request, id):
                 messages.error(request, "Invalid stock value")
                 return redirect("admin-product-details", id=product.id)
 
+            # Check if variant already exists (not deleted)
+            if Variant.objects.filter(product=product, size_id=size_obj.id, color=request.POST.get("color"), is_deleted=False).exists():
+                messages.warning(request, "A variant with this size and color already exists.")
+                return redirect("admin-product-details", id=product.id)
+
             Variant.objects.create(
                 product = product,
                 size = size_obj,
@@ -102,7 +107,7 @@ def admin_product_details(request, id):
                 is_active = request.POST.get("is_active") == "true",
                 is_default = request.POST.get("is_default") == "true",
             )
-            messages.success(request, "Product variant created")
+            messages.success(request, "Product variant created successfully")
             return redirect("admin-product-details", id=product.id)
 
         if action == "edit_variant":
@@ -275,8 +280,12 @@ def admin_variants(request, id):
                 messages.error(request, "Select at least one size")
                 return redirect("admin-variants", id=product.id)
 
+            added_count = 0
+            skipped_count = 0
+
             for size_id in sizes:
-                exists = Variant.objects.filter(product=product, size_id=size_id, color=color).exists()
+                # Only skip if a LIVE (not deleted) variant with same attributes exists
+                exists = Variant.objects.filter(product=product, size_id=size_id, color=color, is_deleted=False).exists()
                 if not exists:
                     variant = Variant.objects.create(
                         product=product,
@@ -293,6 +302,8 @@ def admin_variants(request, id):
                     for i in range(4):
                         img = request.FILES.get(f"image_{i}")
                         if img:
+                            # Reset pointer so next variant loop can read the file again
+                            img.seek(0)
                             is_primary = (f"new_{i}" == primary_val)
                             VariantImage.objects.create(variant=variant, image=img, is_primary=is_primary)
 
@@ -300,9 +311,20 @@ def admin_variants(request, id):
                         first_img = variant.images.first()
                         first_img.is_primary = True
                         first_img.save()
+                    
+                    added_count += 1
+                else:
+                    skipped_count += 1
 
-            messages.success(request, "Variant(s) added successfully")
-            return redirect("admin-variants", id=product.id)
+            if added_count > 0:
+                msg = f"Successfully added {added_count} variant(s)."
+                if skipped_count > 0:
+                    msg += f" ({skipped_count} already existed and were skipped)"
+                messages.success(request, msg)
+            else:
+                messages.warning(request, "No variants were added (all selected combinations already exist).")
+
+            return redirect(request.path_info + '?' + request.GET.urlencode())
 
         elif action == "edit_variant":
             variant_id = request.POST.get("variant_id")
@@ -320,7 +342,7 @@ def admin_variants(request, id):
                 return redirect("admin-variants", id=product.id)
 
             variant.price = float(request.POST.get("price", 0))
-            if sizes:
+            if sizes and sizes[0]:
                 variant.size_id = int(sizes[0])
 
             variant.color = request.POST.get("color")
@@ -359,7 +381,7 @@ def admin_variants(request, id):
                 variant.save()
 
             messages.success(request, "Variant updated successfully")
-            return redirect("admin-variants", id=variant.product.id)
+            return redirect(request.path_info + '?' + request.GET.urlencode())
 
         elif action == "toggle_variant":
             variant_id = request.POST.get("variant_id")
@@ -429,7 +451,7 @@ def admin_variants(request, id):
     inactive_count = all_variants.filter(is_active=False).count()
     total_count = all_variants.count()
 
-    paginator = Paginator(variants, 4)
+    paginator = Paginator(variants, 12)
     page_obj = paginator.get_page(request.GET.get("page"))
     sizes = Size.objects.all()
     context = {
