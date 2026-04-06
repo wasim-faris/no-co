@@ -160,9 +160,9 @@ def product_listing(request):
 
     if sort == "newest":
         variants = variants.order_by("-id")
-    elif sort == "low_price":
+    elif sort == "lowest_price":
         variants = variants.order_by("price")
-    elif sort == "high_price":
+    elif sort == "highest_price":
         variants = variants.order_by("-price")
     elif sort == "name_asc":
         variants = variants.order_by("product__product_name")
