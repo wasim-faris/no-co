@@ -66,7 +66,6 @@
         height: 100%;
         object-fit: cover;
         object-position: top center;
-        transition: transform 0.4s ease, opacity 0.4s ease;
         z-index: 1;
         opacity: 1; /* Default visible for static cards */
     }
@@ -79,33 +78,31 @@
         object-fit: cover;
         object-position: top center;
         z-index: 2;
-        transition: opacity 0.4s ease;
         opacity: 0; /* Default hidden for static cards */
     }
 
-    /* Condition: More than 2 images -> Enable Inverted Hover */
+    /* More than 2 images -> Enable Standard Hover (Primary -> Secondary) */
     .plp-img-wrap.has-hover .plp-img-primary {
-        opacity: 0;
+        opacity: 1;
     }
     .plp-img-wrap.has-hover .plp-img-secondary {
-        opacity: 1;
+        opacity: 0;
     }
 
-    /* Hover States for Multi-Image Cards */
+    /* Hover: Instant swap, no animation */
     .plp-card:hover .plp-img-wrap.has-hover .plp-img-primary {
-        opacity: 1;
-        transform: scale(1.03);
+        opacity: 0;
     }
     .plp-card:hover .plp-img-wrap.has-hover .plp-img-secondary {
-        opacity: 0;
+        opacity: 1;
     }
 
     /* ── Product card refinements ── */
     .plp-card {
-        transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+        /* Static card, no zoom */
     }
     .plp-card:hover {
-        transform: scale(1.02);
+        /* No transform */
     }
 
     /* Wishlist heart */
@@ -591,24 +588,15 @@
     <div class="plp-card-wrap">
       <div class="plp-card">
 
-        <div class="plp-img-wrap {% if variant.images.all|length > 2 %}has-hover{% endif %}">
+        <div class="plp-img-wrap {% if variant.images.count > 2 %}has-hover{% endif %}">
 
           <!-- Skeleton shimmer overlay -->
           <div class="plp-skeleton"></div>
 
           {% with all_images=variant.images.all %}
-          {% with primary_img=all_images.first %}
-          {% with secondary_img=all_images.1 %}
-
-          {% if all_images|length <= 2 %}
-            {% if primary_img %}
-              <img src="{{ primary_img.image.url }}"
-                   class="plp-img-primary"
-                   alt="{{ variant.product.product_name }}"
-                   loading="lazy"
-                   onload="var s=this.closest('.plp-img-wrap').querySelector('.plp-skeleton');if(s)s.style.opacity='0';">
-            {% endif %}
-          {% else %}
+          
+          {% if all_images.count > 2 %}
+            <!-- HOVER ENABLED (3+ images) -->
             {% for img in all_images %}
                {% if img.is_primary %}
                   <img src="{{ img.image.url }}"
@@ -618,19 +606,34 @@
                        onload="var s=this.closest('.plp-img-wrap').querySelector('.plp-skeleton');if(s)s.style.opacity='0';">
                {% endif %}
             {% endfor %}
-
+            
+            {% with first_img=all_images.0 second_img=all_images.1 third_img=all_images.2 %}
+              {% if not first_img.is_primary %}
+                 <img src="{{ first_img.image.url }}" class="plp-img-secondary" alt="" loading="lazy">
+              {% elif second_img and not second_img.is_primary %}
+                 <img src="{{ second_img.image.url }}" class="plp-img-secondary" alt="" loading="lazy">
+              {% elif third_img %}
+                 <img src="{{ third_img.image.url }}" class="plp-img-secondary" alt="" loading="lazy">
+              {% endif %}
+            {% endwith %}
+            
+          {% else %}
+            <!-- STATIC DISPLAY (1-2 images) -->
             {% for img in all_images %}
-               {% if not img.is_primary %}
+               {% if img.is_primary %}
                   <img src="{{ img.image.url }}"
-                       class="plp-img-secondary"
-                       alt=""
-                       loading="lazy">
+                       class="plp-img-primary"
+                       alt="{{ variant.product.product_name }}"
+                       loading="lazy"
+                       onload="var s=this.closest('.plp-img-wrap').querySelector('.plp-skeleton');if(s)s.style.opacity='0';">
                {% endif %}
             {% endfor %}
+            <!-- Fallback if no primary marked -->
+            {% if not variant.images.filter.is_primary.exists and all_images.0 %}
+               <img src="{{ all_images.0.image.url }}" class="plp-img-primary" alt="" loading="lazy">
+            {% endif %}
           {% endif %}
 
-          {% endwith %}
-          {% endwith %}
           {% endwith %}
 
           <!-- HEART -->
