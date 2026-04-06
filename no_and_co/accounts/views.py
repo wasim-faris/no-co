@@ -18,6 +18,7 @@ from django.contrib.auth.hashers import check_password
 from django.db.models import Q
 from django.contrib.auth.hashers import make_password
 from cart.views import merge_cart_after_login
+
 email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 password_pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$"
 username_pattern = r"^[a-zA-Z0-9_]{4,20}$"
@@ -120,7 +121,7 @@ def signup(request):
 def login_user(request):
     if not request.session.session_key:
         request.session.create()
-        
+
     request.session["pre_login_session_key"] = request.session.session_key
 
     if request.session.get("created_at",0):
@@ -448,3 +449,42 @@ def logout_user(request):
     messages.success(request, "logged out successfully")
 
     return redirect("home")
+
+
+@login_required
+@never_cache
+def change_password(request):
+    if request.method == "POST":
+        current_password = request.POST.get("current_password")
+        new_password = request.POST.get("new_password")
+        confirm_new_password = request.POST.get("confirm_new_password")
+        user = get_object_or_404(User, id=request.user.id)
+
+        if not current_password or not confirm_new_password or not new_password:
+            messages.error(request, "Please fill full form")
+            return redirect("change-password")
+        if not new_password == confirm_new_password:
+            messages.error(request,"Password does not match")
+            return redirect("change-password")
+
+        if not check_password(current_password, user.password):
+            messages.error(request, "Current password incorrect")
+            return redirect("change-password")
+
+        if not re.match(password_pattern, new_password):
+            messages.error(request, "Password too week")
+            return redirect("change-password")
+
+        if not re.match(password_pattern, confirm_new_password):
+            messages.error(request, "Passwoed too week")
+            return redirect("change-password")
+
+        
+        user.set_password(new_password)
+
+        user.save()
+
+        messages.success(request, "Password updated succ")
+        return redirect("login")
+
+    return render(request, "accounts/change_password.html")

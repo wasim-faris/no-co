@@ -212,27 +212,36 @@
                 e.preventDefault();
                 e.stopPropagation();
 
-                // 1. Instant UI Feedback (Fade out)
-                historyContainer.style.transition = 'opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                // 1. Smooth Fade Out (Instant UX)
+                historyContainer.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
                 historyContainer.style.opacity = '0';
-                historyContainer.style.transform = 'translateY(-10px)';
+                historyContainer.style.transform = 'translateY(-8px)';
 
-                // 2. Background Request (No reload)
-                const baseUrl = searchForm.action || window.location.pathname;
+                // 2. Background Deletion (No redirect/reload)
+                // Use pathname directly instead of form.action to avoid [object HTMLInputElement] naming collisions
+                const baseUrl = window.location.pathname;
                 const url = `${baseUrl}?action=delete_history&t=${Date.now()}`;
                 
                 try {
-                    // Send to background, don't wait for response to update UI
-                    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    // Using async/await + credentials + manual redirect to stop browser navigation
+                    await fetch(url, { 
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                        redirect: 'manual' 
+                    });
                 } catch (err) {
-                    console.error('Failed to clear history in background:', err);
+                    // Silently fail if already cleared or network error
                 }
 
-                // 3. Final DOM removal
+                // 3. Complete Removal (Wait for animation)
                 setTimeout(() => {
                     historyContainer.innerHTML = '';
                     historyContainer.style.display = 'none';
-                }, 400);
+                    // Ensure the action field is cleared so searchForm.onsubmit doesn't allow empty search
+                    const searchAction = document.getElementById('search-action');
+                    if (searchAction) searchAction.value = '';
+                }, 300);
             };
         }
     }

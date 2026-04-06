@@ -1150,6 +1150,9 @@
                 <div class="profile-meta skeleton-target">
                     <h1 class="profile-name">{{ request.user.username }}</h1>
                     <p class="profile-email">{{ user.email }}</p>
+                    <a href="{% url "change-password" %}" style="font-size:12px; text-decoration: underline; display:inline-block; margin-top:4px;">
+                        Change Password
+                    </a>
                     <p class="profile-phone">{{ request.user.phone_number|default_if_none:'' }}</p>
                     <p class="member-since">Member since <span>Nov 2024</span></p>
                 </div>

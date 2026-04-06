@@ -68,7 +68,7 @@ class Variant(models.Model):
             category = self.product.category.category_name[:2].upper()
             product = self.product.product_name[:6].upper().replace(" ", "")
             color = self.color[:3].upper()
-            size = self.size.name.upper()   # ✅ FIXED
+            size = self.size.name.upper()
 
             sku = f"{category}-{product}-{color}-{size}-{random.randint(100,999)}"
 

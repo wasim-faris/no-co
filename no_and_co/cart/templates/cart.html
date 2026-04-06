@@ -68,7 +68,7 @@
     .qty-btn:disabled  { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     .qty-limit-warning {
         font-size: 0.6rem;
-        color: #ef4444; 
+        color: #ef4444;
         font-weight: 500;
         margin-top: 6px;
         opacity: 0;
@@ -208,22 +208,22 @@
         transform: translateX(0);
     }
     .toast-left-content { display: flex; align-items: center; gap: 14px; }
-    .toast-icon-circle { 
-        width: 24px; height: 24px; border-radius: 50%; 
-        display: flex; align-items: center; justify-content: center; 
-        font-size: 11px; flex-shrink: 0; 
+    .toast-icon-circle {
+        width: 24px; height: 24px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; flex-shrink: 0;
         border: 1px solid rgba(255,255,255,0.2);
         color: #fff; background: transparent;
     }
     .toast-message-wrapper { display: flex; flex-direction: column; }
-    .toast-main-text { 
-        font-size: 12px; font-weight: 700; 
-        text-transform: uppercase; letter-spacing: 0.1em; 
-        line-height: 1.2; 
+    .toast-main-text {
+        font-size: 12px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        line-height: 1.2;
     }
     .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .toast-close-btn { 
-        cursor: pointer; font-size: 14px; opacity: 0.4; 
+    .toast-close-btn {
+        cursor: pointer; font-size: 14px; opacity: 0.4;
         transition: opacity 0.2s; padding: 4px; line-height: 1;
     }
     .toast-close-btn:hover { opacity: 1; }
@@ -539,7 +539,7 @@
                     <button class="btn-checkout">Continue to Checkout</button>
 
                     {% if not user.is_authenticated %}
-                    <a href="{% url 'account_login' %}" class="btn-signin">Sign In</a>
+                    <a href="{% url 'login' %}" class="btn-signin">Sign In</a>
                     {% endif %}
 
                     <div class="payment-icons">
@@ -726,7 +726,7 @@
     function showToast(msg, duration = 2500) {
         const t = document.getElementById('inlineToast');
         if (!t) return;
-        
+
         // Match the identical structure of the product-details page
         t.innerHTML = `
             <div class="toast-left-content">
@@ -742,7 +742,7 @@
         t.classList.remove('show');
         void t.offsetWidth; // force reflow
         t.classList.add('show');
-        
+
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => t.classList.remove('show'), duration);
     }
@@ -852,7 +852,7 @@
         // Re-enforce the global limit of 5 per product
         const incBtn = row.querySelector('.increase-btn');
         const limitWarn = document.getElementById('limit-warning-' + id);
-        
+
         if (incBtn) {
             const atLimit = parseInt(qty, 10) >= 5;
             incBtn.disabled = atLimit;
@@ -903,7 +903,7 @@
             const qty = parseInt(row.dataset.quantity, 10);
             const incBtn = row.querySelector('.increase-btn');
             const limitWarn = document.getElementById('limit-warning-' + id);
-            
+
             if (incBtn && qty >= 5) {
                 incBtn.disabled = true;
                 if (limitWarn) limitWarn.classList.add('visible');
@@ -1069,10 +1069,10 @@
         const toggleButtons = () => {
             const isAtStart = carousel.scrollLeft <= 5;
             const isAtEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 5;
-            
+
             prevBtn.style.opacity = isAtStart ? '0.3' : '1';
             prevBtn.style.pointerEvents = isAtStart ? 'none' : 'auto';
-            
+
             nextBtn.style.opacity = isAtEnd ? '0.3' : '1';
             nextBtn.style.pointerEvents = isAtEnd ? 'none' : 'auto';
         };
