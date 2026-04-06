@@ -183,7 +183,6 @@ def admin_product_details(request, id):
     category = Category.objects.filter(is_deleted=False, is_active=True)
     subcategory = Subcategory.objects.filter(is_deleted=False, is_active=True)
 
-    # Simple READ-ONLY details view as requested
     return render(request, "product/admin-product-details.html", {
         "product": product,
         "category": category,
@@ -213,7 +212,7 @@ def admin_product_management(request, id=None):
         category_id = request.POST.get("category")
         subcategory_id = request.POST.get("subcategory")
         delivery_returns = request.POST.get("delivery_returns")
-        fabric = request.POST.get("fabric")
+        materials = request.POST.get("fabric")
         washing = request.POST.get("washing")
 
         category = get_object_or_404(Category, id=category_id)
@@ -222,7 +221,7 @@ def admin_product_management(request, id=None):
         if product:
             product.product_name = product_name
             product.description_fit = description_fit
-            product.materials = fabric
+            product.materials = materials
             product.care_guide = washing
             product.delivery_returns = delivery_returns
             product.category = category
@@ -233,7 +232,7 @@ def admin_product_management(request, id=None):
             product = Product.objects.create(
                 product_name=product_name,
                 description_fit=description_fit,
-                materials=fabric,
+                materials=materials,
                 care_guide=washing,
                 delivery_returns=delivery_returns,
                 category=category,
@@ -296,7 +295,6 @@ def admin_variants(request, id):
             skipped_count = 0
 
             for size_id in sizes:
-                # Only skip if a LIVE (not deleted) variant with same attributes exists
                 exists = Variant.objects.filter(product=product, size_id=size_id, color=color, is_deleted=False).exists()
                 if not exists:
                     variant = Variant.objects.create(
@@ -309,12 +307,10 @@ def admin_variants(request, id):
                         is_active=is_active
                     )
 
-                    # Handle Images
                     primary_val = request.POST.get("primary_image", "new_0")
                     for i in range(4):
                         img = request.FILES.get(f"image_{i}")
                         if img:
-                            # Reset pointer so next variant loop can read the file again
                             img.seek(0)
                             is_primary = (f"new_{i}" == primary_val)
                             VariantImage.objects.create(variant=variant, image=img, is_primary=is_primary)
@@ -323,7 +319,7 @@ def admin_variants(request, id):
                         first_img = variant.images.first()
                         first_img.is_primary = True
                         first_img.save()
-                    
+
                     added_count += 1
                 else:
                     skipped_count += 1
@@ -333,7 +329,6 @@ def admin_variants(request, id):
                 if skipped_count > 0:
                     msg += f" ({skipped_count} already existed and were skipped)"
                 messages.success(request, msg)
-                # Redirect to page 1 so user sees new items
                 return redirect(request.path_info)
             else:
                 messages.warning(request, "No variants were added (all selected combinations already exist).")
@@ -364,7 +359,6 @@ def admin_variants(request, id):
             variant.is_active = "true" in request.POST.getlist("is_active")
             variant.is_default = "true" in request.POST.getlist("is_default")
 
-            # Image Management
             for key in request.POST:
                 if key.startswith("delete_image_") and request.POST.get(key) == "true":
                     img_id = key.split("_")[-1]

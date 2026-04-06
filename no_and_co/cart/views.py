@@ -16,8 +16,7 @@ def cart_view(request):
             request.session.create()
 
         if action in ["increase", "decrease"] and cart_id:
-            cart_obj = get_object_or_404(Cart, id=cart_id ,user = request.user if request.user.is_authenticated else None,
-                                         session_key = None if request.user.is_authenticated else request.session.session_key)
+            cart_obj = get_object_or_404(Cart, id=cart_id ,user = request.user if request.user.is_authenticated else None, session_key = None if request.user.is_authenticated else request.session.session_key)
 
             if action =="decrease" and cart_obj.quantity > 1:
                 cart_obj.quantity -= 1
@@ -99,7 +98,6 @@ def cart_view(request):
 
     full_total = delivery_fee + order_total
 
-    # ════════════════════════ SIMILAR ITEMS LOGIC (Reused from PDP) ════════════════════════
     similar_items = []
     if cart_items.exists():
         first_product = cart_items.first().variant.product
@@ -110,7 +108,6 @@ def cart_view(request):
             if rep_variant:
                 similar_items.append(rep_variant)
 
-    # FALLBACK: If cart is empty or no similar products found, display latest products
     if not similar_items:
         fallback_products = Product.objects.filter(is_active=True, is_deleted=False).order_by('-id')[:8]
         for p in fallback_products:

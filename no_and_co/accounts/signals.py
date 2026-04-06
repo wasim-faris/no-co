@@ -4,6 +4,7 @@ from cart.views import merge_cart_after_login
 
 @receiver(user_logged_in)
 def merge_cart_google_login(request, user,**kwargs):
+    
     old_session_key = request.session.get("pre_login_session_key")
 
 
@@ -14,5 +15,5 @@ def merge_cart_google_login(request, user,**kwargs):
         return
 
     merge_cart_after_login(request, user , old_session_key)
-    
+
     request.session.pop("pre_login_session_key",None)
