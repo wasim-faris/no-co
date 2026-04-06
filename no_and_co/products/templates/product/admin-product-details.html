@@ -419,58 +419,48 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                         </div>
                     </section>
 
-                    <!-- Product Image Hierarchy (View Only) -->
-                    <section class="bg-white rounded-[32px] shadow-sm border border-white overflow-hidden p-6 space-y-8">
-                        {% with all_images=product.productimage_set.all %}
-                        {% with main_image=all_images|first %}
+                    <!-- Product Image (Primary Variant Only) -->
+                    <section class="bg-white rounded-[32px] shadow-sm border border-white overflow-hidden p-6">
                         <div class="flex flex-col items-center">
-                            <!-- Primary Highlight -->
-                            <div class="relative bg-[#fbfcfa] h-[300px] w-full rounded-2xl overflow-hidden flex items-center justify-center border border-gray-100 ring-1 ring-black/5 group cursor-pointer shadow-inner mb-6"
-                                 onclick="openLightbox('{{ main_image.image.url }}')">
-                                {% if main_image %}
-                                    <img src="{{ main_image.image.url }}" 
-                                         alt="{{ product.name }}" 
-                                         class="max-h-full max-w-full object-contain transition-all duration-700 group-hover:scale-[1.03]">
-                                    
-                                    <!-- Primary Label -->
-                                    <div class="absolute top-4 left-4">
-                                        <span class="text-[8px] bg-black text-white px-2.5 py-1 rounded-full font-black uppercase tracking-widest shadow-lg">Primary</span>
-                                    </div>
-
-                                    <!-- Click to Zoom Tip -->
-                                    <div class="absolute bottom-4 right-4 bg-black/10 backdrop-blur-md px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <p class="text-[7px] text-white font-bold uppercase tracking-widest">Click to Zoom</p>
-                                    </div>
-                                {% else %}
+                            {% for variant in product.variants.all %}
+                                {% if variant.is_default %}
+                                    {% if variant.images.all %}
+                                        {% for vimg in variant.images.all %}
+                                            {% if vimg.is_primary %}
+                                                <div class="relative bg-[#fbfcfa] h-[300px] w-full rounded-2xl overflow-hidden flex items-center justify-center border border-gray-100 ring-1 ring-black/5 group cursor-pointer shadow-inner"
+                                                     onclick="openLightbox('{{ vimg.image.url }}')">
+                                                    <img src="{{ vimg.image.url }}" 
+                                                         alt="{{ product.product_name }}" 
+                                                         class="max-h-full max-w-full object-contain transition-all duration-700 group-hover:scale-[1.03]">
+                                                    
+                                                    <div class="absolute bottom-4 right-4 bg-black/10 backdrop-blur-md px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <p class="text-[7px] text-white font-bold uppercase tracking-widest">Click to Zoom</p>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="relative bg-[#fbfcfa] h-[300px] w-full rounded-2xl overflow-hidden flex items-center justify-center border border-gray-100 ring-1 ring-black/5 shadow-inner">
+                                            <div class="text-center p-8 text-gray-300">
+                                                <svg class="mx-auto h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                <p class="text-[10px] font-bold uppercase tracking-[0.2em]">No Image Available</p>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% empty %}
+                                <div class="relative bg-[#fbfcfa] h-[300px] w-full rounded-2xl overflow-hidden flex items-center justify-center border border-gray-100 ring-1 ring-black/5 shadow-inner">
                                     <div class="text-center p-8 text-gray-300">
                                         <svg class="mx-auto h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         <p class="text-[10px] font-bold uppercase tracking-[0.2em]">No Image Available</p>
                                     </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Thumbnail Row (Max 3 more) -->
-                            {% if all_images|length > 1 %}
-                            <div class="flex flex-wrap items-center justify-center gap-3">
-                                {% for img in all_images|slice:"1:4" %}
-                                <div class="w-[80px] h-[80px] relative bg-gray-50 rounded-xl overflow-hidden border border-gray-100 group cursor-pointer hover:border-black/20 transition-all shadow-sm flex items-center justify-center p-1"
-                                     onclick="openLightbox('{{ img.image.url }}')">
-                                    <img src="{{ img.image.url }}" class="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100">
-                                    
-                                    {% if forloop.counter == 3 and all_images|length > 4 %}
-                                    <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                                        <span class="text-white font-black text-[10px] tracking-tighter cursor-zoom-in">+{{ all_images|length|add:"-4" }}</span>
-                                    </div>
-                                    {% endif %}
                                 </div>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
+                            {% endfor %}
                         </div>
-                        {% endwith %}
-                        {% endwith %}
                     </section>
 
                     <div class="bg-white rounded-custom shadow-sm border border-white overflow-hidden">
