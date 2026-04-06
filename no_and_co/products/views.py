@@ -57,7 +57,7 @@ def admin_products(request):
     active_count = all_products.filter(is_active=True).count()
     inactive_count = all_products.filter(is_active=False).count()
 
-    paginator = Paginator(product, 12)
+    paginator = Paginator(product, 4)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     return render(request, "product/admin-products.html", {
@@ -166,6 +166,18 @@ def admin_product_details(request, id):
             product.save()
             messages.success(request, "Product moved to archives")
             return redirect("admin-products")
+
+        if action == "toggle_variant":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant, id=variant_id)
+            if not variant.is_default:
+                variant.is_active = not variant.is_active
+                variant.save()
+                messages.success(request, "Status updated")
+            else:
+                messages.warning(request, "Default variant must stay active")
+
+        return redirect("admin-product-details", id=product.id)
 
 
     category = Category.objects.filter(is_deleted=False, is_active=True)
@@ -321,6 +333,8 @@ def admin_variants(request, id):
                 if skipped_count > 0:
                     msg += f" ({skipped_count} already existed and were skipped)"
                 messages.success(request, msg)
+                # Redirect to page 1 so user sees new items
+                return redirect(request.path_info)
             else:
                 messages.warning(request, "No variants were added (all selected combinations already exist).")
 
@@ -451,7 +465,7 @@ def admin_variants(request, id):
     inactive_count = all_variants.filter(is_active=False).count()
     total_count = all_variants.count()
 
-    paginator = Paginator(variants, 12)
+    paginator = Paginator(variants, 4)
     page_obj = paginator.get_page(request.GET.get("page"))
     sizes = Size.objects.all()
     context = {
