@@ -784,8 +784,8 @@
             params.set('subcategory', subSlug);
         }
 
-        // Prevention: When picking a specific subcategory, we keep category if it exists
-        // as they are a valid combined filter (e.g. Mens + Shirts)
+        // Reset search query when applying filters/tabs
+        params.delete('q');
         
         if (typeof fetchProducts === 'function') fetchProducts(url);
     }
@@ -998,7 +998,8 @@
                 if (newSort) params.set('sort', newSort);
             }
 
-            // Note: 'q' persists naturally from current URL unless searchForm is used
+            // Reset search query when applying filters from drawer
+            params.delete('q');
             
             fetchProducts(url);
         });
@@ -1017,7 +1018,8 @@
             
             const sortVal = formData.get('sort');
             params.delete('sort');
-            if (sortVal) params.set('sort', sortVal);
+            // Reset search query when changing sort
+            params.delete('q');
             
             fetchProducts(url);
         });
@@ -1038,6 +1040,9 @@
         } else if (key === 'price_min' || key === 'price_max') {
             params.delete(key);
         }
+        
+        // Reset search query when removing a filter tag
+        params.delete('q');
         
         fetchProducts(url);
     };
