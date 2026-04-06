@@ -723,10 +723,10 @@
                 <input type="radio" name="sort" value="newest" {% if request.GET.sort == "newest" %}checked{% endif %}> Newest
             </label>
             <label class="filter-option-checkbox">
-                <input type="radio" name="sort" value="low_price" {% if request.GET.sort == "low_price" %}checked{% endif %}> Lowest Price
+                <input type="radio" name="sort" value="lowest_price" {% if request.GET.sort == "lowest_price" %}checked{% endif %}> Lowest Price
             </label>
             <label class="filter-option-checkbox">
-                <input type="radio" name="sort" value="high_price" {% if request.GET.sort == "high_price" %}checked{% endif %}> Highest Price
+                <input type="radio" name="sort" value="highest_price" {% if request.GET.sort == "highest_price" %}checked{% endif %}> Highest Price
             </label>
         </div>
 
@@ -992,10 +992,14 @@
             if (newPriceMin) params.set('price_min', newPriceMin);
             if (newPriceMax) params.set('price_max', newPriceMax);
 
-            const sortFormEl = document.getElementById('sortForm');
-            if (sortFormEl) {
-                const newSort = new FormData(sortFormEl).get('sort');
-                if (newSort) params.set('sort', newSort);
+            const drawerSort = formData.get('sort');
+            if (drawerSort) {
+                params.set('sort', drawerSort);
+                const dropdownForm = document.getElementById('sortForm');
+                if (dropdownForm) {
+                    const matchedInp = dropdownForm.querySelector(`input[value="${drawerSort}"]`);
+                    if (matchedInp) matchedInp.checked = true;
+                }
             }
 
             // Reset search query when applying filters from drawer
@@ -1018,6 +1022,13 @@
             
             const sortVal = formData.get('sort');
             params.delete('sort');
+            if (sortVal) {
+                params.set('sort', sortVal);
+                // Sync the drawer sort too!
+                const drawerSortInp = filterForm?.querySelector(`input[name="sort"][value="${sortVal}"]`);
+                if (drawerSortInp) drawerSortInp.checked = true;
+            }
+            
             // Reset search query when changing sort
             params.delete('q');
             
