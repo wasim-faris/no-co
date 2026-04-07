@@ -1,0 +1,194 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}FAVOURITES – NO&CO{% endblock %}
+
+{% block extra_head %}
+<!-- NO&CO Wishlist (Favourites) – H&M Inspired static template -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* ─── Global Font Override ─── */
+    html, body, * {
+        font-family: "Inter", "Helvetica Neue", Arial, sans-serif !important;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Layout ─── */
+    .wishlist-container {
+        max-width: 80rem; /* max-w-7xl approx */
+        margin: 0 auto;
+        padding: 40px 16px;
+        text-align: left;
+    }
+    @media (min-width: 768px) {
+        .wishlist-container {
+            padding: 60px 32px; /* px-8 equivalent */
+        }
+    }
+
+    /* ─── Header ─── */
+    .wishlist-header {
+        margin-bottom: 40px;
+    }
+    .wishlist-title {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin: 0 0 8px 0;
+        line-height: 1.1;
+    }
+    .wishlist-count {
+        font-size: 13px;
+        font-weight: 400;
+        color: #767676;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* ─── Grid ─── */
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+    @media (min-width: 768px) {
+        .wishlist-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+    }
+    @media (min-width: 1024px) {
+        .wishlist-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 32px;
+        }
+    }
+
+    /* ─── Product Card ─── */
+    .fav-card {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    .fav-img-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        background-color: #f2f2f2; /* Light Gray Background */
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+    .fav-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* ─── Heart Icon ─── */
+    .fav-heart {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        color: #e02020; /* Solid Red Heart */
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 10;
+        transition: transform 0.2s ease;
+    }
+    .fav-heart:hover {
+        transform: scale(1.15);
+    }
+
+    /* ─── Details ─── */
+    .fav-details {
+        padding: 0;
+        margin-top: 4px;
+    }
+    .fav-name {
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: #111;
+        margin: 0 0 6px 0;
+        line-height: 1.4;
+    }
+    .fav-price {
+        font-size: 13px;
+        font-weight: 700;
+        color: #111;
+        margin: 0 0 16px 0;
+    }
+
+    /* ─── Add Button ─── */
+    .btn-add-fav {
+        width: 100%;
+        padding: 12px 0;
+        background: transparent;
+        border: 1px solid #111; /* Thin black border */
+        color: #111;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: auto;
+    }
+    .btn-add-fav:hover {
+        background-color: #f9f9f9;
+        opacity: 0.8;
+    }
+
+    /* ─── Empty state removal (clean grid feel) ─── */
+    .no-extra-gap {
+        margin: 0;
+        padding: 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wishlist-container">
+    
+    <!-- HEADER -->
+    <header class="wishlist-header">
+        <h1 class="wishlist-title">Favourites</h1>
+        <span class="wishlist-count">1 Item</span>
+    </header>
+
+    <!-- FAVOURITES GRID -->
+    <div class="wishlist-grid">
+        
+        <!-- DEMO PRODUCT: SLIM FIT LINEN SHIRT -->
+        <div class="fav-card">
+            <div class="fav-img-wrapper">
+                <img src="/media/products/linen-shirt.png" alt="Slim Fit Linen Shirt">
+                
+                <!-- HEART ICON (POS BOTTOM-RIGHT) -->
+                <div class="fav-heart">
+                    <i class="ri-heart-fill"></i>
+                </div>
+            </div>
+
+            <!-- PRODUCT DETAILS -->
+            <div class="fav-details">
+                <h4 class="fav-name">Slim Fit Linen Shirt</h4>
+                <p class="fav-price">Rs. 2,999</p>
+                
+                <!-- BUTTON -->
+                <button class="btn-add-fav">Add</button>
+            </div>
+        </div>
+
+        <!-- NOTE: Just one demo item as requested -->
+
+    </div>
+
+</div>
+{% endblock %}
