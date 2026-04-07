@@ -91,8 +91,6 @@ def admin_product_details(request, id):
             except ValueError:
                 messages.error(request, "Invalid stock value")
                 return redirect("admin-product-details", id=product.id)
-
-            # Check if variant already exists (not deleted)
             if Variant.objects.filter(product=product, size_id=size_obj.id, color=request.POST.get("color"), is_deleted=False).exists():
                 messages.warning(request, "A variant with this size and color already exists.")
                 return redirect("admin-product-details", id=product.id)
@@ -198,7 +196,6 @@ def admin_product_management(request, id=None):
         product = None
 
     if request.method == "POST":
-        # 1. Handle Delete Request FIRST
         deleted_product = request.POST.get("deleted_product")
         if deleted_product:
             product_to_delete = get_object_or_404(Product, id=deleted_product)
@@ -308,6 +305,7 @@ def admin_variants(request, id):
                     )
 
                     primary_val = request.POST.get("primary_image", "new_0")
+                    
                     for i in range(4):
                         img = request.FILES.get(f"image_{i}")
                         if img:

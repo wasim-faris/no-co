@@ -50,6 +50,7 @@ def product_details(request, id):
         ),
         "images"
     ).order_by("-is_default", "id")
+
     default_variant = variants.first()
 
     unique_variants = []
@@ -72,6 +73,7 @@ def product_details(request, id):
 
     similar_products = Product.objects.filter(is_active=True, is_deleted=False).exclude(id=product.id).order_by('-created_at')[:6]
     similar_items = []
+    
     for p in similar_products:
         rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
         if rep_variant:

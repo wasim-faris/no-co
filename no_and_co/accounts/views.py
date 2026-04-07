@@ -479,12 +479,12 @@ def change_password(request):
             messages.error(request, "Passwoed too week")
             return redirect("change-password")
 
-        
+
         user.set_password(new_password)
 
         user.save()
 
-        messages.success(request, "Password updated succ")
+        messages.success(request, "Password updated successfully")
         return redirect("login")
 
     return render(request, "accounts/change_password.html")
