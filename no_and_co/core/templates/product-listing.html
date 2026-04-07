@@ -464,8 +464,6 @@
           <h1 style="font-size: clamp(28px, 6vw, 42px); font-weight: 800; letter-spacing: -0.01em; text-transform: uppercase; margin: 0; line-height: 1.1; color: #000;">
               {% if query and query.strip and query != "None" %}
                   {{ query }}
-              {% elif request.GET.sort or request.GET.price_min or request.GET.price_max or request.GET.getlist.category|length > 1 %}
-                  All Products
               {% elif request.GET.subcategory and request.GET.subcategory.strip %}
                   {{ request.GET.subcategory }}
               {% elif request.GET.category and request.GET.category.strip %}
@@ -505,10 +503,9 @@
 
               <div class="sort-menu" id="sortMenu">
                   <form method="GET" action="." id="sortForm">
-                      <!-- PRESERVE EXISTING PARAMS -->
-                      <input type="hidden" name="category" value="{{ request.GET.category }}">
-                      <input type="hidden" name="price_min" value="{{ request.GET.price_min }}">
-                      <input type="hidden" name="price_max" value="{{ request.GET.price_max }}">
+                      <!-- PRESERVE ONLY CONTEXT -->
+                      <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}">
+                      <input type="hidden" name="q" value="{{ request.GET.q }}">
 
                       <label class="sort-option">
                           Recommended
@@ -713,8 +710,7 @@
     </div>
 
     <form class="filter-body" method="GET" action="." id="filterForm">
-        <!-- PRESERVE EXISTING PARAMS -->
-        {% comment %} <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}"> {% endcomment %}
+        <!-- GLOBAL FILTERS (No subcategory/q restriction) -->
 
         <!-- Sort Section -->
         <div class="filter-section">
@@ -981,8 +977,9 @@
             const url = new URL(window.location.href);
             const params = url.searchParams;
             
-            // 1. Logic: If category/price/sort manipulated in drawer, subcategory is secondary
+            // Global Filter behavior: reset subcategory/search context when using the drawer
             params.delete('subcategory');
+            params.delete('q');
             
             // 2. Handle Categories: Clean replacement
             const newCategories = formData.getAll('category');
@@ -1006,7 +1003,7 @@
             }
 
             // Reset search query when applying filters from drawer
-            params.delete('q');
+            // params.delete('q');
             
             fetchProducts(url);
         });
@@ -1020,20 +1017,26 @@
             const url = new URL(window.location.href);
             const params = url.searchParams;
             
-            // Requirement B: Change sort -> Move from subcategory to general view
-            params.delete('subcategory');
+            // Decouple: Root context (Subcategory or Search) is kept
+            const sub = params.get('subcategory');
+            const q = params.get('q');
             
+            // Clear current params string
+            url.search = '';
+            
+            // Re-apply context ONLY
+            if (sub) url.searchParams.set('subcategory', sub);
+            if (q) url.searchParams.set('q', q);
+            
+            // Apply new Sort value
             const sortVal = formData.get('sort');
-            params.delete('sort');
             if (sortVal) {
-                params.set('sort', sortVal);
-                // Sync the drawer sort too!
+                url.searchParams.set('sort', sortVal);
+                
+                // Sync the drawer sort radio too
                 const drawerSortInp = filterForm?.querySelector(`input[name="sort"][value="${sortVal}"]`);
                 if (drawerSortInp) drawerSortInp.checked = true;
             }
-            
-            // Reset search query when changing sort
-            params.delete('q');
             
             fetchProducts(url);
         });
@@ -1044,8 +1047,9 @@
         const url = new URL(window.location.href);
         const params = url.searchParams;
         
-        // As per broader filtering rules
+        // Reset broad category view when removing filter tags
         params.delete('subcategory');
+        params.delete('q');
 
         if (key === 'category') {
             const currentValues = params.getAll('category');
@@ -1056,7 +1060,7 @@
         }
         
         // Reset search query when removing a filter tag
-        params.delete('q');
+        // params.delete('q');
         
         fetchProducts(url);
     };
