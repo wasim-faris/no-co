@@ -158,6 +158,32 @@
         margin: 0;
         padding: 0;
     }
+
+    /* ─── Empty State ─── */
+    .wishlist-empty {
+        text-align: center;
+        padding: 80px 16px;
+    }
+    .empty-text {
+        font-size: 13px;
+        color: #767676;
+        margin: 16px 0 32px;
+    }
+    .btn-explore {
+        display: inline-block;
+        padding: 16px 32px;
+        background: #000;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+    .btn-explore:hover {
+        background: #333;
+    }
 </style>
 {% endblock %}
 
@@ -170,9 +196,9 @@
         <span class="wishlist-count">{{ whishlist_items|length }} {% if whishlist_items|length == 1 %}Item{% else %}Items{% endif %}</span>
     </header>
 
+    {% if whishlist_items %}
     <!-- FAVOURITES GRID -->
     <div class="wishlist-grid">
-        
         {% for item in whishlist_items %}
         <div class="fav-card">
             <div class="fav-img-wrapper">
@@ -198,8 +224,14 @@
             </div>
         </div>
         {% endfor %}
-
     </div>
+    {% else %}
+    <!-- EMPTY STATE -->
+    <div class="wishlist-empty">
+        <p class="empty-text">Tap the heart icon on items to save them here.</p>
+        <a href="{% url 'ladies' %}" class="btn-explore">EXPLORE MEN'S WEAR</a>
+    </div>
+    {% endif %}
 
 </div>
 

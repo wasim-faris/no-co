@@ -1833,6 +1833,22 @@
             });
         });
     })();
+
+    // ════════════════════════════════════════
+    // INITIAL WISHLIST STATE SYNC
+    // ════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', function () {
+        const activeWishlistIds = [
+            {% for item in wishlist_items %}"{{ item.variant.id }}"{% if not forloop.last %},{% endif %}{% endfor %}
+        ];
+
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            const vId = String(btn.getAttribute('data-variant-id'));
+            if (activeWishlistIds.includes(vId)) {
+                btn.classList.add('liked');
+            }
+        });
+    });
 </script>
 
 {% endwith %}

@@ -275,7 +275,7 @@
                 </svg>
                 <span class="text-[10px] font-light uppercase tracking-[0.08em] opacity-80">Search</span>
             </button>
-            <a href="#" class="{% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
+            <a href="{% url 'wishlist' %}" class="{% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                     stroke-linejoin="round">
                     <path

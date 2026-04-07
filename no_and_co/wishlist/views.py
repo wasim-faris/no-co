@@ -49,7 +49,10 @@ def wishlist_toggle(request):
 
     variant = get_object_or_404(Variant, id=variant_id)
 
-    item = Wishlist.objects.filter(user=user, session_key = session_key, variant=variant)
+    if request.user.is_authenticated:
+        item = Wishlist.objects.filter(user=user, variant=variant)
+    else:
+        item = Wishlist.objects.filter(session_key = session_key, variant=variant)
 
     if item.exists():
         item.delete()
