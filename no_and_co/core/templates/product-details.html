@@ -589,24 +589,24 @@
 
     .custom-pill-toast.show { opacity: 1; transform: translateX(0); }
     .toast-left-content { display: flex; align-items: center; gap: 14px; }
-    .toast-icon-circle { 
-        width: 24px; height: 24px; border-radius: 50%; 
-        display: flex; align-items: center; justify-content: center; 
-        font-size: 11px; flex-shrink: 0; 
+    .toast-icon-circle {
+        width: 24px; height: 24px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; flex-shrink: 0;
         border: 1px solid rgba(255,255,255,0.2);
     }
     .toast-success .toast-icon-circle { color: #fff; background: #000; }
     .toast-error .toast-icon-circle { color: #fff; background: #000; }
-    
+
     .toast-message-wrapper { display: flex; flex-direction: column; }
-    .toast-main-text { 
-        font-size: 12px; font-weight: 500; 
-        text-transform: uppercase; letter-spacing: 0.1em; 
-        line-height: 1.2; 
+    .toast-main-text {
+        font-size: 12px; font-weight: 500;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        line-height: 1.2;
     }
     .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
-    .toast-close-btn { 
-        cursor: pointer; font-size: 14px; opacity: 0.4; 
+    .toast-close-btn {
+        cursor: pointer; font-size: 14px; opacity: 0.4;
         transition: opacity 0.2s; padding: 4px;
     }
     .toast-close-btn:hover { opacity: 1; }
@@ -696,7 +696,7 @@
         flex-direction: column;
         gap: 20px;
     }
-    
+
     @media (max-width: 768px) {
         #miniCartPopup {
             width: 90%;
@@ -718,7 +718,7 @@
         border-bottom: 1px solid #f0f0f0;
         padding-bottom: 12px;
     }
-    
+
     .mc-header span {
         font-size: 10px;
         font-weight: 700;
@@ -726,7 +726,7 @@
         letter-spacing: 0.1em;
         color: #111;
     }
-    
+
     .mc-close {
         background: none;
         border: none;
@@ -829,6 +829,15 @@
         border: 1px solid #000;
     }
     .mc-btn-checkout:hover { background: #333; }
+
+    /* Wishlist liked state */
+    .like-btn.liked svg {
+        fill: #e02b2b !important;
+        stroke: #e02b2b !important;
+    }
+    .like-btn:hover svg {
+        transform: scale(1.1);
+    }
 </style>
 
 <div id="toast-container"></div>
@@ -902,7 +911,7 @@
 
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
             <h1 class="prod-name">{{ product.product_name }}</h1>
-            <button style="background:none;border:none;cursor:pointer;padding:0;color:#ccc;">
+            <button class="like-btn" data-variant-id="{{ default_variant.id }}" style="background:none;border:none;cursor:pointer;padding:0;color:#ccc;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
                     <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
                 </svg>
@@ -1077,7 +1086,7 @@
                         <img src="{{ all_imgs.0.image.url|default:'#' }}" class="product-img" alt="{{ item.color }}">
                     {% endif %}
                     {% endwith %}
-                    <button class="similar-heart" aria-label="Add to Wishlist">
+                    <button class="similar-heart like-btn" data-variant-id="{{ item.id }}" aria-label="Add to Wishlist">
                         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </button>
                 </div>
@@ -1116,7 +1125,7 @@
                         <img src="{{ all_imgs.0.image.url|default:'#' }}" class="product-img" alt="{{ item.color }}">
                     {% endif %}
                     {% endwith %}
-                    <button class="similar-heart" aria-label="Add to Wishlist">
+                    <button class="similar-heart like-btn" data-variant-id="{{ item.id }}" aria-label="Add to Wishlist">
                         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </button>
                 </div>
@@ -1152,13 +1161,13 @@
     function updateCartAction() {
         const activeColorEl = document.querySelector('.swatch-item.active');
         const activeSizeEl = document.querySelector('.size-box.active');
-        
+
         if (activeColorEl && activeSizeEl) {
             const color = activeColorEl.getAttribute('data-color');
             const size = activeSizeEl.innerText.trim();
             const key = color + '_' + size;
             const variantId = variantMap[key];
-            
+
             if (variantId) {
                 const form = document.getElementById('addToCartForm');
                 if (form) {
@@ -1227,28 +1236,28 @@
         sizesArray.forEach((size, index) => {
             const sizeDiv = document.createElement('div');
             const stock = stockMap[activeColor + '_' + size];
-            
+
             sizeDiv.className = 'size-box';
             if (stock <= 0) {
                 sizeDiv.classList.add('out-of-stock');
             }
-            
+
             sizeDiv.style.position = 'relative';
             if (stock !== undefined) sizeDiv.dataset.stock = stock;
-            
+
             // Wrap text in span to ensure underline/strike only affects text width
             const span = document.createElement('span');
             span.appendChild(document.createTextNode(size));
             sizeDiv.appendChild(span);
-            
+
             if (stock !== undefined && stock > 1 && stock < 5) {
                 const dot = document.createElement('span');
                 dot.className = 'low-stock-dot';
                 sizeDiv.appendChild(dot);
             }
-            
+
             sizeDiv.onclick = function() { selectSize(this); };
-            
+
             sizeContainer.appendChild(sizeDiv);
         });
 
@@ -1279,7 +1288,7 @@
         // Clear size-required error
         const sizeErr = document.getElementById('sizeError');
         if (sizeErr) sizeErr.style.display = 'none';
-        
+
         // Show low-stock hint when selected size has fewer than 5 units
         const hint = document.getElementById('stockHint');
         if (hint) {
@@ -1313,7 +1322,7 @@
             } else {
                 content.classList.add('active');
                 // Use scrollHeight for high-precision smooth animation
-                content.style.maxHeight = content.scrollHeight + 40 + "px"; 
+                content.style.maxHeight = content.scrollHeight + 40 + "px";
                 plus.innerText = '−';
             }
         });
@@ -1512,10 +1521,10 @@
                 messages.forEach(msg => showToast(msg.message, msg.tags));
             } catch (e) {}
         }
-        
+
         // --- Gallery Indicators Initialization ---
         initGalleryIndicators();
-        
+
         // Gallery Indicators Logic
     function initGalleryIndicators() {
         const container = document.getElementById('imageContainer');
@@ -1533,7 +1542,7 @@
             }
 
             document.getElementById('galleryIndicatorsWrapper').style.display = 'flex';
-            
+
             // Build base squares
             let html = '';
             visibleImages.forEach(() => {
@@ -1553,20 +1562,20 @@
             const scrollLeft = container.scrollLeft;
             const width = container.clientWidth;
             const index = Math.round(scrollLeft / width);
-            
+
             // 6px box + 8px gap = 14px step
             activeBox.style.transform = `translateX(${index * 14}px)`;
         }
 
         // Attach scroll listener
         container.addEventListener('scroll', updateActiveIndicator, { passive: true });
-        
+
         // Initial build
         refreshIndicators();
 
         // Expose to selectVariant
         window.refreshGalleryIndicators = refreshIndicators;
-    }        
+    }
         // AJAX Add To Cart
         const addToCartForm = document.getElementById('addToCartForm');
         if (addToCartForm) {
@@ -1591,7 +1600,7 @@
                     }
                     return;
                 }
-                
+
                 // Out-of-Stock Redirect to Toast
                 const stock = parseInt(activeSize.dataset.stock, 10);
                 if (stock <= 0) {
@@ -1626,11 +1635,11 @@
                 btn.style.opacity = '0.7';
                 const originalText = 'ADD TO BAG';
                 btn.innerText = 'ADDING TO BAG...';
-                
+
                 // Track start time to ensure "ADDING" state is visible
                 const startTime = Date.now();
                 const minLoadingTime = 600; // ms
-                
+
                 fetch(url, {
                     method: 'POST',
                     headers: {
@@ -1647,24 +1656,24 @@
                 .then(data => {
                     const elapsedTime = Date.now() - startTime;
                     const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
-                    
+
                     setTimeout(() => {
                         if (data.success) {
                         btn.innerText = 'ADDED TO BAG ✓';
                         btn.style.opacity = '1';
-                        
+
                         // Update local sync storage
                         let currentSync = {};
                         try { currentSync = JSON.parse(localStorage.getItem('cartQuantities') || '{}'); } catch(e) {}
-                        
+
                         const actSize = document.querySelector('.size-box.active');
                         const vId = actSize ? (actSize.getAttribute('data-variant-id') || actSize.innerText.trim()) : 'default';
                         currentSync[vId] = (currentSync[vId] || 0) + 1;
                         localStorage.setItem('cartQuantities', JSON.stringify(currentSync));
-                        
+
                         // Broadcast the event forward so Navbars can update globally
                         window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart_count } }));
-                        
+
                         // Optionally trigger toast
                         if (typeof showToast === "function") {
                             // showToast("Product Added to cart", "success"); // Silenced toast to prefer minicart
@@ -1678,22 +1687,22 @@
                             const mcImage = document.getElementById('mcImage');
                             const mcColour = document.getElementById('mcColour');
                             const mcSize = document.getElementById('mcSize');
-                            
+
                             const prodTitle = document.querySelector('.prod-name').innerText;
                             const prodPrice = document.getElementById('displayPrice').innerText;
                             const activeSwatch = document.querySelector('.swatch-item.active');
                             const pdpImg = document.getElementById('mainImage') ? document.getElementById('mainImage').src : '';
-                            
+
                             if (mcTitle) mcTitle.innerText = prodTitle;
                             if (mcPrice) mcPrice.innerText = prodPrice;
                             if (mcImage) mcImage.src = pdpImg;
                             if (mcColour && activeSwatch) mcColour.innerText = activeSwatch.getAttribute('data-color');
                             if (mcSize && activeSize) mcSize.innerText = activeSize.innerText.trim();
-                            
+
                             miniCart.classList.remove('show');
                             void miniCart.offsetWidth; // Force reflow
                             miniCart.classList.add('show');
-                            
+
                             if (window.miniCartTimer) clearTimeout(window.miniCartTimer);
                             window.miniCartTimer = setTimeout(() => {
                                 miniCart.classList.remove('show');
@@ -1715,7 +1724,7 @@
                     if (typeof showToast === "function") {
                         showToast(error.message, "error");
                     }
-                    
+
                     // Restore button instantly
                     btn.innerText = originalText;
                     btn.disabled = false;
@@ -1732,7 +1741,7 @@
         <span>Added to bag</span>
         <button class="mc-close" onclick="document.getElementById('miniCartPopup').classList.remove('show')">✕</button>
     </div>
-    
+
     <div class="mc-item-row">
         <div class="mc-image-col">
             <img id="mcImage" src="" alt="Product">
@@ -1747,12 +1756,84 @@
             </div>
         </div>
     </div>
-    
+
     <div class="mc-btn-row">
         <a href="{% url 'cart' %}" class="mc-btn mc-btn-bag">View bag</a>
         <a href="#" class="mc-btn mc-btn-checkout">Checkout</a>
     </div>
 </div>
+
+<script>
+    /**
+     * AJAX WISHLIST TOGGLE SYSTEM
+     * Frontend-Only Logic (Requires buttons with class '.like-btn' and 'data-variant-id' attribute)
+     */
+    (function() {
+        // Helper: Get CSRF Token from Cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Global Wishlist Handler
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.like-btn');
+            if (!btn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const variantId = btn.getAttribute('data-variant-id');
+            if (!variantId) {
+                console.error('Wishlist Error: data-variant-id missing on button.');
+                return;
+            }
+
+            // OPTIMISTIC UPDATE: Instant UI feedback
+            const wasLiked = btn.classList.contains('liked');
+            btn.classList.toggle('liked');
+
+            // AJAX Request
+            fetch('/wishlist-toggle/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ variant_id: variantId })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                // Ensure UI state matches server response exactly
+                if (data.status === 'added') btn.classList.add('liked');
+                else if (data.status === 'removed') btn.classList.remove('liked');
+            })
+            .catch(err => {
+                console.error('Wishlist Sync Error:', err);
+                // REVERT on failure
+                if (wasLiked) btn.classList.add('liked');
+                else btn.classList.remove('liked');
+
+                if (typeof showToast === 'function') {
+                    showToast("Failed to update wishlist. Please try again.", "error");
+                }
+            });
+        });
+    })();
+</script>
 
 {% endwith %}
 {% endblock %}

@@ -166,17 +166,21 @@
     
     <!-- HEADER -->
     <header class="wishlist-header">
-        <h1 class="wishlist-title">Favourites</h1>
-        <span class="wishlist-count">1 Item</span>
+        <h1 class="wishlist-title">FAVOURITES</h1>
+        <span class="wishlist-count">{{ whishlist_items|length }} {% if whishlist_items|length == 1 %}Item{% else %}Items{% endif %}</span>
     </header>
 
     <!-- FAVOURITES GRID -->
     <div class="wishlist-grid">
         
-        <!-- DEMO PRODUCT: SLIM FIT LINEN SHIRT -->
+        {% for item in whishlist_items %}
         <div class="fav-card">
             <div class="fav-img-wrapper">
-                <img src="/media/products/linen-shirt.png" alt="Slim Fit Linen Shirt">
+                {% if item.variant.primary_images %}
+                    <img src="{{ item.variant.primary_images.0.image.url }}" alt="{{ item.variant.product.product_name }}">
+                {% else %}
+                    <img src="/media/products/linen-shirt.png" alt="Fallback Item">
+                {% endif %}
                 
                 <!-- HEART ICON (POS BOTTOM-RIGHT) -->
                 <div class="fav-heart">
@@ -186,15 +190,14 @@
 
             <!-- PRODUCT DETAILS -->
             <div class="fav-details">
-                <h4 class="fav-name">Slim Fit Linen Shirt</h4>
-                <p class="fav-price">Rs. 2,999</p>
+                <h4 class="fav-name">{{ item.variant.product.product_name }}</h4>
+                <p class="fav-price">Rs. {{ item.variant.price }}</p>
                 
                 <!-- BUTTON -->
                 <button class="btn-add-fav">ADD</button>
             </div>
         </div>
-
-        <!-- NOTE: Just one demo item as requested -->
+        {% endfor %}
 
     </div>
 
