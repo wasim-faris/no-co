@@ -5,6 +5,11 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from admin_dashboard.decorators import admin_required
+from django.views.decorators.cache import never_cache
+
+@admin_required
+@never_cache
 def admin_category(request):
 
     page_number = request.GET.get("page")
@@ -106,7 +111,8 @@ def admin_category(request):
         },
     )
 
-
+@admin_required
+@never_cache
 def admin_subcategory(request):
     page_number = request.GET.get("page")
     query = request.GET.get("q", "")

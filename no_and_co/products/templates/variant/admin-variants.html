@@ -303,7 +303,10 @@
                             <td class="px-5 py-3 w-12 text-center align-middle">
                                 {% if request.GET.status != 'archived' %}
                                     {% if variant.is_default %}
-                                        <div class="w-4 h-4 rounded-full border-[5px] border-black bg-white mx-auto"></div>
+                                        <div class="flex flex-col items-center gap-1">
+                                            <div class="w-4 h-4 rounded-full border-[5px] border-black bg-white mx-auto"></div>
+                                            <span class="text-[8px] font-bold text-black tracking-tighter">DEFAULT</span>
+                                        </div>
                                     {% else %}
                                         <form method="POST" action="" class="inline-block" title="Set as default">
                                             {% csrf_token %}
@@ -414,8 +417,8 @@
                                             <input type="hidden" name="action" value="toggle_variant">
                                             <input type="hidden" name="variant_id" value="{{ variant.id }}">
 
-                                            <label class="relative inline-flex items-center cursor-pointer m-0">
-                                                <input type="checkbox" onChange="this.form.submit()" class="sr-only peer" {% if variant.is_active %}checked{% endif %}>
+                                            <label class="relative inline-flex items-center {% if variant.is_default %}cursor-not-allowed opacity-50{% else %}cursor-pointer{% endif %} m-0">
+                                                <input type="checkbox" {% if not variant.is_default %}onChange="this.form.submit()"{% endif %} class="sr-only peer" {% if variant.is_active %}checked{% endif %} {% if variant.is_default %}disabled{% endif %}>
                                                 <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black shadow-inner"></div>
                                             </label>
                                         </form>
@@ -527,7 +530,7 @@
                     </div>
                     <div class="col-span-2 sm:col-span-1">
                         <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Stock</label>
-                        <input type="number" name="stock" id="add-stock" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                        <input type="number" name="stock" id="add-stock" required min="0" max="100000" step="1" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
                         <p id="add-stock-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
                     </div>
                 </div>
@@ -537,11 +540,6 @@
                         <input type="checkbox" name="is_active" value="true" checked class="sr-only peer">
                         <div class="w-12 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black shadow-sm"></div>
                         <span class="ml-3 text-xs font-bold uppercase tracking-widest text-gray-400">Active</span>
-                    </label>
-                    <label class="relative inline-flex items-center cursor-pointer m-0">
-                        <input type="checkbox" name="is_default" value="true" class="sr-only peer">
-                        <div class="w-12 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black shadow-sm"></div>
-                        <span class="ml-3 text-xs font-bold uppercase tracking-widest text-gray-400">Default Variant</span>
                     </label>
                 </div>
 
@@ -638,7 +636,7 @@
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Stock</label>
-                        <input type="number" name="stock" id="edit-stock" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                        <input type="number" name="stock" id="edit-stock" required min="0" max="100000" step="1" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
                         <p id="edit-stock-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
                     </div>
                 </div>

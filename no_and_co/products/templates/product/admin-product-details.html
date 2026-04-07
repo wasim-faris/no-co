@@ -350,7 +350,7 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
 
 
     <div class="flex-1 flex flex-col">
-        <form action="" method="POST" enctype="multipart/form-data" class="contents">
+        <div class="contents">
             {% csrf_token %}
 
             <div class="px-8 pt-6 pb-4 bg-[#f5f1eb]">
@@ -419,58 +419,48 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                         </div>
                     </section>
 
-                    <!-- Product Image Hierarchy (View Only) -->
-                    <section class="bg-white rounded-[32px] shadow-sm border border-white overflow-hidden p-6 space-y-8">
-                        {% with all_images=product.productimage_set.all %}
-                        {% with main_image=all_images|first %}
+                    <!-- Product Image (Primary Variant Only) -->
+                    <section class="bg-white rounded-[32px] shadow-sm border border-white overflow-hidden p-6">
                         <div class="flex flex-col items-center">
-                            <!-- Primary Highlight -->
-                            <div class="relative bg-[#fbfcfa] h-[300px] w-full rounded-2xl overflow-hidden flex items-center justify-center border border-gray-100 ring-1 ring-black/5 group cursor-pointer shadow-inner mb-6"
-                                 onclick="openLightbox('{{ main_image.image.url }}')">
-                                {% if main_image %}
-                                    <img src="{{ main_image.image.url }}" 
-                                         alt="{{ product.name }}" 
-                                         class="max-h-full max-w-full object-contain transition-all duration-700 group-hover:scale-[1.03]">
-                                    
-                                    <!-- Primary Label -->
-                                    <div class="absolute top-4 left-4">
-                                        <span class="text-[8px] bg-black text-white px-2.5 py-1 rounded-full font-black uppercase tracking-widest shadow-lg">Primary</span>
-                                    </div>
-
-                                    <!-- Click to Zoom Tip -->
-                                    <div class="absolute bottom-4 right-4 bg-black/10 backdrop-blur-md px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <p class="text-[7px] text-white font-bold uppercase tracking-widest">Click to Zoom</p>
-                                    </div>
-                                {% else %}
+                            {% for variant in product.variants.all %}
+                                {% if variant.is_default %}
+                                    {% if variant.images.all %}
+                                        {% for vimg in variant.images.all %}
+                                            {% if vimg.is_primary %}
+                                                <div class="relative bg-[#fbfcfa] h-[300px] w-full rounded-2xl overflow-hidden flex items-center justify-center border border-gray-100 ring-1 ring-black/5 group cursor-pointer shadow-inner"
+                                                     onclick="openLightbox('{{ vimg.image.url }}')">
+                                                    <img src="{{ vimg.image.url }}" 
+                                                         alt="{{ product.product_name }}" 
+                                                         class="max-h-full max-w-full object-contain transition-all duration-700 group-hover:scale-[1.03]">
+                                                    
+                                                    <div class="absolute bottom-4 right-4 bg-black/10 backdrop-blur-md px-3 py-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <p class="text-[7px] text-white font-bold uppercase tracking-widest">Click to Zoom</p>
+                                                    </div>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="relative bg-[#fbfcfa] h-[300px] w-full rounded-2xl overflow-hidden flex items-center justify-center border border-gray-100 ring-1 ring-black/5 shadow-inner">
+                                            <div class="text-center p-8 text-gray-300">
+                                                <svg class="mx-auto h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                <p class="text-[10px] font-bold uppercase tracking-[0.2em]">No Image Available</p>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endif %}
+                            {% empty %}
+                                <div class="relative bg-[#fbfcfa] h-[300px] w-full rounded-2xl overflow-hidden flex items-center justify-center border border-gray-100 ring-1 ring-black/5 shadow-inner">
                                     <div class="text-center p-8 text-gray-300">
                                         <svg class="mx-auto h-12 w-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         <p class="text-[10px] font-bold uppercase tracking-[0.2em]">No Image Available</p>
                                     </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Thumbnail Row (Max 3 more) -->
-                            {% if all_images|length > 1 %}
-                            <div class="flex flex-wrap items-center justify-center gap-3">
-                                {% for img in all_images|slice:"1:4" %}
-                                <div class="w-[80px] h-[80px] relative bg-gray-50 rounded-xl overflow-hidden border border-gray-100 group cursor-pointer hover:border-black/20 transition-all shadow-sm flex items-center justify-center p-1"
-                                     onclick="openLightbox('{{ img.image.url }}')">
-                                    <img src="{{ img.image.url }}" class="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-110 opacity-70 group-hover:opacity-100">
-                                    
-                                    {% if forloop.counter == 3 and all_images|length > 4 %}
-                                    <div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center">
-                                        <span class="text-white font-black text-[10px] tracking-tighter cursor-zoom-in">+{{ all_images|length|add:"-4" }}</span>
-                                    </div>
-                                    {% endif %}
                                 </div>
-                                {% endfor %}
-                            </div>
-                            {% endif %}
+                            {% endfor %}
                         </div>
-                        {% endwith %}
-                        {% endwith %}
                     </section>
 
                     <div class="bg-white rounded-custom shadow-sm border border-white overflow-hidden">
@@ -636,6 +626,16 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
 
                                 <!-- Actions -->
                                 <div class="flex items-center gap-4 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                                    {% if not variant.is_default %}
+                                    <form method="POST" action="{% url 'admin-product-details' product.id %}" class="m-0 p-0 inline-flex" title="Set as default">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="set_default">
+                                        <input type="hidden" name="variant_id" value="{{ variant.id }}">
+                                        <button type="submit" class="text-[9px] uppercase font-bold text-gray-400 hover:text-black hover:underline underline-offset-2 transition-all">
+                                            Make Default
+                                        </button>
+                                    </form>
+                                    {% endif %}
                                     <button type="button"
                                         class="editVariantBtn text-[9px] uppercase font-bold text-gray-400 hover:text-black hover:underline underline-offset-2 transition-all"
                                         data-id="{{ variant.id }}"
@@ -664,7 +664,7 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                     </section>
                 </aside>
             </main>
-        </form>
+        </div>
     </div>
 
     <div x-show="showToast" x-cloak x-transition class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
@@ -828,7 +828,7 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                         <!-- Stock -->
                         <div class="space-y-2">
                             <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Stock</label>
-                            <input type="number" name="stock" placeholder="0" required
+                            <input type="number" name="stock" placeholder="0" required min="0" max="100000" step="1"
                                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all">
                         </div>
                     </div>
@@ -926,7 +926,7 @@ transition-all duration-500 ease-out transform translate-x-full opacity-0
                         <!-- Stock -->
                         <div class="space-y-2">
                             <label class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Stock</label>
-                            <input type="number" name="stock" id="edit-stock" required
+                            <input type="number" name="stock" id="edit-stock" required min="0" max="100000" step="1"
                                 class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-black outline-none transition-all">
                         </div>
                     </div>

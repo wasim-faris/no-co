@@ -1,0 +1,46 @@
+/* Fonts */
+body {
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+}
+
+.serif-font {
+    font-family: 'Playfair Display', serif;
+}
+
+/* Input Placeholder */
+input::placeholder {
+    color: #A1A1AA;
+    font-weight: 300;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+/* Hide Scrollbar */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+
+/* Password Toggle Logic */
+
+.eye-toggle .eye-open,
+.eye-toggle .eye-closed {
+    display: none;
+}
+
+.eye-toggle.hidden-pass .eye-closed {
+    display: block;
+}
+
+.eye-toggle.visible-pass .eye-open {
+    display: block;
+}
+
+

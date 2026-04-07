@@ -7,34 +7,34 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-    body {
-        font-family: 'Inter', sans-serif;
-        background-color: #fff;
-        color: #000;
-        margin: 0;
-        padding: 0;
-        -webkit-font-smoothing: antialiased;
-    }
-
-    /* ════════════════════════════════════════
-       MAIN LAYOUT
-    ════════════════════════════════════════ */
+    /*PDP LAYOUT*/
     .pdp-wrapper {
         display: flex;
         width: 100%;
-        min-height: 100vh;
         align-items: flex-start;
+        position: relative;
     }
 
-    .pdp-image-column {
+    .pdp-image-section {
         flex: 0 0 55%;
         width: 55%;
         min-width: 0;
+        position: relative;
+        height: 100vh;
+    }
+
+    .pdp-image-column {
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
         display: flex;
         flex-direction: column;
         gap: 0;
-        align-self: flex-start;
+        /* Hide scrollbars for ultra-premium look */
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
+    .pdp-image-column::-webkit-scrollbar { display: none; }
 
     .image-sub-grid {
         display: grid;
@@ -57,18 +57,20 @@
         flex: 0 0 45%;
         width: 45%;
         box-sizing: border-box;
-        /* Use flex to center the inner content block — H&M pattern */
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 48px 20px 120px;
         position: sticky;
-        top: 0;
-        height: 100vh;
+        top: 120px;
+        height: fit-content;
+        max-height: calc(100vh - 120px);
         overflow-y: auto;
+        -ms-overflow-style: none; /* Hide scrollbar for cleaner look */
+        scrollbar-width: none;
     }
 
-    .pdp-info-column::-webkit-scrollbar { width: 0; }
+    .pdp-info-column::-webkit-scrollbar { display: none; }
 
     /* Narrow centered content block — left-aligned content inside centered shell */
     .info-inner {
@@ -118,7 +120,7 @@
         border-top: 1px solid #dcdcdc;
         border-left: 1px solid #dcdcdc;
         margin-bottom: 20px;
-        max-width: calc(60px * 7);
+        max-width: 100%;
         width: fit-content;
     }
 
@@ -195,12 +197,22 @@
 
     .size-box:hover { background: #f5f5f5; }
 
-    .size-box.active {
-        background: #000;
-        color: #fff;
-        border-color: #000;
-        z-index: 2;
+    .size-box.out-of-stock {
+        text-decoration: line-through;
+        color: #000;
+        cursor: pointer;
+        background: #fff;
     }
+
+    .size-box.active {
+        background: #000 !important;
+        color: #fff !important;
+        border-color: #000 !important;
+        z-index: 2;
+        text-decoration: none !important;
+    }
+    .size-box.active.out-of-stock { text-decoration: line-through !important; }
+    .size-box.active span { color: #fff !important; text-decoration: inherit; }
 
     /* ════════════════════════════════════════
        BUTTONS & LINKS
@@ -242,13 +254,72 @@
         font-size: 12px; font-weight: 400;
         text-transform: uppercase; letter-spacing: .06em; cursor: pointer;
     }
-    .acc-plus { font-size: 20px; font-weight: 300; color: #555; line-height: 1; }
+    .acc-item.last-acc { border-bottom: 1px solid #e5e5e5; margin-bottom: 40px; }
+    .acc-plus { font-size: 20px; font-weight: 300; color: #111; line-height: 1; min-width: 20px; text-align: right; }
+    .acc-content {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+        font-size: 12px;
+        line-height: 1.6;
+        color: #444;
+        opacity: 0;
+        transition: max-height 0.3s cubic-bezier(0.25, 0.1, 0.25, 1), opacity 0.3s ease;
+    }
+    .acc-content.active {
+        max-height: 500px; /* High enough fallback */
+        opacity: 1;
+        padding-bottom: 20px;
+    }
 
     @media (max-width: 900px) {
         .pdp-wrapper { flex-direction: column; }
-        .pdp-image-column { flex: none; width: 100%; }
-        .pdp-info-column { flex: none; width: 100%; position: relative; height: auto; padding: 28px 20px 60px; align-items: flex-start; }
+        .pdp-image-section {
+            width: 100%;
+            height: auto;
+            flex: none;
+        }
+        .pdp-image-column {
+            flex: none;
+            width: 100%;
+            height: auto !important;
+            min-height: 0 !important;
+            max-height: none !important;
+            overflow-y: visible !important;
+            flex-direction: row;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .pdp-image-column::-webkit-scrollbar { display: none; }
+
+        /* Flatten sub-grids on mobile so children flow in the horizontal row */
+        .image-sub-grid {
+            display: contents;
+        }
+
+        .pdp-image-column img {
+            flex: 0 0 100%;
+            width: 100%;
+            height: auto;
+            scroll-snap-align: start;
+        }
+
+        .pdp-info-column {
+            flex: none;
+            width: 100%;
+            position: relative;
+            top: 0 !important;
+            height: auto !important;
+            max-height: none !important;
+            overflow-y: visible !important;
+            padding: 24px 20px 0; /* Minimized bottom padding on mobile */
+            align-items: flex-start;
+        }
+        .acc-item.last-acc { margin-bottom: 0 !important; } /* Removed bottom margin on mobile */
         .info-inner { max-width: 100%; }
+        .similar-items-section { padding-top: 15px !important; } /* Tightened top gap on mobile */
     }
     /* ════════════════════════════════════════
        FULLSCREEN LIGHTBOX MODAL
@@ -262,11 +333,12 @@
         position: fixed;
         top: 0; left: 0; right: 0; bottom: 0;
         background: rgba(0, 0, 0, 0.95);
-        z-index: 9999;
+        z-index: 10001; /* Above navbar (50) and toasts (10000) */
         align-items: center;
         justify-content: center;
         opacity: 0;
         transition: opacity 0.2s ease-in-out;
+        overflow-y: auto; /* Allow scrolling content if needed */
     }
     .lightbox-modal.active {
         display: flex;
@@ -318,7 +390,10 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 16px;
-        padding: 0 40px;
+        padding: 0 20px;
+    }
+    @media (min-width: 768px) {
+        .similar-header { padding: 0 40px; }
     }
     .similar-title {
         font-size: 14px;
@@ -388,16 +463,21 @@
         transition: opacity 0.4s ease-in-out; /* Smoother fade */
     }
 
-    /* Hover layering remains intact but cleaner */
-    .sim-img-primary {
-        z-index: 1;
+    /* Image Swapping: Surgical style (JS-driven) */
+    .product-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.4s ease; /* Keep only scale if desired, but user said no animation */
     }
-    .sim-img-secondary {
-        z-index: 2;
-        opacity: 0;
-    }
-    .similar-card:hover .sim-img-secondary {
-        opacity: 1;
+
+    .similar-img-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2/3;
+        overflow: hidden;
+        background: #f5f5f5;
     }
     .similar-heart {
         position: absolute;
@@ -407,6 +487,7 @@
         border: none;
         cursor: pointer;
         padding: 0;
+        z-index: 10;
     }
     .similar-heart svg {
         width: 18px;
@@ -416,37 +497,59 @@
         stroke-width: 1.5;
         transition: transform 0.1s;
     }
-    .similar-heart:hover svg { transform: scale(1.1); fill: #eaeaea; }
+    .similar-heart:hover svg { transform: scale(1.15); fill: #eee; }
 
-    .similar-name {
-        font-size: 12px;
-        font-weight: 400;
-        margin: 12px 0 4px 0;
+    .similar-label {
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: .05em;
         text-transform: uppercase;
-        padding: 0 10px;
+        color: #888;
+        margin: 10px 0 3px;
+        padding: 0 13px;
+        line-height: 1.1;
+    }
+    .similar-name {
+        font-size: 13px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #000;
+        margin: 0 0 5px;
+        padding: 0 13px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     .similar-price {
-        font-size: 13px;
-        font-weight: 700;
-        margin: 0 0 4px 0;
-        padding: 0 10px;
-    }
-    .similar-label {
-        font-size: 11px;
-        font-weight: 400;
-        color: #555;
-        margin: 0 0 8px 0;
-        padding: 0 10px;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: .02em;
+        color: #000;
+        margin: 0 0 10px;
+        padding: 0 13px;
     }
     .similar-swatches {
         display: flex;
-        gap: 4px;
-        padding: 0 10px;
+        align-items: center;
+        gap: 3px;
+        flex-wrap: wrap;
+        padding: 0 13px;
+        margin-top: 5px;
     }
     .similar-swatch {
-        width: 10px;
-        height: 10px;
-        border: 1px solid #dcdcdc;
+        width: 11px;
+        height: 11px;
+        border: 1px solid #eee;
+        display: inline-block;
+    }
+    .similar-swatch-more {
+        font-size: 10px;
+        color: #767676;
+        font-weight: 500;
     }
 
     @media (max-width: 900px) {
@@ -454,29 +557,352 @@
         .similar-header { padding: 0 20px; }
         .similar-card { flex: 0 0 50%; min-width: 200px; }
     }
+
+    /* --- DYNAMIC BLACK PILL TOAST --- */
+    #toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        pointer-events: none;
+    }
+
+    .custom-pill-toast {
+        width: 320px;
+        max-width: 90vw;
+        padding: 16px 20px;
+        background: #000;
+        color: #fff;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        opacity: 0;
+        transform: translateX(30px);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        pointer-events: auto;
+    }
+
+    .custom-pill-toast.show { opacity: 1; transform: translateX(0); }
+    .toast-left-content { display: flex; align-items: center; gap: 14px; }
+    .toast-icon-circle {
+        width: 24px; height: 24px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .toast-success .toast-icon-circle { color: #fff; background: #000; }
+    .toast-error .toast-icon-circle { color: #fff; background: #000; }
+
+    .toast-message-wrapper { display: flex; flex-direction: column; }
+    .toast-main-text {
+        font-size: 12px; font-weight: 500;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        line-height: 1.2;
+    }
+    .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .toast-close-btn {
+        cursor: pointer; font-size: 14px; opacity: 0.4;
+        transition: opacity 0.2s; padding: 4px;
+    }
+    .toast-close-btn:hover { opacity: 1; }
+
+    /* ─── PDP Gallery Indicators (Mobile-First) ─── */
+    .pdp-indicators-wrapper {
+        display: none; /* Hidden on desktop */
+        position: absolute;
+        bottom: 24px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        pointer-events: none;
+    }
+
+    .pdp-indicators {
+        display: flex;
+        gap: 8px;
+        position: relative;
+        padding: 4px; /* Space for the active moving box */
+    }
+
+    .indicator-box {
+        width: 6px;
+        height: 6px;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        box-sizing: border-box;
+        transition: border-color 0.3s ease;
+    }
+
+    .active-indicator-box {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: #000;
+        top: 4px;
+        left: 4px;
+        transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        will-change: transform;
+    }
+
+    @media (max-width: 900px) {
+        .pdp-indicators-wrapper {
+            display: flex;
+        }
+        .pdp-image-column {
+            position: relative; /* Container for absolute indicators */
+        }
+    }
+    /* ─── Low Stock Indicator ────────────────────── */
+    .low-stock-dot {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #e02d2d;
+        pointer-events: none;
+        display: block;
+    }
+    .low-stock-hint {
+        font-size: 11px;
+        color: #e02d2d;
+        font-weight: 400;
+        letter-spacing: .02em;
+        margin: -6px 0 14px;
+    }
+    /* ════════════════════════════════════════
+       MINI CART POPUP
+    ════════════════════════════════════════ */
+    #miniCartPopup {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 360px;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+        z-index: 9999;
+        opacity: 0;
+        transform: translateX(20px) translateY(-10px); /* Slide in from right/top */
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    @media (max-width: 768px) {
+        #miniCartPopup {
+            width: 90%;
+            top: 20px;
+            right: 5%;
+        }
+    }
+
+    #miniCartPopup.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(0) translateY(0);
+    }
+
+    .mc-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 12px;
+    }
+
+    .mc-header span {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #111;
+    }
+
+    .mc-close {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        opacity: 0.5;
+        padding: 0;
+        transition: opacity 0.2s;
+    }
+    .mc-close:hover { opacity: 1; }
+
+    .mc-item-row {
+        display: flex;
+        gap: 16px;
+    }
+
+    .mc-image-col {
+        width: 90px;
+        flex-shrink: 0;
+    }
+
+    .mc-image-col img {
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+        aspect-ratio: 2/3;
+        background: #f5f5f5;
+    }
+
+    .mc-info-col {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex-grow: 1;
+    }
+
+    .mc-title {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        line-height: 1.3;
+        margin: 0 0 4px 0;
+        color: #000;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .mc-price {
+        font-size: 13px;
+        font-weight: 700;
+        margin: 0 0 10px 0;
+        color: #000;
+    }
+
+    .mc-meta {
+        font-size: 11px;
+        color: #111;
+        display: grid;
+        grid-template-columns: 65px 1fr;
+        gap: 6px;
+        line-height: 1.3;
+    }
+    .mc-meta span:nth-child(odd) {
+        color: #666;
+    }
+
+    .mc-btn-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-top: 4px;
+    }
+
+    .mc-btn {
+        padding: 16px 12px;
+        text-align: center;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background-color 0.2s;
+    }
+
+    .mc-btn-bag {
+        background: #fff;
+        color: #000;
+        border: 1px solid #111;
+    }
+    .mc-btn-bag:hover { background: #f9f9f9; }
+
+    .mc-btn-checkout {
+        background: #000;
+        color: #fff;
+        border: 1px solid #000;
+    }
+    .mc-btn-checkout:hover { background: #333; }
+
+    /* Wishlist liked state */
+    .like-btn.liked svg {
+        fill: #e02b2b !important;
+        stroke: #e02b2b !important;
+    }
+    .like-btn:hover svg {
+        transform: scale(1.1);
+    }
 </style>
 
+<div id="toast-container"></div>
+
 <main class="pdp-wrapper">
+    <div class="pdp-image-section">
+        <div class="pdp-image-column" id="imageContainer">
+            {% with all_imgs=default_variant.images.all %}
+                {% if all_imgs|length == 1 %}
+                    <!-- Case 1: Single image takes full width -->
+                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="{{ product.product_name }}"
+                         style="width: 100%; aspect-ratio: 2/3; object-fit: cover; object-position: center;">
 
-    <div class="pdp-image-column" id="imageContainer">
-        <!-- Main Image with Forced Logic -->
-        {% if product_image %}
-            <img id="mainImage" src="{{ product_image.image.url }}" alt="{{ product.product_name }}" 
-                 style="width: 100%; height: 100%; min-height: 600px; object-fit: cover; object-position: center;">
-        {% else %}
-            <!-- Placeholder -->
-            <div id="mainImagePlaceholder" class="w-full bg-gray-100 flex items-center justify-center" style="aspect-ratio: 2/3; min-height: 600px;">
-                <span class="text-gray-300 text-[10px] uppercase font-bold tracking-widest">No Image Available</span>
+                {% elif all_imgs|length == 2 %}
+                    <!-- Case 2: Vertical stack (Full Width each) per requirement -->
+                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                    <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+
+                {% elif all_imgs|length == 3 %}
+                    <!-- Case 3: 1st dominant large, then two small below -->
+                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                    <div class="image-sub-grid">
+                        <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                        <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                    </div>
+
+                {% elif all_imgs|length == 4 %}
+                    <!-- Case 4: 1st Large -> 2nd/3rd Grid -> 4th Large per requirement -->
+                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                    <div class="image-sub-grid">
+                        <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                        <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                    </div>
+                    <img id="image4" src="{{ all_imgs.3.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+
+                {% elif all_imgs|length >= 5 %}
+                    <!-- Case 5: 1st Large -> 2nd/3rd Grid -> 4th/5th Grid per requirement -->
+                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                    <div class="image-sub-grid">
+                        <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                        <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                    </div>
+                    <div class="image-sub-grid">
+                        <img id="image4" src="{{ all_imgs.3.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                        <img id="image5" src="{{ all_imgs.4.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
+                    </div>
+
+                {% else %}
+                    <!-- Safety Fallback (Single image or Placeholder) -->
+                    {% if product_image %}
+                        <img id="mainImage" src="{{ product_image.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
+                    {% else %}
+                        <div id="mainImagePlaceholder" class="w-full bg-gray-100 flex items-center justify-center" style="aspect-ratio: 2/3; min-height: 600px;">
+                            <span class="text-gray-300 text-[10px] uppercase font-bold tracking-widest">No Image Available</span>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Image Gallery Indicators (Mobile Only) -->
+        <div class="pdp-indicators-wrapper" id="galleryIndicatorsWrapper">
+            <div class="pdp-indicators" id="galleryIndicators">
+                <!-- Dynamically injected squares -->
             </div>
-        {% endif %}
-
-        <!-- Secondary Images Grid (Fallback only if default_variant exists) -->
-        <div class="image-sub-grid">
-            {% if default_variant %}
-                {% for img_obj in default_variant.images.all|slice:"1:5" %}
-                    <img id="image{{ forloop.counter|add:1 }}" src="{{ img_obj.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                {% endfor %}
-            {% endif %}
         </div>
     </div>
 
@@ -485,7 +911,7 @@
 
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
             <h1 class="prod-name">{{ product.product_name }}</h1>
-            <button style="background:none;border:none;cursor:pointer;padding:0;color:#ccc;">
+            <button class="like-btn" data-variant-id="{{ default_variant.id }}" style="background:none;border:none;cursor:pointer;padding:0;color:#ccc;">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
                     <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
                 </svg>
@@ -529,14 +955,23 @@
         <div class="size-row" id="sizeContainer">
             {% for v in variants %}
                 {% if v.color == default_variant.color %}
-                    <div class="size-box {% if forloop.first %}active{% endif %}" onclick="selectSize(this)">
-                        {{ v.size.name }}
+                    <div class="size-box {% if v.stock <= 0 %}out-of-stock{% endif %}"
+                         data-stock="{{ v.stock }}"
+                         onclick="selectSize(this)"
+                         style="position:relative;">
+                        <span>{{ v.size.name }}</span>
+                        {% if v.stock > 0 and v.stock < 5 %}<span class="low-stock-dot"></span>{% endif %}
                     </div>
                 {% endif %}
             {% endfor %}
         </div>
+        <p id="stockHint" class="low-stock-hint" style="display:none;">Only few left</p>
+        <p id="sizeError" style="display:none; font-size:11px; color:#e02d2d; letter-spacing:.02em; margin:-4px 0 12px;">Please select a size</p>
 
-        <button class="btn-add">Add</button>
+       <form method="POST" action="{% url "add-to-cart" default_variant.id %}" id="addToCartForm" style="display:inline;">
+    {% csrf_token %}
+    <button class="btn-add">ADD TO BAG</button>
+</form>
 
         <div class="link-group">
             <span class="secondary-link">Find in store</span>
@@ -584,146 +1019,166 @@
                 </div>
             </div>
 
-        </div>
-        <!-- ══ END FIT INDICATOR ══ -->
-
-        <div>
-            <div class="acc-item"><span>Description &amp; Fit</span><span class="acc-plus">+</span></div>
-            <div class="acc-content" style="display: none; padding: 0 0 15px 0; font-size: 12px; line-height: 1.6; color: #444;">
-                {{ product.description_fit|linebreaks }}
+            <!-- ════ H&M ACCORDION SECTIONS ════ -->
+            <div class="acc-item" style="margin-top: 30px;">
+                <span>Description & Fit</span>
+                <span class="acc-plus">+</span>
+            </div>
+            <div class="acc-content">
+                {{ product.description_fit|linebreaks|default:"No information available" }}
             </div>
 
-            <div class="acc-item"><span>Materials</span><span class="acc-plus">+</span></div>
-            <div class="acc-content" style="display: none; padding: 0 0 15px 0; font-size: 12px; line-height: 1.6; color: #444;">
-                {{ product.materials|linebreaks }}
+            <div class="acc-item">
+                <span>Materials</span>
+                <span class="acc-plus">+</span>
+            </div>
+            <div class="acc-content">
+                {{ product.materials|linebreaks|default:"No information available" }}
             </div>
 
-            <div class="acc-item" style="border-bottom:1px solid #e5e5e5;">
-                <span>Delivery, Payment and Returns</span><span class="acc-plus">+</span>
+            <div class="acc-item">
+                <span>Care Guide</span>
+                <span class="acc-plus">+</span>
             </div>
-            <div class="acc-content" style="display: none; padding: 15px 0; font-size: 12px; line-height: 1.6; color: #444; border-bottom:1px solid #e5e5e5;">
-                {{ product.delivery_returns|linebreaks }}
+            <div class="acc-content">
+                {{ product.care_guide|linebreaks|default:"No information available" }}
             </div>
-        </div>
 
-      </div>
-    </div>
-    <!-- Lightbox Modal -->
-    <div class="lightbox-modal" id="lightboxModal">
-        <span class="lightbox-close" id="lightboxClose">&times;</span>
-        <button class="lightbox-btn prev" id="lightboxPrev">&#8249;</button>
-        <img src="" class="lightbox-img" id="lightboxImg" alt="Zoomed Product">
-        <button class="lightbox-btn next" id="lightboxNext">&#8250;</button>
-    </div>
+            <div class="acc-item last-acc">
+                <span>Delivery, Payment and Returns</span>
+                <span class="acc-plus">+</span>
+            </div>
+            <div class="acc-content">
+                {{ product.delivery_returns|linebreaks|default:"No information available" }}
+            </div>
+
+        </div> <!-- end info-inner -->
+    </div> <!-- end pdp-info-column -->
 </main>
 
-<!-- SIMILAR ITEMS SECTION -->
-<section class="similar-items-section">
-    <div class="similar-header">
-        <h2 class="similar-title">Similar Items</h2>
-        <div class="similar-nav">
-            <button id="simPrev">&#10094;</button>
-            <button id="simNext">&#10095;</button>
+<!-- Lightbox Modal (Moved outside main to bypass relative stacking context) -->
+<div class="lightbox-modal" id="lightboxModal">
+    <span class="lightbox-close" id="lightboxClose">&times;</span>
+    <button class="lightbox-btn prev" id="lightboxPrev">&#8249;</button>
+    <img src="" class="lightbox-img" id="lightboxImg" alt="Zoomed Product">
+    <button class="lightbox-btn next" id="lightboxNext">&#8250;</button>
+</div>
+
+<!-- SIMILAR ITEMS SECTION (OUTSIDE WRAPPER FOR FULL WIDTH) -->
+<div class="mt-4 md:mt-20">
+    <!-- SIMILAR ITEMS SECTION -->
+    <section class="similar-items-section">
+        <div class="similar-header">
+            <h2 class="similar-title">Similar Items</h2>
+            <div class="similar-nav">
+                <button id="simPrev">&#10094;</button>
+                <button id="simNext">&#10095;</button>
+            </div>
         </div>
-    </div>
-
-    <!--
-      Note: We fall back to unique_variants here so it populates automatically
-      without modifying views.py. If you later add 'similar_products' to context,
-      just swap it in the for loop.
-    -->
-    <div class="similar-carousel" id="similarCarousel">
-        {% for item in similar_items|default:unique_variants %}
-        <a href="{% url "product-details" item.product.id %}" class="similar-card">
-            <div class="similar-img-wrapper">
-                {% if item.primary_images.all %}
-                    <img src="{{ item.primary_images.0.image.url }}" class="sim-img-primary" alt="{{ item.color }}">
-                {% elif item.images.all %}
-                    <img src="{{ item.images.all.0.image.url }}" class="sim-img-primary" alt="{{ item.color }}">
-                {% else %}
-                    <div style="width:100%; height:100%; background:#f5f5f5; position: absolute; z-index: 1;"></div>
-                {% endif %}
-
-                {% with second_img=item.images.all.1 %}
-                    {% if second_img %}
-                        <img src="{{ second_img.image.url }}" class="sim-img-secondary" alt="{{ item.color }}">
+        <div class="similar-carousel" id="similarCarousel">
+            {% for item in similar_items|default:unique_variants %}
+            <a href="{% url 'product-details' item.product.id %}" class="similar-card">
+                <div class="similar-img-wrapper">
+                    {% with all_imgs=item.images.all %}
+                    {% if all_imgs|length > 2 %}
+                        <img src="{{ all_imgs.0.image.url }}" data-secondary="{{ all_imgs.1.image.url|default:all_imgs.0.image.url }}" class="product-img" alt="{{ item.color }}">
+                    {% else %}
+                        <img src="{{ all_imgs.0.image.url|default:'#' }}" class="product-img" alt="{{ item.color }}">
                     {% endif %}
-                {% endwith %}
-
-                <button class="similar-heart" aria-label="Add to Wishlist">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </button>
-            </div>
-
-            <p class="similar-name">{{ product.product_name }} - {{ item.color }}</p>
-            <p class="similar-price">Rs. {{ item.price }}</p>
-            <p class="similar-label">New Arrival</p>
-
-            <div class="similar-swatches">
-                <div class="similar-swatch" style="background-color: {{ item.color | lower }};"></div>
-                <!-- Additional static swatches for visual demonstration -->
-                <div class="similar-swatch" style="background-color: #555;"></div>
-                <div class="similar-swatch" style="background-color: #e5e5e5;"></div>
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-</section>
-
-<!-- OTHERS ALSO BOUGHT SECTION -->
-<section class="similar-items-section" style="border-top: none; padding-top: 0;">
-    <div class="similar-header">
-        <h2 class="similar-title">Others Also Bought</h2>
-        <div class="similar-nav">
-            <button id="othersPrev">&#10094;</button>
-            <button id="othersNext">&#10095;</button>
+                    {% endwith %}
+                    <button class="similar-heart like-btn" data-variant-id="{{ item.id }}" aria-label="Add to Wishlist">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+                <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}New Arrival{% endif %}</p>
+                <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
+                <p class="similar-price">Rs. {{ item.price }}</p>
+                <div class="similar-swatches">
+                    {% regroup item.product.variants.all by color as color_list %}
+                    {% for col_item in color_list|slice:":3" %}
+                        {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                    {% endfor %}
+                    {% if color_list|length > 3 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-3" }}</span>{% endif %}
+                </div>
+            </a>
+            {% endfor %}
         </div>
-    </div>
+    </section>
 
-    <!-- Reusing similar_items list in reversed order for a quick demo variation -->
-    <div class="similar-carousel" id="othersCarousel">
-        {% for item in similar_items reversed %}
-        <a href="{% url "product-details" item.product.id %}" class="similar-card">
-            <div class="similar-img-wrapper">
-                <!-- Primary Image -->
-                {% if item.primary_images.all %}
-                    <img src="{{ item.primary_images.0.image.url }}" class="sim-img-primary" alt="{{ item.color }}">
-                {% elif item.images.all %}
-                    <img src="{{ item.images.all.0.image.url }}" class="sim-img-primary" alt="{{ item.color }}">
-                {% else %}
-                    <div style="width:100%; height:100%; background:#f5f5f5; position: absolute; z-index: 1;"></div>
-                {% endif %}
-
-                <!-- Secondary Hover Image -->
-                {% with second_img=item.images.all.1 %}
-                    {% if second_img %}
-                        <img src="{{ second_img.image.url }}" class="sim-img-secondary" alt="{{ item.color }}">
+    <!-- OTHERS ALSO BOUGHT SECTION -->
+    <section class="similar-items-section" style="border-top: none; padding-top: 0;">
+        <div class="similar-header">
+            <h2 class="similar-title">Others Also Bought</h2>
+            <div class="similar-nav">
+                <button id="othersPrev">&#10094;</button>
+                <button id="othersNext">&#10095;</button>
+            </div>
+        </div>
+        <div class="similar-carousel" id="othersCarousel">
+            {% for item in similar_items reversed %}
+            <a href="{% url 'product-details' item.product.id %}" class="similar-card">
+                <div class="similar-img-wrapper">
+                    {% with all_imgs=item.images.all %}
+                    {% if all_imgs|length > 2 %}
+                        <img src="{{ all_imgs.0.image.url }}" data-secondary="{{ all_imgs.1.image.url|default:all_imgs.0.image.url }}" class="product-img" alt="{{ item.color }}">
+                    {% else %}
+                        <img src="{{ all_imgs.0.image.url|default:'#' }}" class="product-img" alt="{{ item.color }}">
                     {% endif %}
-                {% endwith %}
-
-                <button class="similar-heart" aria-label="Add to Wishlist">
-                    <svg viewBox="0 0 24 24">
-                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-                    </svg>
-                </button>
-            </div>
-
-            <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
-            <p class="similar-price">Rs. {{ item.price }}</p>
-            <p class="similar-label">Trending Now</p>
-
-            <div class="similar-swatches">
-                <div class="similar-swatch" style="background-color: {{ item.color | lower }};"></div>
-                <div class="similar-swatch" style="background-color: #e5e5e5;"></div>
-            </div>
-        </a>
-        {% endfor %}
-    </div>
-</section>
+                    {% endwith %}
+                    <button class="similar-heart like-btn" data-variant-id="{{ item.id }}" aria-label="Add to Wishlist">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+                <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}Trending Now{% endif %}</p>
+                <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
+                <p class="similar-price">Rs. {{ item.price }}</p>
+                <div class="similar-swatches">
+                    {% regroup item.product.variants.all by color as color_list %}
+                    {% for col_item in color_list|slice:":3" %}
+                        {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                    {% endfor %}
+                    {% if color_list|length > 3 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-3" }}</span>{% endif %}
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </section>
+</div>
 
 <script>
+    const variantMap = {
+        {% for v in variants %}
+        "{{ v.color|escapejs }}_{{ v.size.name|escapejs }}": "{{ v.id }}",
+        {% endfor %}
+    };
+
+    const stockMap = {
+        {% for v in variants %}
+        "{{ v.color|escapejs }}_{{ v.size.name|escapejs }}": {{ v.stock }},
+        {% endfor %}
+    };
+
+    function updateCartAction() {
+        const activeColorEl = document.querySelector('.swatch-item.active');
+        const activeSizeEl = document.querySelector('.size-box.active');
+
+        if (activeColorEl && activeSizeEl) {
+            const color = activeColorEl.getAttribute('data-color');
+            const size = activeSizeEl.innerText.trim();
+            const key = color + '_' + size;
+            const variantId = variantMap[key];
+
+            if (variantId) {
+                const form = document.getElementById('addToCartForm');
+                if (form) {
+                    const currentAction = form.getAttribute('action');
+                    const newAction = currentAction.replace(/\/\d+(\/)?$/, `/${variantId}$1`);
+                    form.setAttribute('action', newAction);
+                }
+            }
+        }
+    }
+
     const colorLabel = document.getElementById('colorLabel');
     const priceDisplay = document.getElementById('displayPrice');
     const sizeContainer = document.getElementById('sizeContainer');
@@ -775,42 +1230,105 @@
         // Update Sizes
         const sizesRaw = element.getAttribute('data-sizes');
         const sizesArray = sizesRaw ? sizesRaw.split(',').filter(s => s.trim() !== "") : [];
+        const activeColor = element.getAttribute('data-color');
 
         sizeContainer.innerHTML = '';
         sizesArray.forEach((size, index) => {
             const sizeDiv = document.createElement('div');
-            sizeDiv.className = `size-box ${index === 0 ? 'active' : ''}`;
-            sizeDiv.innerText = size;
+            const stock = stockMap[activeColor + '_' + size];
+
+            sizeDiv.className = 'size-box';
+            if (stock <= 0) {
+                sizeDiv.classList.add('out-of-stock');
+            }
+
+            sizeDiv.style.position = 'relative';
+            if (stock !== undefined) sizeDiv.dataset.stock = stock;
+
+            // Wrap text in span to ensure underline/strike only affects text width
+            const span = document.createElement('span');
+            span.appendChild(document.createTextNode(size));
+            sizeDiv.appendChild(span);
+
+            if (stock !== undefined && stock > 1 && stock < 5) {
+                const dot = document.createElement('span');
+                dot.className = 'low-stock-dot';
+                sizeDiv.appendChild(dot);
+            }
+
             sizeDiv.onclick = function() { selectSize(this); };
+
             sizeContainer.appendChild(sizeDiv);
         });
+
+        // Hide size error and stock hint when color changes
+        const sizeErr = document.getElementById('sizeError');
+        if (sizeErr) sizeErr.style.display = 'none';
+        const hint = document.getElementById('stockHint');
+        if (hint) hint.style.display = 'none';
+        if (window.refreshGalleryIndicators) {
+            window.refreshGalleryIndicators();
+        }
     }
 
     function selectSize(box) {
+        const addBtn = document.querySelector('.btn-add');
+        const stock = parseInt(box.dataset.stock, 10);
+
+        // ALWAYS allow selection now
         document.querySelectorAll('.size-box').forEach(b => b.classList.remove('active'));
         box.classList.add('active');
+
+        // Restore button state (never show red/disabled)
+        if (addBtn) {
+            addBtn.innerText = 'ADD TO BAG';
+            addBtn.disabled = false;
+        }
+
+        // Clear size-required error
+        const sizeErr = document.getElementById('sizeError');
+        if (sizeErr) sizeErr.style.display = 'none';
+
+        // Show low-stock hint when selected size has fewer than 5 units
+        const hint = document.getElementById('stockHint');
+        if (hint) {
+            hint.style.display = (stock > 0 && stock < 5) ? 'block' : 'none';
+        }
+        updateCartAction();
     }
 
-    // Accordion Logic
+    // Simplified & High-Performance Accordion Logic
     document.querySelectorAll('.acc-item').forEach(item => {
         item.addEventListener('click', function() {
             const content = this.nextElementSibling;
             const plus = this.querySelector('.acc-plus');
-            const isOpen = content && content.style.display === 'block';
+            const isActive = content.classList.contains('active');
 
-            // Close all open sections and reset icons
-            document.querySelectorAll('.acc-content').forEach(c => c.style.display = 'none');
-            document.querySelectorAll('.acc-plus').forEach(p => p.innerText = '+');
+            // Close all other open sections
+            document.querySelectorAll('.acc-content').forEach(c => {
+                if (c !== content && c.classList.contains('active')) {
+                    c.classList.remove('active');
+                    c.style.maxHeight = null;
+                    const otherPlus = c.previousElementSibling.querySelector('.acc-plus');
+                    if (otherPlus) otherPlus.innerText = '+';
+                }
+            });
 
-            // Open clicked section if it was previously closed
-            if (!isOpen && content && content.classList.contains('acc-content')) {
-                content.style.display = 'block';
+            // Toggle clicked section
+            if (isActive) {
+                content.classList.remove('active');
+                content.style.maxHeight = null;
+                plus.innerText = '+';
+            } else {
+                content.classList.add('active');
+                // Use scrollHeight for high-precision smooth animation
+                content.style.maxHeight = content.scrollHeight + 40 + "px";
                 plus.innerText = '−';
             }
         });
     });
 
-    // Initial binding
+    // Initial binding — no default active size, user must choose
     document.querySelectorAll('.size-box').forEach(box => {
         box.onclick = function() { selectSize(this); };
     });
@@ -849,7 +1367,8 @@
             if (currentGalleryIndex > -1) {
                 lightboxImg.src = clickedSrc;
                 lightboxModal.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Lock background scrolling
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
             }
         }
     });
@@ -857,7 +1376,8 @@
     // Close Modal
     function closeLightbox() {
         lightboxModal.classList.remove('active');
-        document.body.style.overflow = ''; // Restore background scrolling
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
     }
 
     // Click Close Button OR Click strictly on the dark background
@@ -927,6 +1447,408 @@
             othersCarousel.scrollBy({ left: 320, behavior: 'smooth' });
         });
     }
+
+    // ════════════════════════════════════════
+    // HOVER IMAGE SWAP (JS-DRIVEN)
+    // ════════════════════════════════════════
+    document.querySelectorAll('.product-img').forEach(img => {
+        const original = img.src;
+        const secondary = img.dataset.secondary;
+
+        if (!secondary) {
+            console.warn('Hover Swap: No secondary image found for card', img);
+            return;
+        }
+
+        console.log('Hover Swap Initialized: Secondary URL =', secondary);
+
+        img.addEventListener('mouseenter', () => {
+            img.src = secondary;
+        });
+
+        img.addEventListener('mouseleave', () => {
+            img.src = original;
+        });
+    });
+</script>
+
+<script id="django-messages" type="application/json">
+    [
+        {% if messages %}
+            {% for message in messages %}
+                {
+                    "message": "{{ message|escapejs }}",
+                    "tags": "{{ message.tags }}"
+                }{% if not forloop.last %},{% endif %}
+            {% endfor %}
+        {% endif %}
+    ]
+</script>
+
+<script>
+    function showToast(message, type = 'error') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
+        toast.className = `custom-pill-toast ${toastClass}`;
+        const icon = type === 'success' ? '✓' : '✕';
+        toast.innerHTML = `
+            <div class="toast-left-content">
+                <div class="toast-icon-circle">${icon}</div>
+                <div class="toast-message-wrapper">
+                    <span class="toast-main-text">${message}</span>
+                    <span class="toast-sub-text">Notification</span>
+                </div>
+            </div>
+            <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            if(toast.parentNode) {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }
+        }, 2500); // 2.5s auto-hide requirement
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const dataElement = document.getElementById('django-messages');
+        if (dataElement) {
+            try {
+                const messages = JSON.parse(dataElement.textContent);
+                messages.forEach(msg => showToast(msg.message, msg.tags));
+            } catch (e) {}
+        }
+
+        // --- Gallery Indicators Initialization ---
+        initGalleryIndicators();
+
+        // Gallery Indicators Logic
+    function initGalleryIndicators() {
+        const container = document.getElementById('imageContainer');
+        const wrapper = document.getElementById('galleryIndicators');
+        if (!container || !wrapper) return;
+
+        function refreshIndicators() {
+            const visibleImages = Array.from(container.querySelectorAll('img')).filter(img => {
+                return img.style.display !== 'none' && img.src && !img.src.endsWith('#');
+            });
+
+            if (visibleImages.length <= 1) {
+                document.getElementById('galleryIndicatorsWrapper').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('galleryIndicatorsWrapper').style.display = 'flex';
+
+            // Build base squares
+            let html = '';
+            visibleImages.forEach(() => {
+                html += '<div class="indicator-box"></div>';
+            });
+            // Add the moving active square
+            html += '<div class="active-indicator-box" id="activeIndicatorBox"></div>';
+            wrapper.innerHTML = html;
+
+            updateActiveIndicator();
+        }
+
+        function updateActiveIndicator() {
+            const activeBox = document.getElementById('activeIndicatorBox');
+            if (!activeBox) return;
+
+            const scrollLeft = container.scrollLeft;
+            const width = container.clientWidth;
+            const index = Math.round(scrollLeft / width);
+
+            // 6px box + 8px gap = 14px step
+            activeBox.style.transform = `translateX(${index * 14}px)`;
+        }
+
+        // Attach scroll listener
+        container.addEventListener('scroll', updateActiveIndicator, { passive: true });
+
+        // Initial build
+        refreshIndicators();
+
+        // Expose to selectVariant
+        window.refreshGalleryIndicators = refreshIndicators;
+    }
+        // AJAX Add To Cart
+        const addToCartForm = document.getElementById('addToCartForm');
+        if (addToCartForm) {
+            addToCartForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const form = this;
+                const btn = form.querySelector('.btn-add');
+
+                // Guard: require size selection
+                const activeSize = document.querySelector('.size-box.active');
+                if (!activeSize) {
+                    const sizeErr = document.getElementById('sizeError');
+                    if (sizeErr) {
+                        sizeErr.style.display = 'block';
+                        const container = document.getElementById('sizeContainer');
+                        if (container) {
+                            container.style.transition = 'transform 0.1s ease';
+                            container.style.transform = 'translateX(4px)';
+                            setTimeout(() => { container.style.transform = 'translateX(-4px)'; }, 100);
+                            setTimeout(() => { container.style.transform = 'translateX(0)'; }, 200);
+                        }
+                    }
+                    return;
+                }
+
+                // Out-of-Stock Redirect to Toast
+                const stock = parseInt(activeSize.dataset.stock, 10);
+                if (stock <= 0) {
+                    if (typeof showToast === "function") {
+                        showToast("This size is out of stock", "error");
+                    }
+                    return;
+                }
+
+                // Persistent Global Limit Enforcer (Sync with LocalStorage)
+                let cartQuantities = {};
+                try {
+                    cartQuantities = JSON.parse(localStorage.getItem('cartQuantities') || '{}');
+                } catch(e) {}
+
+                const variantId = activeSize.getAttribute('data-variant-id') || activeSize.innerText.trim();
+                const currentQty = cartQuantities[variantId] || 0;
+
+                // Prospective Limit Check: block if next add would exceed 5
+                if (currentQty + 1 > 5) {
+                    if (typeof showToast === "function") {
+                        showToast("Only 5 items allowed per product", "error");
+                    }
+                    return;
+                }
+
+                const url = form.getAttribute('action');
+                const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+
+                // Loading State
+                btn.disabled = true;
+                btn.style.opacity = '0.7';
+                const originalText = 'ADD TO BAG';
+                btn.innerText = 'ADDING TO BAG...';
+
+                // Track start time to ensure "ADDING" state is visible
+                const startTime = Date.now();
+                const minLoadingTime = 600; // ms
+
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken,
+                    }
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        return res.json().then(data => { throw new Error(data.error || data.message || 'Error adding to cart') });
+                    }
+                    return res.json();
+                })
+                .then(data => {
+                    const elapsedTime = Date.now() - startTime;
+                    const remainingTime = Math.max(0, minLoadingTime - elapsedTime);
+
+                    setTimeout(() => {
+                        if (data.success) {
+                        btn.innerText = 'ADDED TO BAG ✓';
+                        btn.style.opacity = '1';
+
+                        // Update local sync storage
+                        let currentSync = {};
+                        try { currentSync = JSON.parse(localStorage.getItem('cartQuantities') || '{}'); } catch(e) {}
+
+                        const actSize = document.querySelector('.size-box.active');
+                        const vId = actSize ? (actSize.getAttribute('data-variant-id') || actSize.innerText.trim()) : 'default';
+                        currentSync[vId] = (currentSync[vId] || 0) + 1;
+                        localStorage.setItem('cartQuantities', JSON.stringify(currentSync));
+
+                        // Broadcast the event forward so Navbars can update globally
+                        window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart_count } }));
+
+                        // Optionally trigger toast
+                        if (typeof showToast === "function") {
+                            // showToast("Product Added to cart", "success"); // Silenced toast to prefer minicart
+                        }
+
+                        // Trigger Mini Cart
+                        const miniCart = document.getElementById('miniCartPopup');
+                        if (miniCart) {
+                            const mcTitle = document.getElementById('mcTitle');
+                            const mcPrice = document.getElementById('mcPrice');
+                            const mcImage = document.getElementById('mcImage');
+                            const mcColour = document.getElementById('mcColour');
+                            const mcSize = document.getElementById('mcSize');
+
+                            const prodTitle = document.querySelector('.prod-name').innerText;
+                            const prodPrice = document.getElementById('displayPrice').innerText;
+                            const activeSwatch = document.querySelector('.swatch-item.active');
+                            const pdpImg = document.getElementById('mainImage') ? document.getElementById('mainImage').src : '';
+
+                            if (mcTitle) mcTitle.innerText = prodTitle;
+                            if (mcPrice) mcPrice.innerText = prodPrice;
+                            if (mcImage) mcImage.src = pdpImg;
+                            if (mcColour && activeSwatch) mcColour.innerText = activeSwatch.getAttribute('data-color');
+                            if (mcSize && activeSize) mcSize.innerText = activeSize.innerText.trim();
+
+                            miniCart.classList.remove('show');
+                            void miniCart.offsetWidth; // Force reflow
+                            miniCart.classList.add('show');
+
+                            if (window.miniCartTimer) clearTimeout(window.miniCartTimer);
+                            window.miniCartTimer = setTimeout(() => {
+                                miniCart.classList.remove('show');
+                            }, 4000);
+                        }
+                            setTimeout(() => {
+                                btn.innerText = originalText;
+                                btn.disabled = false;
+                                btn.style.opacity = '1';
+                                btn.style.backgroundColor = '';
+                                btn.style.borderColor = '';
+                            }, 1000);
+                        }
+                    }, remainingTime);
+                })
+                .catch(error => {
+                    console.error(error);
+                    // Soft validation: Use professional toast instead of breaking button text
+                    if (typeof showToast === "function") {
+                        showToast(error.message, "error");
+                    }
+
+                    // Restore button instantly
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                });
+            });
+        }
+    });
+</script>
+
+<!-- MINI CART POPUP -->
+<div id="miniCartPopup">
+    <div class="mc-header">
+        <span>Added to bag</span>
+        <button class="mc-close" onclick="document.getElementById('miniCartPopup').classList.remove('show')">✕</button>
+    </div>
+
+    <div class="mc-item-row">
+        <div class="mc-image-col">
+            <img id="mcImage" src="" alt="Product">
+        </div>
+        <div class="mc-info-col">
+            <h4 class="mc-title" id="mcTitle"></h4>
+            <p class="mc-price" id="mcPrice"></p>
+            <div class="mc-meta">
+                <span>Colour</span><span id="mcColour"></span>
+                <span>Size</span><span id="mcSize"></span>
+                <span>Quantity</span><span>1</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="mc-btn-row">
+        <a href="{% url 'cart' %}" class="mc-btn mc-btn-bag">View bag</a>
+        <a href="#" class="mc-btn mc-btn-checkout">Checkout</a>
+    </div>
+</div>
+
+<script>
+    /**
+     * AJAX WISHLIST TOGGLE SYSTEM
+     * Frontend-Only Logic (Requires buttons with class '.like-btn' and 'data-variant-id' attribute)
+     */
+    (function() {
+        // Helper: Get CSRF Token from Cookie
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Global Wishlist Handler
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.like-btn');
+            if (!btn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const variantId = btn.getAttribute('data-variant-id');
+            if (!variantId) {
+                console.error('Wishlist Error: data-variant-id missing on button.');
+                return;
+            }
+
+            // OPTIMISTIC UPDATE: Instant UI feedback
+            const wasLiked = btn.classList.contains('liked');
+            btn.classList.toggle('liked');
+
+            // AJAX Request
+            fetch('/wishlist-toggle/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ variant_id: variantId })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                // Ensure UI state matches server response exactly
+                if (data.status === 'added') btn.classList.add('liked');
+                else if (data.status === 'removed') btn.classList.remove('liked');
+            })
+            .catch(err => {
+                console.error('Wishlist Sync Error:', err);
+                // REVERT on failure
+                if (wasLiked) btn.classList.add('liked');
+                else btn.classList.remove('liked');
+
+                if (typeof showToast === 'function') {
+                    showToast("Failed to update wishlist. Please try again.", "error");
+                }
+            });
+        });
+    })();
+
+    // ════════════════════════════════════════
+    // INITIAL WISHLIST STATE SYNC
+    // ════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', function () {
+        const activeWishlistIds = [
+            {% for item in wishlist_items %}"{{ item.variant.id }}"{% if not forloop.last %},{% endif %}{% endfor %}
+        ];
+
+        document.querySelectorAll('.like-btn').forEach(btn => {
+            const vId = String(btn.getAttribute('data-variant-id'));
+            if (activeWishlistIds.includes(vId)) {
+                btn.classList.add('liked');
+            }
+        });
+    });
 </script>
 
 {% endwith %}

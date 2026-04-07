@@ -1,0 +1,1092 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}Shopping Bag – NO&CO{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ─── Layout ─────────────────────────────────────────────── */
+    .cart-title {
+        font-size: clamp(2rem, 5vw, 4rem);
+        font-weight: 900;
+        letter-spacing: -0.04em;
+        text-transform: uppercase;
+        transform: scaleX(1.15);
+        transform-origin: left;
+        margin-top: 3rem;
+        margin-bottom: 2.5rem;
+        color: #000;
+    }
+    .info-banner {
+        border-bottom: 1px solid #f2f2f2;
+        padding: 1rem 0;
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        color: #767676;
+        margin-bottom: 2.5rem;
+    }
+
+    /* ─── Item Card ──────────────────────────────────────────── */
+    .cart-item-row {
+        transition: opacity 0.25s ease, transform 0.25s ease;
+        will-change: opacity, transform;
+    }
+    .cart-item-row.is-loading {
+        opacity: 0.45;
+        pointer-events: none;
+    }
+    .cart-item-row.is-removing {
+        opacity: 0;
+        transform: translateX(-12px);
+        overflow: hidden;
+    }
+
+    /* ─── Quantity Controls ──────────────────────────────────── */
+    .qty-form {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border: 1px solid #111;
+        padding: 0.5rem 1rem;
+        width: 8rem;
+        margin-top: auto;
+    }
+    .qty-btn {
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.2s ease, transform 0.15s ease;
+        outline: none;
+        color: #111;
+    }
+    .qty-btn:hover:not(:disabled) { opacity: 1; transform: scale(1.15); }
+    .qty-btn:disabled  { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    .qty-limit-warning {
+        font-size: 0.6rem;
+        color: #ef4444;
+        font-weight: 500;
+        margin-top: 6px;
+        opacity: 0;
+        transform: translateY(-4px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+        display: block;
+    }
+    .qty-limit-warning.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* ─── Price flash ────────────────────────────────────────── */
+    .price-flash {
+        transition: color 0.3s ease;
+    }
+    .price-flash.updated {
+        color: #1a1a1a;
+    }
+
+    /* ─── Summary Panel ──────────────────────────────────────── */
+    .summary-panel {
+        background: #fff;
+        position: sticky;
+        top: 2rem;
+        padding-top: 0.5rem;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        margin-bottom: 0.75rem;
+        color: #111;
+        letter-spacing: 0.01em;
+    }
+    .summary-total {
+        font-size: 0.95rem;
+        font-weight: 700;
+        margin-top: 1.25rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid #f2f2f2;
+    }
+    .discount-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 1.5rem;
+    }
+    .add-link {
+        font-size: 0.65rem;
+        text-decoration: underline;
+        cursor: pointer;
+        opacity: 0.7;
+    }
+
+    /* ─── Buttons ────────────────────────────────────────────── */
+    .btn-checkout {
+        background: #000;
+        color: #fff;
+        width: 100%;
+        padding: 1.1rem;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        margin-top: 2rem;
+        transition: background-color 0.3s;
+        border: none;
+        cursor: pointer;
+    }
+    .btn-checkout:hover { background-color: #333; }
+
+    .btn-signin {
+        background: #fff;
+        color: #000;
+        border: 1px solid #111;
+        width: 100%;
+        padding: 1.1rem;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        margin-top: 1rem;
+        transition: background-color 0.2s;
+        display: block;
+        text-align: center;
+    }
+    .btn-signin:hover { background-color: #fafafa; }
+
+    /* ─── Payment / Info ─────────────────────────────────────── */
+    .payment-icons {
+        display: flex;
+        gap: 1.2rem;
+        margin-top: 2rem;
+        margin-bottom: 1.5rem;
+        opacity: 0.6;
+    }
+    .info-text {
+        font-size: 0.6rem;
+        color: #939393;
+        line-height: 1.7;
+        margin-bottom: 1rem;
+    }
+    .info-link {
+        text-decoration: underline;
+        color: #767676;
+    }
+
+    /* ─── Inline Error / Notification ───────────────────────── */
+    .inline-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 320px;
+        max-width: 90vw;
+        background: #000;
+        color: #fff;
+        padding: 16px 20px;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        opacity: 0;
+        transform: translateX(30px);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        z-index: 99999;
+        pointer-events: auto;
+    }
+    .inline-toast.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    .toast-left-content { display: flex; align-items: center; gap: 14px; }
+    .toast-icon-circle {
+        width: 24px; height: 24px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #fff; background: transparent;
+    }
+    .toast-message-wrapper { display: flex; flex-direction: column; }
+    .toast-main-text {
+        font-size: 12px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        line-height: 1.2;
+    }
+    .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .toast-close-btn {
+        cursor: pointer; font-size: 14px; opacity: 0.4;
+        transition: opacity 0.2s; padding: 4px; line-height: 1;
+    }
+    .toast-close-btn:hover { opacity: 1; }
+
+    /* ─── Empty State ────────────────────────────────────────── */
+    #emptyState { display: none; }
+    #emptyState.visible { display: flex; }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 1024px) {
+        .summary-panel { position: static; margin-top: 1rem; }
+    }
+
+    /* ════════════════════════════════════════
+       SIMILAR ITEMS (Copied from PDP)
+    ════════════════════════════════════════ */
+    .similar-items-section {
+        padding: 40px 0 60px 0;
+        border-top: 1px solid #e5e5e5;
+        background: #fff;
+    }
+    .similar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding: 0 20px;
+    }
+    @media (min-width: 768px) {
+        .similar-header { padding: 0 40px; }
+    }
+    .similar-title {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        margin: 0;
+    }
+    .similar-nav button {
+        background: none;
+        border: none;
+        font-size: 18px;
+        color: #333;
+        cursor: pointer;
+        padding: 0 5px;
+        transition: opacity 0.2s;
+    }
+    .similar-nav button:hover { opacity: 0.6; }
+
+    .similar-carousel {
+        display: flex;
+        gap: 0;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        padding: 0;
+        margin: 0;
+    }
+    .similar-carousel::-webkit-scrollbar {
+        display: none;
+    }
+
+    .similar-card {
+        flex: 0 0 32%;
+        min-width: 280px;
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: #000;
+        cursor: pointer;
+        margin: 0;
+        padding: 0;
+    }
+
+    .similar-img-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        background-color: #f4f4f4;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .similar-img-wrapper img.product-img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        top: 0;
+        left: 0;
+        position: absolute;
+        transition: opacity 0.4s ease-in-out;
+    }
+
+    .similar-heart {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        z-index: 10;
+    }
+    .similar-heart svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: #000;
+        stroke-width: 1.5;
+        transition: transform 0.1s;
+    }
+    .similar-heart:hover svg { transform: scale(1.15); fill: #eee; }
+
+    .similar-label {
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: .05em;
+        text-transform: uppercase;
+        color: #888;
+        margin: 10px 0 3px;
+        padding: 0 13px;
+        line-height: 1.1;
+    }
+    .similar-name {
+        font-size: 13px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        color: #000;
+        margin: 0 0 5px;
+        padding: 0 13px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .similar-price {
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: .02em;
+        color: #000;
+        margin: 0 0 10px;
+        padding: 0 13px;
+    }
+    .similar-swatches {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        flex-wrap: wrap;
+        padding: 0 13px;
+        margin-top: 5px;
+    }
+    .similar-swatch {
+        width: 11px;
+        height: 11px;
+        border: 1px solid #eee;
+        display: inline-block;
+    }
+    .similar-swatch-more {
+        font-size: 10px;
+        color: #767676;
+        font-weight: 500;
+    }
+
+    @media (max-width: 900px) {
+        .similar-items-section { padding: 30px 0 40px 0; }
+        .similar-header { padding: 0 20px; }
+        .similar-card { flex: 0 0 50%; min-width: 200px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-4 md:px-8 md:py-8 lg:pb-20 w-full">
+
+    <h1 class="cart-title">Shopping Bag</h1>
+
+    <div class="info-banner uppercase">
+        UPI payment supports quicker refunds
+    </div>
+
+    <!-- ─── Cart Grid ─────────────────────────────────────────── -->
+    <div id="cartGrid">
+
+        {% if cart_items %}
+        <div class="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-4 md:gap-8 lg:gap-16">
+
+            <!-- Left Column: Items -->
+            <div id="cartItemsList">
+                {% for item in cart_items %}
+                <div
+                    id="cart-item-{{ item.id }}"
+                    class="cart-item-row flex flex-row gap-3 md:gap-5 items-start border-b border-gray-200 pb-2 mb-2 md:pb-8 md:mb-8"
+                    data-cart-id="{{ item.id }}"
+                    data-variant-id="{{ item.variant.id }}"
+                    data-quantity="{{ item.quantity }}"
+                    data-price="{{ item.price }}"
+                    data-stock="{{ item.variant.stock }}"
+                >
+                    <!-- Image -->
+                    <div class="relative w-[110px] sm:w-[130px] flex-shrink-0 bg-gray-50 h-max skeleton-wrapper block">
+                        {% if item.primary_image %}
+                            <a href="{% url 'product-details' item.variant.product.id %}" class="block relative w-full h-full">
+                                <div class="skeleton skeleton-img"></div>
+                                <img data-src="{{ item.primary_image.image.url }}"
+                                     alt="{{ item.variant.product.product_name }}"
+                                     class="w-full h-auto object-cover aspect-[2/3] lazy-image">
+                            </a>
+                        {% else %}
+                            <a href="{% url 'product-details' item.variant.product.id %}">
+                                <div class="w-full aspect-[2/3] flex items-center justify-center">
+                                    <span class="text-[0.45rem] text-gray-400 font-bold uppercase tracking-widest text-center w-full px-1">No Image</span>
+                                </div>
+                            </a>
+                        {% endif %}
+                        <button class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center opacity-80 hover:opacity-100 hover:bg-white rounded-full p-1 transition-all">
+                            <i class="ri-heart-line text-sm text-black"></i>
+                        </button>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="flex flex-col flex-grow">
+                        <div class="space-y-1 mb-4">
+                            <p class="text-[0.65rem] text-gray-500 uppercase tracking-wide">{{ item.variant.product.category.category_name }} PREMIUM SELECTION</p>
+                            <a href="{% url 'product-details' item.variant.product.id %}" style="text-decoration: none; color: inherit;">
+                                <h3 class="text-sm font-medium uppercase leading-tight line-clamp-2 text-black cursor-pointer hover:opacity-80 transition-opacity">{{ item.variant.product.product_name }}</h3>
+                            </a>
+                            <p class="text-sm font-semibold text-black">Rs. {{ item.price }}</p>
+                        </div>
+
+                        <!-- Meta -->
+                        <div class="grid grid-cols-[65px_1fr] gap-x-2 gap-y-0.5 text-xs text-gray-600 mb-6 leading-tight">
+                            <span>Art no:</span> <span>{{ item.variant.id|stringformat:"06d"|default:"100234" }}</span>
+                            <span>Colour</span>  <span>{{ item.variant.color|default:"Neutral" }}</span>
+                            <span>Size</span>    <span>{{ item.variant.size.name }}</span>
+                            <span>Quantity</span>
+                            <span class="qty-display" id="qty-display-{{ item.id }}">{{ item.quantity }}</span>
+                            <span>Total</span>
+                            <span class="font-semibold text-black price-flash" id="item-total-{{ item.id }}">Rs. {{ item.total_price }}</span>
+                        </div>
+
+                        <!-- Quantity Controls -->
+                        <div class="qty-form">
+                            <!-- Decrease / Delete -->
+                            {% if item.quantity == 1 %}
+                            <button
+                                type="button"
+                                class="qty-btn open-remove-modal"
+                                data-id="{{ item.id }}"
+                                aria-label="Remove item"
+                            >
+                                <i class="ri-delete-bin-line text-sm"></i>
+                            </button>
+                            {% else %}
+                            <button
+                                type="button"
+                                class="qty-btn decrease-btn"
+                                data-id="{{ item.id }}"
+                                aria-label="Decrease quantity"
+                            >
+                                <i class="ri-subtract-line text-sm"></i>
+                            </button>
+                            {% endif %}
+
+                            <span class="qty-display" id="qty-ctrl-{{ item.id }}">{{ item.quantity }}</span>
+
+                            <!-- Increase -->
+                            <button
+                                type="button"
+                                class="qty-btn increase-btn"
+                                data-id="{{ item.id }}"
+                                aria-label="Increase quantity"
+                            >
+                                <i class="ri-add-line text-sm"></i>
+                            </button>
+                        </div>
+                        <p class="qty-limit-warning" id="limit-warning-{{ item.id }}">Maximum 5 items allowed per product</p>
+
+                        <!-- Inline error per item -->
+                        <p class="item-error text-[0.6rem] text-red-500 mt-2 hidden" id="err-{{ item.id }}"></p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Right Column: Summary -->
+            <div class="summary-container">
+                <div class="summary-panel">
+                    <div class="discount-section">
+                        <span>Discounts</span>
+                        <span class="add-link">Add</span>
+                    </div>
+
+                    <div class="summary-row">
+                        <span class="text-[#767676]">Order value</span>
+                        <span class="font-bold price-flash" id="summary-order-total">Rs. {{ order_total }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="text-[#767676]">Estimated delivery fee</span>
+                        <span class="font-bold price-flash" id="summary-delivery">Rs. {{ delivery_fee }}.00</span>
+                    </div>
+
+                    <div class="summary-row summary-total">
+                        <span>TOTAL</span>
+                        <span class="price-flash" id="summary-full-total">Rs. {{ full_total }}</span>
+                    </div>
+
+                    <button class="btn-checkout">Continue to Checkout</button>
+
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="btn-signin">Sign In</a>
+                    {% endif %}
+
+                    <div class="payment-icons">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg"        alt="Visa"       class="h-2.5">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"       alt="Mastercard" class="h-4">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/e1/UPI-Logo-vector.svg"       alt="UPI"        class="h-3.5 filter grayscale contrast-0">
+                    </div>
+
+                    <p class="info-text">Prices and delivery costs are not confirmed until you've reached the checkout.</p>
+                    <p class="info-text">15 days free returns. Read more about <a href="#" class="info-link">return and refund policy</a>.</p>
+                    <p class="info-text">Need help? Please contact <a href="#" class="info-link">Customer Service</a>.</p>
+
+                    <a href="#" class="block text-[0.65rem] font-bold uppercase tracking-widest underline mt-8 opacity-70 hover:opacity-100 transition-opacity">Delivery and return options</a>
+                </div>
+            </div>
+        </div>
+
+        {% else %}
+        <!-- Empty State (shown on initial load if already empty) -->
+        {% endif %}
+
+        <!-- Empty State (shown dynamically after all items removed) -->
+        <div id="emptyState" class="flex-col items-center justify-center py-40 text-center {% if not cart_items %}visible{% endif %}">
+            <div class="mb-10 opacity-20">
+                <i class="ri-shopping-bag-line text-6xl font-thin"></i>
+            </div>
+            <h2 class="text-xl font-medium uppercase tracking-widest mb-3">Your bag is empty</h2>
+            <p class="text-[#767676] mb-10 max-w-sm text-[0.75rem] leading-relaxed">
+                Styles you love are waiting for you! Just click the heart icon on your favorites to save them or start filling your bag now.
+            </p>
+            <a href="{% url 'home' %}" class="btn-checkout py-4 px-14 w-auto inline-block">Start Shopping</a>
+        </div>
+    </div>
+</div>
+
+<!-- ADD THIS BELOW -->
+<div class="px-4 md:px-6 mt-6 md:mt-10 max-w-7xl mx-auto w-full">
+    <!-- SIMILAR ITEMS SECTION -->
+    <section class="similar-items-section">
+        <div class="similar-header">
+            <h2 class="similar-title">Similar Items</h2>
+            <div class="similar-nav">
+                <button id="simPrev">&#10094;</button>
+                <button id="simNext">&#10095;</button>
+            </div>
+        </div>
+        <div class="similar-carousel" id="similarCarousel">
+            {% for item in similar_items|slice:":6" %}
+            <a href="{% url 'product-details' item.product.id %}" class="similar-card group">
+                <div class="similar-img-wrapper relative skeleton-wrapper block">
+                    <div class="skeleton skeleton-img"></div>
+                    {% with all_imgs=item.images.all %}
+                    {% if all_imgs|length > 1 %}
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
+                    {% else %}
+                        <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
+                    {% endif %}
+                    {% endwith %}
+                    <button class="similar-heart" aria-label="Add to Wishlist">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+                <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}New Arrival{% endif %}</p>
+                <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
+                <p class="similar-price">Rs. {{ item.price }}</p>
+                <div class="similar-swatches">
+                    {% regroup item.product.variants.all by color as color_list %}
+                    {% for col_item in color_list|slice:":3" %}
+                        {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                    {% endfor %}
+                    {% if color_list|length > 3 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-3" }}</span>{% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <!-- Show nothing or fallback if empty -->
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- OTHERS ALSO BOUGHT SECTION -->
+    <section class="similar-items-section" style="border-top: none; padding-top: 0;">
+        <div class="similar-header">
+            <h2 class="similar-title">Others Also Bought</h2>
+            <div class="similar-nav">
+                <button id="othersPrev">&#10094;</button>
+                <button id="othersNext">&#10095;</button>
+            </div>
+        </div>
+        <div class="similar-carousel" id="othersCarousel">
+            {% for item in similar_items reversed %}
+            <a href="{% url 'product-details' item.product.id %}" class="similar-card group">
+                <div class="similar-img-wrapper relative skeleton-wrapper block">
+                    <div class="skeleton skeleton-img"></div>
+                    {% with all_imgs=item.images.all %}
+                    {% if all_imgs|length > 1 %}
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
+                    {% else %}
+                        <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
+                    {% endif %}
+                    {% endwith %}
+                    <button class="similar-heart" aria-label="Add to Wishlist">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+                <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}Trending Now{% endif %}</p>
+                <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
+                <p class="similar-price">Rs. {{ item.price }}</p>
+                <div class="similar-swatches">
+                    {% regroup item.product.variants.all by color as color_list %}
+                    {% for col_item in color_list|slice:":3" %}
+                        {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                    {% endfor %}
+                    {% if color_list|length > 3 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-3" }}</span>{% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <!-- Show nothing or fallback if empty -->
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<!-- ─── Remove Confirmation Modal ──────────────────────────────── -->
+<div id="removeModal" class="fixed inset-0 z-[9999] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+    <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" id="modalOverlay"></div>
+
+    <div id="removeModalContent" class="relative bg-white w-full max-w-lg mx-4 px-8 py-10 pt-12 transform translate-y-12 transition-transform duration-300 ease-out shadow-2xl">
+        <div class="flex justify-between items-start mb-8">
+            <h3 class="text-[0.95rem] font-normal uppercase tracking-wide text-black">Remove an item</h3>
+            <button id="closeRemoveModalBtn" class="absolute top-6 right-6 text-2xl leading-none font-thin text-black hover:opacity-60 transition-opacity outline-none">
+                <i class="ri-close-line font-light"></i>
+            </button>
+        </div>
+        <p class="text-[1rem] font-normal text-black mb-10 pr-4 leading-relaxed">
+            Are you sure you would like to remove this item from your shopping bag?
+        </p>
+        <div class="flex flex-row gap-4 mb-2">
+            <button type="button" id="cancelRemoveBtn" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
+                Cancel
+            </button>
+            <button type="button" id="confirmRemoveBtn" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
+                Remove from bag
+            </button>
+        </div>
+        <p class="modal-error text-[0.6rem] text-red-500 text-center mt-2 hidden" id="modalError"></p>
+    </div>
+</div>
+
+<!-- ─── Inline Toast ─────────────────────────────────────────────── -->
+<div id="inlineToast" class="inline-toast" role="alert" aria-live="polite"></div>
+
+<!-- ─── CSRF token for AJAX ──────────────────────────────────────── -->
+{% csrf_token %}
+
+<script>
+(function () {
+    'use strict';
+
+    /* ── Helpers ────────────────────────────────────────────────── */
+
+    const CSRF = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    function ajax(url, data, callback) {
+        const body = new URLSearchParams(data);
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': CSRF,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: body.toString(),
+        })
+        .then(r => r.json())
+        .then(callback)
+        .catch(() => showToast('Something went wrong. Please try again.'));
+    }
+
+    /* ── Toast ──────────────────────────────────────────────────── */
+
+    let toastTimer = null;
+    function showToast(msg, duration = 2500) {
+        const t = document.getElementById('inlineToast');
+        if (!t) return;
+
+        // Match the identical structure of the product-details page
+        t.innerHTML = `
+            <div class="toast-left-content">
+                <div class="toast-icon-circle">✕</div>
+                <div class="toast-message-wrapper">
+                    <span class="toast-main-text">${msg}</span>
+                    <span class="toast-sub-text">Notification</span>
+                </div>
+            </div>
+            <div class="toast-close-btn" onclick="this.parentElement.classList.remove('show')">✕</div>
+        `;
+
+        t.classList.remove('show');
+        void t.offsetWidth; // force reflow
+        t.classList.add('show');
+
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+    }
+
+    /* ── Local Storage Sync ────────────────────────────────────── */
+    function syncCartToStorage() {
+        const quantities = {};
+        document.querySelectorAll('.cart-item-row').forEach(row => {
+            const vId = row.dataset.variantId;
+            const qty = parseInt(row.dataset.quantity, 10);
+            if (vId) quantities[vId] = qty;
+        });
+        localStorage.setItem('cartQuantities', JSON.stringify(quantities));
+    }
+
+    window.addEventListener('load', syncCartToStorage);
+
+    /* ── Price formatting ───────────────────────────────────────── */
+
+    function fmt(val) {
+        // val comes as a number; format to 2 decimal places
+        const n = parseFloat(val);
+        return isNaN(n) ? '—' : n.toFixed(2).replace(/\.00$/, '');
+    }
+
+    /* ── Flash price element ────────────────────────────────────── */
+
+    function flashPrice(el, newText) {
+        if (!el) return;
+        el.textContent = newText;
+        el.classList.remove('updated');
+        void el.offsetWidth; // reflow
+        el.classList.add('updated');
+    }
+
+    /* ── Qty display pop animation ──────────────────────────────── */
+
+    function popQty(id) {
+        ['qty-display-' + id, 'qty-ctrl-' + id].forEach(elId => {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            el.classList.remove('pop');
+            void el.offsetWidth;
+            el.classList.add('pop');
+            setTimeout(() => el.classList.remove('pop'), 200);
+        });
+    }
+
+    /* ── Update summary totals ──────────────────────────────────── */
+
+    function updateSummary(data) {
+        flashPrice(document.getElementById('summary-order-total'), 'Rs. ' + fmt(data.order_total));
+        flashPrice(document.getElementById('summary-delivery'),    'Rs. ' + fmt(data.delivery_fee) + '.00');
+        flashPrice(document.getElementById('summary-full-total'),  'Rs. ' + fmt(data.full_total));
+
+        // Dispatch global event for navbar update
+        if (data.cart_count !== undefined) {
+            window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart_count } }));
+        }
+    }
+
+    /* ── Update a single item row ────────────────────────────────── */
+
+    function updateItemRow(id, qty, itemTotal) {
+        // Quantity badges (meta + control)
+        ['qty-display-' + id, 'qty-ctrl-' + id].forEach(elId => {
+            const el = document.getElementById(elId);
+            if (el) el.textContent = qty;
+        });
+        popQty(id);
+
+        // Item total price
+        flashPrice(document.getElementById('item-total-' + id), 'Rs. ' + fmt(itemTotal));
+
+        // Swap decrease ↔ delete button based on new qty
+        const row = document.getElementById('cart-item-' + id);
+        if (!row) return;
+        const decBtn = row.querySelector('.decrease-btn');
+        const delBtn = row.querySelector('.open-remove-modal');
+
+        if (qty === 1) {
+            if (decBtn) {
+                // Replace with delete icon
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'qty-btn open-remove-modal';
+                btn.setAttribute('data-id', id);
+                btn.setAttribute('aria-label', 'Remove item');
+                btn.innerHTML = '<i class="ri-delete-bin-line text-sm"></i>';
+                btn.addEventListener('click', () => openRemoveModal(id));
+                decBtn.replaceWith(btn);
+            }
+        } else {
+            if (delBtn) {
+                // Replace with decrease icon
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'qty-btn decrease-btn';
+                btn.setAttribute('data-id', id);
+                btn.setAttribute('aria-label', 'Decrease quantity');
+                btn.innerHTML = '<i class="ri-subtract-line text-sm"></i>';
+                btn.addEventListener('click', () => handleQtyChange(btn, 'decrease'));
+                delBtn.replaceWith(btn);
+            }
+        }
+
+        // Re-enforce the global limit of 5 per product
+        const incBtn = row.querySelector('.increase-btn');
+        const limitWarn = document.getElementById('limit-warning-' + id);
+
+        if (incBtn) {
+            const atLimit = parseInt(qty, 10) >= 5;
+            incBtn.disabled = atLimit;
+            if (limitWarn) {
+                if (atLimit) limitWarn.classList.add('visible');
+                else limitWarn.classList.remove('visible');
+            }
+        }
+    }
+
+    /* ── Show inline error ──────────────────────────────────────── */
+
+    function showItemError(id, msg) {
+        const el = document.getElementById('err-' + id);
+        if (!el) return;
+        el.textContent = msg;
+        el.classList.remove('hidden');
+        setTimeout(() => el.classList.add('hidden'), 3500);
+    }
+
+    /* ── Quantity change handler ─────────────────────────────────── */
+
+    function handleQtyChange(btn, action) {
+        const id = btn.getAttribute('data-id');
+        const row = document.getElementById('cart-item-' + id);
+        if (!row || row.classList.contains('is-loading')) return;
+
+        row.classList.add('is-loading');
+
+        ajax('{% url "cart" %}', { csrfmiddlewaretoken: CSRF, action: action, cart_id: id }, function (data) {
+            row.classList.remove('is-loading');
+
+            if (data.error) {
+                showToast(data.error); // Show professional top-right toast for stock limits
+                return;
+            }
+
+            updateItemRow(id, data.quantity, data.item_total);
+            updateSummary(data);
+            syncCartToStorage(); // Real-time sync to PDP
+        });
+    }
+
+    /* ── Initial State Sync ────────────────────────────────────── */
+    function initQtyState() {
+        document.querySelectorAll('.cart-item-row').forEach(row => {
+            const id = row.dataset.cartId;
+            const qty = parseInt(row.dataset.quantity, 10);
+            const incBtn = row.querySelector('.increase-btn');
+            const limitWarn = document.getElementById('limit-warning-' + id);
+
+            if (incBtn && qty >= 5) {
+                incBtn.disabled = true;
+                if (limitWarn) limitWarn.classList.add('visible');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', initQtyState);
+
+    /* ── Remove modal ───────────────────────────────────────────── */
+
+    let pendingRemoveId = null;
+
+    function openRemoveModal(id) {
+        pendingRemoveId = id;
+        const modal   = document.getElementById('removeModal');
+        const content = document.getElementById('removeModalContent');
+        modal.classList.remove('opacity-0', 'pointer-events-none');
+        modal.classList.add('opacity-100', 'pointer-events-auto');
+        content.classList.remove('translate-y-12');
+        content.classList.add('translate-y-0');
+        // clear modal error
+        const err = document.getElementById('modalError');
+        if (err) { err.textContent = ''; err.classList.add('hidden'); }
+    }
+
+    function closeRemoveModal() {
+        const modal   = document.getElementById('removeModal');
+        const content = document.getElementById('removeModalContent');
+        content.classList.remove('translate-y-0');
+        content.classList.add('translate-y-12');
+        modal.classList.remove('opacity-100', 'pointer-events-auto');
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        pendingRemoveId = null;
+    }
+
+    function confirmRemove() {
+        if (!pendingRemoveId) return;
+        const id = pendingRemoveId;
+        const row = document.getElementById('cart-item-' + id);
+        const confirmBtn = document.getElementById('confirmRemoveBtn');
+
+        if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Removing…'; }
+
+        ajax('{% url "delete-cart-item" %}', { csrfmiddlewaretoken: CSRF, cart_id: id }, function (data) {
+            if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Remove from bag'; }
+            closeRemoveModal();
+
+            if (!data.success) {
+                showToast('Could not remove item. Please try again.');
+                return;
+            }
+
+            // Animate row out
+            if (row) {
+                row.classList.add('is-removing');
+                const maxHeight = row.scrollHeight;
+                row.style.maxHeight = maxHeight + 'px';
+                row.style.transition = 'opacity 0.25s ease, transform 0.25s ease, max-height 0.3s ease 0.2s, padding 0.3s ease 0.2s, margin 0.3s ease 0.2s';
+
+                setTimeout(() => {
+                    row.style.maxHeight = '0';
+                    row.style.paddingBottom = '0';
+                    row.style.marginBottom  = '0';
+                    row.style.overflow      = 'hidden';
+                }, 10);
+
+                setTimeout(() => {
+                    row.remove();
+                    checkEmpty();
+                    syncCartToStorage(); // Real-time sync to PDP
+                }, 520);
+            }
+
+            updateSummary(data);
+        });
+    }
+
+    /* ── Empty state ─────────────────────────────────────────────── */
+
+    function checkEmpty() {
+        const list = document.getElementById('cartItemsList');
+        if (!list) return;
+        const remaining = list.querySelectorAll('.cart-item-row');
+        if (remaining.length === 0) {
+            // Hide the grid, show empty state
+            const grid = list.closest('.grid');
+            if (grid) grid.style.display = 'none';
+            const empty = document.getElementById('emptyState');
+            if (empty) {
+                empty.style.display = 'flex';
+                empty.classList.add('visible');
+            }
+        }
+    }
+
+    /* ── Event delegation ───────────────────────────────────────── */
+
+    document.addEventListener('click', function (e) {
+        // Increase
+        const incBtn = e.target.closest('.increase-btn');
+        if (incBtn) { handleQtyChange(incBtn, 'increase'); return; }
+
+        // Decrease
+        const decBtn = e.target.closest('.decrease-btn');
+        if (decBtn) { handleQtyChange(decBtn, 'decrease'); return; }
+
+        // Open remove modal
+        const delBtn = e.target.closest('.open-remove-modal');
+        if (delBtn) { openRemoveModal(delBtn.getAttribute('data-id')); return; }
+
+        // Close modal (overlay / close button / cancel)
+        if (
+            e.target.id === 'modalOverlay' ||
+            e.target.closest('#closeRemoveModalBtn') ||
+            e.target.closest('#cancelRemoveBtn')
+        ) {
+            closeRemoveModal();
+            return;
+        }
+
+        // Confirm remove
+        if (e.target.closest('#confirmRemoveBtn')) {
+            confirmRemove();
+            return;
+        }
+    });
+
+    // Keyboard: close modal on Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeRemoveModal();
+    });
+
+    /* ── Carousel Arrows ────────────────────────────────────────── */
+
+    function setupCarousel(carouselId, prevBtnId, nextBtnId) {
+        const carousel = document.getElementById(carouselId);
+        const prevBtn = document.getElementById(prevBtnId);
+        const nextBtn = document.getElementById(nextBtnId);
+
+        if (!carousel || !prevBtn || !nextBtn) return;
+
+        function getScrollAmount() {
+            // Scroll by roughly 80% of the container width
+            return carousel.clientWidth * 0.8;
+        }
+
+        prevBtn.addEventListener('click', () => {
+            carousel.scrollBy({
+                left: -300,
+                behavior: 'smooth'
+            });
+        });
+
+        nextBtn.addEventListener('click', () => {
+            carousel.scrollBy({
+                left: 300,
+                behavior: 'smooth'
+            });
+        });
+
+        // Optional: Toggle button visibility based on scroll position
+        const toggleButtons = () => {
+            const isAtStart = carousel.scrollLeft <= 5;
+            const isAtEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 5;
+
+            prevBtn.style.opacity = isAtStart ? '0.3' : '1';
+            prevBtn.style.pointerEvents = isAtStart ? 'none' : 'auto';
+
+            nextBtn.style.opacity = isAtEnd ? '0.3' : '1';
+            nextBtn.style.pointerEvents = isAtEnd ? 'none' : 'auto';
+        };
+
+        carousel.addEventListener('scroll', toggleButtons);
+        window.addEventListener('resize', toggleButtons);
+        // Initial check
+        setTimeout(toggleButtons, 100);
+    }
+
+    // Initialize carousels
+    setupCarousel('similarCarousel', 'simPrev', 'simNext');
+    setupCarousel('othersCarousel', 'othersPrev', 'othersNext');
+
+})();
+</script>
+{% endblock %}

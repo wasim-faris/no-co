@@ -1,0 +1,239 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}FAVOURITES – NO&CO{% endblock %}
+
+{% block extra_head %}
+<!-- NO&CO Wishlist (Favourites) – H&M Inspired static template -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+    /* ─── Global Font Override ─── */
+    html, body, * {
+        font-family: "Inter", "Helvetica Neue", Arial, sans-serif !important;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Layout ─── */
+    .wishlist-container {
+        max-width: 100%;
+        margin: 0;
+        padding: 40px 0;
+        text-align: left;
+    }
+    @media (min-width: 768px) {
+        .wishlist-container {
+            padding: 60px 0; 
+        }
+    }
+
+    /* ─── Header ─── */
+    .wishlist-header {
+        margin-bottom: 40px;
+        padding: 0 16px;
+    }
+    @media (min-width: 768px) {
+        .wishlist-header {
+            padding: 0 40px;
+        }
+    }
+    .wishlist-title {
+        font-size: 48px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin: 0 0 8px 0;
+        line-height: 1.1;
+    }
+    .wishlist-count {
+        font-size: 13px;
+        font-weight: 400;
+        color: #767676;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    /* ─── Grid ─── */
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0;
+    }
+    @media (min-width: 768px) {
+        .wishlist-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0;
+        }
+    }
+    @media (min-width: 1024px) {
+        .wishlist-grid {
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+        }
+    }
+
+    /* ─── Product Card ─── */
+    .fav-card {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        text-decoration: none;
+        color: inherit;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .fav-img-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        background-color: #f2f2f2; /* Light Gray Background */
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+    .fav-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* ─── Heart Icon ─── */
+    .fav-heart {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        color: #e02020; /* Solid Red Heart */
+        font-size: 18px;
+        cursor: pointer;
+        z-index: 10;
+        transition: transform 0.2s ease;
+    }
+    .fav-heart:hover {
+        transform: scale(1.15);
+    }
+
+    /* ─── Details ─── */
+    .fav-details {
+        padding: 0 12px;
+        margin-top: 10px;
+    }
+    .fav-name {
+        font-size: 13px;
+        font-weight: 400; /* Regular weight like H&M */
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        color: #000;
+        margin: 0 0 2px 0;
+        line-height: 1.2;
+    }
+    .fav-price {
+        font-size: 14px;
+        font-weight: 700; /* Bold price */
+        color: #000;
+        margin: 0 0 16px 0;
+    }
+
+    /* ─── Add Button ─── */
+    .btn-add-fav {
+        width: 100%;
+        padding: 14px 0;
+        background: #fff;
+        border: 1px solid #000;
+        color: #000;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        cursor: pointer;
+        display: block;
+        margin-top: 0;
+    }
+    .btn-add-fav:hover {
+        background-color: #f9f9f9;
+        opacity: 0.8;
+    }
+
+    /* ─── Empty state removal (clean grid feel) ─── */
+    .no-extra-gap {
+        margin: 0;
+        padding: 0;
+    }
+
+    /* ─── Empty State ─── */
+    .wishlist-empty {
+        text-align: center;
+        padding: 80px 16px;
+    }
+    .empty-text {
+        font-size: 13px;
+        color: #767676;
+        margin: 16px 0 32px;
+    }
+    .btn-explore {
+        display: inline-block;
+        padding: 16px 32px;
+        background: #000;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+        transition: background 0.2s;
+    }
+    .btn-explore:hover {
+        background: #333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="wishlist-container">
+    
+    <!-- HEADER -->
+    <header class="wishlist-header">
+        <h1 class="wishlist-title">FAVOURITES</h1>
+        <span class="wishlist-count">{{ whishlist_items|length }} {% if whishlist_items|length == 1 %}Item{% else %}Items{% endif %}</span>
+    </header>
+
+    {% if whishlist_items %}
+    <!-- FAVOURITES GRID -->
+    <div class="wishlist-grid">
+        {% for item in whishlist_items %}
+        <div class="fav-card">
+            <div class="fav-img-wrapper">
+                {% if item.variant.primary_images %}
+                    <img src="{{ item.variant.primary_images.0.image.url }}" alt="{{ item.variant.product.product_name }}">
+                {% else %}
+                    <img src="/media/products/linen-shirt.png" alt="Fallback Item">
+                {% endif %}
+                
+                <!-- HEART ICON (POS BOTTOM-RIGHT) -->
+                <div class="fav-heart">
+                    <i class="ri-heart-fill"></i>
+                </div>
+            </div>
+
+            <!-- PRODUCT DETAILS -->
+            <div class="fav-details">
+                <h4 class="fav-name">{{ item.variant.product.product_name }}</h4>
+                <p class="fav-price">Rs. {{ item.variant.price }}</p>
+                
+                <!-- BUTTON -->
+                <button class="btn-add-fav">ADD</button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- EMPTY STATE -->
+    <div class="wishlist-empty">
+        <p class="empty-text">Tap the heart icon on items to save them here.</p>
+        <a href="{% url 'ladies' %}" class="btn-explore">EXPLORE MEN'S WEAR</a>
+    </div>
+    {% endif %}
+
+</div>
+
+{% include 'user_base/components/footer.html' %}
+{% endblock %}

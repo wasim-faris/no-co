@@ -37,8 +37,6 @@ def user_profile(request, id):
         user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg"
     )
 
-    print(has_profile_photo)
-
     fields = [user.username, user.phone_number, has_profile_photo, is_address]
 
     filled = sum(1 for f in fields if f)
@@ -381,7 +379,7 @@ def user_address(request):
 
     return render(
         request,
-        "user-address.html",    
+        "user-address.html",
         {
             "user": user,
             "addresses": addresses,

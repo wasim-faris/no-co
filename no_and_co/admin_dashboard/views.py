@@ -31,6 +31,9 @@ def admin_login(request):
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect("admin-dashboard")
 
+    if request.user.is_authenticated:
+        return redirect("home")
+
     if request.method == "POST":
 
         email = request.POST.get("email")
@@ -317,4 +320,3 @@ def admin_user_active_toggle(request,id):
         except User.DoesNotExist:
             messages.error(request, "user not found")
             return redirect("admin-user-management")
-

@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Product(models.Model):
@@ -48,7 +49,10 @@ class Variant(models.Model):
     color_hex = models.CharField(max_length=7, blank=True, null=True)
 
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.PositiveIntegerField(default=0)
+    stock = models.PositiveIntegerField(
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100000)]
+    )
 
     is_active = models.BooleanField(default=True)
     is_default = models.BooleanField(default=False)
@@ -64,7 +68,7 @@ class Variant(models.Model):
             category = self.product.category.category_name[:2].upper()
             product = self.product.product_name[:6].upper().replace(" ", "")
             color = self.color[:3].upper()
-            size = self.size.name.upper()   # ✅ FIXED
+            size = self.size.name.upper()
 
             sku = f"{category}-{product}-{color}-{size}-{random.randint(100,999)}"
 
@@ -75,7 +79,41 @@ class Variant(models.Model):
         if not self.sku:
             self.sku = self.generate_sku()
 
+        if self.is_deleted and self.is_default:
+            self.is_default = False
+
         super().save(*args, **kwargs)
+
+        if not self.is_deleted:
+            if self.is_default:
+                Variant.objects.filter(product=self.product, is_default=True).exclude(pk=self.pk).update(is_default=False)
+                if not self.is_active:
+                    Variant.objects.filter(pk=self.pk).update(is_active=True)
+                    self.is_active = True
+            else:
+                if not Variant.objects.filter(product=self.product, is_default=True, is_deleted=False).exists():
+                    self.is_default = True
+                    self.is_active = True
+                    Variant.objects.filter(pk=self.pk).update(is_default=True, is_active=True)
+        else:
+            if not Variant.objects.filter(product=self.product, is_default=True, is_deleted=False).exists():
+                next_default = Variant.objects.filter(product=self.product, is_deleted=False).first()
+                if next_default:
+                    next_default.is_default = True
+                    next_default.is_active = True
+                    next_default.save()
+
+    def delete(self, *args, **kwargs):
+        is_def = self.is_default
+        prod = self.product
+        super().delete(*args, **kwargs)
+        if is_def:
+            if not Variant.objects.filter(product=prod, is_default=True, is_deleted=False).exists():
+                next_default = Variant.objects.filter(product=prod, is_deleted=False).first()
+                if next_default:
+                    next_default.is_default = True
+                    next_default.is_active = True
+                    next_default.save()
 
     def __str__(self):
         return f"{self.product.product_name} - {self.size.name} - {self.color}"

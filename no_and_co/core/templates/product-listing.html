@@ -66,7 +66,6 @@
         height: 100%;
         object-fit: cover;
         object-position: top center;
-        transition: transform 0.4s ease, opacity 0.4s ease;
         z-index: 1;
         opacity: 1; /* Default visible for static cards */
     }
@@ -79,25 +78,31 @@
         object-fit: cover;
         object-position: top center;
         z-index: 2;
-        transition: opacity 0.4s ease;
         opacity: 0; /* Default hidden for static cards */
     }
 
-    /* Condition: More than 2 images -> Enable Inverted Hover */
+    /* More than 2 images -> Enable Standard Hover (Primary -> Secondary) */
     .plp-img-wrap.has-hover .plp-img-primary {
-        opacity: 0;
+        opacity: 1;
     }
     .plp-img-wrap.has-hover .plp-img-secondary {
+        opacity: 0;
+    }
+
+    /* Hover: Instant swap, no animation */
+    .plp-card:hover .plp-img-wrap.has-hover .plp-img-primary {
+        opacity: 0;
+    }
+    .plp-card:hover .plp-img-wrap.has-hover .plp-img-secondary {
         opacity: 1;
     }
 
-    /* Hover States for Multi-Image Cards */
-    .plp-card:hover .plp-img-wrap.has-hover .plp-img-primary { 
-        opacity: 1;
-        transform: scale(1.03); 
+    /* ── Product card refinements ── */
+    .plp-card {
+        /* Static card, no zoom */
     }
-    .plp-card:hover .plp-img-wrap.has-hover .plp-img-secondary { 
-        opacity: 0; 
+    .plp-card:hover {
+        /* No transform */
     }
 
     /* Wishlist heart */
@@ -182,6 +187,76 @@
         line-height: 1;
     }
 
+    /* ── Sort Dropdown Styles ── */
+    .sort-dropdown-wrapper { position: relative; }
+    .sort-menu {
+        position: absolute;
+        top: calc(100% + 8px);
+        left: 0;
+        min-width: 200px;
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+        z-index: 500;
+        padding: 10px 0;
+        display: none;
+        animation: dropdownFade 0.2s ease-out;
+    }
+    .sort-menu.active { display: block; }
+    @keyframes dropdownFade { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    .sort-option {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 20px;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        cursor: pointer;
+        color: #444;
+        transition: all 0.15s;
+    }
+    .sort-option:hover { background: #f9f9f9; color: #000; }
+    .sort-option input { accent-color: #000; width: 14px; height: 14px; cursor: pointer; }
+
+    /* ── Filter Drawer Styles ── */
+    .filter-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease;
+    }
+    .filter-overlay.active { opacity: 1; visibility: visible; }
+    .filter-drawer {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 100%;
+        max-width: 400px;
+        height: 100%;
+        background: #fff;
+        z-index: 1001;
+        transition: right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        display: flex;
+        flex-direction: column;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+    }
+    .filter-drawer.active { right: 0; }
+    .filter-header {
+        padding: 24px 28px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .filter-btn-clear { background: #fff; color: #000; }
+    .filter-btn-clear:hover { background: #f8f8f8; }
+
     /* ── Product grid ── */
     .plp-grid {
         display: grid;
@@ -194,10 +269,18 @@
         border-top: 1px solid #eee;
     }
     @media (max-width: 1024px) {
-        .plp-grid { grid-template-columns: repeat(2, 1fr); }
+        .plp-grid { grid-template-columns: repeat(3, 1fr); }
     }
-    @media (max-width: 640px) {
-        .plp-grid { grid-template-columns: 1fr; }
+    @media (max-width: 768px) {
+        .plp-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0;
+        }
+        .plp-card-wrap {
+            padding: 0 0 16px 0;
+        }
+        .plp-name { font-size: 11px; }
+        .plp-price { font-size: 12px; }
     }
 
     /* Tight card spacing between columns — H&M uses ~0px gap */
@@ -220,6 +303,154 @@
         margin-bottom: 24px;
         padding: 0;
     }
+    .filter-title { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #000; }
+    .filter-close { background: none; border: none; cursor: pointer; font-size: 24px; color: #000; line-height: 1; padding: 0; }
+    .filter-body { flex: 1; overflow-y: auto; padding: 0 28px; }
+    .filter-section {
+        padding: 28px 0;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    .filter-section:last-child { border-bottom: none; }
+    .filter-section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px; color: #111; display: flex; align-items: center; justify-content: space-between; }
+    .filter-option-checkbox { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; font-size: 13px; cursor: pointer; color: #444; }
+    .filter-option-checkbox input { accent-color: #000; width: 18px; height: 18px; }
+
+    /* ── Active Filter Tags ── */
+    .active-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+        padding: 0 0 10px;
+    }
+    .filter-tag {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 6px 14px;
+        background: #fff;
+        border: 1px solid #eee;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #000;
+        cursor: default;
+        transition: border-color 0.2s;
+    }
+    .filter-tag:hover { border-color: #000; }
+    .filter-tag-close {
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        color: #999;
+        transition: color 0.2s;
+        margin-left: 5px;
+    }
+    .filter-tag-close:hover { color: #000; }
+
+    /* ── Dual-Range Slider logic ── */
+    .slider-container { position: relative; width: 100%; height: 40px; }
+    .slider-track { position: absolute; top: 18px; left: 0; right: 0; height: 3px; background: #e5e5e5; z-index: 1; }
+    .slider-active { position: absolute; top: 18px; height: 3px; background: #000; z-index: 2; }
+    .slider-container input[type="range"] {
+        position: absolute; pointer-events: none; appearance: none; width: 100%; outline: none; height: 3px; background: none; top: 18px; left: 0; z-index: 3;
+    }
+    .slider-container input[type="range"]::-webkit-slider-thumb {
+        pointer-events: auto; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #000; border: 2px solid #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); cursor: pointer;
+    }
+
+    /* ── Empty State Styles ── */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 120px 20px;
+        text-align: center;
+        width: 100%;
+        background: #fff;
+        animation: emptyFadeIn 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+    }
+    @keyframes emptyFadeIn {
+        from { opacity: 0; transform: translateY(20px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .empty-icon {
+        color: #e5e5e5;
+        margin-bottom: 32px;
+        transition: transform 0.3s ease;
+    }
+    .empty-state:hover .empty-icon {
+        transform: scale(1.05);
+    }
+    .empty-title {
+        font-size: 18px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 16px;
+        color: #000;
+    }
+    .empty-subtitle {
+        font-size: 13px;
+        color: #767676;
+        margin-bottom: 40px;
+        max-width: 360px;
+        line-height: 1.7;
+    }
+    .empty-btn {
+        padding: 16px 40px;
+        background: #000;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        border: 1px solid #000;
+    }
+    .empty-btn:hover {
+        background: #fff;
+        color: #000;
+    }
+    .empty-link {
+        margin-top: 24px;
+        font-size: 11px;
+        font-weight: 500;
+        text-transform: uppercase;
+        color: #999;
+        text-decoration: none;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid transparent;
+        transition: all 0.2s;
+    }
+    .empty-link:hover {
+        color: #000;
+        border-bottom: 1px solid #000;
+    }
+
+    /* ── Self-contained Skeleton Shimmer ── */
+    .plp-skeleton {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        background: linear-gradient(100deg, #f2f2f2 25%, #e5e5e5 37%, #f2f2f2 63%);
+        background-size: 400% 100%;
+        animation: plp-shimmer 1.4s ease-in-out infinite;
+        transition: opacity 0.35s ease;
+        pointer-events: none;
+    }
+    @keyframes plp-shimmer {
+        0%   { background-position: 100% 50%; }
+        100% { background-position:   0% 50%; }
+    }
+
+    .filter-footer { padding: 28px; border-top: 1px solid #eee; display: flex; gap: 16px; }
+    .filter-btn { flex: 1; padding: 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border: 1px solid #000; transition: all 0.2s; }
+    .filter-btn-apply { background: #000; color: #fff; }
+    .filter-btn-clear { background: #fff; color: #000; }
 </style>
 {% endblock %}
 
@@ -230,9 +461,23 @@
     <div class="plp-header-content">
       <!-- ══ PAGE TITLE ══ -->
       <div style="padding: 32px 0 20px;">
-          <h1 style="font-size: clamp(32px, 5vw, 48px); font-weight: 800; letter-spacing: -0.02em; text-transform: uppercase; margin: 0; line-height: 0.9;">
-              Linen Shop
+          <h1 style="font-size: clamp(28px, 6vw, 42px); font-weight: 800; letter-spacing: -0.01em; text-transform: uppercase; margin: 0; line-height: 1.1; color: #000;">
+              {% if query and query.strip and query != "None" %}
+                  {{ query }}
+              {% elif request.GET.subcategory and request.GET.subcategory.strip %}
+                  {{ request.GET.subcategory }}
+              {% elif request.GET.category and request.GET.category.strip %}
+                  {{ request.GET.category }}
+              {% else %}
+                  All Products
+              {% endif %}
           </h1>
+          
+          {% if query and query.strip and query != "None" %}
+          <p style="font-size: 14px; font-weight: 500; color: #767676; margin-top: 12px; text-transform: none; letter-spacing: 0.02em;">
+              Results for "<span style="color: #000;">{{ query }}</span>"
+          </p>
+          {% endif %}
       </div>
 
       <!-- ══ CATEGORY TABS ══ -->
@@ -246,13 +491,57 @@
 
       <!-- ══ SORT & FILTER BAR ══ -->
       <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; margin-bottom: 24px; border-bottom: 1px solid #eee;">
-          <button class="plp-bar-btn">
-              Sort By
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                  <line x1="3" y1="6"  x2="21" y2="6"/><line x1="3" y1="12" x2="16" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/>
-              </svg>
-          </button>
-          <button class="plp-bar-btn">
+
+          <!-- Sort Dropdown Trigger & Form -->
+          <div class="sort-dropdown-wrapper">
+              <button class="plp-bar-btn" id="sortTrigger">
+                  Sort By
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <line x1="3" y1="6"  x2="21" y2="6"/><line x1="3" y1="12" x2="16" y2="12"/><line x1="3" y1="18" x2="11" y2="18"/>
+                  </svg>
+              </button>
+
+              <div class="sort-menu" id="sortMenu">
+                  <form method="GET" action="." id="sortForm">
+                      <!-- PRESERVE ONLY CONTEXT -->
+                      <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}">
+                      <input type="hidden" name="q" value="{{ request.GET.q }}">
+
+                      <label class="sort-option">
+                          Recommended
+                          <input type="radio" name="sort" value="recommended"
+                          {% if not request.GET.sort or request.GET.sort == "recommended" %}checked{% endif %}>
+                      </label>
+                      <label class="sort-option">
+                          Newest
+                          <input type="radio" name="sort" value="newest"
+                          {% if request.GET.sort == "newest" %}checked{% endif %}>
+                      </label>
+                      <label class="sort-option">
+                          Lowest Price
+                          <input type="radio" name="sort" value="lowest_price"
+                          {% if request.GET.sort == "lowest_price" %}checked{% endif %}>
+                      </label>
+                      <label class="sort-option">
+                          Highest Price
+                          <input type="radio" name="sort" value="highest_price"
+                          {% if request.GET.sort == "highest_price" %}checked{% endif %}>
+                      </label>
+                      <label class="sort-option">
+                          Name: A to Z
+                          <input type="radio" name="sort" value="name_asc"
+                          {% if request.GET.sort == "name_asc" %}checked{% endif %}>
+                      </label>
+                      <label class="sort-option">
+                          Name: Z to A
+                          <input type="radio" name="sort" value="name_desc"
+                          {% if request.GET.sort == "name_desc" %}checked{% endif %}>
+                      </label>
+                  </form>
+              </div>
+          </div>
+
+          <button class="plp-bar-btn" id="filterTrigger">
               Filter
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
                   <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/>
@@ -261,12 +550,34 @@
       </div>
 
       <!-- ── Item count ── -->
-      <p class="plp-count">12 Items</p>
+      <p class="plp-count">{% if variants %}{{ variants|length }}{% else %}0{% endif %} Items</p>
+
+      <!-- ══ ACTIVE FILTER TAGS ══ -->
+      <div class="active-filters" id="activeFilterTags">
+          {% if request.GET.category %}{% for cat in request.GET.getlist.category %}
+              <div class="filter-tag">
+                  {{ cat }} <span class="filter-tag-close" onclick="removeFilter('category', '{{ cat }}')">&times;</span>
+              </div>
+          {% endfor %}{% endif %}
+
+          {% if request.GET.price_min and request.GET.price_min != "500" %}
+              <div class="filter-tag">
+                  Min ₹{{ request.GET.price_min }} <span class="filter-tag-close" onclick="removeFilter('price_min', '{{ request.GET.price_min }}')">&times;</span>
+              </div>
+          {% endif %}
+
+          {% if request.GET.price_max and request.GET.price_max != "9999" %}
+              <div class="filter-tag">
+                  Max ₹{{ request.GET.price_max }} <span class="filter-tag-close" onclick="removeFilter('price_max', '{{ request.GET.price_max }}')">&times;</span>
+              </div>
+          {% endif %}
+      </div>
     </div><!-- /plp-header-content -->
 
     <!-- ══ PRODUCT GRID ══ -->
-   <div class="plp-grid">
-  {% for variant in variants %}
+    {% if variants %}
+    <div class="plp-grid">
+    {% for variant in variants %}
 
   <!-- CLICKABLE WRAPPER -->
   <a href="{% url "product-details" variant.product.id %}" class="block"> <!-- you will replace # -->
@@ -274,43 +585,55 @@
     <div class="plp-card-wrap">
       <div class="plp-card">
 
-        <div class="plp-img-wrap {% if variant.images.all|length > 2 %}has-hover{% endif %}">
+        <div class="plp-img-wrap {% if variant.images.count > 2 %}has-hover{% endif %}">
+
+          <!-- Skeleton shimmer overlay -->
+          <div class="plp-skeleton"></div>
 
           {% with all_images=variant.images.all %}
-          {% with primary_img=all_images.first %}
-          {% with secondary_img=all_images.1 %}
-
-          {% comment %} 
-             Logic: 
-             If <= 2 images: Show ONLY primary (No hover).
-             If > 2 images: Show ONLY primary & secondary for hover swap (Secondary default).
-          {% endcomment %}
-
-          {% if all_images|length <= 2 %}
-            {% if primary_img %}
-              <img src="{{ primary_img.image.url }}" class="plp-img-primary" alt="{{ variant.product.product_name }}">
-            {% endif %}
-          {% else %}
-            <!-- Identify True Primary (is_primary=True) if possible -->
+          
+          {% if all_images.count > 2 %}
+            <!-- HOVER ENABLED (3+ images) -->
             {% for img in all_images %}
                {% if img.is_primary %}
-                  <img src="{{ img.image.url }}" class="plp-img-primary" alt="{{ variant.product.product_name }}">
+                  <img src="{{ img.image.url }}"
+                       class="plp-img-primary"
+                       alt="{{ variant.product.product_name }}"
+                       loading="lazy"
+                       onload="var s=this.closest('.plp-img-wrap').querySelector('.plp-skeleton');if(s)s.style.opacity='0';">
                {% endif %}
             {% endfor %}
-
-            <!-- Identify Secondary -->
+            
+            {% with first_img=all_images.0 second_img=all_images.1 third_img=all_images.2 %}
+              {% if not first_img.is_primary %}
+                 <img src="{{ first_img.image.url }}" class="plp-img-secondary" alt="" loading="lazy">
+              {% elif second_img and not second_img.is_primary %}
+                 <img src="{{ second_img.image.url }}" class="plp-img-secondary" alt="" loading="lazy">
+              {% elif third_img %}
+                 <img src="{{ third_img.image.url }}" class="plp-img-secondary" alt="" loading="lazy">
+              {% endif %}
+            {% endwith %}
+            
+          {% else %}
+            <!-- STATIC DISPLAY (1-2 images) -->
             {% for img in all_images %}
-               {% if not img.is_primary %}
-                  <img src="{{ img.image.url }}" class="plp-img-secondary" alt="">
+               {% if img.is_primary %}
+                  <img src="{{ img.image.url }}"
+                       class="plp-img-primary"
+                       alt="{{ variant.product.product_name }}"
+                       loading="lazy"
+                       onload="var s=this.closest('.plp-img-wrap').querySelector('.plp-skeleton');if(s)s.style.opacity='0';">
                {% endif %}
             {% endfor %}
+            <!-- Fallback if no primary marked -->
+            {% if not variant.images.filter.is_primary.exists and all_images.0 %}
+               <img src="{{ all_images.0.image.url }}" class="plp-img-primary" alt="" loading="lazy">
+            {% endif %}
           {% endif %}
 
           {% endwith %}
-          {% endwith %}
-          {% endwith %}
 
-          <!-- HEART (prevent click propagation later if needed) -->
+          <!-- HEART -->
           <button class="plp-heart" aria-label="Add to Wishlist">
             <svg viewBox="0 0 24 24">
               <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
@@ -355,15 +678,401 @@
 
   {% endfor %}
 </div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+    </div>
+    <h2 class="empty-title">No products found</h2>
+    <p class="empty-subtitle">Try adjusting your filters or explore other categories to find exactly what you're looking for.</p>
+    <a href="?subcategory={{request.GET.subcategory }}" class="empty-btn">Clear Filters</a>
+    <a href="{% url "home" %}" class="empty-link">Back to home</a>
+</div>
+{% endif %}
 
   </div><!-- /plp-inner -->
 </div><!-- /plp-body -->
+
+<!-- ══ FOOTER ══ -->
+<div style="margin-top: 60px; border-top: 1px solid #eee;">
+    {% include 'user_base/components/footer.html' %}
+</div>
+
+<!-- ══ FILTER DRAWER COMPONENTS ══ -->
+<div class="filter-overlay" id="filterOverlay"></div>
+<div class="filter-drawer" id="filterDrawer">
+    <div class="filter-header">
+        <h2 class="filter-title">Filter By</h2>
+        <button class="filter-close" id="filterClose">&times;</button>
+    </div>
+
+    <form class="filter-body" method="GET" action="." id="filterForm">
+        <!-- GLOBAL FILTERS (No subcategory/q restriction) -->
+
+        <!-- Sort Section -->
+        <div class="filter-section">
+            <h3 class="filter-section-title">Sort by</h3>
+            <label class="filter-option-checkbox">
+                <input type="radio" name="sort" value="recommended" {% if not request.GET.sort or request.GET.sort == "recommended" %}checked{% endif %}> Recommended
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="radio" name="sort" value="newest" {% if request.GET.sort == "newest" %}checked{% endif %}> Newest
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="radio" name="sort" value="lowest_price" {% if request.GET.sort == "lowest_price" %}checked{% endif %}> Lowest Price
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="radio" name="sort" value="highest_price" {% if request.GET.sort == "highest_price" %}checked{% endif %}> Highest Price
+            </label>
+        </div>
+
+        <!-- Category Section -->
+        <div class="filter-section">
+            <h3 class="filter-section-title">Category</h3>
+            <label class="filter-option-checkbox">
+                <input type="checkbox" name="category" value="mens" {% if 'mens' in request.GET.getlist.category %}checked{% endif %}> Men
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="checkbox" name="category" value="women" {% if 'women' in request.GET.getlist.category %}checked{% endif %}> Women
+            </label>
+            <label class="filter-option-checkbox">
+                <input type="checkbox" name="category" value="kids" {% if 'kids' in request.GET.getlist.category %}checked{% endif %}> Kids
+            </label>
+        </div>
+
+        <!-- Price Section -->
+        <div class="filter-section">
+            <h3 class="filter-section-title">Price Range</h3>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 13px; font-weight: 600;">
+                <span>₹<span id="minDisplay">{{ request.GET.price_min|default:"500" }}</span></span>
+                <span>₹<span id="maxDisplay">{{ request.GET.price_max|default:"9999" }}</span></span>
+            </div>
+            <div class="slider-container">
+                <div class="slider-track"></div>
+                <div class="slider-active" id="sliderActive"></div>
+                <input type="range" id="priceMin" name="price_min" min="0" max="9999" value="{{ request.GET.price_min|default:'500' }}">
+                <input type="range" id="priceMax" name="price_max" min="0" max="9999" value="{{ request.GET.price_max|default:'9999' }}">
+            </div>
+        </div>
+    </form>
+
+    <div class="filter-footer">
+        <button type="button" class="filter-btn filter-btn-clear" id="filterReset">Clear All</button>
+        <button type="submit" form="filterForm" class="filter-btn filter-btn-apply">Apply</button>
+    </div>
+</div>
 
 <script>
     function setTab(el) {
         document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
         el.classList.add('active');
+        
+        const subText = el.innerText.trim();
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+
+        // If 'Linen Clothing' or 'All' is selected, we reset subcategory to show broad category view
+        if (subText === "Linen Clothing") {
+            params.delete('subcategory');
+        } else {
+            // Convert 'Linen Shirts' -> 'LINEN-SHIRTS' or 'Shirts' -> 'SHIRTS'
+            const subSlug = subText.toUpperCase().replace(/\s+/g, '-');
+            params.set('subcategory', subSlug);
+        }
+
+        // Reset search query when applying filters/tabs
+        params.delete('q');
+        
+        if (typeof fetchProducts === 'function') fetchProducts(url);
     }
+
+    /* ── UI Logic ── */
+    const sortTrigger = document.getElementById('sortTrigger');
+    const sortMenu = document.getElementById('sortMenu');
+    const filterTrigger = document.getElementById('filterTrigger');
+    const filterDrawer = document.getElementById('filterDrawer');
+    const filterOverlay = document.getElementById('filterOverlay');
+    const filterClose = document.getElementById('filterClose');
+    const filterReset = document.getElementById('filterReset');
+    const filterForm = document.getElementById('filterForm');
+
+    // Sort Toggle
+    if (sortTrigger) {
+        sortTrigger.addEventListener('click', (e) => { e.stopPropagation(); sortMenu.classList.toggle('active'); });
+    }
+
+    // Filter Toggle
+    function toggleFilter(show) {
+        if (show) {
+            filterDrawer.classList.add('active');
+            filterOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            updatePriceUI();
+        } else {
+            filterDrawer.classList.remove('active');
+            filterOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+
+    if (filterTrigger) filterTrigger.addEventListener('click', (e) => { e.preventDefault(); toggleFilter(true); });
+    if (filterClose) filterClose.addEventListener('click', () => toggleFilter(false));
+    if (filterOverlay) filterOverlay.addEventListener('click', () => toggleFilter(false));
+
+    // Outside Clicks
+    document.addEventListener('click', (e) => {
+        if (sortMenu && !sortMenu.contains(e.target) && e.target !== sortTrigger) sortMenu.classList.remove('active');
+    });
+
+    // Clear All Logic
+    if (filterReset) {
+        filterReset.addEventListener('click', () => {
+            const url = new URL(window.location.href);
+            const sub = url.searchParams.get('subcategory');
+            const q = url.searchParams.get('q');
+            url.search = '';
+            if (sub) url.searchParams.set('subcategory', sub);
+            if (q) url.searchParams.set('q', q);
+            if (typeof fetchProducts === 'function') fetchProducts(url);
+            else window.location.href = url.pathname + url.search;
+            setTimeout(syncUIWithURL, 50);
+        });
+    }
+
+    /* ── Price Slider Logic ── */
+    const priceMin = document.getElementById('priceMin');
+    const priceMax = document.getElementById('priceMax');
+    const minDisplay = document.getElementById('minDisplay');
+    const maxDisplay = document.getElementById('maxDisplay');
+    const sliderActive = document.getElementById('sliderActive');
+
+    function updatePriceUI() {
+        if (!priceMin) return;
+        const minVal = parseInt(priceMin.value);
+        const maxVal = parseInt(priceMax.value);
+
+        if (minVal > maxVal) { priceMin.value = maxVal; }
+        minDisplay.innerText = priceMin.value;
+        maxDisplay.innerText = priceMax.value;
+
+        const range = priceMin.max - priceMin.min;
+        const minPercent = ((priceMin.value - priceMin.min) / range) * 100;
+        const maxPercent = ((priceMax.value - priceMin.min) / range) * 100;
+
+        sliderActive.style.left = minPercent + "%";
+        sliderActive.style.width = (maxPercent - minPercent) + "%";
+    }
+
+    if (priceMin) { priceMin.addEventListener('input', updatePriceUI); priceMax.addEventListener('input', updatePriceUI); updatePriceUI(); }
+
+    /* ── Sync UI with URL Params ── */
+    function syncUIWithURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        
+        // Sync Categories (Checkboxes)
+        const categories = urlParams.getAll('category');
+        if (categories.length > 0) {
+            document.querySelectorAll('input[name="category"]').forEach(checkbox => {
+                checkbox.checked = categories.includes(checkbox.value);
+            });
+        }
+
+        // Sync Sort (Radios)
+        const sort = urlParams.get('sort');
+        if (sort) {
+            document.querySelectorAll('input[name="sort"]').forEach(radio => {
+                radio.checked = (radio.value === sort);
+            });
+        }
+        
+        // Sync Prices (Ranges)
+        const min = urlParams.get('price_min');
+        const max = urlParams.get('price_max');
+        if (min) priceMin.value = min;
+        if (max) priceMax.value = max;
+        
+        updatePriceUI();
+    }
+
+    /* ── AJAX Filtering & Sorting ── */
+    function updatePageHeader(params) {
+        const h1 = document.querySelector('h1');
+        if (!h1) return;
+
+        const q = params.get('q');
+        const sub = params.get('subcategory');
+        const cats = params.getAll('category');
+
+        if (q && q !== 'None') {
+            h1.textContent = q;
+            // Update subtitle if exists
+            const subtitle = h1.parentElement.querySelector('p');
+            if (subtitle) subtitle.innerHTML = `Results for "<span style="color: #000;">${q}</span>"`;
+        } else if (sub) {
+            h1.textContent = sub.replace(/-/g, ' ');
+        } else if (cats.length === 1) {
+            h1.textContent = cats[0];
+        } else {
+            h1.textContent = "All Products";
+        }
+    }
+
+    async function fetchProducts(url, updateHistory = true) {
+        const grid = document.querySelector('.plp-grid') || document.querySelector('.empty-state');
+        if (grid) {
+            grid.style.opacity = '0.5';
+            grid.style.pointerEvents = 'none';
+        }
+
+        try {
+            const response = await fetch(url.toString(), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const html = await response.text();
+            const parser = new DOMParser();
+            const newDoc = parser.parseFromString(html, 'text/html');
+
+            const newGrid = newDoc.querySelector('.plp-grid') || newDoc.querySelector('.empty-state');
+            if (newGrid && grid) {
+                grid.outerHTML = newGrid.outerHTML;
+            }
+
+            const oldCount = document.querySelector('.plp-count');
+            const newCount = newDoc.querySelector('.plp-count');
+            if (oldCount && newCount) oldCount.outerHTML = newCount.outerHTML;
+
+            const oldTags = document.querySelector('.active-filters');
+            const newTags = newDoc.querySelector('.active-filters');
+            if (oldTags && newTags) oldTags.outerHTML = newTags.outerHTML;
+
+            // Update Header UX
+            updatePageHeader(url.searchParams);
+
+            if (updateHistory) {
+                window.history.pushState({}, '', url.toString());
+            }
+
+            // Sync visual controls with the newly pushed URL
+            if (updateHistory) setTimeout(syncUIWithURL, 50);
+
+        } catch (error) {
+            console.error('AJAX fetch failed, falling back to reload:', error);
+            window.location.href = url.toString();
+        } finally {
+            toggleFilter(false);
+            if (sortMenu) sortMenu.classList.remove('active');
+        }
+    }
+
+    if (filterForm) {
+        filterForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(filterForm);
+            const url = new URL(window.location.href);
+            const params = url.searchParams;
+            
+            // Global Filter behavior: reset subcategory/search context when using the drawer
+            params.delete('subcategory');
+            params.delete('q');
+            
+            // 2. Handle Categories: Clean replacement
+            const newCategories = formData.getAll('category');
+            params.delete('category');
+            newCategories.forEach(c => params.append('category', c));
+
+            // 3. Handle Price & Sort
+            const newPriceMin = formData.get('price_min');
+            const newPriceMax = formData.get('price_max');
+            if (newPriceMin) params.set('price_min', newPriceMin);
+            if (newPriceMax) params.set('price_max', newPriceMax);
+
+            const drawerSort = formData.get('sort');
+            if (drawerSort) {
+                params.set('sort', drawerSort);
+                const dropdownForm = document.getElementById('sortForm');
+                if (dropdownForm) {
+                    const matchedInp = dropdownForm.querySelector(`input[value="${drawerSort}"]`);
+                    if (matchedInp) matchedInp.checked = true;
+                }
+            }
+
+            // Reset search query when applying filters from drawer
+            // params.delete('q');
+            
+            fetchProducts(url);
+        });
+    }
+
+    const sortFormEl = document.getElementById('sortForm');
+    if (sortFormEl) {
+        sortFormEl.addEventListener('change', (e) => {
+            e.preventDefault();
+            const formData = new FormData(sortFormEl);
+            const url = new URL(window.location.href);
+            const params = url.searchParams;
+            
+            // Decouple: Root context (Subcategory or Search) is kept
+            const sub = params.get('subcategory');
+            const q = params.get('q');
+            
+            // Clear current params string
+            url.search = '';
+            
+            // Re-apply context ONLY
+            if (sub) url.searchParams.set('subcategory', sub);
+            if (q) url.searchParams.set('q', q);
+            
+            // Apply new Sort value
+            const sortVal = formData.get('sort');
+            if (sortVal) {
+                url.searchParams.set('sort', sortVal);
+                
+                // Sync the drawer sort radio too
+                const drawerSortInp = filterForm?.querySelector(`input[name="sort"][value="${sortVal}"]`);
+                if (drawerSortInp) drawerSortInp.checked = true;
+            }
+            
+            fetchProducts(url);
+        });
+    }
+
+    /* ── Filter Tag Helper ── */
+    window.removeFilter = function(key, value) {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        
+        // Reset broad category view when removing filter tags
+        params.delete('subcategory');
+        params.delete('q');
+
+        if (key === 'category') {
+            const currentValues = params.getAll('category');
+            params.delete('category');
+            currentValues.forEach(v => { if (v !== value) params.append('category', v); });
+        } else if (key === 'price_min' || key === 'price_max') {
+            params.delete(key);
+        }
+        
+        // Reset search query when removing a filter tag
+        // params.delete('q');
+        
+        fetchProducts(url);
+    };
+
+    // Handle Browser Back/Forward navigation correctly visually and functionally
+    window.addEventListener('popstate', () => {
+        syncUIWithURL();
+        fetchProducts(new URL(window.location.href), false);
+    });
+
+    // Call sync on load mapping initial controls to correct state
+    window.addEventListener('load', syncUIWithURL);
 </script>
 
 {% endblock %}

@@ -1,0 +1,256 @@
+<!-- Search Overlay & Panel (H&M Style) -->
+<div id="search-overlay" class="fixed inset-0 bg-black/40 backdrop-blur-[1px] z-[1000] opacity-0 pointer-events-none transition-opacity duration-300 ease-out"></div>
+
+<div id="search-panel" class="fixed top-0 right-0 h-full w-full md:w-[480px] bg-white z-[1001] translate-x-full transition-transform duration-300 cubic-bezier(0.165, 0.84, 0.44, 1) flex flex-col shadow-[-10px_0_30px_rgba(0,0,0,0.03)]">
+
+    <!-- Search Input Area -->
+    <div class="px-8 pt-12 pb-10 md:px-12">
+        <form action="{% url "product-listing" %}" method="GET" id="searchForm">
+            <div class="flex items-center gap-4 border-b border-black pb-3 relative group">
+                <!-- Search Icon (Left) -->
+                <svg class="w-4 h-4 text-black flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+
+                <!-- Hidden action input for specific commands (e.g. clear history) -->
+                <input type="hidden" name="action" id="search-action" value="">
+
+                <!-- Input Field (Backend-friendly with name="q") -->
+                <input
+                    type="text"
+                    name="q"
+                    id="search-input"
+                    placeholder="Search"
+                    autocomplete="off"
+                    class="flex-grow text-[15px] font-medium tracking-wide placeholder-gray-400 focus:outline-none bg-transparent"
+                >
+
+                <!-- Clear Text Button (H&M Style) -->
+                <button type="button" id="clear-input-btn" class="opacity-0 pointer-events-none text-[9px] font-medium uppercase tracking-[0.1em] text-[#767676] hover:text-black hover:underline underline-offset-2 transition-all duration-200 outline-none flex-shrink-0">
+                    Clear
+                </button>
+
+                <!-- Close Panel Button (X) -->
+                <button type="button" id="closeSearchPanel" class="p-1 hover:opacity-50 transition-opacity outline-none flex-shrink-0">
+                    <svg class="w-6 h-6 text-black" fill="none" stroke="currentColor" stroke-width="1.2" viewBox="0 0 24 24">
+                        <path d="M18 6L6 18M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Content Area -->
+    <div id="search-history-container" class="flex-grow overflow-y-auto px-8 md:px-12 py-6 opacity-0 transition-opacity duration-300 pointer-events-none">
+        {% if search_history %}
+            <div class="mb-10">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="text-[12px] font-bold uppercase tracking-[0.1em] text-black">Search History</h3>
+                    <button type="button" id="clearSearchHistory" class="text-[10px] font-medium uppercase tracking-widest text-black hover:opacity-100 opacity-60 underline underline-offset-4 decoration-current transition-all">Clear</button>
+                </div>
+                <div class="flex flex-col -mx-4">
+                    {% for query in search_history %}
+                        <a href="{% url 'product-listing' %}?q={{ query|urlencode }}" 
+                           class="flex items-center px-4 py-3 hover:bg-gray-50 transition-all cursor-pointer no-underline group">
+                            <span class="text-[14px] font-medium text-black tracking-tight transition-colors">{{ query }}</span>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    /* Prevent body scroll when panel is active */
+    body.search-open {
+        overflow: hidden !important;
+        padding-right: var(--scrollbar-width, 0px);
+    }
+
+    #search-panel.active {
+        transform: translateX(0);
+    }
+
+    #search-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    #search-history-container.visible {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Custom thin scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #f0f0f0;
+        border-radius: 10px;
+    }
+</style>
+
+<script>
+(function() {
+    'use strict';
+
+    function initSearchOverlay() {
+        const triggers = [
+            document.getElementById('searchTrigger'),
+            document.getElementById('mobileSearchTrigger')
+        ];
+        const panel = document.getElementById('search-panel');
+        const overlay = document.getElementById('search-overlay');
+        const closeBtn = document.getElementById('closeSearchPanel');
+        const input = document.getElementById('search-input');
+        const clearInputBtn = document.getElementById('clear-input-btn');
+        const searchForm = document.getElementById('searchForm');
+        const historyContainer = document.getElementById('search-history-container');
+        const searchAction = document.getElementById('search-action');
+        const clearHistoryBtn = document.getElementById('clearSearchHistory');
+
+        if (!panel || !overlay) return;
+
+        // Calculate scrollbar width for smooth body lock
+        function updateScrollbarWidth() {
+            const scrollbarWidth = (window.innerWidth - document.documentElement.clientWidth);
+            document.documentElement.style.setProperty('--scrollbar-width', scrollbarWidth + 'px');
+        }
+
+        function open() {
+            updateScrollbarWidth();
+            panel.classList.add('active');
+            overlay.classList.add('active');
+            document.body.classList.add('search-open');
+            setTimeout(() => { if(input) input.focus(); }, 400);
+        }
+
+        function close() {
+            panel.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.classList.remove('search-open');
+            if(historyContainer) historyContainer.classList.remove('visible');
+        }
+
+        triggers.forEach(t => {
+            if (t) {
+                t.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    open();
+                };
+            }
+        });
+
+        if (overlay) overlay.onclick = close;
+        if (closeBtn) closeBtn.onclick = close;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && panel.classList.contains('active')) close();
+        });
+
+        // Input clear logic & History Visibility
+        if (input) {
+            input.oninput = () => {
+                if (input.value.length > 0) {
+                    clearInputBtn.classList.remove('opacity-0', 'pointer-events-none');
+                    clearInputBtn.classList.add('opacity-100', 'pointer-events-auto');
+                } else {
+                    clearInputBtn.classList.add('opacity-0', 'pointer-events-none');
+                    clearInputBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                }
+            };
+
+            input.onfocus = () => {
+                if(historyContainer) historyContainer.classList.add('visible');
+            };
+
+            if (clearInputBtn) {
+                clearInputBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    input.value = '';
+                    input.focus();
+                    clearInputBtn.classList.add('opacity-0', 'pointer-events-none');
+                    clearInputBtn.classList.remove('opacity-100', 'pointer-events-auto');
+                };
+            }
+        }
+
+        // Prevent accidental form submission IF input empty AND no action set
+        if (searchForm) {
+            searchForm.onsubmit = (e) => {
+                const actionValue = searchAction ? searchAction.value : '';
+                
+                // Requirement 2-D: Global search resets everything
+                if (!actionValue && input.value.trim()) {
+                   // Let the browser handle GET submission normally.
+                   // Since the form has no category/subcategory inputs, they won't be sent.
+                   // The browser will go to /products/?q=value
+                } else if (!input.value.trim() && !actionValue) {
+                    e.preventDefault();
+                }
+            };
+        }
+
+        // Hide history on outside click
+        document.addEventListener('click', (e) => {
+            if (historyContainer && !historyContainer.contains(e.target) && !input.contains(e.target)) {
+                historyContainer.classList.remove('visible');
+            }
+        });
+
+        // Search History Clear (AJAX Modern UX)
+        if (clearHistoryBtn && historyContainer && searchForm) {
+            clearHistoryBtn.onclick = async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                // 1. Smooth Fade Out (Instant UX)
+                historyContainer.style.transition = 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+                historyContainer.style.opacity = '0';
+                historyContainer.style.transform = 'translateY(-8px)';
+
+                // 2. Background Deletion (No redirect/reload)
+                // Use pathname directly instead of form.action to avoid [object HTMLInputElement] naming collisions
+                const baseUrl = window.location.pathname;
+                const url = `${baseUrl}?action=delete_history&t=${Date.now()}`;
+                
+                try {
+                    // Using async/await + credentials + manual redirect to stop browser navigation
+                    await fetch(url, { 
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        credentials: 'same-origin',
+                        redirect: 'manual' 
+                    });
+                } catch (err) {
+                    // Silently fail if already cleared or network error
+                }
+
+                // 3. Complete Removal (Wait for animation)
+                setTimeout(() => {
+                    historyContainer.innerHTML = '';
+                    historyContainer.style.display = 'none';
+                    // Ensure the action field is cleared so searchForm.onsubmit doesn't allow empty search
+                    const searchAction = document.getElementById('search-action');
+                    if (searchAction) searchAction.value = '';
+                }, 300);
+            };
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSearchOverlay);
+    } else {
+        initSearchOverlay();
+    }
+
+})();
+</script>
