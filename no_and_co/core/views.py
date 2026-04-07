@@ -9,6 +9,7 @@ from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from category.models import Category,Subcategory
 from django.db.models import Q
+from wishlist.models import Wishlist
 # Create your views here.
 
 @never_cache
@@ -96,6 +97,14 @@ def product_details(request, id):
 
     search_history = request.session.get("search_history",[])
 
+    if not request.session.session_key:
+        request.session.create()
+
+    if request.user.is_authenticated:
+        wishlist_items = Wishlist.objects.filter(user=request.user)
+    else:
+        wishlist_items = Wishlist.objects.filter(session_key=request.session.session_key)
+
     return render(request, "product-details.html",{
         "product":product,
         "variants":variants,
@@ -104,7 +113,8 @@ def product_details(request, id):
         "default_variant":default_variant,
         "product_image":product_image,
         "similar_items":similar_items,
-        "search_history":search_history
+        "search_history":search_history,
+        "wishlist_items":wishlist_items
     })
 
 def product_listing(request):
