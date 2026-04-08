@@ -1171,6 +1171,49 @@
         {% endfor %}
     };
 
+    // Wishlisted variant IDs from backend — mutated live as user adds/removes.
+    const wishlistedVariantIds = [
+        {% for item in whishlist_items %}"{{ item.variant.id }}"{% if not forloop.last %},{% endif %}{% endfor %}
+    ];
+
+    // ── Single source of truth for the currently displayed variant ──
+    // Pre-seeded with the default variant rendered by Django.
+    let currentVariantId = "{{ default_variant.id }}";
+
+    function updateWishlistHeart() {
+        const heartBtn = document.querySelector('.info-inner .like-btn');
+        if (!heartBtn) return;
+
+        const activeColorEl = document.querySelector('.swatch-item.active');
+        const activeSizeEl  = document.querySelector('.size-box.active');
+
+        let resolvedId = null;
+
+        if (activeColorEl && activeSizeEl) {
+            // Best case: both color AND size selected → exact match.
+            const key = activeColorEl.getAttribute('data-color') + '_' + activeSizeEl.innerText.trim();
+            resolvedId = variantMap[key] || null;
+        } else if (activeColorEl) {
+            // Only color selected (size not chosen yet) → use the first variant
+            // for this color so the heart reflects that color's wishlist state.
+            const color = activeColorEl.getAttribute('data-color');
+            const firstKey = Object.keys(variantMap).find(k => k.startsWith(color + '_'));
+            resolvedId = firstKey ? variantMap[firstKey] : null;
+        }
+
+        if (resolvedId) {
+            // Keep the button attribute and global tracker in sync.
+            currentVariantId = String(resolvedId);
+            heartBtn.setAttribute('data-variant-id', currentVariantId);
+
+            if (wishlistedVariantIds.includes(currentVariantId)) {
+                heartBtn.classList.add('liked');
+            } else {
+                heartBtn.classList.remove('liked');
+            }
+        }
+    }
+
     function updateCartAction() {
         const activeColorEl = document.querySelector('.swatch-item.active');
         const activeSizeEl = document.querySelector('.size-box.active');
@@ -1282,6 +1325,7 @@
         if (window.refreshGalleryIndicators) {
             window.refreshGalleryIndicators();
         }
+        updateWishlistHeart();
     }
 
     function selectSize(box) {
@@ -1308,6 +1352,7 @@
             hint.style.display = (stock > 0 && stock < 5) ? 'block' : 'none';
         }
         updateCartAction();
+        updateWishlistHeart();
     }
 
     // Simplified & High-Performance Accordion Logic
@@ -1806,9 +1851,16 @@
             e.preventDefault();
             e.stopPropagation();
 
-            const variantId = btn.getAttribute('data-variant-id');
+            // For the MAIN PDP heart: use currentVariantId (always kept in sync
+            // by updateWishlistHeart whenever color/size changes).
+            // For similar-items cards: read the static data-variant-id.
+            const isMainHeart = btn.closest('.info-inner') !== null;
+            const variantId = isMainHeart
+                ? currentVariantId
+                : btn.getAttribute('data-variant-id');
+
             if (!variantId) {
-                console.error('Wishlist Error: data-variant-id missing on button.');
+                console.error('Wishlist Error: could not resolve variant id.');
                 return;
             }
 
@@ -1831,8 +1883,17 @@
             })
             .then(data => {
                 // Ensure UI state matches server response exactly
-                if (data.status === 'added') btn.classList.add('liked');
-                else if (data.status === 'removed') btn.classList.remove('liked');
+                if (data.status === 'added') {
+                    btn.classList.add('liked');
+                    if (!wishlistedVariantIds.includes(String(variantId))) {
+                        wishlistedVariantIds.push(String(variantId));
+                    }
+                }
+                else if (data.status === 'removed') {
+                    btn.classList.remove('liked');
+                    const idx = wishlistedVariantIds.indexOf(String(variantId));
+                    if (idx > -1) wishlistedVariantIds.splice(idx, 1);
+                }
             })
             .catch(err => {
                 console.error('Wishlist Sync Error:', err);

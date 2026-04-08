@@ -19,13 +19,24 @@ def wishlist(request):
         user = None
         session_key = request.session.session_key
 
-    wishlist_items = Wishlist.objects.filter(user=user, session_key=session_key).select_related("variant").prefetch_related(
-        Prefetch(
-            "variant__images",
-            queryset=VariantImage.objects.filter(is_primary = True),
-            to_attr="primary_images"
+
+
+    if request.user.is_authenticated:
+        wishlist_items = Wishlist.objects.filter(user=user).select_related("variant").prefetch_related(
+            Prefetch(
+                "variant__images",
+                queryset=VariantImage.objects.filter(is_primary = True),
+                to_attr="primary_images"
+            )
         )
-    )
+    else:
+         wishlist_items = Wishlist.objects.filter(session_key=session_key).select_related("variant").prefetch_related(
+            Prefetch(
+                "variant__images",
+                queryset=VariantImage.objects.filter(is_primary = True),
+                to_attr="primary_images"
+            )
+        )
 
 
     return render(request, 'wishlist/wishlist.html', {

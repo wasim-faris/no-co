@@ -105,15 +105,30 @@
         /* No transform */
     }
 
-    /* Wishlist liked state */
+    /* Wishlist heart – base */
+    .plp-heart {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        z-index: 10;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+        color: #000;
+        filter: drop-shadow(0 0 2px rgba(255,255,255,0.8));
+    }
     .plp-heart i {
         font-size: 18px;
         transition: transform 0.2s ease;
         pointer-events: none;
+        color: #000;
     }
     .plp-heart:hover i {
         transform: scale(1.15);
     }
+    /* filled/outline toggle */
     .plp-heart .filled-heart {
         display: none;
         color: #e02b2b !important;
