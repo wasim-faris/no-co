@@ -9,6 +9,7 @@ from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404
 from category.models import Category,Subcategory
 from django.db.models import Q
+from wishlist.models import Wishlist
 # Create your views here.
 
 @never_cache
@@ -42,6 +43,24 @@ def ladies(request):
 def product_details(request, id):
     product = get_object_or_404(Product , id=id)
 
+    if not request.session.session_key:
+        request.session.create()
+
+    if request.user.is_authenticated:
+        user = request.user
+        session_key = None
+    else:
+        user = None
+        session_key = request.session.session_key
+
+    wishlist_items = Wishlist.objects.filter(user=user, session_key=session_key).select_related("variant").prefetch_related(
+        Prefetch(
+            "variant__images",
+            queryset=VariantImage.objects.filter(is_primary = True),
+            to_attr="primary_images"
+        )
+    )
+
     variants = product.variants.filter(is_active=True, is_deleted=False).prefetch_related(
         Prefetch(
             "images",
@@ -73,7 +92,7 @@ def product_details(request, id):
 
     similar_products = Product.objects.filter(is_active=True, is_deleted=False).exclude(id=product.id).order_by('-created_at')[:6]
     similar_items = []
-    
+
     for p in similar_products:
         rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
         if rep_variant:
@@ -96,6 +115,7 @@ def product_details(request, id):
 
     search_history = request.session.get("search_history",[])
 
+
     return render(request, "product-details.html",{
         "product":product,
         "variants":variants,
@@ -104,7 +124,8 @@ def product_details(request, id):
         "default_variant":default_variant,
         "product_image":product_image,
         "similar_items":similar_items,
-        "search_history":search_history
+        "search_history":search_history,
+        "whishlist_items":wishlist_items
     })
 
 def product_listing(request):
@@ -112,6 +133,24 @@ def product_listing(request):
     subcategory = request.GET.get("subcategory")
     query = request.GET.get("q")
     action = request.GET.get("action")
+
+    if not request.session.session_key:
+        request.session.create()
+
+    if request.user.is_authenticated:
+        user = request.user
+        session_key = None
+    else:
+        user = None
+        session_key = request.session.session_key
+
+    wishlist_items = Wishlist.objects.filter(user=user, session_key=session_key).select_related("variant").prefetch_related(
+        Prefetch(
+            "variant__images",
+            queryset=VariantImage.objects.filter(is_primary = True),
+            to_attr="primary_images"
+        )
+    )
 
     if action == "delete_history":
 
@@ -174,5 +213,6 @@ def product_listing(request):
     return render(request, "product-listing.html", {
         "variants": variants,
         "query":query,
-        "search_history":request.session.get("search_history",[])
+        "search_history":request.session.get("search_history",[]),
+        "whishlist_items":wishlist_items
     })

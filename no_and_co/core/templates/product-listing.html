@@ -105,28 +105,25 @@
         /* No transform */
     }
 
-    /* Wishlist heart */
-    .plp-heart {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        z-index: 10;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 0;
-        line-height: 1;
+    /* Wishlist liked state */
+    .plp-heart i {
+        font-size: 18px;
+        transition: transform 0.2s ease;
+        pointer-events: none;
     }
-    .plp-heart svg {
-        width: 18px;
-        height: 18px;
-        fill: none;
-        stroke: #000;
-        stroke-width: 1.5;
-        transition: transform .12s;
-        filter: drop-shadow(0 0 2px rgba(255,255,255,0.8));
+    .plp-heart:hover i {
+        transform: scale(1.15);
     }
-    .plp-heart:hover svg { transform: scale(1.15); fill: #eee; }
+    .plp-heart .filled-heart {
+        display: none;
+        color: #e02b2b !important;
+    }
+    .plp-heart.liked .filled-heart {
+        display: inline-block;
+    }
+    .plp-heart.liked .unfilled-heart {
+        display: none;
+    }
 
     /* Card text */
     .plp-brand {
@@ -634,10 +631,11 @@
           {% endwith %}
 
           <!-- HEART -->
-          <button class="plp-heart" aria-label="Add to Wishlist">
-            <svg viewBox="0 0 24 24">
-              <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-            </svg>
+          <button class="plp-heart like-btn {% for w in whishlist_items %}{% if w.variant.id == variant.id %}liked{% endif %}{% endfor %}" 
+                  data-variant-id="{{ variant.id }}" 
+                  aria-label="Add to Wishlist">
+            <i class="ri-heart-line unfilled-heart"></i>
+            <i class="ri-heart-fill filled-heart"></i>
           </button>
 
         </div>
@@ -1073,6 +1071,62 @@
 
     // Call sync on load mapping initial controls to correct state
     window.addEventListener('load', syncUIWithURL);
+
+    /**
+     * AJAX WISHLIST TOGGLE SYSTEM
+     */
+    (function() {
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.like-btn');
+            if (!btn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const variantId = btn.getAttribute('data-variant-id');
+            if (!variantId) return;
+
+            const wasLiked = btn.classList.contains('liked');
+            btn.classList.toggle('liked');
+
+            fetch('/wishlist-toggle/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ variant_id: variantId })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'added') btn.classList.add('liked');
+                else if (data.status === 'removed') btn.classList.remove('liked');
+            })
+            .catch(err => {
+                console.error('Wishlist Sync Error:', err);
+                if (wasLiked) btn.classList.add('liked');
+                else btn.classList.remove('liked');
+            });
+        });
+    })();
 </script>
 
 {% endblock %}
