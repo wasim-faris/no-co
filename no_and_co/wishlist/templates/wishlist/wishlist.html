@@ -30,8 +30,8 @@
         border-bottom: none;
     }
     .wishlist-title {
-        font-size: 22px;
-        font-weight: 600;
+        font-size: 36px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.06em;
         margin: 0 0 4px;
@@ -105,14 +105,22 @@
         background: none;
         border: none;
         padding: 0;
-        color: #e8192c;
         font-size: 20px;
         line-height: 1;
         cursor: pointer;
         z-index: 10;
         transition: transform 0.15s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
     .fav-heart:hover { transform: scale(1.15); }
+    /* unfilled by default */
+    .fav-heart .fav-heart-fill   { display: none;   color: #e8192c; }
+    .fav-heart .fav-heart-empty  { display: inline; color: #555; }
+    /* liked = in wishlist */
+    .fav-heart.liked .fav-heart-fill   { display: inline; }
+    .fav-heart.liked .fav-heart-empty  { display: none; }
 
     /* ─── Card content: slight padding, tight spacing ─── */
     .fav-details {
@@ -201,8 +209,9 @@
                     {% endif %}
 
                     <!-- Heart overlays image bottom-right -->
-                    <div class="fav-heart like-btn" data-variant-id="{{ item.variant.id }}" onclick="event.preventDefault(); event.stopPropagation();">
-                        <i class="ri-heart-fill"></i>
+                    <div class="fav-heart like-btn liked" data-variant-id="{{ item.variant.id }}">
+                        <i class="ri-heart-fill fav-heart-fill"></i>
+                        <i class="ri-heart-line fav-heart-empty"></i>
                     </div>
                 </div>
             </a>
@@ -230,11 +239,7 @@
 {% include 'user_base/components/footer.html' %}
 
 <script>
-    /**
-     * AJAX WISHLIST TOGGLE SYSTEM
-     */
     (function() {
-        // Helper: Get CSRF Token from Cookie
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -250,7 +255,6 @@
             return cookieValue;
         }
 
-        // Global Wishlist Handler
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.like-btn');
             if (!btn) return;
@@ -261,7 +265,10 @@
             const variantId = btn.getAttribute('data-variant-id');
             if (!variantId) return;
 
-            // AJAX Request
+            // Optimistic UI toggle
+            const wasLiked = btn.classList.contains('liked');
+            btn.classList.toggle('liked');
+
             fetch('/wishlist-toggle/', {
                 method: 'POST',
                 headers: {
@@ -271,25 +278,28 @@
                 body: JSON.stringify({ variant_id: variantId })
             })
             .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) throw new Error('Network error');
                 return response.json();
             })
             .then(data => {
-                if (data.status === 'removed') {
-                    // In the wishlist page, we typically remove the card entirely
+                if (data.status === 'added') {
+                    btn.classList.add('liked');
+                } else if (data.status === 'removed') {
+                    btn.classList.remove('liked');
+                    // Fade out and remove the card
                     const container = btn.closest('.fav-card-container');
                     if (container) {
+                        container.style.transition = 'opacity 0.3s ease';
                         container.style.opacity = '0';
-                        setTimeout(() => {
-                            container.remove();
-                            // Update count if needed or reload if empty
-                            location.reload(); 
-                        }, 300);
+                        setTimeout(() => { location.reload(); }, 320);
                     }
                 }
             })
             .catch(err => {
                 console.error('Wishlist Sync Error:', err);
+                // Revert optimistic update on failure
+                if (wasLiked) btn.classList.add('liked');
+                else btn.classList.remove('liked');
             });
         });
     })();
