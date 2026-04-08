@@ -303,30 +303,45 @@
         background: #f5f5f5;
     }
     .size-btn.active {
-        border: 1px solid #000;
+        background: #000 !important;
+        color: #fff !important;
+        border-color: #000 !important;
         z-index: 2;
-        background: #f5f5f5;
-        font-weight: 500;
+        text-decoration: none !important;
     }
     .size-btn.disabled {
-        color: #ccc;
-        background: #fafafa;
-        cursor: not-allowed;
-        position: relative;
+        text-decoration: line-through;
+        color: #000;
+        background: #fff;
+        cursor: pointer;
     }
-    .size-btn.disabled::after {
-        content: "";
-        position: absolute;
-        width: 100%;
-        height: 1px;
-        background: #eee;
-        transform: rotate(-45deg);
-    }
+    .size-btn.disabled::after { display: none; }
 
     .size-error {
-        font-size: 12px;
-        color: #d11212;
-        margin-top: 5px;
+        display: none;
+        font-size: 11px;
+        color: #e02d2d;
+        letter-spacing: .02em;
+        margin: -4px 0 12px;
+    }
+
+    .low-stock-dot {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #e02d2d;
+        pointer-events: none;
+        display: block;
+    }
+    .low-stock-hint {
+        font-size: 11px;
+        color: #e02d2d;
+        font-weight: 400;
+        letter-spacing: .02em;
+        margin: -6px 0 14px;
         display: none;
     }
 
@@ -459,7 +474,8 @@
         <div class="size-grid" id="drawerSizeGrid">
             <!-- Sizes injected via JS -->
         </div>
-        <p class="size-error" id="sizeErrorMsg">Please select size</p>
+        <p id="stockHint" class="low-stock-hint">Only few left</p>
+        <p id="sizeError" class="size-error">Please select a size</p>
     </div>
     <div class="drawer-footer">
         <button class="btn-atc-main" id="btnConfirmATC">ADD</button>
@@ -569,7 +585,8 @@
         const closeBtn = document.getElementById('closeDrawer');
         const sizeGrid = document.getElementById('drawerSizeGrid');
         const btnConfirmATC = document.getElementById('btnConfirmATC');
-        const sizeError = document.getElementById('sizeErrorMsg');
+        const sizeError = document.getElementById('sizeError');
+        const stockHint = document.getElementById('stockHint');
 
         let selectedVariantId = null;
 
@@ -578,7 +595,9 @@
             selectedVariantId = null;
             sizeGrid.innerHTML = '<div style="padding: 20px; color: #999; font-size: 12px;">Loading sizes...</div>';
             sizeError.style.display = 'none';
+            stockHint.style.display = 'none';
             btnConfirmATC.disabled = false;
+            btnConfirmATC.innerText = 'ADD';
 
             // Open drawer UI
             overlay.classList.add('active');
@@ -600,16 +619,36 @@
                     data.sizes.forEach(sz => {
                         const btn = document.createElement('div');
                         btn.className = 'size-btn';
-                        if (sz.stock <= 0) btn.classList.add('disabled');
+                        btn.style.position = 'relative';
                         btn.textContent = sz.size;
                         btn.dataset.vid = sz.id;
+                        btn.dataset.stock = sz.stock;
+
+                        if (sz.stock <= 0) {
+                            btn.classList.add('disabled');
+                        } else if (sz.stock > 0 && sz.stock < 5) {
+                            const dot = document.createElement('span');
+                            dot.className = 'low-stock-dot';
+                            btn.appendChild(dot);
+                        }
 
                         btn.addEventListener('click', () => {
-                            if (btn.classList.contains('disabled')) return;
+                            // selectSize logic from PDP
                             document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
                             btn.classList.add('active');
+                            
                             selectedVariantId = sz.id;
+                            
+                            // Restore button state
+                            btnConfirmATC.innerText = 'ADD';
+                            btnConfirmATC.disabled = false;
+                            
+                            // Clear error
                             sizeError.style.display = 'none';
+                            
+                            // Show hint
+                            const stockCount = parseInt(sz.stock, 10);
+                            stockHint.style.display = (stockCount > 0 && stockCount < 5) ? 'block' : 'none';
                         });
                         sizeGrid.appendChild(btn);
                     });
@@ -650,12 +689,16 @@
             btnConfirmATC.textContent = 'ADDING...';
             btnConfirmATC.disabled = true;
 
-            fetch(`/add-to-cart/${selectedVariantId}/`, {
+            fetch(`/add-to-cart/`, {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRFToken': getCookie('csrftoken'),
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                body: JSON.stringify({
+                    variant_id: selectedVariantId
+                })
             })
             .then(res => res.json())
             .then(data => {
