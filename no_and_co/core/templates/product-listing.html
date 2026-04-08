@@ -1091,6 +1091,11 @@
      * AJAX WISHLIST TOGGLE SYSTEM
      */
     (function() {
+        // Source of truth for initial state
+        const wishlistedVariantIds = [
+            {% for item in whishlist_items %}"{{ item.variant.id }}"{% if not forloop.last %},{% endif %}{% endfor %}
+        ];
+
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -1106,6 +1111,20 @@
             return cookieValue;
         }
 
+        // Sync UI on load
+        function syncHearts() {
+            document.querySelectorAll('.like-btn').forEach(btn => {
+                const vId = String(btn.getAttribute('data-variant-id'));
+                if (wishlistedVariantIds.includes(vId)) {
+                    btn.classList.add('liked');
+                } else {
+                    btn.classList.remove('liked');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', syncHearts);
+
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.like-btn');
             if (!btn) return;
@@ -1113,7 +1132,7 @@
             e.preventDefault();
             e.stopPropagation();
 
-            const variantId = btn.getAttribute('data-variant-id');
+            const variantId = String(btn.getAttribute('data-variant-id'));
             if (!variantId) return;
 
             const wasLiked = btn.classList.contains('liked');
@@ -1132,8 +1151,16 @@
                 return response.json();
             })
             .then(data => {
-                if (data.status === 'added') btn.classList.add('liked');
-                else if (data.status === 'removed') btn.classList.remove('liked');
+                if (data.status === 'added') {
+                    btn.classList.add('liked');
+                    if (!wishlistedVariantIds.includes(variantId)) {
+                        wishlistedVariantIds.push(variantId);
+                    }
+                } else if (data.status === 'removed') {
+                    btn.classList.remove('liked');
+                    const idx = wishlistedVariantIds.indexOf(variantId);
+                    if (idx > -1) wishlistedVariantIds.splice(idx, 1);
+                }
             })
             .catch(err => {
                 console.error('Wishlist Sync Error:', err);

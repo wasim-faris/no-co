@@ -43,6 +43,7 @@ def wishlist(request):
         "whishlist_items":wishlist_items
     })
 
+
 def wishlist_toggle(request):
 
     data = json.loads(request.body)

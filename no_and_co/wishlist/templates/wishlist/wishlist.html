@@ -153,22 +153,224 @@
     /* ─── ADD button: full-width, thin border, no background ─── */
     .btn-add-fav {
         width: 100%;
-        padding: 10px 0;
-        background: transparent;
-        border: 1px solid #000;
+        background-color: #fff;
         color: #000;
-        text-align: center;
+        border: 1px solid #000;
+        padding: 10px 0;
         font-size: 11px;
-        font-weight: 500;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: auto;
+    }
+    .btn-add-fav:hover {
+        background-color: #000;
+        color: #fff;
+    }
+
+    /* ─── ADD TO CART DRAWER (H&M STYLE) ─── */
+    .drawer-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+        visibility: hidden;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    .drawer-overlay.active {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .atc-drawer {
+        position: fixed;
+        top: 0;
+        right: -450px;
+        width: 100%;
+        max-width: 420px;
+        height: 100%;
+        background: #fff;
+        z-index: 1000;
+        box-shadow: -4px 0 15px rgba(0,0,0,0.1);
+        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        flex-direction: column;
+        padding: 0;
+    }
+    .atc-drawer.active {
+        right: 0;
+    }
+
+    .drawer-header {
+        padding: 20px 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-bottom: 1px solid #f0f0f0;
+        position: relative;
+    }
+    .drawer-header h3 {
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin: 0;
+    }
+    .close-drawer {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 24px;
+        cursor: pointer;
+        line-height: 1;
+        color: #000;
+    }
+
+    .drawer-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+    }
+
+    /* Product Mini Info */
+    .mini-product {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+    .mini-img {
+        width: 100px;
+        aspect-ratio: 2/3;
+        background: #f0f0f0;
+        object-fit: cover;
+    }
+    .mini-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+    .mini-name {
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin: 0 0 4px;
+        line-height: 1.3;
+    }
+    .mini-price {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0 0 8px;
+    }
+    .mini-variant {
+        font-size: 12px;
+        color: #666;
+    }
+
+    /* Size Selector */
+    .size-selection-title {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+    .size-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 0;
+        border: 1px solid #e0e0e0;
+        margin-bottom: 8px;
+    }
+    .size-btn {
+        height: 50px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        margin: -1px -1px 0 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.1s ease;
+    }
+    .size-btn:hover:not(.disabled) {
+        background: #f5f5f5;
+    }
+    .size-btn.active {
+        border: 1px solid #000;
+        z-index: 2;
+        background: #f5f5f5;
+        font-weight: 700;
+    }
+    .size-btn.disabled {
+        color: #ccc;
+        background: #fafafa;
+        cursor: not-allowed;
+        position: relative;
+    }
+    .size-btn.disabled::after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        background: #eee;
+        transform: rotate(-45deg);
+    }
+
+    .size-error {
+        font-size: 12px;
+        color: #d11212;
+        margin-top: 5px;
+        display: none;
+    }
+
+    /* Footer buttons */
+    .drawer-footer {
+        padding: 24px;
+        border-top: 1px solid #f0f0f0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .btn-atc-main {
+        width: 100%;
+        background: #000;
+        color: #fff;
+        border: none;
+        padding: 16px;
+        font-size: 13px;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;
         cursor: pointer;
-        transition: background 0.15s ease;
-        margin-top: auto;
     }
-    .btn-add-fav:hover { background: #f5f5f5; }
-
-    /* ─── Empty State ─── */
+    .btn-atc-main:hover {
+        background: #333;
+    }
+    .btn-go-pdp {
+        width: 100%;
+        background: #fff;
+        color: #000;
+        border: 1px solid #ccc;
+        padding: 15px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+    }
+    .btn-go-pdp:hover {
+        border-color: #000;
+    }
+/* ─── Empty State ─── */
     .wishlist-empty { text-align: center; padding: 100px 16px; }
     .empty-text { font-size: 15px; color: #666; margin-bottom: 32px; }
     .btn-explore {
@@ -209,7 +411,7 @@
                     {% endif %}
 
                     <!-- Heart overlays image bottom-right -->
-                    <div class="fav-heart like-btn liked" data-variant-id="{{ item.variant.id }}">
+                    <div class="fav-heart like-btn {% for w in whishlist_items %}{% if w.variant.id == item.variant.id %}liked{% endif %}{% endfor %}" data-variant-id="{{ item.variant.id }}">
                         <i class="ri-heart-fill fav-heart-fill"></i>
                         <i class="ri-heart-line fav-heart-empty"></i>
                     </div>
@@ -220,7 +422,7 @@
             <div class="fav-details">
                 <h4 class="fav-name">{{ item.variant.product.product_name }}</h4>
                 <p class="fav-price">Rs. {{ item.variant.price }}</p>
-                <button class="btn-add-fav" onclick="window.location.href='{% url 'product-details' item.variant.product.id %}'">ADD</button>
+                <button class="btn-add-fav btn-drawer-trigger" data-variant-id="{{ item.variant.id }}">ADD</button>
             </div>
 
         </div>
@@ -236,10 +438,44 @@
 
 </div>
 
+<!-- ADD TO CART DRAWER UI -->
+<div class="drawer-overlay" id="atcDrawerOverlay"></div>
+<aside class="atc-drawer" id="atcDrawer">
+    <div class="drawer-header">
+        <h3>ADD</h3>
+        <span class="close-drawer" id="closeDrawer">&times;</span>
+    </div>
+    <div class="drawer-content">
+        <div class="mini-product">
+            <img src="" alt="" class="mini-img" id="drawerProductImg">
+            <div class="mini-info">
+                <h4 class="mini-name" id="drawerProductName">Loading...</h4>
+                <p class="mini-price" id="drawerProductPrice"></p>
+                <p class="mini-variant" id="drawerProductVariant"></p>
+            </div>
+        </div>
+
+        <h4 class="size-selection-title">Select Size</h4>
+        <div class="size-grid" id="drawerSizeGrid">
+            <!-- Sizes injected via JS -->
+        </div>
+        <p class="size-error" id="sizeErrorMsg">Please select size</p>
+    </div>
+    <div class="drawer-footer">
+        <button class="btn-atc-main" id="btnConfirmATC">ADD</button>
+        <a href="" class="btn-go-pdp" id="linkDrawerPDP">GO TO PRODUCT</a>
+    </div>
+</aside>
+
 {% include 'user_base/components/footer.html' %}
 
 <script>
     (function() {
+        // Source of truth for initial state
+        const wishlistedVariantIds = [
+            {% for item in whishlist_items %}"{{ item.variant.id }}"{% if not forloop.last %},{% endif %}{% endfor %}
+        ];
+
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -255,6 +491,20 @@
             return cookieValue;
         }
 
+        // Sync UI on load
+        function syncHearts() {
+            document.querySelectorAll('.like-btn').forEach(btn => {
+                const vId = String(btn.getAttribute('data-variant-id'));
+                if (wishlistedVariantIds.includes(vId)) {
+                    btn.classList.add('liked');
+                } else {
+                    btn.classList.remove('liked');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', syncHearts);
+
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.like-btn');
             if (!btn) return;
@@ -262,7 +512,7 @@
             e.preventDefault();
             e.stopPropagation();
 
-            const variantId = btn.getAttribute('data-variant-id');
+            const variantId = String(btn.getAttribute('data-variant-id'));
             if (!variantId) return;
 
             // Optimistic UI toggle
@@ -284,22 +534,152 @@
             .then(data => {
                 if (data.status === 'added') {
                     btn.classList.add('liked');
+                    if (!wishlistedVariantIds.includes(variantId)) {
+                        wishlistedVariantIds.push(variantId);
+                    }
                 } else if (data.status === 'removed') {
                     btn.classList.remove('liked');
-                    // Fade out and remove the card
+                    const idx = wishlistedVariantIds.indexOf(variantId);
+                    if (idx > -1) wishlistedVariantIds.splice(idx, 1);
+
+                    // Fade out and remove the card (specific to wishlist page)
                     const container = btn.closest('.fav-card-container');
                     if (container) {
                         container.style.transition = 'opacity 0.3s ease';
                         container.style.opacity = '0';
-                        setTimeout(() => { location.reload(); }, 320);
+                        setTimeout(() => { 
+                            container.remove();
+                            // If empty, reload to show empty state or just keep as is
+                            if (document.querySelectorAll('.fav-card-container').length === 0) {
+                                location.reload();
+                            }
+                        }, 320);
                     }
                 }
             })
             .catch(err => {
                 console.error('Wishlist Sync Error:', err);
-                // Revert optimistic update on failure
                 if (wasLiked) btn.classList.add('liked');
                 else btn.classList.remove('liked');
+            });
+        });
+        // ─── ADD TO CART DRAWER LOGIC ───
+        const overlay = document.getElementById('atcDrawerOverlay');
+        const drawer = document.getElementById('atcDrawer');
+        const closeBtn = document.getElementById('closeDrawer');
+        const sizeGrid = document.getElementById('drawerSizeGrid');
+        const btnConfirmATC = document.getElementById('btnConfirmATC');
+        const sizeError = document.getElementById('sizeErrorMsg');
+
+        let selectedVariantId = null;
+
+        function openDrawer(variantId) {
+            // Reset state
+            selectedVariantId = null;
+            sizeGrid.innerHTML = '<div style="padding: 20px; color: #999; font-size: 12px;">Loading sizes...</div>';
+            sizeError.style.display = 'none';
+            btnConfirmATC.disabled = false;
+
+            // Open drawer UI
+            overlay.classList.add('active');
+            drawer.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // Fetch variant data
+            fetch(`/api/variant-sizes/${variantId}/`)
+                .then(res => res.json())
+                .then(data => {
+                    document.getElementById('drawerProductName').textContent = data.product_name;
+                    document.getElementById('drawerProductPrice').textContent = 'Rs. ' + data.price;
+                    document.getElementById('drawerProductVariant').textContent = 'Selected colour: ' + data.color;
+                    document.getElementById('drawerProductImg').src = data.image_url;
+                    document.getElementById('linkDrawerPDP').href = `/product-details/${data.product_id}/`;
+
+                    // Populate Sizes
+                    sizeGrid.innerHTML = '';
+                    data.sizes.forEach(sz => {
+                        const btn = document.createElement('div');
+                        btn.className = 'size-btn';
+                        if (sz.stock <= 0) btn.classList.add('disabled');
+                        btn.textContent = sz.size;
+                        btn.dataset.vid = sz.id;
+
+                        btn.addEventListener('click', () => {
+                            if (btn.classList.contains('disabled')) return;
+                            document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+                            btn.classList.add('active');
+                            selectedVariantId = sz.id;
+                            sizeError.style.display = 'none';
+                        });
+                        sizeGrid.appendChild(btn);
+                    });
+                })
+                .catch(err => {
+                    console.error('Drawer Load Error:', err);
+                    sizeGrid.innerHTML = '<div style="padding: 20px; color: red;">Error loading sizes.</div>';
+                });
+        }
+
+        function closeDrawer() {
+            overlay.classList.remove('active');
+            drawer.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // Trigger open
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-drawer-trigger');
+            if (btn) {
+                e.preventDefault();
+                openDrawer(btn.dataset.variantId);
+            }
+        });
+
+        // Close listeners
+        closeBtn.addEventListener('click', closeDrawer);
+        overlay.addEventListener('click', closeDrawer);
+        window.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeDrawer(); });
+
+        // Confirm Add to Cart
+        btnConfirmATC.addEventListener('click', () => {
+            if (!selectedVariantId) {
+                sizeError.style.display = 'block';
+                return;
+            }
+
+            btnConfirmATC.textContent = 'ADDING...';
+            btnConfirmATC.disabled = true;
+
+            fetch(`/add-to-cart/${selectedVariantId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update global cart icon count if exists
+                    const cartCountEl = document.querySelector('.cart-count'); // Adjust selector as per your header
+                    if (cartCountEl) cartCountEl.textContent = data.cart_count;
+                    
+                    btnConfirmATC.textContent = 'ADDED';
+                    setTimeout(() => {
+                        closeDrawer();
+                        btnConfirmATC.textContent = 'ADD';
+                        btnConfirmATC.disabled = false;
+                    }, 500);
+                } else if (data.error) {
+                    alert(data.error);
+                    btnConfirmATC.textContent = 'ADD';
+                    btnConfirmATC.disabled = false;
+                }
+            })
+            .catch(err => {
+                console.error('ATC Error:', err);
+                btnConfirmATC.textContent = 'ADD';
+                btnConfirmATC.disabled = false;
             });
         });
     })();
