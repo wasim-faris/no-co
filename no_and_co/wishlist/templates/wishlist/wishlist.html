@@ -458,7 +458,7 @@
             flex-direction: column;
         }
         .atc-drawer.active {
-            bottom: 70px !important; /* Clear bottom nav */
+            bottom: 80px !important; /* Clear bottom nav with slight gap */
         }
         .drawer-content {
             flex: 1;
@@ -491,6 +491,28 @@
         }
         .mini-img {
             width: 80px;
+        }
+
+        /* --- SKELETON LOADING --- */
+        .size-skeleton {
+            height: 42px;
+            background: #f0f0f0;
+            position: relative;
+            overflow: hidden;
+        }
+        .size-skeleton::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
     }
 
@@ -771,7 +793,15 @@
         function openDrawer(variantId) {
             // Reset state
             selectedVariantId = null;
-            sizeGrid.innerHTML = '<div style="padding: 20px; color: #999; font-size: 12px;">Loading sizes...</div>';
+            
+            // Show Skeletons
+            sizeGrid.innerHTML = '';
+            for(let i=0; i<5; i++) {
+                const skel = document.createElement('div');
+                skel.className = 'size-btn size-skeleton';
+                sizeGrid.appendChild(skel);
+            }
+
             sizeError.style.display = 'none';
             stockHint.style.display = 'none';
             btnConfirmATC.disabled = false;
@@ -819,6 +849,12 @@
                             
                             selectedVariantId = sz.id;
                             
+                            // Update GO TO PRODUCT link with specific variant
+                            const pdpLink = document.getElementById('linkDrawerPDP');
+                            if (pdpLink) {
+                                pdpLink.href = `/product-details/${data.product_id}/?variant=${sz.id}`;
+                            }
+
                             // Restore button state
                             btnConfirmATC.innerText = 'ADD';
                             btnConfirmATC.disabled = false;

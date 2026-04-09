@@ -13,12 +13,12 @@ from django.shortcuts import get_object_or_404
 from datetime import timedelta
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
-from allauth.socialaccount.models import SocialAccount
 from django.contrib.auth.hashers import check_password
 from django.db.models import Q
 from django.contrib.auth.hashers import make_password
 from cart.views import merge_cart_after_login
-
+from wishlist.views import merge_wishlist_item
+from allauth.socialaccount.models import SocialAccount
 email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 password_pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$"
 username_pattern = r"^[a-zA-Z0-9_]{4,20}$"
@@ -170,6 +170,7 @@ def login_user(request):
             print("NEW session:", request.session.session_key)
             print("LOGIN SUCCESS")
             merge_cart_after_login(request, user , old_session_key)
+            merge_wishlist_item(request, user, old_session_key)
             request.session["login_attempts"] = 0
 
             messages.success(request, "login succesfuly")
@@ -243,6 +244,7 @@ def signup_otp_verification(request):
             login(request, user, backend='django.contrib.auth.backends.ModelBackend')
 
             merge_cart_after_login(request, user, old_session_key)
+            merge_wishlist_item(request, user, old_session_key)
 
             messages.success(request, "Account created successfully")
             return redirect("home")

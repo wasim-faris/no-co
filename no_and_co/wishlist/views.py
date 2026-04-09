@@ -136,3 +136,27 @@ def wishlist_add_to_cart(request):
                 Wishlist.objects.filter(id = wishlist_id).delete()
 
     return JsonResponse({"success": True}, status=200)
+
+def merge_wishlist_item(request, user , old_session_key):
+    if not old_session_key:
+        return
+
+    guest_item = Wishlist.objects.filter(
+        session_key = old_session_key,
+        user = None
+    )
+
+    print(guest_item)
+
+    for item in guest_item:
+        existing_item = Wishlist.objects.filter(
+            user = user,
+            variant = item.variant
+        ).first()
+
+        if existing_item:
+            item.delete()
+        else:
+            item.user = user
+            item.session_key = None
+            item.save()
