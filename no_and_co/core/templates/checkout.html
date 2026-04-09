@@ -1,0 +1,336 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}Checkout – NO&CO{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        background-color: #ffffff;
+        color: #000000;
+        font-family: 'Inter', sans-serif;
+    }
+    .checkout-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 20px;
+    }
+    .breadcrumb {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #767676;
+        margin-bottom: 24px;
+    }
+    .checkout-title {
+        font-size: 32px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: -0.02em;
+        margin-bottom: 48px;
+    }
+    .section-title {
+        font-size: 14px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 24px;
+        border-bottom: 1px solid #f2f2f2;
+        padding-bottom: 12px;
+    }
+    .address-card {
+        border: 1px solid #e5e5e5;
+        padding: 24px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        position: relative;
+    }
+    .address-card:hover {
+        border-color: #000;
+    }
+    .address-card.active {
+        border-color: #000;
+        background-color: #fcfcfc;
+    }
+    .address-card input[type="radio"] {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        accent-color: #000;
+    }
+    .badge-default {
+        font-size: 9px;
+        text-transform: uppercase;
+        background: #000;
+        color: #fff;
+        padding: 2px 8px;
+        letter-spacing: 0.05em;
+        margin-bottom: 8px;
+        display: inline-block;
+    }
+    .btn-action {
+        font-size: 11px;
+        text-decoration: underline;
+        text-transform: uppercase;
+        color: #767676;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: color 0.2s;
+    }
+    .btn-action:hover {
+        color: #000;
+    }
+    .summary-panel {
+        background: #f9f9f9;
+        padding: 32px;
+    }
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 13px;
+        color: #444;
+    }
+    .summary-total {
+        border-top: 1px solid #e5e5e5;
+        margin-top: 24px;
+        padding-top: 24px;
+        display: flex;
+        justify-content: space-between;
+        font-weight: 800;
+        font-size: 16px;
+    }
+    .order-item-img {
+        width: 80px;
+        height: 100px;
+        object-fit: cover;
+        background: #f2f2f2;
+    }
+    .btn-place-order {
+        width: 100%;
+        background: #000;
+        color: #fff;
+        padding: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-top: 32px;
+        transition: opacity 0.3s;
+    }
+    .btn-place-order:hover {
+        opacity: 0.8;
+    }
+    .success-icon {
+        width: 64px;
+        height: 64px;
+        color: #000;
+        margin-bottom: 24px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-container">
+    <div id="checkoutMain">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb">
+            <a href="{% url 'home' %}" class="hover:text-black">Home</a> / <span>Checkout</span>
+        </nav>
+
+        <!-- Page Header -->
+        <h1 class="checkout-title">Checkout</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <!-- Left Column: Address and Payment -->
+            <div class="lg:col-span-7">
+                
+                <!-- Address Section -->
+                <section class="mb-12">
+                    <div class="flex justify-between items-center mb-6">
+                        <h2 class="section-title mb-0 border-none p-0">Shipping Address</h2>
+                        <button class="btn-action">+ Add New Address</button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <!-- Address 1 (Default) -->
+                        <div class="address-card active" onclick="selectAddress(this)">
+                            <input type="radio" name="address" checked>
+                            <span class="badge-default">Default</span>
+                            <p class="font-bold text-sm mb-1 uppercase">Waseem Faris</p>
+                            <p class="text-xs text-gray-500 mb-3">+91 98765 43210</p>
+                            <p class="text-xs text-gray-600 leading-relaxed max-w-sm">
+                                42/A Coastal Plaza, Marine Drive, <br>
+                                Kochi, Kerala 682031, India
+                            </p>
+                            <div class="mt-4 flex gap-4">
+                                <button class="btn-action">Edit Address</button>
+                                <button class="btn-action">Remove</button>
+                            </div>
+                        </div>
+
+                        <!-- Address 2 -->
+                        <div class="address-card" onclick="selectAddress(this)">
+                            <input type="radio" name="address">
+                            <p class="font-bold text-sm mb-1 uppercase">Waseem Faris (Work)</p>
+                            <p class="text-xs text-gray-500 mb-3">+91 98765 43210</p>
+                            <p class="text-xs text-gray-600 leading-relaxed max-w-sm">
+                                NO&CO Office, Suite 501, Innovation Block, <br>
+                                Cyberpark, Kozhikode 673016, India
+                            </p>
+                            <div class="mt-4 flex gap-4">
+                                <button class="btn-action">Edit Address</button>
+                                <button class="btn-action">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Payment Section -->
+                <section class="mb-12">
+                    <h2 class="section-title">Payment Method</h2>
+                    <div class="border border-black p-6 bg-gray-50 flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <input type="radio" checked class="accent-black w-4 h-4">
+                            <div>
+                                <p class="text-sm font-bold uppercase tracking-tight">Cash on Delivery</p>
+                                <p class="text-[10px] text-gray-500 uppercase mt-0.5">Pay when your order arrives</p>
+                            </div>
+                        </div>
+                        <i class="ri-money-dollar-circle-line text-2xl opacity-40"></i>
+                    </div>
+                </section>
+
+                <!-- Action Button Mobile (Only moves to bottom on mobile) -->
+                <div class="lg:hidden">
+                    <button class="btn-place-order" onclick="showSuccess()">Place Order</button>
+                    <p class="text-[10px] text-center text-gray-400 mt-4 uppercase tracking-widest">
+                        Secure SSL encrypted checkout
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right Column: Order Summary -->
+            <div class="lg:col-span-5">
+                <div class="summary-panel sticky top-24">
+                    <h2 class="section-title mb-6">Order Summary</h2>
+                    
+                    <!-- Item List -->
+                    <div class="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                        <!-- Item 1 -->
+                        <div class="flex gap-4">
+                            <img src="https://image.hm.com/assets/hm/d9/d2/d9d22770c6399170f81f951c3985a5df1af61949.jpg?imwidth=384" class="order-item-img" alt="Item">
+                            <div class="flex-grow">
+                                <h3 class="text-xs font-bold uppercase line-clamp-2">Linen-blend Shirt Slim Fit</h3>
+                                <p class="text-[10px] text-gray-500 uppercase mt-1">Size: M | Color: White</p>
+                                <div class="flex justify-between items-end mt-4">
+                                    <span class="text-xs text-gray-400 uppercase">Qty: 1</span>
+                                    <span class="text-sm font-bold">Rs. 2,299.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Item 2 -->
+                        <div class="flex gap-4">
+                            <img src="https://image.hm.com/assets/hm/f3/f2/f3f2031a46b64589003bda133e3e1c265476cfcd.jpg?imwidth=384" class="order-item-img" alt="Item">
+                            <div class="flex-grow">
+                                <h3 class="text-xs font-bold uppercase line-clamp-2">Linen-blend Resort Shirt</h3>
+                                <p class="text-[10px] text-gray-500 uppercase mt-1">Size: L | Color: Beige</p>
+                                <div class="flex justify-between items-end mt-4">
+                                    <span class="text-xs text-gray-400 uppercase">Qty: 1</span>
+                                    <span class="text-sm font-bold">Rs. 1,999.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Totals -->
+                    <div class="space-y-3">
+                        <div class="summary-item">
+                            <span>Order value</span>
+                            <span>Rs. 4,298.00</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Delivery</span>
+                            <span class="text-green-600">Free</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Tax</span>
+                            <span>Included</span>
+                        </div>
+                        <div class="summary-total">
+                            <span class="uppercase font-extrabold tracking-widest">Total</span>
+                            <span>Rs. 4,298.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Place Order Desktop -->
+                    <div class="hidden lg:block mt-8">
+                        <button class="btn-place-order" onclick="showSuccess()">Place Order</button>
+                        <p class="text-[10px] text-center text-gray-400 mt-4 uppercase tracking-widest">
+                            Secure SSL encrypted checkout
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Section (Hidden by default) -->
+    <div id="orderSuccess" class="hidden py-20 text-center animate-fade-in">
+        <div class="flex justify-center">
+            <svg class="success-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="0.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+        </div>
+        <h2 class="text-3xl font-extrabold uppercase tracking-tight mb-4">Thank you for your order!</h2>
+        <p class="text-gray-500 text-sm max-w-sm mx-auto mb-10 leading-loose">
+            Your order #NC-29402 has been placed successfully. A confirmation email has been sent to your registered address.
+        </p>
+        <div class="flex flex-col sm:flex-row justify-center gap-4">
+            <a href="#" class="px-10 py-4 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">View Order Details</a>
+            <a href="{% url 'home' %}" class="px-10 py-4 border border-black text-black text-[11px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectAddress(element) {
+        // Remove active class from all
+        document.querySelectorAll('.address-card').forEach(card => card.classList.remove('active'));
+        // Add to clicked
+        element.classList.add('active');
+        // Check radio
+        element.querySelector('input[type="radio"]').checked = true;
+    }
+
+    function showSuccess() {
+        // Simple UI toggle for demonstration
+        document.getElementById('checkoutMain').classList.add('hidden');
+        document.getElementById('orderSuccess').classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.6s ease forwards;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 3px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #888;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+</style>
+{% endblock %}

@@ -10,6 +10,8 @@ from django.shortcuts import get_object_or_404
 from category.models import Category,Subcategory
 from django.db.models import Q
 from wishlist.models import Wishlist
+from users.models import Addresses
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 
 @never_cache
@@ -265,3 +267,12 @@ def get_variant_sizes(request, variant_id):
         'sizes': sizes,
     })
 
+@login_required
+def checkout(request):
+    user_address = Addresses.objects.filter(
+        user = request.user
+    ).order_by("-is_default", "-id")
+
+    return render(request, "checkout.html",{
+        "address":user_address
+    })
