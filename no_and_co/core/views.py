@@ -75,7 +75,7 @@ def product_details(request, id):
     default_variant = None
     if variant_id:
         default_variant = variants.filter(id=variant_id).first()
-    
+
     if not default_variant:
         default_variant = variants.first()
 
@@ -123,6 +123,14 @@ def product_details(request, id):
     search_history = request.session.get("search_history",[])
 
 
+    if not request.session.session_key:
+        request.session.create()
+
+    if request.user.is_authenticated:
+        wishlist_items = Wishlist.objects.filter(user=request.user)
+    else:
+        wishlist_items = Wishlist.objects.filter(session_key=request.session.session_key)
+
     return render(request, "product-details.html",{
         "product":product,
         "variants":variants,
@@ -131,8 +139,7 @@ def product_details(request, id):
         "default_variant":default_variant,
         "product_image":product_image,
         "similar_items":similar_items,
-        "search_history":search_history,
-        "whishlist_items":wishlist_items
+        "search_history":search_history
     })
 
 def product_listing(request):
