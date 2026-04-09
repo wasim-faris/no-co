@@ -267,7 +267,7 @@ def get_variant_sizes(request, variant_id):
         'sizes': sizes,
     })
 
-@login_required
+@login_required(login_url="login")
 def checkout(request):
     user_address = Addresses.objects.filter(
         user = request.user

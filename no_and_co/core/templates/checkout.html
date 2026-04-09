@@ -154,36 +154,40 @@
                     </div>
 
                     <div class="space-y-4">
-                        <!-- Address 1 (Default) -->
-                        <div class="address-card active" onclick="selectAddress(this)">
-                            <input type="radio" name="address" checked>
-                            <span class="badge-default">Default</span>
-                            <p class="font-bold text-sm mb-1 uppercase">Waseem Faris</p>
-                            <p class="text-xs text-gray-500 mb-3">+91 98765 43210</p>
-                            <p class="text-xs text-gray-600 leading-relaxed max-w-sm">
-                                42/A Coastal Plaza, Marine Drive, <br>
-                                Kochi, Kerala 682031, India
-                            </p>
-                            <div class="mt-4 flex gap-4">
-                                <button class="btn-action">Edit Address</button>
-                                <button class="btn-action">Remove</button>
+                        {% if address %}
+                            {% for addr in address %}
+                                <div class="address-card {% if addr.is_default %}active{% endif %}" onclick="selectAddress(this)">
+                                    <input type="radio" name="address" {% if addr.is_default %}checked{% endif %}>
+                                    {% if addr.is_default %}
+                                        <span class="badge-default">Default</span>
+                                    {% endif %}
+                                    <p class="font-bold text-sm mb-1 uppercase">{{ addr.first_name }} {{ addr.last_name }}</p>
+                                    <p class="text-xs text-gray-500 mb-2 uppercase tracking-tight">{{ addr.get_type_display }}</p>
+                                    <p class="text-xs text-gray-500 mb-3">{{ addr.phone_number }}</p>
+                                    <p class="text-xs text-gray-600 leading-relaxed max-w-sm">
+                                        {{ addr.address_line1 }}{% if addr.address_line2 %}, {{ addr.address_line2 }}{% endif %}, <br>
+                                        {{ addr.city }}, {{ addr.state }} {{ addr.pin_code }}, <br>
+                                        {{ addr.country }}
+                                    </p>
+                                    <div class="mt-4 flex gap-4">
+                                        <button class="btn-action">Edit Address</button>
+                                        <button class="btn-action">Deliver Here</button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <!-- Empty State -->
+                            <div class="flex flex-col items-center justify-center py-20 border border-dashed border-gray-200 rounded-sm">
+                                <div class="mb-6 opacity-20">
+                                    <i class="ri-map-pin-line text-5xl font-thin"></i>
+                                </div>
+                                <h3 class="text-[13px] font-bold uppercase tracking-widest mb-2">No saved addresses found</h3>
+                                <p class="text-gray-400 text-xs mb-8">Add a delivery address to continue checkout</p>
+                                <button class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">
+                                    Add New Address
+                                </button>
                             </div>
-                        </div>
-
-                        <!-- Address 2 -->
-                        <div class="address-card" onclick="selectAddress(this)">
-                            <input type="radio" name="address">
-                            <p class="font-bold text-sm mb-1 uppercase">Waseem Faris (Work)</p>
-                            <p class="text-xs text-gray-500 mb-3">+91 98765 43210</p>
-                            <p class="text-xs text-gray-600 leading-relaxed max-w-sm">
-                                NO&CO Office, Suite 501, Innovation Block, <br>
-                                Cyberpark, Kozhikode 673016, India
-                            </p>
-                            <div class="mt-4 flex gap-4">
-                                <button class="btn-action">Edit Address</button>
-                                <button class="btn-action">Remove</button>
-                            </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </section>
 
