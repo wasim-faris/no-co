@@ -646,7 +646,7 @@
           {% endwith %}
 
           <!-- HEART -->
-          <button class="plp-heart like-btn {% for w in whishlist_items %}{% if w.variant.id == variant.id %}liked{% endif %}{% endfor %}" 
+          <button class="plp-heart like-btn {% if variant.id in whishlist_variant_ids %}liked{% endif %}" 
                   data-variant-id="{{ variant.id }}" 
                   aria-label="Add to Wishlist">
             <i class="ri-heart-line unfilled-heart"></i>

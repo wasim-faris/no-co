@@ -8,6 +8,8 @@ from django.http import HttpResponse
 from django.http import JsonResponse
 from django.db.models import Prefetch
 from cart.models import Cart
+
+
 def wishlist(request):
 
     if not request.session.session_key:

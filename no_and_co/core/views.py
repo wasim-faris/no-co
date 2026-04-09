@@ -60,6 +60,7 @@ def product_details(request, id):
             to_attr="primary_images"
         )
     )
+    whishlist_variant_ids = list(wishlist_items.values_list('variant_id', flat=True))
 
     variants = product.variants.filter(is_active=True, is_deleted=False).prefetch_related(
         Prefetch(
@@ -132,7 +133,8 @@ def product_details(request, id):
         "product_image":product_image,
         "similar_items":similar_items,
         "search_history":search_history,
-        "whishlist_items":wishlist_items
+        "whishlist_items":wishlist_items,
+        "whishlist_variant_ids":whishlist_variant_ids
     })
 
 def product_listing(request):
@@ -158,6 +160,7 @@ def product_listing(request):
             to_attr="primary_images"
         )
     )
+    whishlist_variant_ids = list(wishlist_items.values_list('variant_id', flat=True))
 
     if action == "delete_history":
 
@@ -221,7 +224,8 @@ def product_listing(request):
         "variants": variants,
         "query":query,
         "search_history":request.session.get("search_history",[]),
-        "whishlist_items":wishlist_items
+        "whishlist_items":wishlist_items,
+        "whishlist_variant_ids":whishlist_variant_ids
     })
 
 

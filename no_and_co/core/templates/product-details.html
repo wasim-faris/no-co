@@ -923,7 +923,7 @@
 
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
             <h1 class="prod-name">{{ product.product_name }}</h1>
-            <button class="like-btn {% for w in whishlist_items %}{% if w.variant.id == default_variant.id %}liked{% endif %}{% endfor %}" data-variant-id="{{ default_variant.id }}" style="background:none;border:none;cursor:pointer;padding:0;color:#ccc;font-size:20px;">
+            <button class="like-btn {% if default_variant.id in whishlist_variant_ids %}liked{% endif %}" data-variant-id="{{ default_variant.id }}" style="background:none;border:none;cursor:pointer;padding:0;color:#ccc;font-size:20px;">
                 <i class="ri-heart-line unfilled-heart"></i>
                 <i class="ri-heart-fill filled-heart"></i>
             </button>
@@ -1097,7 +1097,7 @@
                         <img src="{{ all_imgs.0.image.url|default:'#' }}" class="product-img" alt="{{ item.color }}">
                     {% endif %}
                     {% endwith %}
-                    <button class="similar-heart like-btn {% for w in whishlist_items %}{% if w.variant.id == item.id %}liked{% endif %}{% endfor %}" data-variant-id="{{ item.id }}" aria-label="Add to Wishlist">
+                    <button class="similar-heart like-btn {% if item.id in whishlist_variant_ids %}liked{% endif %}" data-variant-id="{{ item.id }}" aria-label="Add to Wishlist">
                         <i class="ri-heart-line unfilled-heart"></i>
                         <i class="ri-heart-fill filled-heart"></i>
                     </button>
@@ -1137,7 +1137,7 @@
                         <img src="{{ all_imgs.0.image.url|default:'#' }}" class="product-img" alt="{{ item.color }}">
                     {% endif %}
                     {% endwith %}
-                    <button class="similar-heart like-btn {% for w in whishlist_items %}{% if w.variant.id == item.id %}liked{% endif %}{% endfor %}" data-variant-id="{{ item.id }}" aria-label="Add to Wishlist">
+                    <button class="similar-heart like-btn {% if item.id in whishlist_variant_ids %}liked{% endif %}" data-variant-id="{{ item.id }}" aria-label="Add to Wishlist">
                         <i class="ri-heart-line unfilled-heart"></i>
                         <i class="ri-heart-fill filled-heart"></i>
                     </button>
