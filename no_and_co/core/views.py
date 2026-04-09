@@ -44,6 +44,24 @@ def ladies(request):
 def product_details(request, id):
     product = get_object_or_404(Product , id=id)
 
+    if not request.session.session_key:
+        request.session.create()
+
+    if request.user.is_authenticated:
+        user = request.user
+        session_key = None
+    else:
+        user = None
+        session_key = request.session.session_key
+
+    wishlist_items = Wishlist.objects.filter(user=user, session_key=session_key).select_related("variant").prefetch_related(
+        Prefetch(
+            "variant__images",
+            queryset=VariantImage.objects.filter(is_primary = True),
+            to_attr="primary_images"
+        )
+    )
+
     variants = product.variants.filter(is_active=True, is_deleted=False).prefetch_related(
         Prefetch(
             "images",
@@ -53,7 +71,14 @@ def product_details(request, id):
         "images"
     ).order_by("-is_default", "id")
 
-    default_variant = variants.first()
+    # Handle explicit variant requested via query param (e.g. from wishlist)
+    variant_id = request.GET.get('variant')
+    default_variant = None
+    if variant_id:
+        default_variant = variants.filter(id=variant_id).first()
+    
+    if not default_variant:
+        default_variant = variants.first()
 
     unique_variants = []
     seen_colors = set()
@@ -133,6 +158,24 @@ def product_listing(request):
     query = request.GET.get("q")
     action = request.GET.get("action")
 
+    if not request.session.session_key:
+        request.session.create()
+
+    if request.user.is_authenticated:
+        user = request.user
+        session_key = None
+    else:
+        user = None
+        session_key = request.session.session_key
+
+    wishlist_items = Wishlist.objects.filter(user=user, session_key=session_key).select_related("variant").prefetch_related(
+        Prefetch(
+            "variant__images",
+            queryset=VariantImage.objects.filter(is_primary = True),
+            to_attr="primary_images"
+        )
+    )
+
     if action == "delete_history":
 
         request.session["search_history"] = []
@@ -194,5 +237,43 @@ def product_listing(request):
     return render(request, "product-listing.html", {
         "variants": variants,
         "query":query,
-        "search_history":request.session.get("search_history",[])
+        "search_history":request.session.get("search_history",[]),
+        "whishlist_items":wishlist_items
+    })
+
+
+def get_variant_sizes(request, variant_id):
+    """API: return all same-product/same-color variants so the drawer can list sizes."""
+    from django.http import JsonResponse
+    variant = get_object_or_404(Variant, id=variant_id)
+
+    same_color_variants = (
+        Variant.objects
+        .filter(product=variant.product, color=variant.color, is_active=True, is_deleted=False)
+        .select_related('size')
+        .order_by('id')
+    )
+
+    sizes = [
+        {'id': v.id, 'size': v.size.name, 'stock': v.stock}
+        for v in same_color_variants
+    ]
+
+    # Resolve image URL
+    image_url = None
+    primary = variant.images.filter(is_primary=True).first()
+    if primary:
+        image_url = request.build_absolute_uri(primary.image.url)
+    else:
+        first_img = variant.images.first()
+        if first_img:
+            image_url = request.build_absolute_uri(first_img.image.url)
+
+    return JsonResponse({
+        'product_name': variant.product.product_name,
+        'price': str(variant.price),
+        'color': variant.color,
+        'image_url': image_url,
+        'product_id': variant.product.id,
+        'sizes': sizes,
     })

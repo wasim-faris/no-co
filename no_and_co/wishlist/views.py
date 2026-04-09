@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.db.models import Prefetch
+from cart.models import Cart
 def wishlist(request):
 
     if not request.session.session_key:
@@ -19,18 +20,30 @@ def wishlist(request):
         user = None
         session_key = request.session.session_key
 
-    wishlist_items = Wishlist.objects.filter(user=user, session_key=session_key).select_related("variant").prefetch_related(
-        Prefetch(
-            "variant__images",
-            queryset=VariantImage.objects.filter(is_primary = True),
-            to_attr="primary_images"
+
+
+    if request.user.is_authenticated:
+        wishlist_items = Wishlist.objects.filter(user=user).select_related("variant").prefetch_related(
+            Prefetch(
+                "variant__images",
+                queryset=VariantImage.objects.filter(is_primary = True),
+                to_attr="primary_images"
+            )
         )
-    )
+    else:
+         wishlist_items = Wishlist.objects.filter(session_key=session_key).select_related("variant").prefetch_related(
+            Prefetch(
+                "variant__images",
+                queryset=VariantImage.objects.filter(is_primary = True),
+                to_attr="primary_images"
+            )
+        )
 
 
     return render(request, 'wishlist/wishlist.html', {
         "whishlist_items":wishlist_items
     })
+
 
 def wishlist_toggle(request):
 
@@ -70,3 +83,80 @@ def wishlist_toggle(request):
         return JsonResponse({
         "status": "added"
         })
+
+def wishlist_add_to_cart(request):
+    data = json.loads(request.body)
+    variant_id = data.get("variant_id")
+    wishlist_id = data.get("wishlist_id")
+    print("wishlist_id:", wishlist_id)
+
+    variant = get_object_or_404(Variant, id=variant_id)
+
+    if variant.stock <=0:
+        return JsonResponse({"error": "Out of stock"}, status=400)
+
+    if not request.session.session_key:
+        request.session.create()
+
+    if request.user.is_authenticated:
+        cart_item = Cart.objects.filter(user = request.user, variant=variant)
+        if cart_item.exists():
+            item = cart_item.first()
+            if item.quantity >= variant.stock:
+                return JsonResponse({"error": "Out of stock"}, status=400)
+            item.quantity+=1
+            item.save()
+            if wishlist_id:
+                Wishlist.objects.filter(id = wishlist_id).delete()
+        else:
+            Cart.objects.create(
+                user = request.user,
+                variant=variant,
+                price = variant.price
+            )
+            if wishlist_id:
+                Wishlist.objects.filter(id = wishlist_id).delete()
+    else:
+        cart_item = Cart.objects.filter(session_key = request.session.session_key , variant = variant)
+        if cart_item.exists():
+            item = cart_item.first()
+            if item.quantity >= variant.stock:
+                return JsonResponse({"error": "Out of stock"}, status=400)
+            item.quantity +=1
+            item.save()
+            if wishlist_id:
+                Wishlist.objects.filter(id = wishlist_id).delete()
+        else:
+            Cart.objects.create(
+                session_key = request.session.session_key,
+                variant = variant,
+                price = variant.price
+            )
+            if wishlist_id:
+                Wishlist.objects.filter(id = wishlist_id).delete()
+
+    return JsonResponse({"success": True}, status=200)
+
+def merge_wishlist_item(request, user , old_session_key):
+    if not old_session_key:
+        return
+
+    guest_item = Wishlist.objects.filter(
+        session_key = old_session_key,
+        user = None
+    )
+
+    print(guest_item)
+
+    for item in guest_item:
+        existing_item = Wishlist.objects.filter(
+            user = user,
+            variant = item.variant
+        ).first()
+
+        if existing_item:
+            item.delete()
+        else:
+            item.user = user
+            item.session_key = None
+            item.save()
