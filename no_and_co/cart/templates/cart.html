@@ -398,6 +398,47 @@
         .similar-header { padding: 0 20px; }
         .similar-card { flex: 0 0 50%; min-width: 200px; }
     }
+
+    /* ─── Mobile Bottom Nav Fix (Scoped) ─── */
+    @media (max-width: 767px) {
+        .mobile-nav-container {
+            position: fixed !important;
+            bottom: 24px !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            justify-content: center !important;
+            align-items: center !important;
+            z-index: 1001 !important;
+            pointer-events: none !important;
+            transform: none !important;
+        }
+        .mobile-bottom-nav {
+            width: 92% !important;
+            max-width: 420px !important;
+            pointer-events: auto !important;
+            display: flex !important;
+            justify-content: space-around !important;
+            align-items: center !important;
+            margin: 0 auto !important;
+            background: rgba(255, 255, 255, 0.8) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+        }
+        /* Prevent cart-specific overflow */
+        body, html {
+            overflow-x: hidden !important;
+            width: 100% !important;
+            position: relative !important;
+        }
+        .cart-title {
+            max-width: 100%;
+            overflow: hidden;
+        }
+    }
 </style>
 {% endblock %}
 
