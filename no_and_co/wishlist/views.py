@@ -91,9 +91,7 @@ def wishlist_add_to_cart(request):
     variant = get_object_or_404(Variant, id=variant_id)
 
     if variant.stock <=0:
-        return JsonResponse({
-            "error":"out of stock"
-        })
+        return JsonResponse({"error": "Out of stock"}, status=400)
 
     if not request.session.session_key:
         request.session.create()
@@ -103,73 +101,48 @@ def wishlist_add_to_cart(request):
         if cart_item.exists():
             item = cart_item.first()
             if item.quantity >= variant.stock:
-                return JsonResponse({
-                    "error":"out of stock"
-                })
+                return JsonResponse({"error": "Out of stock"}, status=400)
             item.quantity+=1
             item.save()
+            try:
+                Wishlist.objects.get(id=variant.id).delete()
+            except Wishlist.DoesNotExist:
+                messages.error(request, "somethink wentn wrong")
+                return redirect("home")
         else:
             Cart.objects.create(
                 user = request.user,
                 variant=variant,
                 price = variant.price
             )
+            try:
+                Wishlist.objects.get(variant = variant).delete()
+            except Wishlist.DoesNotExist:
+                messages.error(request, "somethink wentn wrong")
+                return redirect("home")
     else:
         cart_item = Cart.objects.filter(session_key = request.session.session_key , variant = variant)
         if cart_item.exists():
             item = cart_item.first()
             if item.quantity >= variant.stock:
-                return JsonResponse({
-                    "error":"out of stock"
-                })
+                return JsonResponse({"error": "Out of stock"}, status=400)
             item.quantity +=1
             item.save()
+            try:
+                Wishlist.objects.get(variant=variant).delete()
+            except Wishlist.DoesNotExist:
+                messages.error(request, "somethink wentn wrong")
+                return redirect("home")
         else:
             Cart.objects.create(
                 session_key = request.session.session_key,
                 variant = variant,
                 price = variant.price
             )
-    return JsonResponse({
-    "success": True
-        })
+            try:
+                Wishlist.objects.get(variant=variant).delete()
+            except Wishlist.DoesNotExist:
+                messages.error(request, "somethink wentn wrong")
+                return redirect("home")
 
-#     else:
-#         user = None
-#         session_key = request.session.session_key
-
-#     if request.user.is_authenticated:
-#         cart_item = Cart.objects.filter(user = user , variant=variant)
-#         if cart_item.exists():
-#             item = cart_item.first()
-#             if item.quantity >= variant.stock:
-#                 return JsonResponse({
-#                 "error": "No more stock available"
-#                         })
-#             item.quantity +=1
-#             item.save()
-#         else:
-#             Cart.objects.create(
-#                 user = user,
-#                 price = variant.price,
-#                 variant = variant
-#             )
-#     else:
-#         cart_item = Cart.objects.filter(session_key = session_key, variant = variant)
-#         if cart_item.exists():
-#             item = cart_item.first()
-#             if item.quantity >= variant.stock:
-#                 return JsonResponse({
-#                 "error": "No more stock available"
-#                 })
-#             item.quantity +=1
-#             item.save()
-#         else:
-#             Cart.objects.create(
-#                 session_key = session_key,
-#                 variant = variant,
-#                 price = variant.price
-#             )
-#     return JsonResponse({
-#     "success": True
-# })
+    return JsonResponse({"success": True}, status=200)

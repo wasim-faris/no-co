@@ -689,7 +689,7 @@
             btnConfirmATC.textContent = 'ADDING...';
             btnConfirmATC.disabled = true;
 
-            fetch(`/add-to-cart/`, {
+            fetch(`/wishlist-add-to-cart/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -700,27 +700,27 @@
                     variant_id: selectedVariantId
                 })
             })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    // Update global cart icon count if exists
-                    const cartCountEl = document.querySelector('.cart-count'); // Adjust selector as per your header
-                    if (cartCountEl) cartCountEl.textContent = data.cart_count;
-                    
-                    btnConfirmATC.textContent = 'ADDED';
-                    setTimeout(() => {
-                        closeDrawer();
-                        btnConfirmATC.textContent = 'ADD';
-                        btnConfirmATC.disabled = false;
-                    }, 500);
-                } else if (data.error) {
-                    alert(data.error);
-                    btnConfirmATC.textContent = 'ADD';
+            .then(res => {
+                return res.json().then(data => ({
+                    ok: res.ok,
+                    data: data
+                }));
+            })
+            .then(response => {
+                if (!response.ok) {
+                    alert(response.data.error || "Something went wrong");
+                    btnConfirmATC.textContent = "ADD";
                     btnConfirmATC.disabled = false;
+                    return;
+                }
+
+                if (response.data.success) {
+                    window.location.href = "/cart/";
                 }
             })
             .catch(err => {
                 console.error('ATC Error:', err);
+                alert('Something went wrong. Please try again.');
                 btnConfirmATC.textContent = 'ADD';
                 btnConfirmATC.disabled = false;
             });
