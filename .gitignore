@@ -1,6 +1,7 @@
-*.pyc
+venv/
+env/
+myenv/
 __pycache__/
+*.pyc
 db.sqlite3
 .env
-virenv/
-venv/
