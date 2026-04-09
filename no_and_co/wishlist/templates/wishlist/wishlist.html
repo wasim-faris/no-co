@@ -584,7 +584,7 @@
         <div class="fav-card-container">
 
             <!-- Image (edge-to-edge) + heart overlay -->
-            <a href="{% url 'product-details' item.variant.product.id %}" class="fav-card-link">
+            <a href="{% url 'product-details' item.variant.product.id %}?variant={{ item.variant.id }}" class="fav-card-link">
                 <div class="fav-img-wrapper">
                     {% if item.variant.primary_images %}
                         <img src="{{ item.variant.primary_images.0.image.url }}" alt="{{ item.variant.product.product_name }}">

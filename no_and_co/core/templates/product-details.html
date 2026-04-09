@@ -1633,6 +1633,12 @@
 
         // Expose to selectVariant
         window.refreshGalleryIndicators = refreshIndicators;
+
+        // Auto-initialize if a size is pre-selected (e.g. via variant query param)
+        const activeSize = document.querySelector('.size-box.active');
+        if (activeSize) {
+            selectSize(activeSize);
+        }
     }
         // AJAX Add To Cart
         const addToCartForm = document.getElementById('addToCartForm');

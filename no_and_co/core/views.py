@@ -70,7 +70,14 @@ def product_details(request, id):
         "images"
     ).order_by("-is_default", "id")
 
-    default_variant = variants.first()
+    # Handle explicit variant requested via query param (e.g. from wishlist)
+    variant_id = request.GET.get('variant')
+    default_variant = None
+    if variant_id:
+        default_variant = variants.filter(id=variant_id).first()
+    
+    if not default_variant:
+        default_variant = variants.first()
 
     unique_variants = []
     seen_colors = set()
