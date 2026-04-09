@@ -735,7 +735,7 @@
                     if (container) {
                         container.style.transition = 'opacity 0.3s ease';
                         container.style.opacity = '0';
-                        setTimeout(() => { 
+                        setTimeout(() => {
                             container.remove();
                             // If empty, reload to show empty state or just keep as is
                             if (document.querySelectorAll('.fav-card-container').length === 0) {
@@ -793,7 +793,7 @@
         function openDrawer(variantId) {
             // Reset state
             selectedVariantId = null;
-            
+
             // Show Skeletons
             sizeGrid.innerHTML = '';
             for(let i=0; i<5; i++) {
@@ -846,9 +846,9 @@
                             // selectSize logic from PDP
                             document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
                             btn.classList.add('active');
-                            
+
                             selectedVariantId = sz.id;
-                            
+
                             // Update GO TO PRODUCT link with specific variant
                             const pdpLink = document.getElementById('linkDrawerPDP');
                             if (pdpLink) {
@@ -858,10 +858,10 @@
                             // Restore button state
                             btnConfirmATC.innerText = 'ADD';
                             btnConfirmATC.disabled = false;
-                            
+
                             // Clear error
                             sizeError.style.display = 'none';
-                            
+
                             // Show hint
                             const stockCount = parseInt(sz.stock, 10);
                             stockHint.style.display = (stockCount > 0 && stockCount < 5) ? 'block' : 'none';

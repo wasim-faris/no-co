@@ -22,6 +22,11 @@ def cart_view(request):
                 cart_obj.quantity -= 1
                 cart_obj.save()
             elif action == "increase":
+                if cart_obj.quantity >= 5:
+                    if request.headers.get("X-Requested-With") == "XMLHttpRequest":
+                        return JsonResponse({"error": "Maximum quantity of 5 reached"}, status=400)
+                    return redirect("cart")
+                
                 if cart_obj.quantity < cart_obj.variant.stock:
                     cart_obj.quantity += 1
                     cart_obj.save()
@@ -151,6 +156,9 @@ def add_to_cart(request, variant_id):
     ).first()
 
     if cart_item:
+        if cart_item.quantity >= 5:
+            return JsonResponse({"error": "Maximum quantity of 5 reached per item"}, status=400)
+
         if cart_item.quantity < variant.stock:
             cart_item.quantity += 1
             cart_item.save()
