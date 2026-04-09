@@ -87,6 +87,8 @@ def wishlist_toggle(request):
 def wishlist_add_to_cart(request):
     data = json.loads(request.body)
     variant_id = data.get("variant_id")
+    wishlist_id = data.get("wishlist_id")
+    print("wishlist_id:", wishlist_id)
 
     variant = get_object_or_404(Variant, id=variant_id)
 
@@ -104,22 +106,16 @@ def wishlist_add_to_cart(request):
                 return JsonResponse({"error": "Out of stock"}, status=400)
             item.quantity+=1
             item.save()
-            try:
-                Wishlist.objects.get(id=variant.id).delete()
-            except Wishlist.DoesNotExist:
-                messages.error(request, "somethink wentn wrong")
-                return redirect("home")
+            if wishlist_id:
+                Wishlist.objects.filter(id = wishlist_id).delete()
         else:
             Cart.objects.create(
                 user = request.user,
                 variant=variant,
                 price = variant.price
             )
-            try:
-                Wishlist.objects.get(variant = variant).delete()
-            except Wishlist.DoesNotExist:
-                messages.error(request, "somethink wentn wrong")
-                return redirect("home")
+            if wishlist_id:
+                Wishlist.objects.filter(id = wishlist_id).delete()
     else:
         cart_item = Cart.objects.filter(session_key = request.session.session_key , variant = variant)
         if cart_item.exists():
@@ -128,21 +124,15 @@ def wishlist_add_to_cart(request):
                 return JsonResponse({"error": "Out of stock"}, status=400)
             item.quantity +=1
             item.save()
-            try:
-                Wishlist.objects.get(variant=variant).delete()
-            except Wishlist.DoesNotExist:
-                messages.error(request, "somethink wentn wrong")
-                return redirect("home")
+            if wishlist_id:
+                Wishlist.objects.filter(id = wishlist_id).delete()
         else:
             Cart.objects.create(
                 session_key = request.session.session_key,
                 variant = variant,
                 price = variant.price
             )
-            try:
-                Wishlist.objects.get(variant=variant).delete()
-            except Wishlist.DoesNotExist:
-                messages.error(request, "somethink wentn wrong")
-                return redirect("home")
+            if wishlist_id:
+                Wishlist.objects.filter(id = wishlist_id).delete()
 
     return JsonResponse({"success": True}, status=200)
