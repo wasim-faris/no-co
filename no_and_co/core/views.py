@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from category.models import Category,Subcategory
 from django.db.models import Q
 from wishlist.models import Wishlist
+
 # Create your views here.
 
 @never_cache
@@ -74,7 +75,7 @@ def product_details(request, id):
 
     similar_products = Product.objects.filter(is_active=True, is_deleted=False).exclude(id=product.id).order_by('-created_at')[:6]
     similar_items = []
-    
+
     for p in similar_products:
         rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
         if rep_variant:
@@ -96,6 +97,15 @@ def product_details(request, id):
                 product_image = v_fallback.images.first()
 
     search_history = request.session.get("search_history",[])
+
+    if not request.session.session_key:
+        request.session.create()
+
+    if request.user.is_authenticated:
+        wishlist_items = Wishlist.objects.filter(user=request.user)
+    else:
+        wishlist_items = Wishlist.objects.filter(session_key=request.session.session_key)
+
 
     if not request.session.session_key:
         request.session.create()
