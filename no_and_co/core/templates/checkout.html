@@ -222,30 +222,27 @@
                     
                     <!-- Item List -->
                     <div class="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                        <!-- Item 1 -->
-                        <div class="flex gap-4">
-                            <img src="https://image.hm.com/assets/hm/d9/d2/d9d22770c6399170f81f951c3985a5df1af61949.jpg?imwidth=384" class="order-item-img" alt="Item">
-                            <div class="flex-grow">
-                                <h3 class="text-xs font-bold uppercase line-clamp-2">Linen-blend Shirt Slim Fit</h3>
-                                <p class="text-[10px] text-gray-500 uppercase mt-1">Size: M | Color: White</p>
-                                <div class="flex justify-between items-end mt-4">
-                                    <span class="text-xs text-gray-400 uppercase">Qty: 1</span>
-                                    <span class="text-sm font-bold">Rs. 2,299.00</span>
+                        {% if not cart_items %}
+                            <div class="py-12 text-center border border-dashed border-gray-200">
+                                <p class="text-[11px] font-bold uppercase tracking-widest text-gray-400">Your cart is empty</p>
+                            </div>
+                        {% else %}
+                            {% for item in cart_items %}
+                            <div class="flex gap-4">
+                        {% with primary_image=item.variant.images.all|dictsortreversed:"is_primary"|first %}
+                            <img src="{% if primary_image %}{{ primary_image.image.url }}{% else %}https://via.placeholder.com/80x100?text=No+Image{% endif %}" class="order-item-img" alt="{{ item.variant.product.name }}">
+                        {% endwith %}
+                                <div class="flex-grow">
+                                    <h3 class="text-xs font-bold uppercase line-clamp-2">{{ item.variant.product.name }}</h3>
+                                    <p class="text-[10px] text-gray-500 uppercase mt-1">Size: {{ item.variant.size.name }} | Color: {{ item.variant.color }}</p>
+                                    <div class="flex justify-between items-end mt-4">
+                                        <span class="text-xs text-gray-400 uppercase">Qty: {{ item.quantity }}</span>
+                                        <span class="text-sm font-bold">Rs. {{ item.variant.price }}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <!-- Item 2 -->
-                        <div class="flex gap-4">
-                            <img src="https://image.hm.com/assets/hm/f3/f2/f3f2031a46b64589003bda133e3e1c265476cfcd.jpg?imwidth=384" class="order-item-img" alt="Item">
-                            <div class="flex-grow">
-                                <h3 class="text-xs font-bold uppercase line-clamp-2">Linen-blend Resort Shirt</h3>
-                                <p class="text-[10px] text-gray-500 uppercase mt-1">Size: L | Color: Beige</p>
-                                <div class="flex justify-between items-end mt-4">
-                                    <span class="text-xs text-gray-400 uppercase">Qty: 1</span>
-                                    <span class="text-sm font-bold">Rs. 1,999.00</span>
-                                </div>
-                            </div>
-                        </div>
+                            {% endfor %}
+                        {% endif %}
                     </div>
 
                     <!-- Totals -->

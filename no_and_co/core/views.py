@@ -12,6 +12,8 @@ from django.db.models import Q
 from wishlist.models import Wishlist
 from users.models import Addresses
 from django.contrib.auth.decorators import login_required
+from cart.models import Cart
+from django.db.models import Sum
 # Create your views here.
 
 @never_cache
@@ -269,10 +271,36 @@ def get_variant_sizes(request, variant_id):
 
 @login_required(login_url="login")
 def checkout(request):
+
+
+
     user_address = Addresses.objects.filter(
         user = request.user
     ).order_by("-is_default", "-id")
 
+    cart_items = Cart.objects.filter(
+        user = request.user
+    ).select_related("variant")
+
+    total_cost = Sum(
+        item.variant.price * item.quantity
+        for item in cart_items
+    )
+
+    if total_cost > 1999:
+        delivery_charge = 149
+    else:
+        delivery_charge = 0
+
+    total_cost = total_cost + delivery_charge
+
+    if not cart_items:
+        messages.error(request, "add at least one product to checkout")
+        return redirect("cart")
+
     return render(request, "checkout.html",{
-        "address":user_address
+        "address":user_address,
+        "cart_items":cart_items,
+        "total_cost":total_cost,
+        "delivery_charge": delivery_charge
     })
