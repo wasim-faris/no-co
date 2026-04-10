@@ -286,8 +286,8 @@ def checkout(request):
                     id = address_id,
                 ).update(is_default = True)
 
-                messages.success(request, "default address updated successfully")
-                
+                messages.success(request, "address updated")
+
             except Addresses.DoesNotExist:
                 messages.error(request, "somethink went to wrong")
 
