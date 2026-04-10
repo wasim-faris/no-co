@@ -286,11 +286,13 @@ def checkout(request):
                     id = address_id,
                 ).update(is_default = True)
 
+                messages.success(request, "default address updated successfully")
+                
             except Addresses.DoesNotExist:
                 messages.error(request, "somethink went to wrong")
 
             return redirect("checkout")
-        
+
     user_address = Addresses.objects.filter(
         user = request.user
     ).order_by("-is_default", "-id")

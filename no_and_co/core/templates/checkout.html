@@ -152,6 +152,18 @@
                         <h2 class="section-title mb-0 border-none p-0">Shipping Address</h2>
                     </div>
 
+                    {% if address %}
+                    <div class="flex justify-between items-center mb-6 pt-2">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">
+                            Saved Addresses
+                        </h3>
+                        <a href="{% url 'user-address' %}"
+                           class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">
+                            Add New Address
+                        </a>
+                    </div>
+                    {% endif %}
+
                     <div class="space-y-4">
                         {% if address %}
                             {% for addr in address %}
@@ -171,7 +183,6 @@
                                     <div class="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                         <div class="flex gap-4">
                                             <button class="btn-action">Edit Address</button>
-                                            <button class="btn-action">Deliver Here</button>
                                         </div>
 
                                         {% if addr.is_default %}
@@ -199,10 +210,9 @@
                                 </div>
                                 <h3 class="text-[13px] font-bold uppercase tracking-widest mb-2">No saved addresses found</h3>
                                 <p class="text-gray-400 text-xs mb-8">Add a delivery address to continue checkout</p>
-                                <a href="{% url 'user-address' %}"
-   class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity inline-block text-center">
-    Add New Address
-</a>
+                                <a href="{% url 'user-address' %}" class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">
+                                    Add New Address
+                                </a>
                             </div>
                         {% endif %}
                     </div>
