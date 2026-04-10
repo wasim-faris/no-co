@@ -187,9 +187,12 @@
 {% block content %}
 <div class="checkout-container">
     <div id="checkoutMain">
-        <!-- Breadcrumb -->
-        <nav class="breadcrumb">
-            <a href="{% url 'home' %}" class="hover:text-black">Home</a> / <span>Checkout</span>
+        <nav class="text-sm text-gray-500 mb-6 uppercase tracking-widest">
+            <a href="{% url 'home' %}" class="hover:text-black">Home</a>
+            <span class="mx-2">/</span>
+            <a href="{% url 'cart' %}" class="hover:text-black">Cart</a>
+            <span class="mx-2">/</span>
+            <span class="text-black font-semibold">Checkout</span>
         </nav>
 
         <!-- Page Header -->
@@ -210,7 +213,7 @@
                         <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">
                             Saved Addresses
                         </h3>
-                        <a href="{% url 'user-address' %}"
+                        <a href="{% url 'user-address' %}?next=checkout"
                            class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">
                             Add New Address
                         </a>
@@ -235,7 +238,9 @@
 
                                     <div class="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                         <div class="flex gap-4">
-                                            <button class="btn-action">Edit Address</button>
+                                        <a href="{% url 'user-address' %}" class="btn-action">
+    Edit Address
+</a>
                                         </div>
 
                                         {% if addr.is_default %}
@@ -263,7 +268,7 @@
                                 </div>
                                 <h3 class="text-[13px] font-bold uppercase tracking-widest mb-2">No saved addresses found</h3>
                                 <p class="text-gray-400 text-xs mb-8">Add a delivery address to continue checkout</p>
-                                <a href="{% url 'user-address' %}" class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">
+                                <a href="{% url 'user-address' %}?next=checkout" class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">
                                     Add New Address
                                 </a>
                             </div>
@@ -452,7 +457,7 @@
                     toast.classList.remove('show');
                     setTimeout(() => toast.remove(), 400);
                 }
-            }, 2500); 
+            }, 2500);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
