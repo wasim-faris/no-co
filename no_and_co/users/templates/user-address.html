@@ -1187,6 +1187,7 @@
         <div class="modal-body">
             <form id="editAddressForm" method="POST">
                 {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                     <div class="form-field">
                         <label class="form-label">First Name</label>

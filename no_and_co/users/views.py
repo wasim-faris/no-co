@@ -375,7 +375,7 @@ def user_address(request):
         )
 
         messages.success(request, "New address added successfully.")
-        
+
         next_url = request.GET.get("next") or request.POST.get("next")
 
         if next_url == "checkout":
@@ -485,7 +485,12 @@ def edit_user_address(request, id):
         address.save()
 
         messages.success(request, "Address updated successfully.")
-        return redirect("user-address")
+
+        next_url = request.GET.get("next") or request.POST.get("next")
+        if next_url == "checkout":
+            return redirect("checkout")
+        else:
+            return redirect("user-address")
 
     return redirect("user-address")
 

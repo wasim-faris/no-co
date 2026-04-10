@@ -238,9 +238,9 @@
 
                                     <div class="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                         <div class="flex gap-4">
-                                        <a href="{% url 'user-address' %}" class="btn-action">
-    Edit Address
-</a>
+                                        <a href="{% url 'user-address' %}?next=checkout" class="btn-action">
+                                            Edit Address
+                                        </a>
                                         </div>
 
                                         {% if addr.is_default %}
