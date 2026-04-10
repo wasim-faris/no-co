@@ -145,19 +145,17 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <!-- Left Column: Address and Payment -->
             <div class="lg:col-span-7">
-                
+
                 <!-- Address Section -->
                 <section class="mb-12">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="section-title mb-0 border-none p-0">Shipping Address</h2>
-                        <button class="btn-action">+ Add New Address</button>
                     </div>
 
                     <div class="space-y-4">
                         {% if address %}
                             {% for addr in address %}
-                                <div class="address-card {% if addr.is_default %}active{% endif %}" onclick="selectAddress(this)">
-                                    <input type="radio" name="address" {% if addr.is_default %}checked{% endif %}>
+                                <div class="address-card {% if addr.is_default %}active{% endif %}">
                                     {% if addr.is_default %}
                                         <span class="badge-default">Default</span>
                                     {% endif %}
@@ -169,9 +167,27 @@
                                         {{ addr.city }}, {{ addr.state }} {{ addr.pin_code }}, <br>
                                         {{ addr.country }}
                                     </p>
-                                    <div class="mt-4 flex gap-4">
-                                        <button class="btn-action">Edit Address</button>
-                                        <button class="btn-action">Deliver Here</button>
+
+                                    <div class="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                        <div class="flex gap-4">
+                                            <button class="btn-action">Edit Address</button>
+                                            <button class="btn-action">Deliver Here</button>
+                                        </div>
+
+                                        {% if addr.is_default %}
+                                            <span class="px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-green-700 bg-green-50 border border-green-100 rounded-full">
+                                                Default Address
+                                            </span>
+                                        {% else %}
+                                            <form method="POST" action="{% url 'checkout' %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="is_default" value="{{ addr.id }}">
+                                                <button type="submit"
+                                                        class="px-4 py-2 bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity rounded-sm">
+                                                    Set as Default
+                                                </button>
+                                            </form>
+                                        {% endif %}
                                     </div>
                                 </div>
                             {% endfor %}
@@ -183,9 +199,10 @@
                                 </div>
                                 <h3 class="text-[13px] font-bold uppercase tracking-widest mb-2">No saved addresses found</h3>
                                 <p class="text-gray-400 text-xs mb-8">Add a delivery address to continue checkout</p>
-                                <button class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">
-                                    Add New Address
-                                </button>
+                                <a href="{% url 'user-address' %}"
+   class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity inline-block text-center">
+    Add New Address
+</a>
                             </div>
                         {% endif %}
                     </div>
@@ -219,7 +236,7 @@
             <div class="lg:col-span-5">
                 <div class="summary-panel sticky top-24">
                     <h2 class="section-title mb-6">Order Summary</h2>
-                    
+
                     <!-- Item List -->
                     <div class="space-y-6 mb-8 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                         {% if not cart_items %}
@@ -237,7 +254,7 @@
                                     <p class="text-[10px] text-gray-500 uppercase mt-1">Size: {{ item.variant.size.name }} | Color: {{ item.variant.color }}</p>
                                     <div class="flex justify-between items-end mt-4">
                                         <span class="text-xs text-gray-400 uppercase">Qty: {{ item.quantity }}</span>
-                                        <span class="text-sm font-bold">Rs. {{ item.variant.price }}</span>
+                                        <span class="text-sm font-bold">₹{{ item.variant.price }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -248,20 +265,18 @@
                     <!-- Totals -->
                     <div class="space-y-3">
                         <div class="summary-item">
-                            <span>Order value</span>
-                            <span>Rs. 4,298.00</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Delivery</span>
-                            <span class="text-green-600">Free</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Tax</span>
-                            <span>Included</span>
+                            <span>Delivery Charge</span>
+                            <span>
+                                {% if delivery_charge == 0 %}
+                                    <span class="text-green-600 font-semibold">FREE</span>
+                                {% else %}
+                                    ₹{{ delivery_charge }}
+                                {% endif %}
+                            </span>
                         </div>
                         <div class="summary-total">
-                            <span class="uppercase font-extrabold tracking-widest">Total</span>
-                            <span>Rs. 4,298.00</span>
+                            <span class="uppercase font-extrabold tracking-widest">Total Amount</span>
+                            <span>₹{{ total_cost }}</span>
                         </div>
                     </div>
 

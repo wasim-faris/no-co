@@ -271,9 +271,26 @@ def get_variant_sizes(request, variant_id):
 
 @login_required(login_url="login")
 def checkout(request):
+    if request.method == "POST":
+        address_id = request.POST.get("is_default")
 
+        if address_id:
+            try:
+                Addresses.objects.filter(
+                    user = request.user,
+                    is_default = True
+                ).update(is_default = False)
 
+                Addresses.objects.filter(
+                    user = request.user,
+                    id = address_id,
+                ).update(is_default = True)
 
+            except Addresses.DoesNotExist:
+                messages.error(request, "somethink went to wrong")
+
+            return redirect("checkout")
+        
     user_address = Addresses.objects.filter(
         user = request.user
     ).order_by("-is_default", "-id")
@@ -282,7 +299,7 @@ def checkout(request):
         user = request.user
     ).select_related("variant")
 
-    total_cost = Sum(
+    total_cost = sum(
         item.variant.price * item.quantity
         for item in cart_items
     )
