@@ -174,6 +174,13 @@
         border: var(--border);
     }
 
+    .back-to-checkout {
+        display: inline-flex;
+        align-items: center;
+        margin-top: -12px;
+        margin-bottom: 8px;
+    }
+
     /* ── Buttons ── */
     .shell .btn {
         display: inline-flex;
@@ -927,7 +934,7 @@
 
     <!-- MAIN CONTENT -->
     <main class="main animate-in">
-
+       
         <header class="page-header">
             <div>
                 <p class="breadcrumb">Account / Addresses</p>
@@ -1084,6 +1091,7 @@
         <div class="modal-body">
             <form id="addressForm" method="POST" action="" novalidate>
                 {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                     <div class="form-field">
                         <label class="form-label">First Name <span style="color:#B5291C;">*</span></label>
@@ -1179,6 +1187,7 @@
         <div class="modal-body">
             <form id="editAddressForm" method="POST">
                 {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                     <div class="form-field">
                         <label class="form-label">First Name</label>
