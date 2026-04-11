@@ -181,6 +181,83 @@
         line-height: 1;
     }
     .toast-close-btn:hover { opacity: 1; }
+
+    /* Enhanced Delivery Truck Animation CSS */
+    .truck-btn {
+        position: relative;
+        overflow: hidden;
+    }
+    .truck-btn.is-animating {
+        pointer-events: none;
+        cursor: wait;
+    }
+    .truck-btn .default-text {
+        transition: opacity 0.2s ease-in-out;
+    }
+    .truck-btn.is-animating .default-text {
+        opacity: 0;
+    }
+    .truck-btn.is-animating .processing-text {
+        display: flex !important;
+        animation: fadeInText 0.3s forwards;
+        z-index: 10;
+    }
+    .truck-btn.is-animating .truck-animation-layer {
+        display: flex !important;
+    }
+    .truck-btn.is-animating .truck-icon {
+        animation: truckAnim 3.8s ease-in-out forwards;
+        z-index: 5;
+    }
+    .truck-btn.is-animating .reverse-light {
+        animation: reverseLightAnim 3.8s forwards;
+    }
+    .truck-btn.is-animating .package-icon {
+        animation: packageAnim 3.8s ease forwards;
+        z-index: 4;
+    }
+    .truck-btn.is-animating .progress-road {
+        animation: drawRoadBtn 3.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes fadeInText {
+        0% { opacity: 0; }
+        100% { opacity: 1; }
+    }
+
+    @keyframes truckAnim {
+        0% { left: calc(100% + 40px); }
+        25% { left: calc(50% - 40px); }
+        35% { left: calc(50% - 40px); }
+        50% { left: calc(50% - 15px); }
+        70% { left: calc(50% - 15px); }
+        100% { left: -60px; }
+    }
+
+    @keyframes reverseLightAnim {
+        0% { fill: #FFFFFF; opacity: 0; }
+        30% { fill: #FFFFFF; opacity: 0; }
+        35% { fill: #FF0000; opacity: 1; }
+        50% { fill: #FF0000; opacity: 1; }
+        55% { fill: #FFFFFF; opacity: 0; }
+        100% { fill: #FFFFFF; opacity: 0; }
+    }
+
+    @keyframes packageAnim {
+        0% { opacity: 0; transform: translateY(10px) scale(0.5); }
+        10% { opacity: 1; transform: translateY(0) scale(1); }
+        45% { transform: translateY(0) scale(1); opacity: 1; }
+        55% { transform: translateY(-8px) scale(0.8); opacity: 1; }
+        65% { transform: translateY(-2px) scale(0) rotate(-20deg); opacity: 0; }
+        100% { opacity: 0; }
+    }
+
+    @keyframes drawRoadBtn {
+        0% { width: 0%; }
+        25% { width: 50%; }
+        50% { width: 50%; }
+        100% { width: 100%; }
+    }
 </style>
 {% endblock %}
 
@@ -302,8 +379,27 @@
                         <input type="hidden" name="total_amount" value="{{ total_cost }}">
 
                         <button type="submit" 
-                                class="w-full bg-black text-white text-[11px] font-bold uppercase tracking-[0.2em] py-5 hover:bg-gray-900 transition-all duration-300 active:scale-[0.98]">
-                            Place Order
+                                onclick="handlePlaceOrder(event, this)"
+                                class="truck-btn w-full bg-black text-white text-[11px] font-bold uppercase tracking-[0.2em] py-5 hover:bg-gray-900 transition-all duration-300 active:scale-[0.98] rounded-md relative flex items-center justify-center shadow-lg">
+                            <span class="default-text">Place Order</span>
+                            <span class="processing-text hidden absolute inset-0 items-center justify-center w-full h-full tracking-[0.2em] pointer-events-none text-gray-200">Processing...</span>
+                            
+                            <div class="truck-animation-layer hidden absolute inset-0 items-center pointer-events-none">
+                                <svg class="package-icon absolute left-1/2 ml-[-8px] bottom-[14px]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C853" stroke-width="2">
+                                    <path d="M21 8H3V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V8Z"></path>
+                                    <path d="M3 8L12 3L21 8"></path>
+                                    <line x1="12" y1="3" x2="12" y2="22"></line>
+                                </svg>
+                                <svg class="truck-icon absolute left-[100%] bottom-[12px]" width="36" height="24" viewBox="0 0 36 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M14 8H9l-4 4v6h9V8z"></path>
+                                    <rect x="14" y="4" width="20" height="14"></rect>
+                                    <circle cx="10" cy="20" r="3"></circle>
+                                    <circle cx="28" cy="20" r="3"></circle>
+                                    <circle class="reverse-light" cx="34" cy="14" r="1.5" fill="#FFFFFF" opacity="0"></circle>
+                                    <line x1="5" y1="14" x2="5" y2="15"></line>
+                                </svg>
+                                <div class="progress-road absolute bottom-0 left-0 h-[3px] bg-[#00C853] w-0"></div>
+                            </div>
                         </button>
                     </form>
                     {% else %}
@@ -407,8 +503,27 @@
                             <input type="hidden" name="total_amount" value="{{ total_cost }}">
 
                             <button type="submit"
-                                    class="w-full bg-black text-white text-[12px] font-bold uppercase tracking-[0.25em] py-5 hover:bg-gray-900 transition-all duration-300 shadow-xl shadow-black/5 active:scale-[0.98]">
-                                Place Order
+                                    onclick="handlePlaceOrder(event, this)"
+                                    class="truck-btn w-full bg-black text-white text-[12px] font-bold uppercase tracking-[0.25em] py-5 hover:bg-gray-900 transition-all duration-300 shadow-xl shadow-black/5 active:scale-[0.98] rounded-md relative flex items-center justify-center">
+                                <span class="default-text">Place Order</span>
+                                <span class="processing-text hidden absolute inset-0 items-center justify-center w-full h-full tracking-[0.25em] pointer-events-none text-gray-200">Processing...</span>
+                                
+                                <div class="truck-animation-layer hidden absolute inset-0 items-center pointer-events-none">
+                                    <svg class="package-icon absolute left-1/2 ml-[-8px] bottom-[14px]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#00C853" stroke-width="2">
+                                        <path d="M21 8H3V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V8Z"></path>
+                                        <path d="M3 8L12 3L21 8"></path>
+                                        <line x1="12" y1="3" x2="12" y2="22"></line>
+                                    </svg>
+                                    <svg class="truck-icon absolute left-[100%] bottom-[12px]" width="36" height="24" viewBox="0 0 36 24" fill="none" stroke="#FFFFFF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M14 8H9l-4 4v6h9V8z"></path>
+                                        <rect x="14" y="4" width="20" height="14"></rect>
+                                        <circle cx="10" cy="20" r="3"></circle>
+                                        <circle cx="28" cy="20" r="3"></circle>
+                                        <circle class="reverse-light" cx="34" cy="14" r="1.5" fill="#FFFFFF" opacity="0"></circle>
+                                        <line x1="5" y1="14" x2="5" y2="15"></line>
+                                    </svg>
+                                    <div class="progress-road absolute bottom-0 left-0 h-[3px] bg-[#00C853] w-0"></div>
+                                </div>
                             </button>
                         </form>
                         {% else %}
@@ -460,6 +575,19 @@
         document.getElementById('checkoutMain').classList.add('hidden');
         document.getElementById('orderSuccess').classList.remove('hidden');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handlePlaceOrder(event, button) {
+        event.preventDefault();
+        
+        if (button.classList.contains('is-animating')) return;
+        
+        button.classList.add('is-animating');
+        const form = button.closest('form');
+        
+        setTimeout(() => {
+            if (form) form.submit();
+        }, 3800);
     }
 </script>
 
