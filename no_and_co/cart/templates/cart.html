@@ -1132,4 +1132,16 @@
 
 })();
 </script>
+
+<script>
+window.addEventListener("pageshow", function (event) {
+    const navigationEntries = performance.getEntriesByType("navigation");
+    const isBackForward = navigationEntries.length > 0 &&
+                          navigationEntries[0].type === "back_forward";
+
+    if (event.persisted || isBackForward) {
+        window.location.reload();
+    }
+});
+</script>
 {% endblock %}
