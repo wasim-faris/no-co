@@ -1,0 +1,555 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}Order Confirmed – NØ&CO{% endblock %}
+
+{% block extra_head %}
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* Reset & Base Styles */
+body {
+    font-family: 'Inter', Helvetica, Arial, sans-serif;
+    color: #000000;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+.success-container {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 24px;
+    background-color: #FFFFFF;
+}
+
+/* Minimal Card Layout */
+.success-card {
+    background-color: #FFFFFF;
+    width: 100%;
+    max-width: 480px;
+    padding: 64px 44px;
+    border-radius: 12px;
+    box-shadow: 0 12px 48px rgba(0, 0, 0, 0.04);
+    border: 1px solid #F8F8F8;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    /* Reveal Animation Start State */
+    opacity: 0;
+    transform: translateY(20px);
+}
+
+.success-card.slide-up {
+    animation: cardReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes cardReveal {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Google Pay Style Animated Tick */
+.tick-wrapper {
+    position: relative;
+    width: 90px;
+    height: 90px;
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.tick-pulse {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-color: rgba(0, 200, 83, 0.15); /* Soft Green ripple */
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.tick-pulse.active {
+    animation: rippleEffect 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s forwards;
+}
+
+@keyframes rippleEffect {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(1.8); opacity: 0; }
+}
+
+.tick-circle {
+    position: absolute;
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    background-color: #00C853; /* Soft Green Indicator */
+    opacity: 0;
+    transform: scale(0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2;
+    box-shadow: 0 4px 16px rgba(0, 200, 83, 0.25);
+}
+
+.tick-circle.active {
+    animation: circlePop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes circlePop {
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.tick-svg {
+    width: 36px;
+    height: 36px;
+    stroke: #FFFFFF;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    z-index: 3;
+}
+
+.tick-path {
+    stroke-dasharray: 60;
+    stroke-dashoffset: 60;
+}
+
+.tick-path.draw {
+    animation: checkDraw 0.4s ease-out 0.3s forwards;
+}
+
+@keyframes checkDraw {
+    to { stroke-dashoffset: 0; }
+}
+
+/* Typography elements */
+.success-heading {
+    font-size: 26px;
+    font-weight: 600;
+    color: #000000;
+    margin: 0 0 12px 0;
+    letter-spacing: -0.02em;
+    opacity: 0;
+}
+
+.success-subtext {
+    font-size: 15px;
+    color: #555555;
+    margin: 0 0 32px 0;
+    opacity: 0;
+}
+
+/* Copyable Order ID Elements */
+.order-badge-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 44px;
+    opacity: 0;
+}
+
+.order-badge {
+    background-color: #F5F5F5; /* Light Grey Accent */
+    color: #000000;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    border: 1px solid #EAEAEA;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.order-badge:hover {
+    background-color: #EEEEEE;
+    border-color: #DDDDDD;
+    transform: translateY(-1px);
+}
+
+.order-badge:active {
+    transform: translateY(0px);
+}
+
+.order-prefix {
+    color: #666666;
+    font-weight: 500;
+}
+
+.order-id-text {
+    color: #000000;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+}
+
+.copy-icon {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.5;
+    stroke: #888888;
+    transition: stroke 0.2s ease;
+}
+
+.order-badge:hover .copy-icon {
+    stroke: #000000;
+}
+
+/* Tooltip Feedback */
+.copy-tooltip {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background-color: #000000;
+    color: #FFFFFF;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 5;
+}
+
+.copy-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px 5px 0;
+    border-style: solid;
+    border-color: #000000 transparent transparent transparent;
+}
+
+.copy-tooltip.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* Staggered entrance applied to texts */
+.stagger-in {
+    animation: staggerFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-1 { animation-delay: 0.7s; }
+.delay-2 { animation-delay: 0.8s; }
+.delay-3 { animation-delay: 0.9s; }
+.delay-4 { animation-delay: 1.0s; }
+
+@keyframes staggerFadeIn {
+    0% { opacity: 0; transform: translateY(12px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Buttons */
+.buttons-group {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    opacity: 0;
+}
+
+.btn {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 16px 24px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: #000000;
+    color: #FFFFFF;
+    border: 1px solid #000000;
+}
+
+.btn-primary:hover {
+    background-color: #222222;
+    border-color: #222222;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: #FFFFFF;
+    color: #000000;
+    border: 1px solid #EAEAEA;
+}
+
+.btn-secondary:hover {
+    background-color: #F8F8F8;
+    border-color: #CCCCCC;
+    transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (min-width: 480px) {
+    .buttons-group {
+        flex-direction: row;
+    }
+}
+/* --- DYNAMIC BLACK PILL TOAST --- */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.custom-pill-toast {
+    width: 320px;
+    max-width: 90vw;
+    padding: 16px 20px;
+    background: #000;
+    color: #fff;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+    opacity: 0;
+    transform: translateX(30px);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    pointer-events: auto;
+}
+
+.custom-pill-toast.show { opacity: 1; transform: translateX(0); }
+.toast-left-content { display: flex; align-items: center; gap: 14px; }
+.toast-icon-circle {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.toast-success .toast-icon-circle { color: #fff; background: #000; }
+.toast-error .toast-icon-circle { color: #fff; background: #000; }
+
+.toast-message-wrapper { display: flex; flex-direction: column; }
+.toast-main-text {
+    font-size: 12px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    line-height: 1.2;
+}
+.toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+.toast-close-btn {
+    cursor: pointer; font-size: 14px; opacity: 0.4;
+    transition: opacity 0.2s; padding: 4px;
+}
+.toast-close-btn:hover { opacity: 1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="toast-container" class="toast-container"></div>
+<div class="success-container">
+    <div class="success-card" id="successCard">
+
+        <!-- Google Pay Style Animation Container -->
+        <div class="tick-wrapper">
+            <div class="tick-pulse" id="tickPulse"></div>
+            <div class="tick-circle" id="tickCircle">
+                <svg class="tick-svg" viewBox="0 0 24 24" fill="none">
+                    <path class="tick-path" id="tickPath" d="M20 6L9 17l-5-5"></path>
+                </svg>
+            </div>
+        </div>
+
+        <h1 class="success-heading stagger-in delay-1">Order Placed Successfully!</h1>
+        <p class="success-subtext stagger-in delay-2">Thank you for shopping with us.</p>
+
+        <!-- Interactive Copyable Order ID -->
+        <div class="order-badge-container stagger-in delay-3">
+            <div class="order-badge" id="orderBadge" onclick="copyOrderId('{{ order.order_number|default:'20260411-G0FR4S' }}')" role="button" aria-label="Copy Order ID" tabindex="0">
+                <span class="order-id-text" id="orderIdText">{{ order.order_number|default:"20260411-G0FR4S" }}</span>
+                <!-- Copy Icon -->
+                <svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+            </div>
+            <!-- Tooltip Feedback -->
+            <div class="copy-tooltip" id="copyTooltip">Copied!</div>
+        </div>
+
+        <!-- Strict Call to Activation links -->
+        <div class="buttons-group stagger-in delay-4">
+            <a href="{% url 'home' %}" class="btn btn-primary">Continue Shopping</a>
+            <a href="" class="btn btn-secondary">View Order</a>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Embedded Custom Pill Toast Controller 
+    function showToast(message, type = 'error') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const toast = document.createElement('div');
+        const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
+        toast.className = `custom-pill-toast ${toastClass}`;
+        const icon = type === 'success' ? '✓' : '✕';
+        toast.innerHTML = `
+            <div class="toast-left-content">
+                <div class="toast-icon-circle">${icon}</div>
+                <div class="toast-message-wrapper">
+                    <span class="toast-main-text">${message}</span>
+                    <span class="toast-sub-text">Notification</span>
+                </div>
+            </div>
+            <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            if(toast.parentNode) {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 400);
+            }
+        }, 2500); // 2.5s auto-hide requirement
+    }
+
+    // System logic for interacting with modern OS clipboard
+    function copyOrderId(orderIdStr) {
+        const fullId = "ORD-" + orderIdStr;
+        const tooltip = document.getElementById("copyTooltip");
+
+        if (navigator.clipboard && window.isSecureContext) {
+            // Modern API approach
+            navigator.clipboard.writeText(fullId)
+                .then(() => showTooltip(tooltip))
+                .catch(err => {
+                    console.error('Modern API failed to copy!', err);
+                    fallbackCopyTextToClipboard(fullId, tooltip);
+                });
+        } else {
+            // Fallback for HTTP testing environments or older browsers
+            fallbackCopyTextToClipboard(fullId, tooltip);
+        }
+    }
+
+    // Classic commandExec approach for fail-safes
+    function fallbackCopyTextToClipboard(text, tooltip) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.top = "-9999px";
+        document.body.appendChild(textArea);
+
+        textArea.focus();
+        textArea.select();
+
+        try {
+            const successful = document.execCommand('copy');
+            if (successful) showTooltip(tooltip);
+        } catch (err) {
+            console.error('Fallback copy approach failed', err);
+        }
+        document.body.removeChild(textArea);
+    }
+
+    function showTooltip(tooltip) {
+        tooltip.classList.add("show");
+
+        // Reset any existing timeout from rapid clicking
+        if (window.copyTimeout) {
+            clearTimeout(window.copyTimeout);
+        }
+
+        window.copyTimeout = setTimeout(() => {
+            tooltip.classList.remove("show");
+        }, 2000); // UI guideline: 2 seconds display interval
+    }
+
+    // Animation orchestrator
+    document.addEventListener("DOMContentLoaded", function() {
+        // Trigger initial card map reveal
+        const successCard = document.getElementById("successCard");
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                successCard.classList.add("slide-up");
+            }, 50);
+        });
+
+        // Trigger Google Pay Style Animation Sequence
+        const tickCircle = document.getElementById("tickCircle");
+        const tickPath = document.getElementById("tickPath");
+        const tickPulse = document.getElementById("tickPulse");
+
+        setTimeout(() => {
+            tickCircle.classList.add("active");
+        }, 200);
+
+        setTimeout(() => {
+            tickPath.classList.add("draw");
+        }, 450);
+
+        setTimeout(() => {
+            tickPulse.classList.add("active");
+        }, 650);
+
+        // Show toast only once per session avoiding reload duplicates
+        const orderNumber = "{{ order.order_number }}";
+        const toastKey = `order_success_toast_${orderNumber}`;
+
+        if (!sessionStorage.getItem(toastKey)) {
+            setTimeout(function () {
+                if (typeof showToast === "function") {
+                    showToast(
+                        `Order placed successfully! Order ID: ${orderNumber}`,
+                        "success"
+                    );
+                    sessionStorage.setItem(toastKey, "shown");
+                } else {
+                    console.error("showToast() is not defined. Ensure the correct JS file is loaded.");
+                }
+            }, 300);
+        }
+    });
+</script>
+
+{% if messages %}
+    {% for message in messages %}
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                setTimeout(function () {
+                    showToast("{{ message|escapejs }}", "{{ message.tags }}");
+                }, 300);
+            });
+        </script>
+    {% endfor %}
+{% endif %}
+
+{% endblock %}

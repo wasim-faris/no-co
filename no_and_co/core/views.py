@@ -424,11 +424,16 @@ def place_order(request):
 
                 cart_items.delete()
 
-                messages.success(
-                request,
-                f"Order placed successfully! Your Order ID is {order.order_number}."
-            )
+            #     messages.success(
+            #     request,
+            #     f"Order placed successfully! Your Order ID is {order.order_number}."
+            # )
 
-            return HttpResponse("ORDER IS WORKING")
+            return redirect("order-success")
         finally:
             request.session.pop("order_processing", None)
+def order_success(request):
+    order = Order.objects.filter(user = request.user).order_by("-created_at").first()
+    return render(request, "order_success.html",{
+        "order":order
+    })
