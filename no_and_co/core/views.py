@@ -294,7 +294,7 @@ def checkout(request):
 
                 messages.success(request, "address updated")
 
-            except Addresses.DoesNotExist:
+            except Exception:
                 messages.error(request, "somethink went to wrong")
 
             return redirect("checkout")
@@ -313,17 +313,18 @@ def checkout(request):
         for item in cart_items
     )
 
-    tax_amount = round(sub_total*GST_RATE, 2)
-    discount = 0
+    tax_amount = (sub_total * GST_RATE).quantize(Decimal("0.01"))
 
-    if sub_total > 1999:
-        delivery_charge = 149
+    discount = Decimal("0.00")
+
+    if sub_total > Decimal("1999.00"):
+        delivery_charge = Decimal("149.00")
     else:
-        delivery_charge = 0
+        delivery_charge = Decimal("0.00")
 
     total_cost = sub_total+tax_amount - discount + delivery_charge
 
-    if not cart_items:
+    if not cart_items.exists():
         messages.error(request, "add at least one product to checkout")
         return redirect("cart")
 
@@ -343,7 +344,7 @@ def checkout(request):
         "discount":discount
     })
 
-@login_required(login_url="home")
+@login_required(login_url="login")
 def place_order(request):
     if request.method == "POST":
         user = request.user
@@ -424,14 +425,11 @@ def place_order(request):
 
                 cart_items.delete()
 
-            #     messages.success(
-            #     request,
-            #     f"Order placed successfully! Your Order ID is {order.order_number}."
-            # )
-
             return redirect("order-success")
         finally:
             request.session.pop("order_processing", None)
+
+@login_required(login_url="login")
 def order_success(request):
     order = Order.objects.filter(user = request.user).order_by("-created_at").first()
     return render(request, "order_success.html",{
