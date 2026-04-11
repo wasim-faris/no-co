@@ -1,8 +1,11 @@
+from ctypes import addressof
+from decimal import Decimal
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.cache import never_cache
 from django.contrib import messages
 from django.contrib.auth import login , logout
+from requests import delete
 from users.decorators import block_check
 from products.models import Variant, VariantImage,Product
 from django.db.models import Prefetch
@@ -14,6 +17,9 @@ from users.models import Addresses
 from django.contrib.auth.decorators import login_required
 from cart.models import Cart
 from django.db.models import Sum
+from django.db import transaction
+from .models import Order,OrderItem
+from django.db.models import F
 # Create your views here.
 
 @never_cache
@@ -301,25 +307,128 @@ def checkout(request):
         user = request.user
     ).select_related("variant")
 
-    total_cost = sum(
+    GST_RATE = Decimal("0.12")
+    sub_total = sum(
         item.variant.price * item.quantity
         for item in cart_items
     )
 
-    if total_cost > 1999:
+    tax_amount = round(sub_total*GST_RATE, 2)
+    discount = 0
+
+    if sub_total > 1999:
         delivery_charge = 149
     else:
         delivery_charge = 0
 
-    total_cost = total_cost + delivery_charge
+    total_cost = sub_total+tax_amount - discount + delivery_charge
 
     if not cart_items:
         messages.error(request, "add at least one product to checkout")
         return redirect("cart")
 
+    default_address = Addresses.objects.filter(user =request.user , is_default = True).first()
+
+    addresses = Addresses.objects.filter(user = request.user)
+
+
     return render(request, "checkout.html",{
         "address":user_address,
         "cart_items":cart_items,
         "total_cost":total_cost,
-        "delivery_charge": delivery_charge
+        "delivery_charge": delivery_charge,
+        "tax_amount": tax_amount,
+        "sub_total": sub_total,
+        "default_address":default_address,
+        "discount":discount
     })
+
+@login_required(login_url="home")
+def place_order(request):
+    if request.method == "POST":
+        user = request.user
+        payment_method = request.POST.get("payment_method")
+        address_id = request.POST.get("address_id")
+        address = get_object_or_404(Addresses,id=address_id ,user=user)
+
+        payment_status = "PAID" if payment_method == "COD" else "PENDING"
+
+        if not address_id:
+            messages.error(request, "Add address to place order")
+            return redirect("checkout")
+
+        cart_items = Cart.objects.filter(
+            user = user
+        )
+
+        if not cart_items.exists():
+            messages.error(request, "no products in the cart")
+            return redirect("cart")
+
+        sub_total = sum(
+            item.variant.price * item.quantity
+            for item in cart_items
+        )
+
+        tax_rate = Decimal("0.12")
+        tax_amount = sub_total * tax_rate
+
+
+
+        delivery_charge = (
+        Decimal("149.00")
+        if sub_total > Decimal("1999.00")
+        else Decimal("0.00")
+        )
+        discount = Decimal("0.00")
+        total_amount = sub_total + tax_amount - discount + delivery_charge
+
+
+
+        if request.session.get("order_processing"):
+            messages.warning(request, "order is already processed")
+            return redirect("checkout")
+        request.session["order_processing"] = True
+
+        try:
+            with transaction.atomic():
+                order = Order.objects.create(
+                    user = request.user,
+                    address = address,
+                    payment_method = payment_method,
+                    subtotal = sub_total,
+                    tax_amount = tax_amount,
+                    delivery_charge = delivery_charge,
+                    total_amount = total_amount,
+                    payment_status = payment_status,
+                    discount_amount = discount
+                )
+
+                for item in cart_items:
+                    updated = Variant.objects.filter(
+                    id=item.variant.id,
+                    stock__gte=item.quantity
+                ).update(stock=F("stock") - item.quantity)
+
+                    if not updated:
+                        raise ValueError(
+                        f"Insufficient stock for {item.variant.product.name}."
+                    )
+
+                    OrderItem.objects.create(
+                        order = order,
+                        variant = item.variant,
+                        price = item.variant.price,
+                        quantity = item.quantity
+                    )
+
+                cart_items.delete()
+
+                messages.success(
+                request,
+                f"Order placed successfully! Your Order ID is {order.order_number}."
+            )
+
+            return HttpResponse("ORDER IS WORKING")
+        finally:
+            request.session.pop("order_processing", None)
