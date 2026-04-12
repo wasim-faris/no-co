@@ -19,6 +19,7 @@ from django.contrib.auth.hashers import make_password
 from cart.views import merge_cart_after_login
 from wishlist.views import merge_wishlist_item
 from allauth.socialaccount.models import SocialAccount
+
 email_pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"
 password_pattern = r"^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$"
 username_pattern = r"^[a-zA-Z0-9_]{4,20}$"
@@ -89,7 +90,7 @@ def signup(request):
             request.session["signup_values"] = {
                 "username": username,
                 "email": email,
-                "password": password
+                "password": password,
             }
 
             otp = random.randint(100000, 999999)
@@ -117,6 +118,7 @@ def signup(request):
 
     return render(request, "signup.html")
 
+
 @never_cache
 def login_user(request):
     if not request.session.session_key:
@@ -124,7 +126,7 @@ def login_user(request):
 
     request.session["pre_login_session_key"] = request.session.session_key
 
-    if request.session.get("created_at",0):
+    if request.session.get("created_at", 0):
         return redirect("signup-otp-verification")
 
     if request.user.is_authenticated and request.user.is_superuser:
@@ -146,9 +148,7 @@ def login_user(request):
             messages.error(request, "All fields are required")
             return redirect("login")
 
-        user_obj = User.objects.filter(
-           Q(username=username)| Q(email= username)
-       ).first()
+        user_obj = User.objects.filter(Q(username=username) | Q(email=username)).first()
 
         if user_obj:
             user = authenticate(request, username=user_obj.username, password=password)
@@ -169,17 +169,17 @@ def login_user(request):
             print("OLD session:", old_session_key)
             print("NEW session:", request.session.session_key)
             print("LOGIN SUCCESS")
-            merge_cart_after_login(request, user , old_session_key)
+            merge_cart_after_login(request, user, old_session_key)
             merge_wishlist_item(request, user, old_session_key)
             request.session["login_attempts"] = 0
 
             messages.success(request, "login succesfuly")
             return redirect("home")
         else:
-            login_attempts +=1
+            login_attempts += 1
             request.session["login_attempts"] = login_attempts
 
-            if login_attempts >=5:
+            if login_attempts >= 5:
                 messages.error(request, "Too many login attempts. Try again later.")
                 return redirect("login")
             messages.error(request, "invalid username or password")
@@ -196,7 +196,6 @@ def signup_otp_verification(request):
         return redirect("home")
 
     otp_created_time = request.session.get("otp_created_time")
-
 
     remaining = 0
 
@@ -227,8 +226,9 @@ def signup_otp_verification(request):
             email = signup_data["email"]
             password = signup_data["password"]
 
-
-            user = User.objects.create_user(username=username, email=email, password=password)
+            user = User.objects.create_user(
+                username=username, email=email, password=password
+            )
 
             old_session_key = request.session.session_key
 
@@ -241,7 +241,7 @@ def signup_otp_verification(request):
             print("Signup OLD:", old_session_key)
             print("Signup NEW:", request.session.session_key)
 
-            login(request, user, backend='django.contrib.auth.backends.ModelBackend')
+            login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
             merge_cart_after_login(request, user, old_session_key)
             merge_wishlist_item(request, user, old_session_key)
@@ -307,6 +307,7 @@ def cancel_otp_verification(request):
 
 def not_found(request):
     return render(request, "404.html")
+
 
 @never_cache
 def forgot_password(request):
@@ -379,6 +380,7 @@ def forgot_password(request):
 
     return render(request, "forgot-password.html")
 
+
 @never_cache
 def email_confirm(request):
     return render(request, "email-confirm.html")
@@ -400,6 +402,7 @@ def reset_link(request, uuid):
     except PasswordResetToken.DoesNotExist:
         messages.error(request, "linked already used before")
         return redirect("not-found")
+
 
 @never_cache
 def reset_password(request, uuid):
@@ -466,7 +469,7 @@ def change_password(request):
             messages.error(request, "Please fill full form")
             return redirect("change-password")
         if not new_password == confirm_new_password:
-            messages.error(request,"Password does not match")
+            messages.error(request, "Password does not match")
             return redirect("change-password")
 
         if not check_password(current_password, user.password):
@@ -480,7 +483,6 @@ def change_password(request):
         if not re.match(password_pattern, confirm_new_password):
             messages.error(request, "Passwoed too week")
             return redirect("change-password")
-
 
         user.set_password(new_password)
 

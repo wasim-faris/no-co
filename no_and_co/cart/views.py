@@ -1,10 +1,11 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
 from products.models import Variant, Product
 from .models import Cart
 from django.contrib import messages
 from django.db.models import F, Sum
 from django.http import JsonResponse
+
 
 def cart_view(request):
 
@@ -16,25 +17,37 @@ def cart_view(request):
             request.session.create()
 
         if action in ["increase", "decrease"] and cart_id:
-            cart_obj = get_object_or_404(Cart, id=cart_id ,user = request.user if request.user.is_authenticated else None, session_key = None if request.user.is_authenticated else request.session.session_key)
+            cart_obj = get_object_or_404(
+                Cart,
+                id=cart_id,
+                user=request.user if request.user.is_authenticated else None,
+                session_key=(
+                    None
+                    if request.user.is_authenticated
+                    else request.session.session_key
+                ),
+            )
 
-            if action =="decrease" and cart_obj.quantity > 1:
+            if action == "decrease" and cart_obj.quantity > 1:
                 cart_obj.quantity -= 1
                 cart_obj.save()
             elif action == "increase":
                 if cart_obj.quantity >= 5:
                     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-                        return JsonResponse({"error": "Maximum quantity of 5 reached"}, status=400)
+                        return JsonResponse(
+                            {"error": "Maximum quantity of 5 reached"}, status=400
+                        )
                     return redirect("cart")
-                
+
                 if cart_obj.quantity < cart_obj.variant.stock:
                     cart_obj.quantity += 1
                     cart_obj.save()
                 else:
                     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-                        return JsonResponse({
-                        "error": f"Only {cart_obj.variant.stock} items available"
-                    }, status = 400)
+                        return JsonResponse(
+                            {"error": f"Only {cart_obj.variant.stock} items available"},
+                            status=400,
+                        )
                     return redirect("cart")
 
             if request.headers.get("X-Requested-With") == "XMLHttpRequest":
@@ -42,28 +55,40 @@ def cart_view(request):
                 if not request.session.session_key:
                     request.session.create()
 
-                session = None if request.user.is_authenticated else request.session.session_key
+                session = (
+                    None
+                    if request.user.is_authenticated
+                    else request.session.session_key
+                )
 
-                order_total = Cart.objects.filter(
-                    user=user, session_key=session
-                ).aggregate(total=Sum(F("price") * F("quantity")))["total"] or 0
+                order_total = (
+                    Cart.objects.filter(user=user, session_key=session).aggregate(
+                        total=Sum(F("price") * F("quantity"))
+                    )["total"]
+                    or 0
+                )
 
-                cart_count = Cart.objects.filter(
-                    user=user, session_key=session
-                ).aggregate(total=Sum('quantity'))['total'] or 0
+                cart_count = (
+                    Cart.objects.filter(user=user, session_key=session).aggregate(
+                        total=Sum("quantity")
+                    )["total"]
+                    or 0
+                )
 
                 delivery_fee = 0 if order_total < 1999 else 149
                 full_total = delivery_fee + order_total
                 item_total = cart_obj.price * cart_obj.quantity
 
-                return JsonResponse({
-                    "quantity": cart_obj.quantity,
-                    "item_total": item_total,
-                    "order_total": order_total,
-                    "full_total": full_total,
-                    "delivery_fee": delivery_fee,
-                    "cart_count": cart_count
-                })
+                return JsonResponse(
+                    {
+                        "quantity": cart_obj.quantity,
+                        "item_total": item_total,
+                        "order_total": order_total,
+                        "full_total": full_total,
+                        "delivery_fee": delivery_fee,
+                        "cart_count": cart_count,
+                    }
+                )
 
             return redirect("cart")
 
@@ -79,22 +104,23 @@ def cart_view(request):
         user = None
         session = session_key
 
-    cart_items = Cart.objects.filter(
-        user = user,
-        session_key = session
-    ).prefetch_related('variant__images')
+    cart_items = Cart.objects.filter(user=user, session_key=session).prefetch_related(
+        "variant__images"
+    )
     for item in cart_items:
         item.total_price = item.price * item.quantity
         images = list(item.variant.images.all())
         primary_img = next((img for img in images if img.is_primary), None)
-        item.primary_image = primary_img if primary_img else (images[0] if images else None)
+        item.primary_image = (
+            primary_img if primary_img else (images[0] if images else None)
+        )
 
-    order_total = Cart.objects.filter(
-        user=user,
-        session_key=session
-    ).aggregate(
-        total=Sum(F("price") * F("quantity"))
-    )["total"] or 0
+    order_total = (
+        Cart.objects.filter(user=user, session_key=session).aggregate(
+            total=Sum(F("price") * F("quantity"))
+        )["total"]
+        or 0
+    )
 
     if order_total < 1999:
         delivery_fee = 0
@@ -106,34 +132,53 @@ def cart_view(request):
     similar_items = []
     if cart_items.exists():
         first_product = cart_items.first().variant.product
-        similar_products = Product.objects.filter(is_active=True, is_deleted=False).exclude(id=first_product.id).order_by('-created_at')[:6]
+        similar_products = (
+            Product.objects.filter(is_active=True, is_deleted=False)
+            .exclude(id=first_product.id)
+            .order_by("-created_at")[:6]
+        )
 
         for p in similar_products:
-            rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
+            rep_variant = (
+                p.variants.filter(is_active=True, is_deleted=False)
+                .order_by("-is_default", "id")
+                .first()
+            )
             if rep_variant:
                 similar_items.append(rep_variant)
 
     if not similar_items:
-        fallback_products = Product.objects.filter(is_active=True, is_deleted=False).order_by('-id')[:8]
+        fallback_products = Product.objects.filter(
+            is_active=True, is_deleted=False
+        ).order_by("-id")[:8]
         for p in fallback_products:
-            rep_variant = p.variants.filter(is_active=True, is_deleted=False).order_by("-is_default", "id").first()
+            rep_variant = (
+                p.variants.filter(is_active=True, is_deleted=False)
+                .order_by("-is_default", "id")
+                .first()
+            )
             if rep_variant:
                 similar_items.append(rep_variant)
 
     search_history = request.session.get("search_history", [])
 
-    return render(request, 'cart.html', {
-        "cart_items": cart_items,
-        "order_total": order_total,
-        "delivery_fee": delivery_fee,
-        "full_total": full_total,
-        "similar_items": similar_items,
-        "search_history":search_history
-    })
+    return render(
+        request,
+        "cart.html",
+        {
+            "cart_items": cart_items,
+            "order_total": order_total,
+            "delivery_fee": delivery_fee,
+            "full_total": full_total,
+            "similar_items": similar_items,
+            "search_history": search_history,
+        },
+    )
+
 
 def add_to_cart(request, variant_id):
     if request.method != "POST":
-        return redirect(request.META.get('HTTP_REFERER', '/'))
+        return redirect(request.META.get("HTTP_REFERER", "/"))
 
     if not request.session.session_key:
         request.session.create()
@@ -150,22 +195,22 @@ def add_to_cart(request, variant_id):
     variant = get_object_or_404(Variant, id=variant_id)
 
     cart_item = Cart.objects.filter(
-        user=user,
-        session_key=session,
-        variant=variant
+        user=user, session_key=session, variant=variant
     ).first()
 
     if cart_item:
         if cart_item.quantity >= 5:
-            return JsonResponse({"error": "Maximum quantity of 5 reached per item"}, status=400)
+            return JsonResponse(
+                {"error": "Maximum quantity of 5 reached per item"}, status=400
+            )
 
         if cart_item.quantity < variant.stock:
             cart_item.quantity += 1
             cart_item.save()
         else:
-            return JsonResponse({
-                "error":f"Only {variant.stock} items available"
-            }, status = 400)
+            return JsonResponse(
+                {"error": f"Only {variant.stock} items available"}, status=400
+            )
     else:
         if variant.stock > 0:
             Cart.objects.create(
@@ -173,24 +218,24 @@ def add_to_cart(request, variant_id):
                 user=user,
                 session_key=session,
                 quantity=1,
-                price=variant.price
+                price=variant.price,
             )
         else:
-            return JsonResponse({
-                "error":"Out of stock"
-            }, status = 400)
-
+            return JsonResponse({"error": "Out of stock"}, status=400)
 
     if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-        cart_count = Cart.objects.filter(
-        user=user,
-        session_key=session
-).      aggregate(total=Sum('quantity'))['total'] or 0
+        cart_count = (
+            Cart.objects.filter(user=user, session_key=session).aggregate(
+                total=Sum("quantity")
+            )["total"]
+            or 0
+        )
 
         cart_count = cart_count or 0
         return JsonResponse({"success": True, "cart_count": cart_count})
 
-    return redirect(request.META.get('HTTP_REFERER', '/'))
+    return redirect(request.META.get("HTTP_REFERER", "/"))
+
 
 def delete_cart_item(request):
     if request.method == "POST":
@@ -201,32 +246,53 @@ def delete_cart_item(request):
             else:
                 if not request.session.session_key:
                     request.session.create()
-                Cart.objects.filter(id=cart_id, session_key=request.session.session_key).delete()
+                Cart.objects.filter(
+                    id=cart_id, session_key=request.session.session_key
+                ).delete()
 
             if request.headers.get("x-requested-with") == "XMLHttpRequest":
                 user = request.user if request.user.is_authenticated else None
-                session = None if request.user.is_authenticated else request.session.session_key
+                session = (
+                    None
+                    if request.user.is_authenticated
+                    else request.session.session_key
+                )
 
-                order_total = Cart.objects.filter(
-                    user=user, session_key=session
-                ).aggregate(total=Sum(F("price") * F("quantity")))["total"] or 0
+                order_total = (
+                    Cart.objects.filter(user=user, session_key=session).aggregate(
+                        total=Sum(F("price") * F("quantity"))
+                    )["total"]
+                    or 0
+                )
 
                 delivery_fee = 0 if order_total < 1999 else 149
                 full_total = delivery_fee + order_total
-                cart_count = Cart.objects.filter(user=user).aggregate(total=Sum('quantity'))['total'] if user else Cart.objects.filter(session_key=session).aggregate(total=Sum('quantity'))['total']
+                cart_count = (
+                    Cart.objects.filter(user=user).aggregate(total=Sum("quantity"))[
+                        "total"
+                    ]
+                    if user
+                    else Cart.objects.filter(session_key=session).aggregate(
+                        total=Sum("quantity")
+                    )["total"]
+                )
                 cart_count = cart_count or 0
 
-                return JsonResponse({
-                    "success": True,
-                    "order_total": order_total,
-                    "full_total": full_total,
-                    "delivery_fee": delivery_fee,
-                    "cart_count": cart_count
-                })
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "order_total": order_total,
+                        "full_total": full_total,
+                        "delivery_fee": delivery_fee,
+                        "cart_count": cart_count,
+                    }
+                )
 
             messages.success(request, "Product deleted from cart")
             return redirect("cart")
-def merge_cart_after_login(request, user , old_session_key):
+
+
+def merge_cart_after_login(request, user, old_session_key):
 
     if not old_session_key:
         return
@@ -237,18 +303,12 @@ def merge_cart_after_login(request, user , old_session_key):
     if not session_key:
         return
 
-    guest_items = Cart.objects.filter(
-        session_key = old_session_key,
-        user = None
-    )
+    guest_items = Cart.objects.filter(session_key=old_session_key, user=None)
 
     print("Guest items:", guest_items)
 
     for item in guest_items:
-        existing_item = Cart.objects.filter(
-            user = user,
-            variant = item.variant
-        ).first()
+        existing_item = Cart.objects.filter(user=user, variant=item.variant).first()
 
         if existing_item:
             existing_item.quantity += item.quantity

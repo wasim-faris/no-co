@@ -1,7 +1,7 @@
-from django.shortcuts import render,redirect
+from django.shortcuts import render, redirect
 import json
 from django.shortcuts import get_object_or_404
-from products.models import Variant,VariantImage
+from products.models import Variant, VariantImage
 from .models import Wishlist
 from django.contrib import messages
 from django.http import HttpResponse
@@ -22,29 +22,34 @@ def wishlist(request):
         user = None
         session_key = request.session.session_key
 
-
-
     if request.user.is_authenticated:
-        wishlist_items = Wishlist.objects.filter(user=user).select_related("variant").prefetch_related(
-            Prefetch(
-                "variant__images",
-                queryset=VariantImage.objects.filter(is_primary = True),
-                to_attr="primary_images"
+        wishlist_items = (
+            Wishlist.objects.filter(user=user)
+            .select_related("variant")
+            .prefetch_related(
+                Prefetch(
+                    "variant__images",
+                    queryset=VariantImage.objects.filter(is_primary=True),
+                    to_attr="primary_images",
+                )
             )
         )
     else:
-         wishlist_items = Wishlist.objects.filter(session_key=session_key).select_related("variant").prefetch_related(
-            Prefetch(
-                "variant__images",
-                queryset=VariantImage.objects.filter(is_primary = True),
-                to_attr="primary_images"
+        wishlist_items = (
+            Wishlist.objects.filter(session_key=session_key)
+            .select_related("variant")
+            .prefetch_related(
+                Prefetch(
+                    "variant__images",
+                    queryset=VariantImage.objects.filter(is_primary=True),
+                    to_attr="primary_images",
+                )
             )
         )
 
-
-    return render(request, 'wishlist/wishlist.html', {
-        "whishlist_items":wishlist_items
-    })
+    return render(
+        request, "wishlist/wishlist.html", {"whishlist_items": wishlist_items}
+    )
 
 
 def wishlist_toggle(request):
@@ -67,24 +72,17 @@ def wishlist_toggle(request):
     if request.user.is_authenticated:
         item = Wishlist.objects.filter(user=user, variant=variant)
     else:
-        item = Wishlist.objects.filter(session_key = session_key, variant=variant)
+        item = Wishlist.objects.filter(session_key=session_key, variant=variant)
 
     if item.exists():
         item.delete()
 
-        return JsonResponse({
-        "status": "removed"
-        })
+        return JsonResponse({"status": "removed"})
 
     else:
-        Wishlist.objects.create(
-            user = user,
-            session_key = session_key,
-            variant = variant
-        )
-        return JsonResponse({
-        "status": "added"
-        })
+        Wishlist.objects.create(user=user, session_key=session_key, variant=variant)
+        return JsonResponse({"status": "added"})
+
 
 def wishlist_add_to_cart(request):
     data = json.loads(request.body)
@@ -94,67 +92,60 @@ def wishlist_add_to_cart(request):
 
     variant = get_object_or_404(Variant, id=variant_id)
 
-    if variant.stock <=0:
+    if variant.stock <= 0:
         return JsonResponse({"error": "Out of stock"}, status=400)
 
     if not request.session.session_key:
         request.session.create()
 
     if request.user.is_authenticated:
-        cart_item = Cart.objects.filter(user = request.user, variant=variant)
+        cart_item = Cart.objects.filter(user=request.user, variant=variant)
         if cart_item.exists():
             item = cart_item.first()
             if item.quantity >= variant.stock:
                 return JsonResponse({"error": "Out of stock"}, status=400)
-            item.quantity+=1
+            item.quantity += 1
             item.save()
             if wishlist_id:
-                Wishlist.objects.filter(id = wishlist_id).delete()
+                Wishlist.objects.filter(id=wishlist_id).delete()
         else:
-            Cart.objects.create(
-                user = request.user,
-                variant=variant,
-                price = variant.price
-            )
+            Cart.objects.create(user=request.user, variant=variant, price=variant.price)
             if wishlist_id:
-                Wishlist.objects.filter(id = wishlist_id).delete()
+                Wishlist.objects.filter(id=wishlist_id).delete()
     else:
-        cart_item = Cart.objects.filter(session_key = request.session.session_key , variant = variant)
+        cart_item = Cart.objects.filter(
+            session_key=request.session.session_key, variant=variant
+        )
         if cart_item.exists():
             item = cart_item.first()
             if item.quantity >= variant.stock:
                 return JsonResponse({"error": "Out of stock"}, status=400)
-            item.quantity +=1
+            item.quantity += 1
             item.save()
             if wishlist_id:
-                Wishlist.objects.filter(id = wishlist_id).delete()
+                Wishlist.objects.filter(id=wishlist_id).delete()
         else:
             Cart.objects.create(
-                session_key = request.session.session_key,
-                variant = variant,
-                price = variant.price
+                session_key=request.session.session_key,
+                variant=variant,
+                price=variant.price,
             )
             if wishlist_id:
-                Wishlist.objects.filter(id = wishlist_id).delete()
+                Wishlist.objects.filter(id=wishlist_id).delete()
 
     return JsonResponse({"success": True}, status=200)
 
-def merge_wishlist_item(request, user , old_session_key):
+
+def merge_wishlist_item(request, user, old_session_key):
     if not old_session_key:
         return
 
-    guest_item = Wishlist.objects.filter(
-        session_key = old_session_key,
-        user = None
-    )
+    guest_item = Wishlist.objects.filter(session_key=old_session_key, user=None)
 
     print(guest_item)
 
     for item in guest_item:
-        existing_item = Wishlist.objects.filter(
-            user = user,
-            variant = item.variant
-        ).first()
+        existing_item = Wishlist.objects.filter(user=user, variant=item.variant).first()
 
         if existing_item:
             item.delete()

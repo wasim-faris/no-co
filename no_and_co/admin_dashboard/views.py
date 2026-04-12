@@ -8,6 +8,7 @@ import time
 import re
 from django.contrib.auth.hashers import make_password, check_password
 from .decorators import admin_required
+
 email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 password_pattern = (
     r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
@@ -24,6 +25,7 @@ def no_cache(response):
     response["Pragma"] = "no-cache"
     response["Expires"] = "0"
     return response
+
 
 @never_cache
 def admin_login(request):
@@ -53,11 +55,13 @@ def admin_login(request):
             return redirect("admin-login")
     return render(request, "account/admin-login.html")
 
+
 @admin_required
 @never_cache
 def admin_dashboard(request):
 
     return render(request, "admin-dashboard.html")
+
 
 @never_cache
 def admin_forgot_password(request):
@@ -96,6 +100,7 @@ def admin_forgot_password(request):
     response = render(request, "account/admin-forgot-pass.html")
     return no_cache(response)
 
+
 @never_cache
 def admin_otp_verification(request):
 
@@ -117,10 +122,10 @@ def admin_otp_verification(request):
 
         otp_attempt = request.session.get("admin_otp_attempt") or 0
 
-        if otp_attempt >=3:
-            request.session.pop("admin_otp",0)
-            request.session.pop("admin_otp_attempt",0)
-            request.session.pop("admin_otp_created_at",0)
+        if otp_attempt >= 3:
+            request.session.pop("admin_otp", 0)
+            request.session.pop("admin_otp_attempt", 0)
+            request.session.pop("admin_otp_created_at", 0)
             messages.error(request, "Too Many Attempts")
             return redirect("admin-forgot-password")
 
@@ -132,9 +137,9 @@ def admin_otp_verification(request):
             return redirect("admin-forgot-password")
 
         if remaining_time <= 0:
-            request.session.pop("admin_otp",0)
-            request.session.pop("admin_otp_created_at",0)
-            request.session.pop("admin_otp_attempt",0)
+            request.session.pop("admin_otp", 0)
+            request.session.pop("admin_otp_created_at", 0)
+            request.session.pop("admin_otp_attempt", 0)
             messages.error(request, "OTP expired resend to get new one")
             return redirect("admin-otp-verification")
 
@@ -144,22 +149,25 @@ def admin_otp_verification(request):
 
         if check_password(admin_otp, otp):
             request.session["admin_otp_verified"] = True
-            request.session.pop("admin_otp",0)
+            request.session.pop("admin_otp", 0)
             request.session.pop("admin_otp_created_at", 0)
-            request.session.pop("admin_resend_otp_attempt",0)
+            request.session.pop("admin_resend_otp_attempt", 0)
             messages.success(request, "otp verify successfuly")
-            request.session.pop("admin_otp_attempt",0)
+            request.session.pop("admin_otp_attempt", 0)
             return redirect("admin-reset-password")
         else:
-            otp_attempt+=1
+            otp_attempt += 1
             request.session["admin_otp_attempt"] = otp_attempt
             messages.error(request, "invalid OTP")
             return redirect("admin-otp-verification")
 
     response = render(
-    request, "account/admin-otp-verification.html", {"remaining_time": remaining_time}
+        request,
+        "account/admin-otp-verification.html",
+        {"remaining_time": remaining_time},
     )
     return no_cache(response)
+
 
 @never_cache
 def admin_reset_password(request):
@@ -194,14 +202,16 @@ def admin_reset_password(request):
 
         try:
             user = User.objects.get(email=email)
-            if check_password(new_password , user.password):
-                messages.error(request,"New password must be different from old password.")
+            if check_password(new_password, user.password):
+                messages.error(
+                    request, "New password must be different from old password."
+                )
                 return redirect("admin-reset-password")
 
             user.set_password(new_password)
             user.save()
             request.session.flush()
-            #sometimes flush didnt work so for safety
+            # sometimes flush didnt work so for safety
             request.session.pop("admin_otp_verified", None)
             messages.success(request, "Password changed successfully")
             return redirect("admin-login")
@@ -219,20 +229,20 @@ def admin_reset_password(request):
 def admin_resend_otp(request):
     if request.method == "POST":
 
-        request.session.pop("admin_otp_attempt",0)
+        request.session.pop("admin_otp_attempt", 0)
         request.session.pop("admin_otp", 0)
         request.session.pop("admin_otp_created_at", 0)
-        resend_otp_attempt =request.session.get("resend_otp_attempt",0)
+        resend_otp_attempt = request.session.get("resend_otp_attempt", 0)
         email = request.session.get("admin_email", None)
 
         if not email:
             messages.error(request, "Session expired. Please try again")
             return redirect("admin-forgot-password")
 
-        if resend_otp_attempt >=3:
-            request.session.pop("admin_otp",0)
-            request.session.pop("admin_resend_otp_attempt",0)
-            request.session.pop("admin_otp_created_at",0)
+        if resend_otp_attempt >= 3:
+            request.session.pop("admin_otp", 0)
+            request.session.pop("admin_resend_otp_attempt", 0)
+            request.session.pop("admin_otp_created_at", 0)
             messages.error(request, "Too Many Attempts")
             return redirect("admin-forgot-password")
 
@@ -241,7 +251,7 @@ def admin_resend_otp(request):
         request.session["admin_otp"] = admin_hashed_otp
         request.session["admin_otp_created_at"] = time.time()
 
-        resend_otp_attempt+=1
+        resend_otp_attempt += 1
         request.session["resend_otp_attempt"] = resend_otp_attempt
 
         send_mail(
@@ -282,9 +292,7 @@ def admin_user_management(request):
         return redirect("home")
 
     if query:
-        users = users.filter(
-            Q(username__icontains=query)
-        )
+        users = users.filter(Q(username__icontains=query))
 
     users = users.order_by("-created_at")
 
@@ -293,16 +301,16 @@ def admin_user_management(request):
 
     users_count = User.objects.exclude(is_superuser=True).count()
     if request.headers.get("HX-Request"):
-        return render(request, "user_table_rows.html", {
-            "page_obj": page_obj
-        })
+        return render(request, "user_table_rows.html", {"page_obj": page_obj})
 
-    return render(request, "admin-user-management.html",{
-        "users_count":users_count,
-        "page_obj":page_obj
-    })
+    return render(
+        request,
+        "admin-user-management.html",
+        {"users_count": users_count, "page_obj": page_obj},
+    )
 
-def admin_user_active_toggle(request,id):
+
+def admin_user_active_toggle(request, id):
 
     if request.method == "POST":
         try:

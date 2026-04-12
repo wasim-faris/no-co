@@ -9,5 +9,6 @@ urlpatterns = [
     path("api/variant-sizes/<int:variant_id>/", views.get_variant_sizes, name="get-variant-sizes"),
     path("checkout/", views.checkout, name="checkout"),
     path("place-order/", views.place_order , name="place_order"),
-    path("order-success/", views.order_success, name="order-success")
+    path("order-success/", views.order_success, name="order-success"),
+    path("order-management/", views.order_management, name="order-management")
 ]

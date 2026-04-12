@@ -1,0 +1,779 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}My Orders – NO&CO{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* ─── Page Heading (Identical to Cart/Wishlist/Checkout) ────── */
+    .page-heading {
+        font-family: "Inter", "Helvetica Neue", Arial, sans-serif !important;
+        font-size: 36px;
+        line-height: 1.2;
+        font-weight: 500;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin-top: 3rem;
+        margin-bottom: 2.5rem;
+        color: #000;
+    }
+
+    /* ─── Search ─────────────────────────────────────────────────── */
+    .order-search-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border: 1px solid #111;
+        padding: 0 1rem;
+        margin-bottom: 3rem;
+    }
+    .order-search-bar input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-family: inherit;
+        font-size: 0.8rem;
+        letter-spacing: 0.02em;
+        padding: 0.9rem 0;
+        background: transparent;
+    }
+    .order-search-bar i {
+        font-size: 1rem;
+        opacity: 0.5;
+    }
+
+    /* ─── Order Card ─────────────────────────────────────────────── */
+    .order-card {
+        border: 1px solid #eee;
+        margin-bottom: 1.5rem;
+        transition: opacity 0.25s ease;
+    }
+    .order-card:hover {
+        border-color: #ccc;
+    }
+    .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #eee;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    .order-id-text {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+    .order-meta-text {
+        font-size: 0.65rem;
+        color: #757575;
+        letter-spacing: 0.04em;
+    }
+
+    /* ─── Status Tags ────────────────────────────────────────────── */
+    .status-tag {
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.35rem 0.9rem;
+        border: 1px solid;
+        display: inline-block;
+    }
+    .status-delivered { color: #16A34A; border-color: #16A34A; }
+    .status-shipped   { color: #2874F0; border-color: #2874F0; }
+    .status-processing{ color: #F59E0B; border-color: #F59E0B; }
+    .status-cancelled { color: #DC2626; border-color: #DC2626; }
+    .status-returned  { color: #7C3AED; border-color: #7C3AED; }
+
+    /* ─── Product Row ────────────────────────────────────────────── */
+    .order-product-row {
+        display: flex;
+        gap: 1.25rem;
+        padding: 1.5rem;
+        align-items: flex-start;
+        border-bottom: 1px solid #f5f5f5;
+    }
+    .order-product-row:last-child { border-bottom: none; }
+    .order-prod-img {
+        width: 90px;
+        height: 120px;
+        object-fit: cover;
+        background: #f5f5f5;
+        flex-shrink: 0;
+    }
+    .order-prod-name {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        line-height: 1.3;
+        margin-bottom: 0.5rem;
+    }
+    .order-prod-meta {
+        font-size: 0.7rem;
+        color: #757575;
+        line-height: 1.7;
+    }
+    .order-prod-price {
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-top: 0.75rem;
+    }
+
+    /* ─── Actions Bar ────────────────────────────────────────────── */
+    .order-actions-bar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #eee;
+        background: #fafafa;
+        flex-wrap: wrap;
+    }
+    .order-btn {
+        font-family: inherit;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        padding: 0.7rem 1.5rem;
+        border: 1px solid #111;
+        background: transparent;
+        color: #111;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+    }
+    .order-btn:hover {
+        background: #111;
+        color: #fff;
+    }
+    .order-btn:active {
+        transform: scale(0.97);
+    }
+    .order-btn-fill {
+        background: #111;
+        color: #fff;
+    }
+    .order-btn-fill:hover {
+        background: #333;
+    }
+    .order-btn-danger {
+        border-color: #DC2626;
+        color: #DC2626;
+    }
+    .order-btn-danger:hover {
+        background: #DC2626;
+        color: #fff;
+    }
+    .order-btn-text {
+        background: none;
+        border: none;
+        padding: 0.5rem 0;
+        font-size: 0.65rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #111;
+        text-decoration: underline;
+        cursor: pointer;
+        transition: opacity 0.2s;
+    }
+    .order-btn-text:hover { opacity: 0.6; }
+
+    /* ─── Tracking Stepper ───────────────────────────────────────── */
+    .tracking-stepper {
+        display: flex;
+        justify-content: space-between;
+        padding: 2rem 1.5rem;
+        position: relative;
+    }
+    .tracking-stepper::before {
+        content: '';
+        position: absolute;
+        top: 2.5rem;
+        left: 4rem;
+        right: 4rem;
+        height: 1px;
+        background: #eee;
+    }
+    .tracking-progress-fill {
+        position: absolute;
+        top: 2.5rem;
+        left: 4rem;
+        height: 1px;
+        background: #111;
+        transition: width 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .track-step {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        width: 100px;
+    }
+    .track-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 1.5px solid #ccc;
+        background: #fff;
+        transition: all 0.4s ease;
+    }
+    .track-step.done .track-dot {
+        background: #111;
+        border-color: #111;
+    }
+    .track-step.current .track-dot {
+        background: #fff;
+        border-color: #111;
+        box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+    }
+    .track-label {
+        font-size: 0.55rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #bbb;
+        text-align: center;
+    }
+    .track-step.done .track-label,
+    .track-step.current .track-label { color: #111; }
+
+    /* ─── Cancellation Reason Banner ─────────────────────────────── */
+    .cancel-banner {
+        margin: 0 1.5rem 1.5rem;
+        padding: 1rem 1.25rem;
+        border-left: 2px solid #DC2626;
+        background: #fefefe;
+    }
+    .cancel-banner p {
+        font-size: 0.7rem;
+        color: #757575;
+        line-height: 1.6;
+    }
+    .cancel-banner strong {
+        color: #111;
+        font-weight: 600;
+    }
+
+    /* ─── Modal (Matches Cart Remove Modal) ──────────────────────── */
+    .om-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .om-modal-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .om-modal-bg {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(1px);
+    }
+    .om-modal-panel {
+        position: relative;
+        background: #fff;
+        width: 100%;
+        max-width: 500px;
+        margin: 0 1rem;
+        padding: 2.5rem 2rem 2rem;
+        transform: translateY(12px);
+        transition: transform 0.3s ease-out;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+    }
+    .om-modal-overlay.open .om-modal-panel {
+        transform: translateY(0);
+    }
+    .om-modal-title {
+        font-size: 0.95rem;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 1.5rem;
+    }
+    .om-modal-close {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+        opacity: 0.4;
+        transition: opacity 0.2s;
+        background: none;
+        border: none;
+    }
+    .om-modal-close:hover { opacity: 1; }
+    .om-modal-body p {
+        font-size: 0.85rem;
+        color: #111;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+    .om-modal-body textarea {
+        width: 100%;
+        border: 1px solid #ddd;
+        padding: 0.85rem 1rem;
+        font-family: inherit;
+        font-size: 0.8rem;
+        resize: none;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    .om-modal-body textarea:focus {
+        border-color: #111;
+    }
+    .om-modal-hint {
+        font-size: 0.6rem;
+        margin-top: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+    .om-modal-hint.success { color: #16A34A; font-weight: 500; }
+    .om-modal-hint.danger  { color: #DC2626; font-weight: 500; }
+    .om-modal-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    .om-modal-actions .order-btn { flex: 1; justify-content: center; }
+
+    /* ─── Detail Expandable Section ───────────────────────────────── */
+    .order-detail-drawer {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.4s ease-in-out;
+        border-top: 1px solid #eee;
+    }
+    .order-detail-drawer.open {
+        max-height: 600px;
+    }
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        padding: 2rem 1.5rem;
+    }
+    .detail-block h5 {
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #757575;
+        margin: 0 0 1rem 0;
+    }
+    .detail-block p {
+        font-size: 0.8rem;
+        line-height: 1.7;
+        margin: 0;
+        color: #111;
+    }
+    .summary-line {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        margin-bottom: 0.6rem;
+        color: #757575;
+    }
+    .summary-line span:last-child { color: #111; }
+    .summary-total-line {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.95rem;
+        font-weight: 700;
+        padding-top: 1rem;
+        margin-top: 1rem;
+        border-top: 1px solid #eee;
+        color: #111;
+    }
+
+    /* ─── Slide-Up Stagger Animation ─────────────────────────────── */
+    @keyframes slideUpFade {
+        from { opacity: 0; transform: translateY(20px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .order-card {
+        opacity: 0;
+        animation: slideUpFade 0.5s ease forwards;
+    }
+    .order-card:nth-child(1) { animation-delay: 0.05s; }
+    .order-card:nth-child(2) { animation-delay: 0.15s; }
+    .order-card:nth-child(3) { animation-delay: 0.25s; }
+
+    /* ─── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+        .tracking-stepper { display: none; }
+        .order-product-row { flex-direction: row; gap: 1rem; }
+        .order-prod-img { width: 75px; height: 100px; }
+        .detail-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+        .order-actions-bar { justify-content: center; }
+        .order-search-bar { margin-bottom: 2rem; }
+    }
+    @media (max-width: 600px) {
+        .page-heading { font-size: 24px; }
+        .order-card-header { padding: 1rem; }
+        .order-product-row { padding: 1rem; }
+        .order-actions-bar { padding: 0.75rem 1rem; gap: 0.5rem; }
+        .order-btn { padding: 0.6rem 1rem; font-size: 0.6rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-4 md:px-8 md:py-8 lg:pb-20 w-full">
+
+    <h1 class="page-heading">My Orders</h1>
+
+    <!-- ─── Search Bar ──────────────────────────────────────────── -->
+    <div class="order-search-bar">
+        <i class="ri-search-line"></i>
+        <input type="text" id="orderSearchInput" placeholder="Search by Order ID or Product" autocomplete="off">
+    </div>
+
+    <!-- ─── Order List ──────────────────────────────────────────── -->
+    <!-- Django Integration: wrap with [for order in orders] -->
+
+    <!-- ═══════════════════════════════════════════════
+         ORDER 1: DELIVERED — Oversized Cotton Shirt
+         ═══════════════════════════════════════════════ -->
+    <article class="order-card" data-order-id="HM-992834">
+        <div class="order-card-header">
+            <div>
+                <span class="order-id-text">#HM-992834</span>
+                <span class="order-meta-text ml-3">10 Apr 2026</span>
+            </div>
+            <span class="status-tag status-delivered">Delivered</span>
+        </div>
+
+        <!-- Tracking -->
+        <div class="tracking-stepper">
+            <div class="tracking-progress-fill" style="width: calc(100% - 8rem);"></div>
+            <div class="track-step done"><div class="track-dot"></div><span class="track-label">Ordered</span></div>
+            <div class="track-step done"><div class="track-dot"></div><span class="track-label">Packed</span></div>
+            <div class="track-step done"><div class="track-dot"></div><span class="track-label">Shipped</span></div>
+            <div class="track-step done"><div class="track-dot"></div><span class="track-label">Out for Delivery</span></div>
+            <div class="track-step done current"><div class="track-dot"></div><span class="track-label">Delivered</span></div>
+        </div>
+
+        <!-- Products -->
+        <div class="order-product-row">
+            <img src="https://image.hm.com/assets/hm/d9/d2/d9d22770c6399170f81f951c3985a5df1af61949.jpg?imwidth=384" alt="Oversized Cotton Shirt" class="order-prod-img">
+            <div class="flex-1">
+                <h4 class="order-prod-name">Oversized Cotton Shirt</h4>
+                <div class="order-prod-meta">
+                    Colour: White<br>
+                    Size: M<br>
+                    Qty: 1
+                </div>
+                <p class="order-prod-price">Rs. 1,299</p>
+            </div>
+            <div class="hidden md:flex items-start">
+                <button class="order-btn-text" onclick="openModal('returnModal')">Return Item</button>
+            </div>
+        </div>
+        <div class="order-product-row">
+            <img src="https://image.hm.com/assets/hm/f3/f2/f3f2031a46b64589003bda133e3e1c265476cfcd.jpg?imwidth=384" alt="Tailored Wool Trousers" class="order-prod-img">
+            <div class="flex-1">
+                <h4 class="order-prod-name">Tailored Wool Trousers</h4>
+                <div class="order-prod-meta">
+                    Colour: Black<br>
+                    Size: 32<br>
+                    Qty: 1
+                </div>
+                <p class="order-prod-price">Rs. 2,499</p>
+            </div>
+            <div class="hidden md:flex items-start">
+                <button class="order-btn-text" onclick="openModal('returnModal')">Return Item</button>
+            </div>
+        </div>
+
+        <!-- Expandable Detail Drawer -->
+        <div class="order-detail-drawer" id="detail-1">
+            <div class="detail-grid">
+                <div class="detail-block">
+                    <h5>Delivery Address</h5>
+                    <p>Arjun Mehta<br>42 MG Road, Indiranagar<br>Bangalore, Karnataka 560038</p>
+                </div>
+                <div class="detail-block">
+                    <h5>Payment Method</h5>
+                    <p>UPI — PhonePe<br>Transaction ID: TXN-887291</p>
+                </div>
+                <div class="detail-block" style="grid-column: 1 / -1;">
+                    <h5>Order Summary</h5>
+                    <div class="summary-line"><span>Items (2)</span><span>Rs. 3,798</span></div>
+                    <div class="summary-line"><span>Delivery</span><span style="color: #16A34A;">FREE</span></div>
+                    <div class="summary-line"><span>Estimated Tax</span><span>Rs. 201</span></div>
+                    <div class="summary-total-line"><span>Total</span><span>Rs. 3,999</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="order-actions-bar">
+            <a href="#" class="order-btn"><i class="ri-file-pdf-line"></i> Download Invoice (PDF)</a>
+            <button class="order-btn" onclick="toggleDetail('detail-1', this)"><i class="ri-eye-line"></i> View Details</button>
+            <button class="order-btn md:hidden" onclick="openModal('returnModal')">Return</button>
+        </div>
+    </article>
+
+
+    <!-- ═══════════════════════════════════════════════
+         ORDER 2: SHIPPED — Relaxed Fit Linen Jacket
+         ═══════════════════════════════════════════════ -->
+    <article class="order-card" data-order-id="HM-881205">
+        <div class="order-card-header">
+            <div>
+                <span class="order-id-text">#HM-881205</span>
+                <span class="order-meta-text ml-3">08 Apr 2026</span>
+            </div>
+            <span class="status-tag status-shipped">Shipped</span>
+        </div>
+
+        <!-- Tracking -->
+        <div class="tracking-stepper">
+            <div class="tracking-progress-fill" style="width: calc(50% - 4rem);"></div>
+            <div class="track-step done"><div class="track-dot"></div><span class="track-label">Ordered</span></div>
+            <div class="track-step done"><div class="track-dot"></div><span class="track-label">Packed</span></div>
+            <div class="track-step current"><div class="track-dot"></div><span class="track-label">Shipped</span></div>
+            <div class="track-step"><div class="track-dot"></div><span class="track-label">Out for Delivery</span></div>
+            <div class="track-step"><div class="track-dot"></div><span class="track-label">Delivered</span></div>
+        </div>
+
+        <!-- Products -->
+        <div class="order-product-row">
+            <img src="https://image.hm.com/assets/hm/3e/b4/3eb46a8906c06c1b2de0c0cc24b7955020efbe69.jpg?imwidth=384" alt="Relaxed Fit Linen Jacket" class="order-prod-img">
+            <div class="flex-1">
+                <h4 class="order-prod-name">Relaxed Fit Linen Jacket</h4>
+                <div class="order-prod-meta">
+                    Colour: Beige<br>
+                    Size: L<br>
+                    Qty: 1
+                </div>
+                <p class="order-prod-price">Rs. 4,999</p>
+            </div>
+            <div class="hidden md:flex items-start">
+                <button class="order-btn-text" onclick="openModal('cancelModal')">Cancel Item</button>
+            </div>
+        </div>
+
+        <!-- Expandable Detail Drawer -->
+        <div class="order-detail-drawer" id="detail-2">
+            <div class="detail-grid">
+                <div class="detail-block">
+                    <h5>Delivery Address</h5>
+                    <p>Vikram Das<br>17-B Juhu Scheme, Andheri West<br>Mumbai, Maharashtra 400058</p>
+                </div>
+                <div class="detail-block">
+                    <h5>Payment Method</h5>
+                    <p>Visa ending in 4242</p>
+                </div>
+                <div class="detail-block" style="grid-column: 1 / -1;">
+                    <h5>Order Summary</h5>
+                    <div class="summary-line"><span>Items (1)</span><span>Rs. 4,999</span></div>
+                    <div class="summary-line"><span>Delivery</span><span style="color: #16A34A;">FREE</span></div>
+                    <div class="summary-total-line"><span>Total</span><span>Rs. 4,999</span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="order-actions-bar">
+            <button class="order-btn" onclick="toggleDetail('detail-2', this)"><i class="ri-eye-line"></i> View Details</button>
+            <button class="order-btn order-btn-danger" onclick="openModal('cancelModal')"><i class="ri-close-line"></i> Cancel Order</button>
+        </div>
+    </article>
+
+
+    <!-- ═══════════════════════════════════════════════
+         ORDER 3: CANCELLED — Slim Fit Formal Blazer
+         ═══════════════════════════════════════════════ -->
+    <article class="order-card" data-order-id="HM-770012">
+        <div class="order-card-header">
+            <div>
+                <span class="order-id-text">#HM-770012</span>
+                <span class="order-meta-text ml-3">05 Apr 2026</span>
+            </div>
+            <span class="status-tag status-cancelled">Cancelled</span>
+        </div>
+
+        <!-- Products -->
+        <div class="order-product-row">
+            <img src="https://image.hm.com/assets/hm/c7/b8/c7b8ed5bb65ce332e3914d5ab64a6c0aaaa76874.jpg?imwidth=384" alt="Slim Fit Formal Blazer" class="order-prod-img">
+            <div class="flex-1">
+                <h4 class="order-prod-name">Slim Fit Formal Blazer</h4>
+                <div class="order-prod-meta">
+                    Colour: Navy<br>
+                    Size: 40<br>
+                    Qty: 1
+                </div>
+                <p class="order-prod-price">Rs. 6,999</p>
+            </div>
+        </div>
+
+        <div class="cancel-banner">
+            <p><strong>Cancellation Reason:</strong> Found a better price. Changed my mind.</p>
+            <p>Refund of Rs. 6,999 processed to original payment method.</p>
+        </div>
+
+        <!-- Expandable Detail Drawer -->
+        <div class="order-detail-drawer" id="detail-3">
+            <div class="detail-grid">
+                <div class="detail-block">
+                    <h5>Delivery Address</h5>
+                    <p>Priya Sharma<br>Plot 8, Sector 15<br>Noida, UP 201301</p>
+                </div>
+                <div class="detail-block">
+                    <h5>Payment Method</h5>
+                    <p>Mastercard ending in 1122<br>Refunded: Rs. 6,999</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="order-actions-bar">
+            <button class="order-btn" onclick="toggleDetail('detail-3', this)"><i class="ri-eye-line"></i> View Details</button>
+        </div>
+    </article>
+
+    <!-- Django Integration: [endfor] -->
+
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MODALS
+     ═══════════════════════════════════════════════════ -->
+
+<!-- Return Modal -->
+<div id="returnModal" class="om-modal-overlay" aria-modal="true" role="dialog">
+    <div class="om-modal-bg" onclick="closeModal('returnModal')"></div>
+    <div class="om-modal-panel">
+        <button class="om-modal-close" onclick="closeModal('returnModal')"><i class="ri-close-line"></i></button>
+        <h3 class="om-modal-title">Return Item</h3>
+        <div class="om-modal-body">
+            <p>Please tell us why you'd like to return this item.<br>A reason is required to process the return.</p>
+            <textarea id="returnReasonText" rows="4" placeholder="e.g. Doesn't fit correctly, colour differs from image..." required></textarea>
+            <div class="om-modal-hint danger"><i class="ri-error-warning-line"></i> Reason is required for returns.</div>
+        </div>
+        <div class="om-modal-actions">
+            <button class="order-btn" onclick="closeModal('returnModal')">Cancel</button>
+            <button class="order-btn order-btn-fill" onclick="submitReturn()">Submit Return</button>
+        </div>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div id="cancelModal" class="om-modal-overlay" aria-modal="true" role="dialog">
+    <div class="om-modal-bg" onclick="closeModal('cancelModal')"></div>
+    <div class="om-modal-panel">
+        <button class="om-modal-close" onclick="closeModal('cancelModal')"><i class="ri-close-line"></i></button>
+        <h3 class="om-modal-title">Cancel Order</h3>
+        <div class="om-modal-body">
+            <p>Are you sure you would like to cancel this item?</p>
+            <textarea rows="3" placeholder="Reason for cancellation (optional)"></textarea>
+            <div class="om-modal-hint success"><i class="ri-refresh-line"></i> Stock will be automatically restored upon cancellation.</div>
+        </div>
+        <div class="om-modal-actions">
+            <button class="order-btn" onclick="closeModal('cancelModal')">Keep Order</button>
+            <button class="order-btn order-btn-danger" onclick="confirmCancel()">Confirm Cancellation</button>
+        </div>
+    </div>
+</div>
+
+{% include 'user_base/components/footer.html' %}
+
+
+<!-- ═══════════════════════════════════════════════════
+     SCRIPTS — Vanilla JS for all interactions
+     ═══════════════════════════════════════════════════ -->
+<script>
+(function() {
+    'use strict';
+
+    /* ── Modal Logic ─────────────────────────────────────────── */
+    window.openModal = function(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+    };
+    window.closeModal = function(id) {
+        const modal = document.getElementById(id);
+        if (modal) {
+            modal.classList.remove('open');
+            document.body.style.overflow = '';
+        }
+    };
+
+    /* ── Detail Drawer Toggle ────────────────────────────────── */
+    window.toggleDetail = function(id, btn) {
+        const drawer = document.getElementById(id);
+        if (!drawer) return;
+        const isOpen = drawer.classList.toggle('open');
+        const icon = btn.querySelector('i');
+        if (icon) {
+            icon.className = isOpen ? 'ri-eye-off-line' : 'ri-eye-line';
+        }
+    };
+
+    /* ── Return Submit (Demo Only) ───────────────────────────── */
+    window.submitReturn = function() {
+        const reason = document.getElementById('returnReasonText');
+        if (!reason || !reason.value.trim()) {
+            reason.style.borderColor = '#DC2626';
+            reason.focus();
+            return;
+        }
+        alert('Return request submitted successfully.');
+        closeModal('returnModal');
+        reason.value = '';
+        reason.style.borderColor = '';
+    };
+
+    /* ── Cancel Confirm (Demo Only) ──────────────────────────── */
+    window.confirmCancel = function() {
+        alert('Order cancelled successfully. Stock will be restored.');
+        closeModal('cancelModal');
+    };
+
+    /* ── Search Filter (Demo) ────────────────────────────────── */
+    const searchInput = document.getElementById('orderSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase();
+            document.querySelectorAll('.order-card').forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+    }
+
+    /* ── Keyboard Escape to close modals ─────────────────────── */
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.om-modal-overlay.open').forEach(m => {
+                m.classList.remove('open');
+            });
+            document.body.style.overflow = '';
+        }
+    });
+})();
+</script>
+
+{% endblock %}

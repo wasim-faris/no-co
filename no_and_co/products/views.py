@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from .models import Product, Variant,VariantImage,Size
+from .models import Product, Variant, VariantImage, Size
 from category.models import Category, Subcategory
 from django.http import JsonResponse
 from django.contrib import messages
@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.db import transaction
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
+
 
 @admin_required
 @never_cache
@@ -22,9 +23,9 @@ def admin_products(request):
     query = request.GET.get("q")
     if query:
         product = product.filter(
-            Q(product_name__icontains=query) |
-            Q(category__category_name__icontains=query) |
-            Q(subcategory__subcategory_name__icontains=query)
+            Q(product_name__icontains=query)
+            | Q(category__category_name__icontains=query)
+            | Q(subcategory__subcategory_name__icontains=query)
         )
 
     if request.method == "POST":
@@ -47,9 +48,9 @@ def admin_products(request):
 
     product = product.prefetch_related(
         Prefetch(
-            'variants',
+            "variants",
             queryset=Variant.objects.filter(is_default=True, is_deleted=False),
-            to_attr='default_variants'
+            to_attr="default_variants",
         )
     ).order_by("-id")
 
@@ -60,16 +61,24 @@ def admin_products(request):
     paginator = Paginator(product, 4)
     page_obj = paginator.get_page(request.GET.get("page"))
 
-    return render(request, "product/admin-products.html", {
-        "page_obj": page_obj,
-        "count": count,
-        "active_count": active_count,
-        "inactive_count": inactive_count
-    })
+    return render(
+        request,
+        "product/admin-products.html",
+        {
+            "page_obj": page_obj,
+            "count": count,
+            "active_count": active_count,
+            "inactive_count": inactive_count,
+        },
+    )
+
 
 def get_subcategories(request, category_id):
-    subs = Subcategory.objects.filter(category_id=category_id, is_active=True, is_deleted=False)
+    subs = Subcategory.objects.filter(
+        category_id=category_id, is_active=True, is_deleted=False
+    )
     return JsonResponse({"subcategories": list(subs.values("id", "subcategory_name"))})
+
 
 @admin_required
 @never_cache
@@ -91,26 +100,33 @@ def admin_product_details(request, id):
             except ValueError:
                 messages.error(request, "Invalid stock value")
                 return redirect("admin-product-details", id=product.id)
-            if Variant.objects.filter(product=product, size_id=size_obj.id, color=request.POST.get("color"), is_deleted=False).exists():
-                messages.warning(request, "A variant with this size and color already exists.")
+            if Variant.objects.filter(
+                product=product,
+                size_id=size_obj.id,
+                color=request.POST.get("color"),
+                is_deleted=False,
+            ).exists():
+                messages.warning(
+                    request, "A variant with this size and color already exists."
+                )
                 return redirect("admin-product-details", id=product.id)
 
             Variant.objects.create(
-                product = product,
-                size = size_obj,
-                color = request.POST.get("color"),
-                color_hex = request.POST.get("color_hex"),
-                price = request.POST.get("price"),
-                stock = stock_val,
-                is_active = request.POST.get("is_active") == "true",
-                is_default = request.POST.get("is_default") == "true",
+                product=product,
+                size=size_obj,
+                color=request.POST.get("color"),
+                color_hex=request.POST.get("color_hex"),
+                price=request.POST.get("price"),
+                stock=stock_val,
+                is_active=request.POST.get("is_active") == "true",
+                is_default=request.POST.get("is_default") == "true",
             )
             messages.success(request, "Product variant created successfully")
             return redirect("admin-product-details", id=product.id)
 
         if action == "edit_variant":
             variant_id = request.POST.get("variant_id")
-            variant = get_object_or_404(Variant , id=variant_id)
+            variant = get_object_or_404(Variant, id=variant_id)
             size = request.POST.get("size")
             price = request.POST.get("price")
 
@@ -128,7 +144,9 @@ def admin_product_details(request, id):
             is_default = request.POST.get("is_default") == "true"
 
             if is_default:
-                Variant.objects.filter(is_default = True , product = variant.product).update(is_default = False)
+                Variant.objects.filter(is_default=True, product=variant.product).update(
+                    is_default=False
+                )
 
             size_obj, _ = Size.objects.get_or_create(name=size)
             variant.size = size_obj
@@ -147,7 +165,7 @@ def admin_product_details(request, id):
             variant = get_object_or_404(Variant, id=variant_id)
             variant.is_deleted = True
             variant.save()
-            messages.success(request,"Product variant deleted succesfully")
+            messages.success(request, "Product variant deleted succesfully")
             return redirect("admin-product-details", id=product.id)
 
         if action == "set_default":
@@ -177,15 +195,19 @@ def admin_product_details(request, id):
 
         return redirect("admin-product-details", id=product.id)
 
-
     category = Category.objects.filter(is_deleted=False, is_active=True)
     subcategory = Subcategory.objects.filter(is_deleted=False, is_active=True)
 
-    return render(request, "product/admin-product-details.html", {
-        "product": product,
-        "category": category,
-        "subcategory": subcategory,
-    })
+    return render(
+        request,
+        "product/admin-product-details.html",
+        {
+            "product": product,
+            "category": category,
+            "subcategory": subcategory,
+        },
+    )
+
 
 @admin_required
 @never_cache
@@ -233,17 +255,19 @@ def admin_product_management(request, id=None):
                 care_guide=washing,
                 delivery_returns=delivery_returns,
                 category=category,
-                subcategory=subcategory
+                subcategory=subcategory,
             )
             messages.success(request, "Product Created")
 
         return redirect("admin-products")
 
     category_option = Category.objects.filter(is_deleted=False, is_active=True)
-    return render(request, "product/product-form.html", {
-        "product": product,
-        "category_option": category_option
-    })
+    return render(
+        request,
+        "product/product-form.html",
+        {"product": product, "category_option": category_option},
+    )
+
 
 def admin_soft_delete(request, id):
     product = get_object_or_404(Product, id=id)
@@ -252,12 +276,16 @@ def admin_soft_delete(request, id):
     messages.success(request, "Product deleted")
     return redirect("admin-products")
 
+
 def admin_product_toggle(request, id):
     product = get_object_or_404(Product, id=id)
     product.is_active = not product.is_active
     product.save()
-    messages.success(request, f"Product {'active' if product.is_active else 'inactive'} successfully")
-    return redirect(request.META.get('HTTP_REFERER'))
+    messages.success(
+        request, f"Product {'active' if product.is_active else 'inactive'} successfully"
+    )
+    return redirect(request.META.get("HTTP_REFERER"))
+
 
 @admin_required
 @never_cache
@@ -292,7 +320,9 @@ def admin_variants(request, id):
             skipped_count = 0
 
             for size_id in sizes:
-                exists = Variant.objects.filter(product=product, size_id=size_id, color=color, is_deleted=False).exists()
+                exists = Variant.objects.filter(
+                    product=product, size_id=size_id, color=color, is_deleted=False
+                ).exists()
                 if not exists:
                     variant = Variant.objects.create(
                         product=product,
@@ -301,19 +331,24 @@ def admin_variants(request, id):
                         price=price,
                         stock=stock_val,
                         color_hex=color_hex,
-                        is_active=is_active
+                        is_active=is_active,
                     )
 
                     primary_val = request.POST.get("primary_image", "new_0")
-                    
+
                     for i in range(4):
                         img = request.FILES.get(f"image_{i}")
                         if img:
                             img.seek(0)
-                            is_primary = (f"new_{i}" == primary_val)
-                            VariantImage.objects.create(variant=variant, image=img, is_primary=is_primary)
+                            is_primary = f"new_{i}" == primary_val
+                            VariantImage.objects.create(
+                                variant=variant, image=img, is_primary=is_primary
+                            )
 
-                    if variant.images.exists() and not variant.images.filter(is_primary=True).exists():
+                    if (
+                        variant.images.exists()
+                        and not variant.images.filter(is_primary=True).exists()
+                    ):
                         first_img = variant.images.first()
                         first_img.is_primary = True
                         first_img.save()
@@ -329,9 +364,12 @@ def admin_variants(request, id):
                 messages.success(request, msg)
                 return redirect(request.path_info)
             else:
-                messages.warning(request, "No variants were added (all selected combinations already exist).")
+                messages.warning(
+                    request,
+                    "No variants were added (all selected combinations already exist).",
+                )
 
-            return redirect(request.path_info + '?' + request.GET.urlencode())
+            return redirect(request.path_info + "?" + request.GET.urlencode())
 
         elif action == "edit_variant":
             variant_id = request.POST.get("variant_id")
@@ -366,8 +404,10 @@ def admin_variants(request, id):
             for i in range(4):
                 img = request.FILES.get(f"image_{i}")
                 if img:
-                    is_primary = (f"new_{i}" == primary_val)
-                    VariantImage.objects.create(variant=variant, image=img, is_primary=is_primary)
+                    is_primary = f"new_{i}" == primary_val
+                    VariantImage.objects.create(
+                        variant=variant, image=img, is_primary=is_primary
+                    )
 
             if primary_val.startswith("existing_") and primary_val != "":
                 img_id = primary_val.split("_")[-1]
@@ -378,7 +418,10 @@ def admin_variants(request, id):
                 if new_primary:
                     variant.images.exclude(id=new_primary.id).update(is_primary=False)
 
-            if variant.images.exists() and not variant.images.filter(is_primary=True).exists():
+            if (
+                variant.images.exists()
+                and not variant.images.filter(is_primary=True).exists()
+            ):
                 first = variant.images.first()
                 first.is_primary = True
                 first.save()
@@ -387,7 +430,7 @@ def admin_variants(request, id):
                 variant.save()
 
             messages.success(request, "Variant updated successfully")
-            return redirect(request.path_info + '?' + request.GET.urlencode())
+            return redirect(request.path_info + "?" + request.GET.urlencode())
 
         elif action == "toggle_variant":
             variant_id = request.POST.get("variant_id")
@@ -397,7 +440,10 @@ def admin_variants(request, id):
             else:
                 variant.is_active = not variant.is_active
                 variant.save()
-                messages.success(request, f"Variant {'active' if variant.is_active else 'inactive'} successfully")
+                messages.success(
+                    request,
+                    f"Variant {'active' if variant.is_active else 'inactive'} successfully",
+                )
 
         elif action == "set_default":
             variant_id = request.POST.get("variant_id")
@@ -427,16 +473,18 @@ def admin_variants(request, id):
             variant.delete()
             messages.success(request, "Variant deleted permanently")
 
-        return redirect(request.path_info + '?' + request.GET.urlencode())
+        return redirect(request.path_info + "?" + request.GET.urlencode())
 
-    variants = Variant.objects.filter(product=product).order_by('-is_default', '-id').prefetch_related('images')
+    variants = (
+        Variant.objects.filter(product=product)
+        .order_by("-is_default", "-id")
+        .prefetch_related("images")
+    )
 
     q = request.GET.get("q")
     if q:
         variants = variants.filter(
-            Q(color__icontains=q) |
-            Q(size__name__icontains=q) |
-            Q(sku__icontains=q)
+            Q(color__icontains=q) | Q(size__name__icontains=q) | Q(sku__icontains=q)
         )
 
     status = request.GET.get("status")
@@ -466,8 +514,8 @@ def admin_variants(request, id):
         "page_obj": page_obj,
         "active_count": active_count,
         "inactive_count": inactive_count,
-        "total_count":total_count,
-        "sizes":sizes
+        "total_count": total_count,
+        "sizes": sizes,
     }
 
     return render(request, "variant/admin-variants.html", context)

@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Category,Subcategory
+from .models import Category, Subcategory
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -8,13 +8,13 @@ from django.utils import timezone
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
 
+
 @admin_required
 @never_cache
 def admin_category(request):
 
     page_number = request.GET.get("page")
     query = request.GET.get("q", "")
-
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -30,7 +30,7 @@ def admin_category(request):
             name = request.POST.get("category_name")
             name = name.strip().upper()
 
-            if Category.objects.filter(category_name = name).exists():
+            if Category.objects.filter(category_name=name).exists():
                 messages.error(request, "Category already exists or archived")
                 return redirect("admin-category")
 
@@ -39,8 +39,7 @@ def admin_category(request):
                 return redirect("admin-category")
 
             Category.objects.create(
-                category_name=name,
-                is_active=request.POST.get("is_active") == "true"
+                category_name=name, is_active=request.POST.get("is_active") == "true"
             )
             messages.success(request, "Category created")
             return redirect("admin-category")
@@ -68,10 +67,11 @@ def admin_category(request):
             return redirect("admin-category")
 
         if action == "permanent_delete_category":
-            cat = get_object_or_404(Category, id=request.POST.get("category_id")).delete()
+            cat = get_object_or_404(
+                Category, id=request.POST.get("category_id")
+            ).delete()
             messages.success(request, "Category permanently deleted")
             return redirect("admin-category")
-
 
     # Base Queryset
     status_filter = request.GET.get("status", "live")
@@ -106,10 +106,11 @@ def admin_category(request):
             "count": count,
             "active_count": active_count,
             "inactive_count": inactive_count,
-            "search_query":query,
-            "subcategory_count":subcategory_count
+            "search_query": query,
+            "subcategory_count": subcategory_count,
         },
     )
+
 
 @admin_required
 @never_cache
@@ -133,7 +134,9 @@ def admin_subcategory(request):
 
             name = name.strip().upper()
 
-            if Subcategory.objects.filter(subcategory_name = name, category = parent_category).exists():
+            if Subcategory.objects.filter(
+                subcategory_name=name, category=parent_category
+            ).exists():
                 messages.error(request, "Subcategory already exists or archived")
                 return redirect("admin-subcategory")
 
@@ -149,8 +152,8 @@ def admin_subcategory(request):
 
             Subcategory.objects.create(
                 subcategory_name=name,
-                category = category,
-                is_active=request.POST.get("is_active") == "true"
+                category=category,
+                is_active=request.POST.get("is_active") == "true",
             )
             messages.success(request, "Subcategory created")
             return redirect("admin-subcategory")
@@ -165,12 +168,12 @@ def admin_subcategory(request):
         if action == "edit":
             name = request.POST.get("subcategory_name")
 
-            if len(name)<3:
+            if len(name) < 3:
                 messages.error(request, "Please make sure word more than 3 words")
                 return redirect("admin-subcategory")
 
             if not name:
-                messages.error(request,"Please fill form")
+                messages.error(request, "Please fill form")
                 return redirect("admin-subcategory")
 
             sub = get_object_or_404(Subcategory, id=request.POST.get("subcategory_id"))
@@ -204,13 +207,16 @@ def admin_subcategory(request):
     if status_filter == "archived":
         subcategory = Subcategory.objects.filter(is_deleted=True).order_by("-id")
     else:
-        subcategory= Subcategory.objects.filter(is_deleted=False , category__is_deleted = False , category__is_active=True).order_by("-id")
+        subcategory = Subcategory.objects.filter(
+            is_deleted=False, category__is_deleted=False, category__is_active=True
+        ).order_by("-id")
 
     if query:
         from django.db.models import Q
+
         subcategory = subcategory.filter(
-            Q(subcategory_name__icontains=query) |
-            Q(category__category_name__icontains=query)
+            Q(subcategory_name__icontains=query)
+            | Q(category__category_name__icontains=query)
         )
 
     subcategory = subcategory.order_by("-id")
@@ -219,18 +225,23 @@ def admin_subcategory(request):
     paginator = Paginator(subcategory, 4)
     page_obj = paginator.get_page(page_number)
 
-
-    live_subcategory = Subcategory.objects.filter(is_deleted=False, category__is_deleted = False ,category__is_active = True).order_by("-id")
+    live_subcategory = Subcategory.objects.filter(
+        is_deleted=False, category__is_deleted=False, category__is_active=True
+    ).order_by("-id")
 
     subcategory_count = live_subcategory.count()
     active_subcategory = live_subcategory.filter(is_active=True).count()
     inactive_subcategory = live_subcategory.filter(is_active=False).count()
 
-    return render(request, "admin-subcategory.html",{
-        "query": query,
-        "category":category,
-        "page_obj":page_obj,
-        "subcategory_count": subcategory_count,
-        "active_subcategory": active_subcategory,
-        "inactive_subcategory": inactive_subcategory
-    })
+    return render(
+        request,
+        "admin-subcategory.html",
+        {
+            "query": query,
+            "category": category,
+            "page_obj": page_obj,
+            "subcategory_count": subcategory_count,
+            "active_subcategory": active_subcategory,
+            "inactive_subcategory": inactive_subcategory,
+        },
+    )

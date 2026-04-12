@@ -18,8 +18,10 @@ from django.shortcuts import get_object_or_404
 from .decorators import block_check
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
+
 username_pattern = r"^[a-zA-Z0-9_]{4,20}$"
 email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+
 
 @block_check
 @never_cache
@@ -55,6 +57,7 @@ def user_profile(request, id):
             "has_profile_photo": has_profile_photo,
         },
     )
+
 
 @never_cache
 @login_required
@@ -231,8 +234,8 @@ def email_verificaton(request):
         user = request.user
 
         if remaining <= 0:
-                messages.error(request, "otp exipred click resend to get new one")
-                return redirect("email-verification")
+            messages.error(request, "otp exipred click resend to get new one")
+            return redirect("email-verification")
 
         if str(otp) == str(user_otp):
             phone_number = request.session.get("phone_number", None)
@@ -287,6 +290,7 @@ def cancel_email_verification(request, id):
     if request.method == "POST":
         messages.error(request, "email verification failed")
         return redirect("user-profile", id=id)
+
 
 @block_check
 @never_cache
