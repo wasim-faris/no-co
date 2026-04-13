@@ -462,5 +462,7 @@ def order_success(request):
     order = Order.objects.filter(user=request.user).order_by("-created_at").first()
     return render(request, "order_success.html", {"order": order})
 
-def order_management(request):
-    return render(request, "order_management.html")
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from .models import Order
+
