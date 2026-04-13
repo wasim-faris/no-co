@@ -327,7 +327,7 @@
         </a>
 
         <h1 class="page-title">Order Details</h1>
-        <p class="page-meta">#99AE5592616B &nbsp;·&nbsp; Apr 13, 2026 &nbsp;·&nbsp; <span style="color:#92400E;">Pending</span></p>
+        <p class="page-meta">#{{ order.order_number }} &nbsp;·&nbsp; {{ order.created_at|date:"M d, Y" }} &nbsp;·&nbsp; <span style="color:#92400E;">{{ order.payment_status }}</span></p>
 
         <!-- Action Buttons -->
         <div class="action-bar">
@@ -361,33 +361,33 @@
                 <div class="module">
                     <div class="module-header">
                         <span class="module-label">Items Ordered</span>
-                        <span class="status-badge badge-pending">Pending</span>
+                        {% if order.payment_status == 'FAILED' or order.payment_status == 'REFUNDED' %}
+                            <span class="status-badge badge-cancelled">{{ order.payment_status }}</span>
+                        {% elif order.payment_status == 'PENDING' %}
+                            <span class="status-badge badge-pending">{{ order.payment_status }}</span>
+                        {% else %}
+                            <span class="status-badge badge-delivered">{{ order.payment_status }}</span>
+                        {% endif %}
                     </div>
                     <div class="module-body">
+                        {% for item in order.items.all %}
                         <div class="product-row">
                             <div class="prod-thumb">
-                                <img src="https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=200&q=80"
-                                     alt="Classic Brown Cotton Pant"
+                                {% if item.variant.images.first %}
+                                <img src="{{ item.variant.images.first.image.url }}"
+                                     alt="{{ item.variant.product.product_name }}"
                                      onerror="this.parentElement.style.background='#F5F3F0'">
+                                {% else %}
+                                <div style="width:100%; height:100%; background:#F5F3F0;"></div>
+                                {% endif %}
                             </div>
                             <div class="prod-info">
-                                <div class="prod-name">Classic Brown Cotton Pant</div>
-                                <div class="prod-meta">Colour: Khaki &nbsp;·&nbsp; Size: L &nbsp;·&nbsp; Qty: 2</div>
+                                <div class="prod-name">{{ item.variant.product.product_name }}</div>
+                                <div class="prod-meta">Colour: {{ item.variant.color }} &nbsp;·&nbsp; Size: {{ item.variant.size.name }} &nbsp;·&nbsp; Qty: {{ item.quantity }}</div>
                             </div>
-                            <div class="prod-price">₹3,198.00</div>
+                            <div class="prod-price">₹{{ item.price }}</div>
                         </div>
-                        <div class="product-row">
-                            <div class="prod-thumb">
-                                <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&q=80"
-                                     alt="Slim Fit Chino"
-                                     onerror="this.parentElement.style.background='#F5F3F0'">
-                            </div>
-                            <div class="prod-info">
-                                <div class="prod-name">Slim Fit Chino</div>
-                                <div class="prod-meta">Colour: Olive &nbsp;·&nbsp; Size: M &nbsp;·&nbsp; Qty: 1</div>
-                            </div>
-                            <div class="prod-price">₹2,349.00</div>
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
 
@@ -399,19 +399,19 @@
                     <div class="module-body">
                         <div class="info-row">
                             <span class="info-label">Name</span>
-                            <span class="info-value"><strong>Arjun Mehta</strong></span>
+                            <span class="info-value"><strong>{{ order.address.name }}</strong></span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Address</span>
-                            <span class="info-value">42 MG Road, Indiranagar,<br>Bangalore, Karnataka 560038</span>
+                            <span class="info-value">{{ order.address.house_name }}, {{ order.address.street_name }}<br>{{ order.address.town_city }}, {{ order.address.state }} {{ order.address.pin_code }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Phone</span>
-                            <span class="info-value">+91 98765 43210</span>
+                            <span class="info-value">{{ order.address.phone_number }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Type</span>
-                            <span class="info-value">Home</span>
+                            <span class="info-value">{{ order.address.address_type|default:"Home" }}</span>
                         </div>
                     </div>
                 </div>
@@ -424,11 +424,17 @@
                     <div class="module-body">
                         <div class="info-row">
                             <span class="info-label">Method</span>
-                            <span class="info-value"><strong>Cash on Delivery</strong></span>
+                            <span class="info-value"><strong>{{ order.get_payment_method_display }}</strong></span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Status</span>
-                            <span class="info-value" style="color:#92400E; font-weight:500;">Pending — Pay on Delivery</span>
+                            {% if order.payment_status == 'FAILED' or order.payment_status == 'REFUNDED' %}
+                                <span class="info-value" style="color:#7F1D1D; font-weight:500;">{{ order.get_payment_status_display }}</span>
+                            {% elif order.payment_status == 'PENDING' %}
+                                <span class="info-value" style="color:#92400E; font-weight:500;">{{ order.get_payment_status_display }}</span>
+                            {% else %}
+                                <span class="info-value" style="color:#14532D; font-weight:500;">{{ order.get_payment_status_display }}</span>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -450,7 +456,7 @@
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
                                 </svg>
-                                Bangalore, KA
+                                {{ order.address.town_city }}, {{ order.address.state }}
                             </div>
                         </div>
                     </div>
@@ -468,24 +474,26 @@
                     </div>
                     <div class="module-body">
                         <div class="price-row">
-                            <span class="price-label">Subtotal (3 items)</span>
-                            <span class="price-value">₹5,547.00</span>
+                            <span class="price-label">Subtotal ({{ order.items.count }} items)</span>
+                            <span class="price-value">₹{{ order.subtotal }}</span>
                         </div>
                         <div class="price-row">
                             <span class="price-label">Discount</span>
-                            <span class="price-value" style="color:#14532D;">– ₹0.00</span>
+                            <span class="price-value" style="color:#14532D;">– ₹{{ order.discount_amount }}</span>
                         </div>
                         <div class="price-row">
                             <span class="price-label">GST (incl.)</span>
-                            <span class="price-value">₹0.00</span>
+                            <span class="price-value">₹{{ order.tax_amount }}</span>
                         </div>
                         <div class="price-row">
                             <span class="price-label">Delivery</span>
-                            <span class="price-value" style="color:#14532D;">Free</span>
+                            <span class="price-value" style="color: {% if order.delivery_charge == 0 %}#14532D{% else %}var(--ink-mid){% endif %};">
+                                {% if order.delivery_charge == 0 %}Free{% else %}₹{{ order.delivery_charge }}{% endif %}
+                            </span>
                         </div>
                         <div class="price-total">
                             <span class="price-total-label">Total</span>
-                            <span class="price-total-value">₹5,547.00</span>
+                            <span class="price-total-value">₹{{ order.total_amount }}</span>
                         </div>
                     </div>
                 </div>
@@ -497,6 +505,9 @@
                     </div>
                     <div class="module-body">
                         <div class="timeline">
+                            {% with status=order.items.first.item_status %}
+                            
+                            <!-- ORDER PLACED -->
                             <div class="timeline-step">
                                 <div class="timeline-dot done">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -505,49 +516,83 @@
                                 </div>
                                 <div class="timeline-content">
                                     <div class="timeline-title">Order Placed</div>
-                                    <div class="timeline-date">Apr 13, 2026 · 10:22 AM</div>
+                                    <div class="timeline-date">{{ order.created_at|date:"M d, Y · h:i A" }}</div>
                                 </div>
                             </div>
+                            
+                            {% if status == 'CANCELLED' %}
                             <div class="timeline-step">
-                                <div class="timeline-dot done">
+                                <div class="timeline-dot done" style="background:#7F1D1D; border-color:#7F1D1D;">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Order Cancelled</div>
+                                    <div class="timeline-date">Order was cancelled</div>
+                                </div>
+                            </div>
+                            {% else %}
+
+                            <!-- PROCESSING -->
+                            <div class="timeline-step">
+                                <div class="timeline-dot {% if status == 'PROCESSING' or status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}done{% elif status == 'PENDING' %}current{% endif %}">
+                                    {% if status == 'PROCESSING' or status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                                     </svg>
+                                    {% endif %}
                                 </div>
                                 <div class="timeline-content">
-                                    <div class="timeline-title">Payment Confirmed</div>
-                                    <div class="timeline-date">Apr 13, 2026 · 10:23 AM</div>
+                                    <div class="timeline-title {% if status == 'PENDING' %}{% else %}muted{% endif %}">Processing</div>
+                                    <div class="timeline-date">Order is being packed</div>
                                 </div>
                             </div>
+                            
+                            <!-- SHIPPED -->
                             <div class="timeline-step">
-                                <div class="timeline-dot current"></div>
-                                <div class="timeline-content">
-                                    <div class="timeline-title">Packing in Progress</div>
-                                    <div class="timeline-date">Estimated Apr 13, 2026</div>
-                                </div>
-                            </div>
-                            <div class="timeline-step">
-                                <div class="timeline-dot">
+                                <div class="timeline-dot {% if status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}done{% elif status == 'PROCESSING' %}current{% endif %}">
+                                    {% if status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    {% elif status != 'PROCESSING' and status != 'SHIPPED' and status != 'DELIVERED' and status != 'RETURNED' %}
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
                                     </svg>
+                                    {% endif %}
                                 </div>
                                 <div class="timeline-content">
-                                    <div class="timeline-title muted">Shipped</div>
-                                    <div class="timeline-date">Estimated Apr 14, 2026</div>
+                                    <div class="timeline-title {% if status == 'PROCESSING' or status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}{% else %}muted{% endif %}">Shipped</div>
+                                    <div class="timeline-date">Order has been dispatched</div>
                                 </div>
                             </div>
+                            
+                            <!-- DELIVERED -->
                             <div class="timeline-step">
-                                <div class="timeline-dot">
+                                <div class="timeline-dot {% if status == 'DELIVERED' or status == 'RETURNED' %}done{% elif status == 'SHIPPED' %}current{% endif %}">
+                                    {% if status == 'DELIVERED' or status == 'RETURNED' %}
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                    {% elif status != 'SHIPPED' and status != 'DELIVERED' and status != 'RETURNED' %}
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
                                     </svg>
+                                    {% endif %}
                                 </div>
                                 <div class="timeline-content">
-                                    <div class="timeline-title muted">Delivered</div>
-                                    <div class="timeline-date">Estimated Apr 16, 2026</div>
+                                    <div class="timeline-title {% if status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}{% else %}muted{% endif %}">Delivered</div>
+                                    {% if order.delivered_date %}
+                                    <div class="timeline-date">{{ order.delivered_date|date:"M d, Y" }}</div>
+                                    {% else %}
+                                    <div class="timeline-date">Awaiting delivery</div>
+                                    {% endif %}
                                 </div>
                             </div>
+                            
+                            {% endif %}
+                            {% endwith %}
                         </div>
                     </div>
                 </div>

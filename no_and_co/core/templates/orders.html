@@ -436,100 +436,62 @@
         </div>
 
         <!-- Results count -->
-        <p class="results-count" id="resultsCount">3 Orders</p>
+        <p class="results-count" id="resultsCount">{{ orders|length }} Orders</p>
 
         <!-- Orders List -->
         <div id="ordersList">
 
-            <!-- ── ORDER 1: PENDING ─────────────────────────── -->
-            <article class="order-card" data-search="99ae5592616b classic brown cotton pant">
+            {% for order in orders %}
+            <article class="order-card" data-search="{{ order.order_number|lower }} {{ order.items.first.variant.product.product_name|lower }}">
                 <div class="order-card-top">
                     <div class="order-id-group">
                         <div class="order-id-micro">Order ID</div>
-                        <div class="order-id-value">#99AE5592616B</div>
+                        <div class="order-id-value">#{{ order.order_number }}</div>
                     </div>
-                    <div class="order-date">Apr 13, 2026</div>
-                    <span class="status-badge badge-pending">Pending</span>
+                    <div class="order-date">{{ order.created_at|date:"M d, Y" }}</div>
+                    {% if order.payment_status == 'FAILED' or order.payment_status == 'REFUNDED' %}
+                        <span class="status-badge badge-cancelled">{{ order.payment_status }}</span>
+                    {% elif order.payment_status == 'PENDING' %}
+                        <span class="status-badge badge-pending">{{ order.payment_status }}</span>
+                    {% else %}
+                        <span class="status-badge badge-delivered">{{ order.payment_status }}</span>
+                    {% endif %}
                 </div>
                 <div class="order-card-body">
                     <div class="order-thumb">
-                        <img src="https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=200&q=80"
-                             alt="Classic Brown Cotton Pant"
-                             onerror="this.parentElement.style.background='#F5F3F0'">
+                        {% with item=order.items.first %}
+                        {% if item.variant.images.first %}
+                            <img src="{{ item.variant.images.first.image.url }}" alt="{{ item.variant.product.product_name }}"
+                                 onerror="this.parentElement.style.background='#F5F3F0'">
+                        {% else %}
+                            <div style="width:100%; height:100%; background:#F5F3F0;"></div>
+                        {% endif %}
+                        {% endwith %}
                     </div>
                     <div class="order-info">
-                        <div class="order-product-name">Classic Brown Cotton Pant</div>
-                        <div class="order-variant">Khaki &nbsp;·&nbsp; Size L &nbsp;·&nbsp; +1 more</div>
-                        <div class="order-amount">₹5,547.00 <span class="order-amount-label">Total</span></div>
+                        {% with item=order.items.first %}
+                        <div class="order-product-name">{{ item.variant.product.product_name }}</div>
+                        <div class="order-variant">{{ item.variant.color }} &nbsp;·&nbsp; Size {{ item.variant.size.name }} {% if order.items.count > 1 %}&nbsp;·&nbsp; +{{ order.items.count|add:"-1" }} more{% endif %}</div>
+                        <div class="order-amount">₹{{ order.total_amount }} <span class="order-amount-label">Total</span></div>
+                        {% endwith %}
                     </div>
-                    <a href="{% url 'order_details' %}" class="order-arrow" title="View Details">
+                    <a href="{% url 'order_details' order.id %}" class="order-arrow" title="View Details">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
                         </svg>
                     </a>
                 </div>
             </article>
-
-            <!-- ── ORDER 2: DELIVERED ───────────────────────── -->
-            <article class="order-card" data-search="0a6e1a7ad6fe brazil jersey">
-                <div class="order-card-top">
-                    <div class="order-id-group">
-                        <div class="order-id-micro">Order ID</div>
-                        <div class="order-id-value">#0A6E1A7AD6FE</div>
-                    </div>
-                    <div class="order-date">Apr 08, 2026</div>
-                    <span class="status-badge badge-delivered">Delivered</span>
-                </div>
-                <div class="order-card-body">
-                    <div class="order-thumb">
-                        <img src="https://images.unsplash.com/photo-1574192455774-b03f2ec6743c?w=200&q=80"
-                             alt="Brazil Jersey"
-                             onerror="this.parentElement.style.background='#F5F3F0'">
-                    </div>
-                    <div class="order-info">
-                        <div class="order-product-name">Brazil Jersey</div>
-                        <div class="order-variant">Yellow &nbsp;·&nbsp; Size S &nbsp;·&nbsp; +2 more</div>
-                        <div class="order-amount">₹3,947.00 <span class="order-amount-label">Total</span></div>
-                    </div>
-                    <a href="{% url 'order_details' %}" class="order-arrow" title="View Details">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                </div>
-            </article>
-
-            <!-- ── ORDER 3: CANCELLED ───────────────────────── -->
-            <article class="order-card" data-search="1460433a8f1a waffle polo shirt">
-                <div class="order-card-top">
-                    <div class="order-id-group">
-                        <div class="order-id-micro">Order ID</div>
-                        <div class="order-id-value">#1460433A8F1A</div>
-                    </div>
-                    <div class="order-date">Apr 07, 2026</div>
-                    <span class="status-badge badge-cancelled">Cancelled</span>
-                </div>
-                <div class="order-card-body">
-                    <div class="order-thumb">
-                        <img src="https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=200&q=80"
-                             alt="Waffle Polo Shirt"
-                             onerror="this.parentElement.style.background='#F5F3F0'">
-                    </div>
-                    <div class="order-info">
-                        <div class="order-product-name">Waffle Polo Shirt</div>
-                        <div class="order-variant">Cream &nbsp;·&nbsp; Size L</div>
-                        <div class="order-amount">₹1,349.00 <span class="order-amount-label">Total</span></div>
-                    </div>
-                    <a href="{% url 'order_details' %}" class="order-arrow" title="View Details">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                </div>
-            </article>
+            {% empty %}
+            <!-- Empty State (shown when there are no orders) -->
+            <div class="empty-state" id="emptyState" style="display:flex;">
+                <span class="empty-state-label">No Orders</span>
+                <p class="empty-state-text">You haven't placed any orders yet.</p>
+            </div>
+            {% endfor %}
 
             <!-- Empty State (shown when search finds nothing) -->
-            <div class="empty-state" id="emptyState" style="display:none;">
+            <div class="empty-state" id="searchEmptyState" style="display:none;">
                 <span class="empty-state-label">No Results</span>
                 <p class="empty-state-text">No orders match your search. Try a different query.</p>
             </div>
@@ -545,26 +507,33 @@
 (function() {
     const input        = document.getElementById('orderSearch');
     const cards        = document.querySelectorAll('.order-card[data-search]');
-    const emptyState   = document.getElementById('emptyState');
+    const searchEmpty  = document.getElementById('searchEmptyState');
+    const mainEmpty    = document.getElementById('emptyState');
     const resultsCount = document.getElementById('resultsCount');
     const total        = cards.length;
 
-    input.addEventListener('input', function() {
-        const q = this.value.toLowerCase().trim();
-        let visible = 0;
+    if (input) {
+        input.addEventListener('input', function() {
+            const q = this.value.toLowerCase().trim();
+            let visible = 0;
 
-        cards.forEach(card => {
-            const match = !q || card.dataset.search.includes(q);
-            card.style.display = match ? '' : 'none';
-            if (match) visible++;
+            cards.forEach(card => {
+                const match = !q || card.dataset.search.includes(q);
+                card.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+
+            if(resultsCount) {
+                resultsCount.textContent = visible === total
+                    ? `${total} Orders`
+                    : `${visible} of ${total} Orders`;
+            }
+
+            if (searchEmpty) {
+                searchEmpty.style.display = (visible === 0 && total > 0) ? 'flex' : 'none';
+            }
         });
-
-        resultsCount.textContent = visible === total
-            ? `${total} Orders`
-            : `${visible} of ${total} Orders`;
-
-        emptyState.style.display = visible === 0 ? 'flex' : 'none';
-    });
+    }
 })();
 </script>
 {% endblock %}
