@@ -467,29 +467,35 @@ def order_success(request):
 
 @login_required(login_url="login")
 def orders(request):
-    search_query = request.GET.get("search") or request.GET.get("q")
+    search_query = request.GET.get("search", "").strip()
     
-    orders_list = Order.objects.filter(user=request.user).prefetch_related(
-        'items', 'items__variant', 'items__variant__product',
-        'items__variant__size', 'items__variant__images'
-    ).distinct()
+    # Base queryset for the user's orders
+    orders_list = Order.objects.filter(user=request.user)
 
     if search_query:
+        # Search by Order ID, Product Name, Status, and Date
         orders_list = orders_list.filter(
             Q(order_number__icontains=search_query) |
             Q(address__first_name__icontains=search_query) |
             Q(address__last_name__icontains=search_query) |
             Q(payment_method__icontains=search_query) |
             Q(items__item_status__icontains=search_query) |
+            Q(items__variant__product__product_name__icontains=search_query) |
             Q(created_at__icontains=search_query)
         ).distinct()
 
-    orders_list = orders_list.order_by('-id')
+    # Apply ordering and prefetching
+    orders_list = orders_list.order_by('-created_at', '-id').prefetch_related(
+        'items', 'items__variant', 'items__variant__product',
+        'items__variant__size', 'items__variant__images'
+    )
 
+    # Consistent pagination: 4 items per page
     paginator = Paginator(orders_list, 4)
     page_number = request.GET.get('page')
     orders_obj = paginator.get_page(page_number)
 
+    # Handle AJAX requests for real-time search and pagination
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return render(request, 'partials/orders_list_partial.html', {
             'orders': orders_obj

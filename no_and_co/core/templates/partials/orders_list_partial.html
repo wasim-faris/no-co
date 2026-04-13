@@ -62,9 +62,10 @@
 <nav class="pagination-wrap">
     {% for num in orders.paginator.page_range %}
         {% if orders.number == num %}
-        <span class="pagination-btn active">{{ num }}</span>
+            <span class="pagination-btn active">{{ num }}</span>
         {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
-        <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="pagination-btn">{{ num }}</a>
+            <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" 
+               class="pagination-btn">{{ num }}</a>
         {% endif %}
     {% endfor %}
 </nav>
