@@ -20,7 +20,8 @@ from django.db.models import Sum
 from django.db import transaction
 from .models import Order, OrderItem
 from django.db.models import F
-
+from io import BytesIO
+from django.template.loader import get_template
 # Create your views here.
 
 
@@ -462,13 +463,22 @@ def order_success(request):
     order = Order.objects.filter(user=request.user).order_by("-created_at").first()
     return render(request, "order_success.html", {"order": order})
 
+
+@login_required(login_url="login")
 def orders(request):
-    orders = Order.objects.filter(user=request.user)
-    orders = orders.order_by("-created_at")
-
-
-    return render(request, 'orders.html',{
-        "orders":orders
+    from django.core.paginator import Paginator
+    
+    orders_list = Order.objects.filter(user=request.user).prefetch_related(
+        'items', 'items__variant', 'items__variant__product', 
+        'items__variant__size', 'items__variant__images'
+    ).order_by('-id')
+    
+    paginator = Paginator(orders_list, 4)  # Show 4 orders per page
+    page_number = request.GET.get('page')
+    orders = paginator.get_page(page_number)
+    
+    return render(request, 'orders.html', {
+        'orders': orders
     })
 
 
@@ -479,3 +489,53 @@ def order_details(request, id):
     return render(request, 'order_details.html',{
         "order":order
     })
+
+
+@login_required(login_url="login")
+def download_invoice(request, id):
+
+    order = get_object_or_404(Order, user=request.user, id=id)
+
+    # Pre-compute per-line totals (models have no property for this)
+    items = list(
+        order.items.select_related("variant__product", "variant__size").all()
+    )
+    for item in items:
+        item.line_total = item.price * item.quantity
+
+    context = {
+        "order": order,
+        "items": items,
+        "is_pdf": False,
+    }
+
+    # ── Attempt true PDF generation via xhtml2pdf ──────────────────
+    try:
+        from xhtml2pdf import pisa  # noqa: F401
+
+        context["is_pdf"] = True
+        template = get_template("invoice/invoice_template.html")
+        html_string = template.render(context)
+
+        buffer = BytesIO()
+        pdf_result = pisa.pisaDocument(
+            BytesIO(html_string.encode("UTF-8")), buffer
+        )
+
+        if not pdf_result.err:
+            filename = f"NO-CO-Invoice-{order.order_number}.pdf"
+            response = HttpResponse(
+                buffer.getvalue(), content_type="application/pdf"
+            )
+            response["Content-Disposition"] = (
+                f'attachment; filename="{filename}"'
+            )
+            return response
+
+    except ImportError:
+        # xhtml2pdf not installed — fall back to browser-print HTML
+        pass
+
+    # ── Fallback: browser print-to-PDF ────────────────────────────
+    context["is_pdf"] = False
+    return render(request, "invoice/invoice_template.html", context)

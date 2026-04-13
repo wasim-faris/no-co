@@ -1,0 +1,383 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{ order.order_number }} — NO &amp; CO</title>
+    <style type="text/css">
+        /* ════════════════════════════════════
+           PAGE / PDF SETUP (A4)
+        ════════════════════════════════════ */
+        @page {
+            size: A4 portrait;
+            margin: 1.5cm;
+        }
+
+        /* ════════════════════════════════════
+           RESET & BASE
+        ════════════════════════════════════ */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 9pt;
+            color: #000000;
+            background: #ffffff;
+            line-height: 1.5;
+        }
+
+        /* ════════════════════════════════════
+           TOPBAR (Screen Only)
+        ════════════════════════════════════ */
+        .topbar {
+            width: 100%;
+            background: #000000;
+            padding: 12px 40px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .topbar-btn {
+            background: #ffffff;
+            color: #000000;
+            padding: 8px 20px;
+            font-size: 8pt;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border: none;
+            cursor: pointer;
+        }
+
+        /* ════════════════════════════════════
+           DOCUMENT LAYOUT
+        ════════════════════════════════════ */
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px;
+        }
+
+        /* ════════════════════════════════════
+           HEADER
+        ════════════════════════════════════ */
+        .header {
+            width: 100%;
+            margin-bottom: 50px;
+        }
+        .header table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .brand-name {
+            font-size: 20pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+        .invoice-literal {
+            text-align: right;
+            font-size: 14pt;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+
+        .header-rule {
+            border: none;
+            border-top: 0.5pt solid #000000;
+            margin-top: 10px;
+        }
+
+        /* ════════════════════════════════════
+           CLIENT & INVOICE DETAILS
+        ════════════════════════════════════ */
+        .details-section {
+            width: 100%;
+            margin-bottom: 60px;
+            margin-top: 30px;
+        }
+        .details-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .details-table td {
+            vertical-align: top;
+            width: 50%;
+        }
+        .details-heading {
+            font-size: 7pt;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #666666;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .info-text {
+            line-height: 1.6;
+        }
+        .customer-name {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* Detail rows for right column */
+        .info-row {
+            margin-bottom: 2px;
+        }
+        .info-label {
+            font-size: 7pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 90px;
+            display: inline-block;
+        }
+
+        /* ════════════════════════════════════
+           PRODUCT TABLE
+        ════════════════════════════════════ */
+        .items-section {
+            width: 100%;
+            margin-bottom: 40px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .items-table th {
+            text-align: left;
+            font-size: 7.5pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-bottom: 12px;
+            border-bottom: 0.8pt solid #000000;
+        }
+        .items-table td {
+            padding: 15px 0;
+            border-bottom: 0.4pt solid #f0f0f0;
+            vertical-align: top;
+        }
+        .items-table tr:last-child td {
+            border-bottom: 0.8pt solid #000000;
+        }
+        .item-main {
+            font-weight: bold;
+            font-size: 9pt;
+            display: block;
+        }
+        .item-sub {
+            font-size: 7pt;
+            color: #777777;
+            text-transform: uppercase;
+            margin-top: 3px;
+        }
+
+        /* ════════════════════════════════════
+           SUMMARY
+        ════════════════════════════════════ */
+        .summary-section {
+            width: 100%;
+            margin-bottom: 80px;
+        }
+        .summary-table {
+            width: 35%;
+            margin-left: auto;
+            border-collapse: collapse;
+        }
+        .summary-table td {
+            padding: 4px 0;
+        }
+        .summary-label {
+            text-align: left;
+            font-size: 7pt;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .summary-value {
+            text-align: right;
+            font-size: 9pt;
+        }
+        .total-row td {
+            padding-top: 15px;
+            font-weight: bold;
+            border-top: 1pt solid #000000;
+        }
+        .total-amount {
+            font-size: 14pt;
+        }
+
+        /* ════════════════════════════════════
+           FOOTER
+        ════════════════════════════════════ */
+        .footer {
+            text-align: center;
+            font-size: 8pt;
+            padding-top: 40px;
+        }
+        .footer-tag {
+            font-size: 9pt;
+            font-weight: 300;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .footer-note {
+            font-size: 7pt;
+            color: #999999;
+            margin-bottom: 30px;
+            display: block;
+        }
+        .brand-text {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .contact-links {
+            color: #666666;
+        }
+
+        /* ════════════════════════════════════
+           SCREEN VS PDF
+        ════════════════════════════════════ */
+        @media print {
+            .topbar { display: none; }
+            .invoice-container { padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+{% if not is_pdf %}
+<div class="topbar">
+    <div>NO &amp; CO &nbsp; | &nbsp; Invoice {{ order.order_number }}</div>
+    <button class="topbar-btn" onclick="window.print()">Download PDF</button>
+</div>
+{% endif %}
+
+<div class="invoice-container">
+    
+    <!-- Header -->
+    <div class="header">
+        <table>
+            <tr>
+                <td class="brand-name">NO &amp; CO</td>
+                <td class="invoice-literal">INVOICE</td>
+            </tr>
+        </table>
+        <div class="header-rule"></div>
+    </div>
+
+    <!-- Details -->
+    <div class="details-section">
+        <table class="details-table">
+            <tr>
+                <td>
+                    <span class="details-heading">Details</span>
+                    <div class="info-text">
+                        <span class="customer-name">{{ order.address.first_name }} {{ order.address.last_name }}</span>
+                        {{ order.address.address_line1 }}{% if order.address.address_line2 %}, {{ order.address.address_line2 }}{% endif %}<br>
+                        {{ order.address.city }}, {{ order.address.state }} &ndash; {{ order.address.pin_code }}<br>
+                        {{ order.address.country }}<br>
+                        <span style="display:block; margin-top:5px;">{{ order.user.email }}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="details-heading">Invoice Details</span>
+                    <div class="info-text">
+                        <div class="info-row"><span class="info-label">Invoice No</span> #INV-{{ order.order_number }}</div>
+                        <div class="info-row"><span class="info-label">Order No</span> #{{ order.order_number }}</div>
+                        <div class="info-row"><span class="info-label">Date</span> {{ order.created_at|date:"d M Y" }}</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Items -->
+    <div class="items-section">
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th style="width: 55%;">Product</th>
+                    <th style="width: 10%; text-align: center;">Qty</th>
+                    <th style="width: 15%; text-align: right;">Price</th>
+                    <th style="width: 20%; text-align: right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in items %}
+                <tr>
+                    <td>
+                        <span class="item-main">{{ item.variant.product.product_name }}</span>
+                        <div class="item-sub">{{ item.variant.color }} &nbsp; | &nbsp; size {{ item.variant.size.name }}</div>
+                    </td>
+                    <td style="text-align: center;">{{ item.quantity }}</td>
+                    <td style="text-align: right;">&#8377;{{ item.price }}</td>
+                    <td style="text-align: right; font-weight: bold;">&#8377;{{ item.line_total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Summary -->
+    <div class="summary-section">
+        <table class="summary-table">
+            <tr>
+                <td class="summary-label">Subtotal</td>
+                <td class="summary-value">&#8377;{{ order.subtotal }}</td>
+            </tr>
+            <tr>
+                <td class="summary-label">Shipping</td>
+                <td class="summary-value">
+                    {% if order.delivery_charge == 0 %}FREE{% else %}&#8377;{{ order.delivery_charge }}{% endif %}
+                </td>
+            </tr>
+            <tr>
+                <td class="summary-label">Tax (GST)</td>
+                <td class="summary-value">&#8377;{{ order.tax_amount }}</td>
+            </tr>
+            {% if order.discount_amount and order.discount_amount > 0 %}
+            <tr>
+                <td class="summary-label">Discount</td>
+                <td class="summary-value">&ndash; &#8377;{{ order.discount_amount }}</td>
+            </tr>
+            {% endif %}
+            <tr class="total-row">
+                <td class="summary-label" style="font-weight:bold;">Total Amount</td>
+                <td class="summary-value total-amount">&#8377;{{ order.total_amount }}</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <span class="footer-tag">Thank you for your purchase</span>
+        <span class="footer-note">This is a computer-generated invoice and does not require a signature.</span>
+        <span class="brand-text">NO &amp; CO</span>
+        <div class="contact-links">
+            support@noandco.com &nbsp; | &nbsp; www.noandco.com
+        </div>
+    </div>
+
+</div>
+
+{% if not is_pdf %}
+<script>
+    window.addEventListener('load', function () {
+        setTimeout(function () {
+            window.print();
+        }, 500);
+    });
+</script>
+{% endif %}
+
+</body>
+</html>

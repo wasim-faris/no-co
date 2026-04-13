@@ -59,7 +59,7 @@
     .shell .nav-icon { width: 14px; height: 14px; opacity: 0.5; flex-shrink: 0; }
     .shell .nav-link.active .nav-icon,
     .shell .nav-link:hover   .nav-icon { opacity: 1; }
-    .shell .nav-link.active  .nav-icon { filter: invert(1); }
+    /* Removed filter: invert(1) because stroke="currentColor" handles white icon when text is white */
 
     /* ─── Main ───────────────────────────────────────────────── */
     .shell .main {
@@ -100,7 +100,7 @@
 
     /* ─── Action bar ─────────────────────────────────────────── */
     .shell .action-bar {
-        display: flex; gap: 10px; margin-bottom: 40px; flex-wrap: wrap;
+        display: flex; justify-content: space-between; gap: 10px; margin-bottom: 40px; flex-wrap: wrap;
     }
     .shell .btn {
         display: inline-flex; align-items: center; justify-content: center;
@@ -302,7 +302,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'orders' %}" class="nav-link active">
+                <a href="{% url 'orders' %}" class="nav-link {% if request.resolver_match.url_name == 'orders' or request.resolver_match.url_name == 'order_details' %}active{% endif %}">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                     </svg>
@@ -354,17 +354,11 @@
 
         <!-- Action Buttons -->
         <div class="action-bar">
-            <a href="#" class="btn btn-dark">
+            <a href="{% url 'download_invoice' order.id %}" target="_blank" class="btn btn-dark" id="download-invoice-btn">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
                 Download Invoice
-            </a>
-            <a href="#" class="btn btn-outline">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                </svg>
-                Track Order
             </a>
             <a href="{% url 'orders' %}" class="btn btn-outline">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">

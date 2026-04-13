@@ -89,7 +89,7 @@
     }
     .shell .nav-link.active .nav-icon,
     .shell .nav-link:hover   .nav-icon { opacity: 1; }
-    .shell .nav-link.active  .nav-icon { filter: invert(1); }
+    /* Removed filter: invert(1) because stroke="currentColor" handles white icon when text is white */
 
     /* ─── Main ───────────────────────────────────────────────── */
     .shell .main {
@@ -361,6 +361,59 @@
         .shell .order-arrow { margin-left: auto; }
         .shell .page-title { font-size: 22px; }
     }
+
+    /* ─── Pagination ─────────────────────────────────────────── */
+    .pagination-wrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin-top: 30px;
+        margin-bottom: 10px;
+        width: 100%;
+    }
+    .pagination-btn {
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--pure-white);
+        color: var(--ink);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 50%;
+        border: 1px solid #000;
+        transition: all 0.2s ease;
+    }
+    .pagination-btn:hover {
+        background: #000;
+        color: #fff;
+    }
+    .pagination-btn.active {
+        background: #000;
+        color: #fff;
+        font-weight: 600;
+        cursor: default;
+    }
+
+    @media (max-width: 900px) {
+        .pagination-btn {
+            width: 34px;
+            height: 34px;
+            font-size: 13px;
+        }
+        .pagination-wrap { gap: 8px; }
+    }
+    @media (max-width: 600px) {
+        .pagination-btn {
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
+        }
+        .pagination-wrap { gap: 6px; }
+    }
 </style>
 
 <div class="shell">
@@ -378,7 +431,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'orders' %}" class="nav-link active">
+                <a href="{% url 'orders' %}" class="nav-link {% if request.resolver_match.url_name == 'orders' or request.resolver_match.url_name == 'order_details' %}active{% endif %}">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                     </svg>
@@ -436,7 +489,7 @@
         </div>
 
         <!-- Results count -->
-        <p class="results-count" id="resultsCount">{{ orders|length }} Orders</p>
+        <p class="results-count" id="resultsCount">{{ orders.paginator.count }} Orders</p>
 
         <!-- Orders List -->
         <div id="ordersList">
@@ -509,6 +562,19 @@
             </div>
 
         </div><!-- /ordersList -->
+
+        <!-- Pagination -->
+        {% if orders.paginator.num_pages > 1 %}
+        <nav class="pagination-wrap">
+            {% for num in orders.paginator.page_range %}
+                {% if orders.number == num %}
+                <span class="pagination-btn active">{{ num }}</span>
+                {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+                <a href="?page={{ num }}" class="pagination-btn">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+        </nav>
+        {% endif %}
 
     </main>
 </div>
