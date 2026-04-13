@@ -250,29 +250,41 @@
         color: var(--ink-soft);
     }
 
-    /* ─── Map ────────────────────────────────────────────────── */
     .shell .map-wrap {
+        border-radius: 10px;
+        border: 1px solid var(--ink-faint);
         position: relative; overflow: hidden; background: var(--ink-ghost);
-        border: var(--border);
+        height: 300px; width: 100%; margin-bottom: 24px;
     }
     .shell .map-wrap iframe {
-        width: 100%; height: 200px; border: none; display: block;
-        filter: grayscale(1) contrast(0.9) opacity(0.85);
+        width: 100%; height: 100%; border: none; display: block;
+        filter: grayscale(1) contrast(0.9) opacity(0.85); /* Minimalist theme */
     }
-    .shell .map-chip {
-        position: absolute; top: 12px; left: 12px;
-        background: var(--pure-white); border: var(--border);
-        padding: 6px 12px;
-        font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
-        font-weight: 700; color: var(--ink);
-        display: flex; align-items: center; gap: 6px;
+    .shell .map-footer {
+        display: flex; justify-content: space-between; align-items: flex-end; gap: 16px;
     }
-    .shell .map-chip svg { width: 11px; height: 11px; }
+    .shell .map-address-details {
+        font-size: 12px; color: var(--ink-mid); line-height: 1.6;
+    }
+    .shell .map-address-details strong { color: var(--ink); font-weight: 600; font-size: 14px; margin-bottom: 4px; display: block; }
+    .shell .map-external-btn {
+        flex-shrink: 0; padding: 12px 20px; text-decoration: none;
+    }
 
     /* ─── Responsive ─────────────────────────────────────────── */
     @media (max-width: 1100px) { .shell .detail-grid { grid-template-columns: 1fr; } }
     @media (max-width: 900px)  { .shell .sidebar { display: none; } .shell .main { padding: 40px 32px 64px; } }
-    @media (max-width: 600px)  { .shell .main { padding: 28px 20px 48px; } .shell .page-title { font-size: 22px; } .shell .action-bar { gap: 8px; } }
+    @media (max-width: 600px)  { 
+        .shell .main { padding: 28px 20px 48px; } 
+        .shell .page-title { font-size: 22px; } 
+        .shell .action-bar { gap: 8px; }
+        .shell .at-step { margin-bottom: 24px; gap: 16px; }
+        .shell .at-dot { width: 28px; height: 28px; }
+        .shell .at-title { font-size: 12px; }
+        .shell .at-desc { font-size: 11px; }
+        .shell .map-footer { flex-direction: column; align-items: flex-start; gap: 20px; }
+        .shell .map-external-btn { width: 100%; justify-content: center; }
+    }
 </style>
 
 <div class="shell">
@@ -422,11 +434,15 @@
                     <div class="module-body">
                         <div class="info-row">
                             <span class="info-label">Name</span>
-                            <span class="info-value"><strong>{{ order.address.name }}</strong></span>
+                            <span class="info-value"><strong>{{ order.address.first_name }} {{ order.address.last_name }}</strong></span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Address</span>
-                            <span class="info-value">{{ order.address.house_name }}, {{ order.address.street_name }}<br>{{ order.address.town_city }}, {{ order.address.state }} {{ order.address.pin_code }}</span>
+                            <span class="info-value">
+                                {{ order.address.address_line1 }}{% if order.address.address_line2 %}, {{ order.address.address_line2 }}{% endif %}<br>
+                                {{ order.address.city }}, {{ order.address.state }} {{ order.address.pin_code }}<br>
+                                {{ order.address.country }}
+                            </span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Phone</span>
@@ -434,7 +450,7 @@
                         </div>
                         <div class="info-row">
                             <span class="info-label">Type</span>
-                            <span class="info-value">{{ order.address.address_type|default:"Home" }}</span>
+                            <span class="info-value">{{ order.address.get_type_display|default:"Home" }}</span>
                         </div>
                     </div>
                 </div>
@@ -475,25 +491,32 @@
                 </div>
 
                 <!-- Delivery Map -->
-                <div class="module">
+                <div class="module map-module">
                     <div class="module-header">
-                        <span class="module-label">Delivery Location</span>
+                        <span class="module-label">DELIVERY LOCATION</span>
                     </div>
-                    <div class="module-body" style="padding:0;">
+                    <div class="module-body">
+                        {% with addr_query=order.address.address_line1|add:","|add:order.address.city|add:","|add:order.address.state|add:","|add:order.address.pin_code|add:","|add:order.address.country %}
                         <div class="map-wrap">
                             <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.9750529799196!2d77.63760731482185!3d12.97159929085534!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae16884f46c349%3A0xb1fc9af9a3c23c76!2sMG%20Road%2C%20Bengaluru!5e0!3m2!1sen!2sin!4v1620000000000"
-                                loading="lazy"
-                                referrerpolicy="no-referrer-when-downgrade"
+                                src="https://www.google.com/maps?q={{ addr_query|urlencode }}&output=embed"
+                                width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy"
                                 title="Delivery Location">
                             </iframe>
-                            <div class="map-chip">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                                </svg>
-                                {{ order.address.town_city }}, {{ order.address.state }}
-                            </div>
                         </div>
+                        <div class="map-footer">
+                            <div class="map-address-details">
+                                <strong>{{ order.address.first_name }} {{ order.address.last_name }}</strong>
+                                {{ order.address.address_line1 }}{% if order.address.address_line2 %}, {{ order.address.address_line2 }}{% endif %}<br>
+                                {{ order.address.city }}, {{ order.address.state }} {{ order.address.pin_code }}<br>
+                                {{ order.address.country }}
+                            </div>
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ addr_query|urlencode }}" target="_blank" class="btn btn-dark map-external-btn">
+                                Open in Google Maps
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                            </a>
+                        </div>
+                        {% endwith %}
                     </div>
                 </div>
 
