@@ -51,14 +51,30 @@
                 <div>
                     <h1 class="text-4xl font-serif text-gray-900">Order #{{ order.order_number|default:order.id }}</h1>
                     <div class="w-12 h-[2px] bg-gray-900 mt-2"></div>
+                    <div class="mt-3">
+                        <span id="current-status-pill" class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 uppercase tracking-widest">
+                            {{ order.status|default:"Pending" }}
+                        </span>
+                    </div>
                 </div>
                 <div class="flex gap-4">
                     <button class="px-5 py-2.5 bg-white border border-gray-200 rounded-full text-[11px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Print Invoice</button>
-                    <div class="relative group">
-                        <button class="px-5 py-2.5 bg-[#1a1a1a] text-white rounded-full text-[11px] font-bold uppercase tracking-widest shadow-lg shadow-black/20 hover:bg-black transition-all flex items-center gap-2">
-                            Update Status
+                    <div class="relative" id="status-dropdown">
+                        <button id="status-toggle" type="button" class="px-5 py-2.5 bg-[#1a1a1a] text-white rounded-full text-[11px] font-bold uppercase tracking-widest shadow-lg shadow-black/20 hover:bg-black transition-all flex items-center gap-2" aria-haspopup="true" aria-expanded="false">
+                            <span id="status-toggle-label">Update Status</span>
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"></path></svg>
                         </button>
+                        <div id="status-menu" class="hidden absolute right-0 mt-2 w-56 rounded-2xl border border-gray-100 bg-white shadow-xl z-50 py-2">
+                            <button type="button" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" data-status="Pending">Pending</button>
+                            <button type="button" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" data-status="Confirmed">Confirmed</button>
+                            <button type="button" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" data-status="Processing">Processing</button>
+                            <button type="button" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" data-status="Shipped">Shipped</button>
+                            <button type="button" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" data-status="Out for Delivery">Out for Delivery</button>
+                            <button type="button" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" data-status="Delivered">Delivered</button>
+                            <button type="button" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" data-status="Cancelled">Cancelled</button>
+                            <button type="button" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" data-status="Refunded">Refunded</button>
+                            <button type="button" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" data-status="Returned">Returned</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -228,8 +244,8 @@
                             <div class="relative flex gap-6 items-start">
                                 <div class="w-[24px] h-[24px] rounded-full {% if order.delivered_date %}bg-green-500{% else %}bg-gray-100{% endif %} border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
                                 <div>
-                                    <p class="text-[13px] font-bold {% if order.delivered_date %}text-gray-900{% else %}text-gray-300{% endif %}">{% if order.delivered_date %}Delivered{% else %}Processing in Warehouse{% endif %}</p>
-                                    <p class="text-[11px] {% if order.delivered_date %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if order.delivered_date %}{{ order.delivered_date|date:"M d, Y" }} at {{ order.delivered_date|time:"h:i A" }}{% else %}Pending{% endif %}</p>
+                                    <p id="activity-status-label" class="text-[13px] font-bold {% if order.delivered_date %}text-gray-900{% else %}text-gray-300{% endif %}">{% if order.delivered_date %}Delivered{% else %}Processing in Warehouse{% endif %}</p>
+                                    <p id="activity-status-time" class="text-[11px] {% if order.delivered_date %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if order.delivered_date %}{{ order.delivered_date|date:"M d, Y" }} at {{ order.delivered_date|time:"h:i A" }}{% else %}Pending{% endif %}</p>
                                 </div>
                             </div>
                         </div>
@@ -238,5 +254,89 @@
             </div>
         </main>
     </div>
+    <script>
+        (function () {
+            const dropdown = document.getElementById("status-dropdown");
+            const toggle = document.getElementById("status-toggle");
+            const menu = document.getElementById("status-menu");
+            const options = document.querySelectorAll(".status-option");
+            const toggleLabel = document.getElementById("status-toggle-label");
+            const statusPill = document.getElementById("current-status-pill");
+            const activityLabel = document.getElementById("activity-status-label");
+            const activityTime = document.getElementById("activity-status-time");
+            const orderKey = "order-status-{{ order.order_number|default:order.id }}";
+
+            function getStatusStyle(status) {
+                const styleMap = {
+                    "Pending": "bg-amber-50 text-amber-600",
+                    "Confirmed": "bg-blue-50 text-blue-600",
+                    "Processing": "bg-indigo-50 text-indigo-600",
+                    "Shipped": "bg-sky-50 text-sky-600",
+                    "Out for Delivery": "bg-purple-50 text-purple-600",
+                    "Delivered": "bg-green-50 text-green-600",
+                    "Cancelled": "bg-red-50 text-red-600",
+                    "Refunded": "bg-rose-50 text-rose-600",
+                    "Returned": "bg-gray-100 text-gray-600"
+                };
+                return styleMap[status] || "bg-amber-50 text-amber-600";
+            }
+
+            function setStatus(status, persist) {
+                toggleLabel.textContent = "Status: " + status;
+                statusPill.textContent = status;
+                statusPill.className = "inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest " + getStatusStyle(status);
+                activityLabel.textContent = status;
+                activityLabel.className = "text-[13px] font-bold text-gray-900";
+                activityTime.textContent = "Updated just now";
+                activityTime.className = "text-[11px] text-gray-400 mt-0.5";
+                if (persist) {
+                    localStorage.setItem(orderKey, status);
+                }
+            }
+
+            function openMenu() {
+                menu.classList.remove("hidden");
+                toggle.setAttribute("aria-expanded", "true");
+            }
+
+            function closeMenu() {
+                menu.classList.add("hidden");
+                toggle.setAttribute("aria-expanded", "false");
+            }
+
+            toggle.addEventListener("click", function (event) {
+                event.stopPropagation();
+                if (menu.classList.contains("hidden")) {
+                    openMenu();
+                    return;
+                }
+                closeMenu();
+            });
+
+            options.forEach(function (option) {
+                option.addEventListener("click", function () {
+                    const status = option.getAttribute("data-status");
+                    setStatus(status, true);
+                    closeMenu();
+                });
+            });
+
+            document.addEventListener("click", function (event) {
+                if (!dropdown.contains(event.target)) {
+                    closeMenu();
+                }
+            });
+
+            document.addEventListener("keydown", function (event) {
+                if (event.key === "Escape") {
+                    closeMenu();
+                }
+            });
+
+            const savedStatus = localStorage.getItem(orderKey);
+            const initialStatus = savedStatus || "{{ order.status|default:'Pending'|escapejs }}";
+            setStatus(initialStatus, false);
+        })();
+    </script>
 </body>
 </html>
