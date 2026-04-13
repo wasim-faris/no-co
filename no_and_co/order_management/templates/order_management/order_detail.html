@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Details - NØ & CO</title>
+    <title>Order Details - NÃ˜ & CO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -14,12 +14,11 @@
 </head>
 <body class="antialiased min-h-screen flex">
 
-    <!-- Sidebar (Same as List Page) -->
     <aside class="w-[280px] h-screen bg-white border-r border-gray-100 flex-shrink-0 flex flex-col justify-between sticky top-0">
         <div class="p-8">
             <div class="mb-12">
                 <h1 class="text-2xl tracking-[0.2em] font-light uppercase text-[#1a1a1a]" style="font-family: 'Optima', 'Didot', 'Playfair Display', serif;">
-                    NØ <span class="italic lowercase font-serif text-xl">&</span> CO
+                    NÃ˜ <span class="italic lowercase font-serif text-xl">&</span> CO
                 </h1>
             </div>
             <nav class="space-y-3">
@@ -41,7 +40,6 @@
     </aside>
 
     <div class="flex-1 flex flex-col">
-        <!-- Header -->
         <div class="px-8 pt-6 pb-4 bg-[#f5f1eb]">
             <nav class="text-xs uppercase tracking-widest text-gray-400 flex gap-3 items-center mb-4">
                 <a href="{% url 'admin-orders-list' %}" class="hover:text-black">ORDERS</a>
@@ -51,7 +49,7 @@
 
             <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-4xl font-serif text-gray-900">Order #{{ order_id }}</h1>
+                    <h1 class="text-4xl font-serif text-gray-900">Order #{{ order.order_number|default:order.id }}</h1>
                     <div class="w-12 h-[2px] bg-gray-900 mt-2"></div>
                 </div>
                 <div class="flex gap-4">
@@ -67,16 +65,12 @@
         </div>
 
         <main class="max-w-7xl mx-auto px-8 py-8 w-full space-y-8 overflow-y-auto hide-scrollbar" style="max-height: calc(100vh - 120px);">
-            
             <div class="grid grid-cols-3 gap-8">
-                <!-- Left Column: Order Items & Info -->
                 <div class="col-span-2 space-y-8">
-                    
-                    <!-- Ordered Items -->
                     <section class="bg-white rounded-custom shadow-sm border border-white overflow-hidden">
                         <div class="px-8 py-6 border-b border-gray-50 flex justify-between items-center">
                             <h3 class="font-bold text-lg text-gray-900">Ordered Items</h3>
-                            <span class="bg-gray-50 text-[10px] font-bold text-gray-500 px-3 py-1 rounded-full uppercase tracking-widest">3 Items</span>
+                            <span class="bg-gray-50 text-[10px] font-bold text-gray-500 px-3 py-1 rounded-full uppercase tracking-widest">{{ order.items.count }} Item{{ order.items.count|pluralize }}</span>
                         </div>
                         <div class="p-0">
                             <table class="w-full text-left">
@@ -89,46 +83,40 @@
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50">
+                                    {% for item in order.items.all %}
                                     <tr>
                                         <td class="px-8 py-6">
                                             <div class="flex items-center gap-4">
                                                 <div class="w-16 h-20 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                                                    <img src="https://images.unsplash.com/photo-1598033129183-c4f50c7176c8?q=80&w=2542&auto=format&fit=crop" class="w-full h-full object-cover">
+                                                    {% with image=item.variant.images.first %}
+                                                        {% if image %}
+                                                            <img src="{{ image.image.url }}" alt="{{ item.variant.product.product_name }}" class="w-full h-full object-cover">
+                                                        {% else %}
+                                                            <div class="w-full h-full flex items-center justify-center text-[10px] text-gray-400 font-medium">No Image</div>
+                                                        {% endif %}
+                                                    {% endwith %}
                                                 </div>
                                                 <div>
-                                                    <p class="font-bold text-[14px] text-gray-900">Noir Essential Tee</p>
-                                                    <p class="text-[11px] text-gray-400 mt-1">Size: L | Color: Pitch Black</p>
-                                                    <p class="text-[10px] text-gray-400 mt-0.5">SKU: NET-BLK-L</p>
+                                                    <p class="font-bold text-[14px] text-gray-900">{{ item.variant.product.product_name }}</p>
+                                                    <p class="text-[11px] text-gray-400 mt-1">Size: {{ item.variant.size.name }} | Color: {{ item.variant.color }}</p>
+                                                    <p class="text-[10px] text-gray-400 mt-0.5">SKU: {{ item.variant.sku }}</p>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-4 py-6 font-medium text-[13px]">₹ 1,950.00</td>
-                                        <td class="px-4 py-6 text-[13px]">2</td>
-                                        <td class="px-8 py-6 text-right font-bold text-[14px]">₹ 3,900.00</td>
+                                        <td class="px-4 py-6 font-medium text-[13px]">Rs. {{ item.price }}</td>
+                                        <td class="px-4 py-6 text-[13px]">{{ item.quantity }}</td>
+                                        <td class="px-8 py-6 text-right font-bold text-[14px]">Rs. {{ item.price }} x {{ item.quantity }}</td>
                                     </tr>
+                                    {% empty %}
                                     <tr>
-                                        <td class="px-8 py-6">
-                                            <div class="flex items-center gap-4">
-                                                <div class="w-16 h-20 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                                                    <img src="https://images.unsplash.com/photo-1591195853828-11db59a44f6b?q=80&w=2340&auto=format&fit=crop" class="w-full h-full object-cover">
-                                                </div>
-                                                <div>
-                                                    <p class="font-bold text-[14px] text-gray-900">Signature Silk Shirt</p>
-                                                    <p class="text-[11px] text-gray-400 mt-1">Size: M | Color: Cream White</p>
-                                                    <p class="text-[10px] text-gray-400 mt-0.5">SKU: SSS-CRM-M</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="px-4 py-6 font-medium text-[13px]">₹ 8,550.00</td>
-                                        <td class="px-4 py-6 text-[13px]">1</td>
-                                        <td class="px-8 py-6 text-right font-bold text-[14px]">₹ 8,550.00</td>
+                                        <td colspan="4" class="px-8 py-10 text-center text-sm text-gray-400">No ordered items found.</td>
                                     </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </section>
 
-                    <!-- Addresses -->
                     <div class="grid grid-cols-2 gap-8">
                         <section class="bg-white p-8 rounded-custom shadow-sm border border-white">
                             <div class="flex items-center gap-3 mb-6">
@@ -138,11 +126,12 @@
                                 <h3 class="font-bold text-lg text-gray-900 uppercase tracking-tight">Shipping Address</h3>
                             </div>
                             <div class="space-y-1 text-[13px] text-gray-600">
-                                <p class="font-bold text-gray-900 text-[14px]">Alexander Wright</p>
-                                <p>452/B, Green Avenue, Sector 15</p>
-                                <p>Gurugram, Haryana - 122018</p>
-                                <p>India</p>
-                                <p class="pt-3 font-semibold text-gray-900">Phone: +91 98765 43210</p>
+                                <p class="font-bold text-gray-900 text-[14px]">{{ order.address.first_name }} {{ order.address.last_name }}</p>
+                                <p>{{ order.address.address_line1 }}</p>
+                                {% if order.address.address_line2 %}<p>{{ order.address.address_line2 }}</p>{% endif %}
+                                <p>{{ order.address.city }}, {{ order.address.state }} - {{ order.address.pin_code }}</p>
+                                <p>{{ order.address.country }}</p>
+                                <p class="pt-3 font-semibold text-gray-900">Phone: {{ order.address.phone_number }}</p>
                             </div>
                         </section>
 
@@ -154,70 +143,71 @@
                                 <h3 class="font-bold text-lg text-gray-900 uppercase tracking-tight">Billing Address</h3>
                             </div>
                             <div class="space-y-1 text-[13px] text-gray-600">
-                                <p class="font-bold text-gray-900 text-[14px]">Alexander Wright</p>
-                                <p>Same as shipping address</p>
+                                <p class="font-bold text-gray-900 text-[14px]">{{ order.address.first_name }} {{ order.address.last_name }}</p>
+                                <p>{{ order.address.address_line1 }}</p>
+                                {% if order.address.address_line2 %}<p>{{ order.address.address_line2 }}</p>{% endif %}
+                                <p>{{ order.address.city }}, {{ order.address.state }} - {{ order.address.pin_code }}</p>
+                                <p>{{ order.address.country }}</p>
                             </div>
                         </section>
                     </div>
-
                 </div>
 
-                <!-- Right Column: Summary & Timeline -->
                 <div class="space-y-8">
-                    
-                    <!-- Customer Summary -->
                     <section class="bg-white p-8 rounded-custom shadow-sm border border-white">
                         <h3 class="font-bold text-lg text-gray-900 mb-6 uppercase tracking-tight">Customer Info</h3>
                         <div class="flex items-center gap-4 mb-6">
                             <img src="https://randomuser.me/api/portraits/men/46.jpg" class="w-14 h-14 rounded-full border border-gray-100 shadow-sm">
                             <div>
-                                <p class="font-bold text-[15px] text-gray-900">Alexander Wright</p>
-                                <p class="text-[12px] text-gray-400">Customer since Apr 2023</p>
+                                <p class="font-bold text-[15px] text-gray-900">{{ order.user.get_full_name|default:order.user.username }}</p>
+                                <p class="text-[12px] text-gray-400">Customer since {{ order.user.created_at|date:"M Y" }}</p>
                             </div>
                         </div>
                         <div class="space-y-4 pt-4 border-t border-gray-50">
                             <div>
                                 <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Email Address</p>
-                                <p class="text-[13px] font-medium">alex.wright@gmail.com</p>
+                                <p class="text-[13px] font-medium">{{ order.user.email }}</p>
                             </div>
                             <div>
-                                <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Total Spent</p>
-                                <p class="text-[13px] font-bold">₹ 1,42,850.00 <span class="text-[10px] font-medium text-gray-400 ml-1">(12 Orders)</span></p>
+                                <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-1">Phone Number</p>
+                                <p class="text-[13px] font-bold">{{ order.address.phone_number }}</p>
                             </div>
                         </div>
                     </section>
 
-                    <!-- Order Summary Cards -->
                     <section class="bg-[#1a1a1a] p-8 rounded-custom shadow-xl shadow-gray-200/50 text-white">
                         <h3 class="text-[10px] uppercase font-bold text-gray-400 tracking-[0.2em] mb-6">Financial Summary</h3>
                         <div class="space-y-4">
                             <div class="flex justify-between items-center text-[13px]">
                                 <span class="text-gray-400">Subtotal</span>
-                                <span class="font-medium">₹ 12,450.00</span>
+                                <span class="font-medium">Rs. {{ order.subtotal }}</span>
                             </div>
                             <div class="flex justify-between items-center text-[13px]">
                                 <span class="text-gray-400">Shipping</span>
-                                <span class="font-medium">₹ 0.00 <span class="text-[10px] text-green-400 ml-1">Free</span></span>
+                                <span class="font-medium">Rs. {{ order.delivery_charge }}</span>
                             </div>
                             <div class="flex justify-between items-center text-[13px]">
-                                <span class="text-gray-400">Discount <span class="text-[10px] opacity-50">(NOCO50)</span></span>
-                                <span class="font-medium text-red-400">-₹ 0.00</span>
+                                <span class="text-gray-400">Discount {% if order.coupon %}<span class="text-[10px] opacity-50">({{ order.coupon.code }})</span>{% endif %}</span>
+                                <span class="font-medium text-red-400">-Rs. {{ order.discount_amount }}</span>
+                            </div>
+                            <div class="flex justify-between items-center text-[13px]">
+                                <span class="text-gray-400">Tax</span>
+                                <span class="font-medium">Rs. {{ order.tax_amount }}</span>
                             </div>
                             <div class="pt-4 border-t border-white/10 flex justify-between items-center">
                                 <span class="text-[12px] font-bold uppercase tracking-widest">Total Amount</span>
-                                <span class="text-2xl font-serif">₹ 12,450.00</span>
+                                <span class="text-2xl font-serif">Rs. {{ order.total_amount }}</span>
                             </div>
                         </div>
                         <div class="mt-8 pt-6 border-t border-white/10">
                             <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">Payment Method</p>
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-xs">💳</div>
-                                <span class="text-[13px] font-medium">Visa Card ending in 4242</span>
+                                <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-xs">P</div>
+                                <span class="text-[13px] font-medium">{{ order.get_payment_method_display }} | {{ order.get_payment_status_display }}</span>
                             </div>
                         </div>
                     </section>
 
-                    <!-- Order Status Timeline -->
                     <section class="bg-white p-8 rounded-custom shadow-sm border border-white">
                         <h3 class="font-bold text-lg text-gray-900 mb-8 uppercase tracking-tight">Order Activity</h3>
                         <div class="space-y-8 relative before:absolute before:inset-0 before:left-[11px] before:w-[1px] before:bg-gray-100">
@@ -225,21 +215,21 @@
                                 <div class="w-[24px] h-[24px] rounded-full bg-green-500 border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
                                 <div>
                                     <p class="text-[13px] font-bold text-gray-900">Order Placed Successfully</p>
-                                    <p class="text-[11px] text-gray-400 mt-0.5">May 12, 2024 at 10:45 AM</p>
+                                    <p class="text-[11px] text-gray-400 mt-0.5">{{ order.created_at|date:"M d, Y" }} at {{ order.created_at|time:"h:i A" }}</p>
                                 </div>
                             </div>
                             <div class="relative flex gap-6 items-start">
-                                <div class="w-[24px] h-[24px] rounded-full bg-amber-500 border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
+                                <div class="w-[24px] h-[24px] rounded-full {% if order.payment_status == 'PAID' %}bg-amber-500{% else %}bg-gray-100{% endif %} border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
                                 <div>
-                                    <p class="text-[13px] font-bold text-gray-900">Payment Confirmed</p>
-                                    <p class="text-[11px] text-gray-400 mt-0.5">May 12, 2024 at 10:48 AM</p>
+                                    <p class="text-[13px] font-bold {% if order.payment_status == 'PAID' %}text-gray-900{% else %}text-gray-300{% endif %}">Payment {{ order.get_payment_status_display }}</p>
+                                    <p class="text-[11px] {% if order.payment_status == 'PAID' %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if order.payment_status == 'PAID' %}{{ order.updated_at|date:"M d, Y" }} at {{ order.updated_at|time:"h:i A" }}{% else %}Pending{% endif %}</p>
                                 </div>
                             </div>
                             <div class="relative flex gap-6 items-start">
-                                <div class="w-[24px] h-[24px] rounded-full bg-gray-100 border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
+                                <div class="w-[24px] h-[24px] rounded-full {% if order.delivered_date %}bg-green-500{% else %}bg-gray-100{% endif %} border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
                                 <div>
-                                    <p class="text-[13px] font-bold text-gray-300">Processing in Warehouse</p>
-                                    <p class="text-[11px] text-gray-300 mt-0.5">Pending</p>
+                                    <p class="text-[13px] font-bold {% if order.delivered_date %}text-gray-900{% else %}text-gray-300{% endif %}">{% if order.delivered_date %}Delivered{% else %}Processing in Warehouse{% endif %}</p>
+                                    <p class="text-[11px] {% if order.delivered_date %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if order.delivered_date %}{{ order.delivered_date|date:"M d, Y" }} at {{ order.delivered_date|time:"h:i A" }}{% else %}Pending{% endif %}</p>
                                 </div>
                             </div>
                         </div>
