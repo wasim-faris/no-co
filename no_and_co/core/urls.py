@@ -10,5 +10,7 @@ urlpatterns = [
     path("checkout/", views.checkout, name="checkout"),
     path("place-order/", views.place_order , name="place_order"),
     path("order-success/", views.order_success, name="order-success"),
+    path("orders/", views.orders, name="orders"),
+    path("order-details/<int:id>/", views.order_details, name="order_details"),
 
 ]

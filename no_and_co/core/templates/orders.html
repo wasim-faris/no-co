@@ -1,0 +1,570 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}My Orders – OUTFITO{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block content %}
+<style>
+    /* ─── Design tokens — copied verbatim from user-profile.html ── */
+    .shell *, .shell *::before, .shell *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    .shell {
+        --ink:        #0A0A0A;
+        --ink-mid:    #4A4444;
+        --ink-soft:   #9A9494;
+        --ink-faint:  #E4E0DC;
+        --ink-ghost:  #F5F3F0;
+        --warm-white: #FDFCFA;
+        --pure-white: #FFFFFF;
+        --border:     1px solid var(--ink-faint);
+        --radius-sm:  2px;
+        --shadow-lift: 0 1px 0 rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
+        --transition:  all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+        max-width: 1440px;
+        margin: 0 auto;
+        display: flex;
+        min-height: 100vh;
+        background: var(--warm-white);
+        color: var(--ink);
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    /* ─── Sidebar ────────────────────────────────────────────── */
+    .shell .sidebar {
+        width: 280px;
+        flex-shrink: 0;
+        border-right: var(--border);
+        background: var(--pure-white);
+        padding: 56px 40px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+    }
+    .shell .sidebar-section-label {
+        font-size: 8px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        font-weight: 600;
+        margin-bottom: 32px;
+        display: block;
+    }
+    .shell .nav-list { list-style: none; }
+    .shell .nav-item + .nav-item { margin-top: 2px; }
+    .shell .nav-link {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 11px 16px;
+        font-size: 10px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        font-weight: 500;
+        color: var(--ink-mid);
+        text-decoration: none;
+        border-radius: var(--radius-sm);
+        transition: var(--transition);
+        border: 1px solid transparent;
+    }
+    .shell .nav-link:hover {
+        color: var(--ink);
+        background: var(--ink-ghost);
+    }
+    .shell .nav-link.active {
+        background: var(--ink);
+        color: white;
+    }
+    .shell .nav-icon {
+        width: 14px;
+        height: 14px;
+        opacity: 0.5;
+        flex-shrink: 0;
+    }
+    .shell .nav-link.active .nav-icon,
+    .shell .nav-link:hover   .nav-icon { opacity: 1; }
+    .shell .nav-link.active  .nav-icon { filter: invert(1); }
+
+    /* ─── Main ───────────────────────────────────────────────── */
+    .shell .main {
+        flex: 1;
+        min-width: 0;
+        padding: 56px 64px 80px;
+        background: var(--warm-white);
+    }
+
+    /* ─── Page header ────────────────────────────────────────── */
+    .shell .page-title {
+        font-size: 28px;
+        font-weight: 300;
+        letter-spacing: -0.01em;
+        color: var(--ink);
+        margin-bottom: 6px;
+        line-height: 1.1;
+    }
+    .shell .page-subtitle {
+        font-size: 11px;
+        color: var(--ink-soft);
+        letter-spacing: 0.04em;
+        margin-bottom: 40px;
+    }
+
+    /* ─── Toolbar ────────────────────────────────────────────── */
+    .shell .toolbar {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 32px;
+        align-items: center;
+    }
+    .shell .search-wrap {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--pure-white);
+        border: var(--border);
+        padding: 0 16px;
+        transition: border-color 0.2s;
+    }
+    .shell .search-wrap:focus-within { border-color: var(--ink); }
+    .shell .search-wrap input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-family: inherit;
+        font-size: 11px;
+        letter-spacing: 0.03em;
+        color: var(--ink);
+        padding: 13px 0;
+    }
+    .shell .search-wrap input::placeholder { color: var(--ink-soft); }
+    .shell .search-icon { width: 14px; height: 14px; color: var(--ink-soft); flex-shrink: 0; }
+    .shell .btn-filter {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 13px 22px;
+        background: transparent;
+        border: var(--border);
+        color: var(--ink-mid);
+        font-family: inherit;
+        font-size: 9px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .shell .btn-filter:hover { border-color: var(--ink); color: var(--ink); }
+    .shell .btn-filter svg { width: 13px; height: 13px; }
+
+    /* ─── Order Card ─────────────────────────────────────────── */
+    .shell .order-card {
+        background: var(--pure-white);
+        border: var(--border);
+        margin-bottom: 12px;
+        transition: var(--transition);
+        opacity: 0;
+        animation: fadeUp 0.5s ease forwards;
+    }
+    .shell .order-card:hover { border-color: var(--ink); }
+    .shell .order-card:nth-child(1) { animation-delay: 0.05s; }
+    .shell .order-card:nth-child(2) { animation-delay: 0.15s; }
+    .shell .order-card:nth-child(3) { animation-delay: 0.25s; }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .shell .order-card-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 24px;
+        border-bottom: var(--border);
+        flex-wrap: wrap;
+        gap: 8px;
+        background: var(--ink-ghost);
+    }
+    .shell .order-id-group {}
+    .shell .order-id-micro {
+        font-size: 8px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--ink-soft);
+        margin-bottom: 2px;
+    }
+    .shell .order-id-value {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--ink);
+        letter-spacing: 0.06em;
+        font-family: 'Courier New', monospace;
+    }
+    .shell .order-date {
+        font-size: 9px;
+        color: var(--ink-soft);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+
+    /* ─── Status Badge ───────────────────────────────────────── */
+    .shell .status-badge {
+        font-size: 8px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        padding: 5px 12px;
+        border: 1px solid;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+    }
+    .shell .status-badge::before {
+        content: '';
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: currentColor;
+        flex-shrink: 0;
+    }
+    .shell .badge-pending   { color: #92400E; border-color: #FDE68A; background: #FFFBEB; }
+    .shell .badge-delivered { color: #14532D; border-color: #BBF7D0; background: #F0FDF4; }
+    .shell .badge-cancelled { color: #7F1D1D; border-color: #FECACA; background: #FEF2F2; }
+
+    /* ─── Card Body ──────────────────────────────────────────── */
+    .shell .order-card-body {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 24px;
+    }
+    .shell .order-thumb {
+        width: 64px;
+        height: 88px;
+        background: var(--ink-ghost);
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+    .shell .order-thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(0.3);
+        transition: transform 1s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease;
+    }
+    .shell .order-card:hover .order-thumb img {
+        transform: scale(1.06);
+        filter: grayscale(0);
+    }
+    .shell .order-info { flex: 1; min-width: 0; }
+    .shell .order-product-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--ink);
+        margin-bottom: 6px;
+        line-height: 1.3;
+    }
+    .shell .order-variant {
+        font-size: 9px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        font-weight: 500;
+        margin-bottom: 16px;
+    }
+    .shell .order-amount {
+        font-size: 15px;
+        font-weight: 300;
+        color: var(--ink);
+        letter-spacing: -0.01em;
+    }
+    .shell .order-amount-label {
+        font-size: 8px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        font-weight: 500;
+        margin-left: 6px;
+    }
+
+    /* ─── View Arrow Button ──────────────────────────────────── */
+    .shell .order-arrow {
+        width: 40px;
+        height: 40px;
+        border: var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        cursor: pointer;
+        transition: var(--transition);
+        text-decoration: none;
+        color: var(--ink);
+    }
+    .shell .order-arrow:hover {
+        background: var(--ink);
+        border-color: var(--ink);
+        color: white;
+    }
+    .shell .order-arrow svg { width: 14px; height: 14px; }
+
+    /* ─── Empty State ────────────────────────────────────────── */
+    .shell .empty-state {
+        background: var(--ink-ghost);
+        padding: 56px 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .shell .empty-state-label {
+        font-size: 8px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        font-weight: 600;
+        color: var(--ink-soft);
+    }
+    .shell .empty-state-text {
+        font-size: 13px;
+        color: var(--ink-soft);
+        font-weight: 300;
+    }
+
+    /* ─── Results count ──────────────────────────────────────── */
+    .shell .results-count {
+        font-size: 9px;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+        font-weight: 500;
+        margin-bottom: 20px;
+    }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 900px) {
+        .shell .main { padding: 40px 32px 64px; }
+        .shell .sidebar { display: none; }
+    }
+    @media (max-width: 600px) {
+        .shell .main { padding: 28px 20px 48px; }
+        .shell .order-card-body { flex-wrap: wrap; }
+        .shell .order-arrow { margin-left: auto; }
+        .shell .page-title { font-size: 22px; }
+    }
+</style>
+
+<div class="shell">
+
+    <!-- ─── Sidebar ──────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <span class="sidebar-section-label">Account</span>
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h10M4 18h16"/>
+                    </svg>
+                    Overview
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'orders' %}" class="nav-link active">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                    Wishlist
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'user-address' %}" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    </svg>
+                    Addresses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
+                    Settings
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- ─── Main ─────────────────────────────────────────────── -->
+    <main class="main">
+
+        <!-- Page Header -->
+        <h1 class="page-title">My Orders</h1>
+        <p class="page-subtitle">Track and manage your recent purchases and returns.</p>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+            <div class="search-wrap">
+                <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+                <input type="text" id="orderSearch" placeholder="Search by Order ID or Product..." autocomplete="off">
+            </div>
+            <button class="btn-filter" id="filterBtn">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
+                </svg>
+                Filter
+            </button>
+        </div>
+
+        <!-- Results count -->
+        <p class="results-count" id="resultsCount">3 Orders</p>
+
+        <!-- Orders List -->
+        <div id="ordersList">
+
+            <!-- ── ORDER 1: PENDING ─────────────────────────── -->
+            <article class="order-card" data-search="99ae5592616b classic brown cotton pant">
+                <div class="order-card-top">
+                    <div class="order-id-group">
+                        <div class="order-id-micro">Order ID</div>
+                        <div class="order-id-value">#99AE5592616B</div>
+                    </div>
+                    <div class="order-date">Apr 13, 2026</div>
+                    <span class="status-badge badge-pending">Pending</span>
+                </div>
+                <div class="order-card-body">
+                    <div class="order-thumb">
+                        <img src="https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=200&q=80"
+                             alt="Classic Brown Cotton Pant"
+                             onerror="this.parentElement.style.background='#F5F3F0'">
+                    </div>
+                    <div class="order-info">
+                        <div class="order-product-name">Classic Brown Cotton Pant</div>
+                        <div class="order-variant">Khaki &nbsp;·&nbsp; Size L &nbsp;·&nbsp; +1 more</div>
+                        <div class="order-amount">₹5,547.00 <span class="order-amount-label">Total</span></div>
+                    </div>
+                    <a href="{% url 'order_details' %}" class="order-arrow" title="View Details">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- ── ORDER 2: DELIVERED ───────────────────────── -->
+            <article class="order-card" data-search="0a6e1a7ad6fe brazil jersey">
+                <div class="order-card-top">
+                    <div class="order-id-group">
+                        <div class="order-id-micro">Order ID</div>
+                        <div class="order-id-value">#0A6E1A7AD6FE</div>
+                    </div>
+                    <div class="order-date">Apr 08, 2026</div>
+                    <span class="status-badge badge-delivered">Delivered</span>
+                </div>
+                <div class="order-card-body">
+                    <div class="order-thumb">
+                        <img src="https://images.unsplash.com/photo-1574192455774-b03f2ec6743c?w=200&q=80"
+                             alt="Brazil Jersey"
+                             onerror="this.parentElement.style.background='#F5F3F0'">
+                    </div>
+                    <div class="order-info">
+                        <div class="order-product-name">Brazil Jersey</div>
+                        <div class="order-variant">Yellow &nbsp;·&nbsp; Size S &nbsp;·&nbsp; +2 more</div>
+                        <div class="order-amount">₹3,947.00 <span class="order-amount-label">Total</span></div>
+                    </div>
+                    <a href="{% url 'order_details' %}" class="order-arrow" title="View Details">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- ── ORDER 3: CANCELLED ───────────────────────── -->
+            <article class="order-card" data-search="1460433a8f1a waffle polo shirt">
+                <div class="order-card-top">
+                    <div class="order-id-group">
+                        <div class="order-id-micro">Order ID</div>
+                        <div class="order-id-value">#1460433A8F1A</div>
+                    </div>
+                    <div class="order-date">Apr 07, 2026</div>
+                    <span class="status-badge badge-cancelled">Cancelled</span>
+                </div>
+                <div class="order-card-body">
+                    <div class="order-thumb">
+                        <img src="https://images.unsplash.com/photo-1586790170083-2f9ceadc732d?w=200&q=80"
+                             alt="Waffle Polo Shirt"
+                             onerror="this.parentElement.style.background='#F5F3F0'">
+                    </div>
+                    <div class="order-info">
+                        <div class="order-product-name">Waffle Polo Shirt</div>
+                        <div class="order-variant">Cream &nbsp;·&nbsp; Size L</div>
+                        <div class="order-amount">₹1,349.00 <span class="order-amount-label">Total</span></div>
+                    </div>
+                    <a href="{% url 'order_details' %}" class="order-arrow" title="View Details">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                </div>
+            </article>
+
+            <!-- Empty State (shown when search finds nothing) -->
+            <div class="empty-state" id="emptyState" style="display:none;">
+                <span class="empty-state-label">No Results</span>
+                <p class="empty-state-text">No orders match your search. Try a different query.</p>
+            </div>
+
+        </div><!-- /ordersList -->
+
+    </main>
+</div>
+
+{% include 'user_base/components/footer.html' %}
+
+<script>
+(function() {
+    const input        = document.getElementById('orderSearch');
+    const cards        = document.querySelectorAll('.order-card[data-search]');
+    const emptyState   = document.getElementById('emptyState');
+    const resultsCount = document.getElementById('resultsCount');
+    const total        = cards.length;
+
+    input.addEventListener('input', function() {
+        const q = this.value.toLowerCase().trim();
+        let visible = 0;
+
+        cards.forEach(card => {
+            const match = !q || card.dataset.search.includes(q);
+            card.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        resultsCount.textContent = visible === total
+            ? `${total} Orders`
+            : `${visible} of ${total} Orders`;
+
+        emptyState.style.display = visible === 0 ? 'flex' : 'none';
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,562 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}Order Details – OUTFITO{% endblock %}
+
+{% block extra_head %}{% endblock %}
+
+{% block content %}
+<style>
+    /* ─── Design tokens — identical to user-profile.html ─────── */
+    .shell *, .shell *::before, .shell *::after {
+        box-sizing: border-box; margin: 0; padding: 0;
+    }
+    .shell {
+        --ink:        #0A0A0A;
+        --ink-mid:    #4A4444;
+        --ink-soft:   #9A9494;
+        --ink-faint:  #E4E0DC;
+        --ink-ghost:  #F5F3F0;
+        --warm-white: #FDFCFA;
+        --pure-white: #FFFFFF;
+        --border:     1px solid var(--ink-faint);
+        --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+        max-width: 1440px;
+        margin: 0 auto;
+        display: flex;
+        min-height: 100vh;
+        background: var(--warm-white);
+        color: var(--ink);
+        font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    /* ─── Sidebar ────────────────────────────────────────────── */
+    .shell .sidebar {
+        width: 280px; flex-shrink: 0;
+        border-right: var(--border);
+        background: var(--pure-white);
+        padding: 56px 40px;
+        position: sticky; top: 0;
+        height: 100vh; overflow-y: auto;
+    }
+    .shell .sidebar-section-label {
+        font-size: 8px; letter-spacing: 0.3em; text-transform: uppercase;
+        color: var(--ink-soft); font-weight: 600; margin-bottom: 32px; display: block;
+    }
+    .shell .nav-list { list-style: none; }
+    .shell .nav-item + .nav-item { margin-top: 2px; }
+    .shell .nav-link {
+        display: flex; align-items: center; gap: 14px;
+        padding: 11px 16px;
+        font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+        font-weight: 500; color: var(--ink-mid);
+        text-decoration: none; border: 1px solid transparent;
+        transition: var(--transition);
+    }
+    .shell .nav-link:hover  { color: var(--ink); background: var(--ink-ghost); }
+    .shell .nav-link.active { background: var(--ink); color: white; }
+    .shell .nav-icon { width: 14px; height: 14px; opacity: 0.5; flex-shrink: 0; }
+    .shell .nav-link.active .nav-icon,
+    .shell .nav-link:hover   .nav-icon { opacity: 1; }
+    .shell .nav-link.active  .nav-icon { filter: invert(1); }
+
+    /* ─── Main ───────────────────────────────────────────────── */
+    .shell .main {
+        flex: 1; min-width: 0;
+        padding: 56px 64px 80px;
+        background: var(--warm-white);
+    }
+
+    /* ─── Back link ──────────────────────────────────────────── */
+    .shell .back-link {
+        display: inline-flex; align-items: center; gap: 8px;
+        font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+        font-weight: 600; color: var(--ink-soft);
+        text-decoration: none; margin-bottom: 32px;
+        transition: color 0.2s;
+    }
+    .shell .back-link:hover { color: var(--ink); }
+    .shell .back-link svg   { width: 13px; height: 13px; }
+
+    /* ─── Page heading ───────────────────────────────────────── */
+    .shell .page-title {
+        font-size: 28px; font-weight: 300; letter-spacing: -0.01em;
+        color: var(--ink); margin-bottom: 4px;
+    }
+    .shell .page-meta {
+        font-size: 10px; color: var(--ink-soft); letter-spacing: 0.14em;
+        text-transform: uppercase; margin-bottom: 36px;
+        font-family: 'Courier New', monospace;
+    }
+
+    /* ─── Action bar ─────────────────────────────────────────── */
+    .shell .action-bar {
+        display: flex; gap: 10px; margin-bottom: 40px; flex-wrap: wrap;
+    }
+    .shell .btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        gap: 8px;
+        font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+        font-weight: 600; font-family: inherit;
+        padding: 13px 24px; cursor: pointer;
+        transition: var(--transition); border: none; text-decoration: none;
+    }
+    .shell .btn-dark   { background: var(--ink); color: white; border: 1px solid var(--ink); }
+    .shell .btn-dark:hover { background: #222; }
+    .shell .btn-outline { background: transparent; color: var(--ink); border: var(--border); }
+    .shell .btn-outline:hover { border-color: var(--ink); }
+    .shell .btn svg    { width: 13px; height: 13px; flex-shrink: 0; }
+
+    /* ─── Two-col detail layout ──────────────────────────────── */
+    .shell .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 320px;
+        gap: 24px;
+    }
+
+    /* ─── Module card (matches .module in profile) ───────────── */
+    .shell .module {
+        border: var(--border);
+        background: var(--pure-white);
+        margin-bottom: 16px;
+    }
+    .shell .module-header {
+        padding: 16px 24px;
+        border-bottom: var(--border);
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .shell .module-label {
+        font-size: 8px; letter-spacing: 0.28em; text-transform: uppercase;
+        font-weight: 700; color: var(--ink-soft);
+    }
+    .shell .module-body { padding: 24px; }
+
+    /* ─── Status badge ───────────────────────────────────────── */
+    .shell .status-badge {
+        font-size: 8px; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.18em; padding: 5px 12px; border: 1px solid;
+        display: inline-flex; align-items: center; gap: 7px;
+    }
+    .shell .status-badge::before {
+        content: ''; width: 4px; height: 4px; border-radius: 50%;
+        background: currentColor; flex-shrink: 0;
+    }
+    .shell .badge-pending   { color: #92400E; border-color: #FDE68A; background: #FFFBEB; }
+    .shell .badge-delivered { color: #14532D; border-color: #BBF7D0; background: #F0FDF4; }
+    .shell .badge-cancelled { color: #7F1D1D; border-color: #FECACA; background: #FEF2F2; }
+
+    /* ─── Product rows ───────────────────────────────────────── */
+    .shell .product-row {
+        display: flex; align-items: center; gap: 20px;
+        padding: 16px 0;
+        border-bottom: var(--border);
+    }
+    .shell .product-row:last-child { border-bottom: none; padding-bottom: 0; }
+    .shell .prod-thumb {
+        width: 60px; height: 80px;
+        background: var(--ink-ghost); flex-shrink: 0; overflow: hidden;
+    }
+    .shell .prod-thumb img {
+        width: 100%; height: 100%; object-fit: cover;
+        filter: grayscale(0.3);
+    }
+    .shell .prod-info  { flex: 1; min-width: 0; }
+    .shell .prod-name  { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 5px; }
+    .shell .prod-meta  { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+    .shell .prod-price { font-size: 13px; font-weight: 400; color: var(--ink); flex-shrink: 0; }
+
+    /* ─── Info rows ──────────────────────────────────────────── */
+    .shell .info-row {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        padding: 12px 0; border-bottom: var(--border); gap: 16px;
+    }
+    .shell .info-row:last-child { border-bottom: none; }
+    .shell .info-label {
+        font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
+        font-weight: 600; color: var(--ink-soft); flex-shrink: 0;
+    }
+    .shell .info-value {
+        font-size: 12px; color: var(--ink-mid); text-align: right; line-height: 1.6;
+        font-weight: 300;
+    }
+    .shell .info-value strong { color: var(--ink); font-weight: 500; }
+
+    /* ─── Price breakdown ────────────────────────────────────── */
+    .shell .price-row {
+        display: flex; justify-content: space-between;
+        padding: 10px 0; border-bottom: var(--border);
+    }
+    .shell .price-row:last-child { border-bottom: none; }
+    .shell .price-label {
+        font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+        color: var(--ink-soft); font-weight: 500;
+    }
+    .shell .price-value { font-size: 12px; color: var(--ink-mid); font-weight: 300; }
+    .shell .price-total {
+        display: flex; justify-content: space-between; align-items: baseline;
+        padding-top: 16px; margin-top: 8px; border-top: 1px solid var(--ink);
+    }
+    .shell .price-total-label {
+        font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+    }
+    .shell .price-total-value { font-size: 20px; font-weight: 300; letter-spacing: -0.02em; }
+
+    /* ─── Timeline ───────────────────────────────────────────── */
+    .shell .timeline {}
+    .shell .timeline-step {
+        display: flex; gap: 16px; padding-bottom: 28px; position: relative;
+    }
+    .shell .timeline-step:last-child { padding-bottom: 0; }
+    .shell .timeline-step:not(:last-child)::before {
+        content: ''; position: absolute; left: 11px; top: 24px; bottom: 0;
+        width: 1px; background: var(--ink-faint);
+    }
+    .shell .timeline-dot {
+        width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        border: var(--border); background: var(--pure-white);
+        font-size: 10px; z-index: 1; color: var(--ink-soft);
+    }
+    .shell .timeline-dot.done    { background: var(--ink); border-color: var(--ink); color: white; }
+    .shell .timeline-dot.current {
+        background: var(--pure-white); border-color: var(--ink);
+        animation: dotPulse 2s ease-in-out infinite;
+    }
+    .shell .timeline-dot.current::after {
+        content: ''; width: 6px; height: 6px; border-radius: 50%;
+        background: var(--ink); position: absolute;
+    }
+    @keyframes dotPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(10,10,10,0.2); }
+        50%       { box-shadow: 0 0 0 6px rgba(10,10,10,0); }
+    }
+    .shell .timeline-dot svg { width: 11px; height: 11px; }
+    .shell .timeline-content  {}
+    .shell .timeline-title {
+        font-size: 12px; font-weight: 500; color: var(--ink); margin-bottom: 2px;
+    }
+    .shell .timeline-title.muted { color: var(--ink-soft); font-weight: 300; }
+    .shell .timeline-date {
+        font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+        color: var(--ink-soft);
+    }
+
+    /* ─── Map ────────────────────────────────────────────────── */
+    .shell .map-wrap {
+        position: relative; overflow: hidden; background: var(--ink-ghost);
+        border: var(--border);
+    }
+    .shell .map-wrap iframe {
+        width: 100%; height: 200px; border: none; display: block;
+        filter: grayscale(1) contrast(0.9) opacity(0.85);
+    }
+    .shell .map-chip {
+        position: absolute; top: 12px; left: 12px;
+        background: var(--pure-white); border: var(--border);
+        padding: 6px 12px;
+        font-size: 8px; letter-spacing: 0.18em; text-transform: uppercase;
+        font-weight: 700; color: var(--ink);
+        display: flex; align-items: center; gap: 6px;
+    }
+    .shell .map-chip svg { width: 11px; height: 11px; }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 1100px) { .shell .detail-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 900px)  { .shell .sidebar { display: none; } .shell .main { padding: 40px 32px 64px; } }
+    @media (max-width: 600px)  { .shell .main { padding: 28px 20px 48px; } .shell .page-title { font-size: 22px; } .shell .action-bar { gap: 8px; } }
+</style>
+
+<div class="shell">
+
+    <!-- ─── Sidebar ──────────────────────────────────────────── -->
+    <aside class="sidebar">
+        <span class="sidebar-section-label">Account</span>
+        <ul class="nav-list">
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h10M4 18h16"/>
+                    </svg>
+                    Overview
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'orders' %}" class="nav-link active">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+                    </svg>
+                    Orders
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                    Wishlist
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'user-address' %}" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    </svg>
+                    Addresses
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="#" class="nav-link">
+                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/>
+                    </svg>
+                    Settings
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- ─── Main ─────────────────────────────────────────────── -->
+    <main class="main">
+
+        <a href="{% url 'orders' %}" class="back-link">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back to Orders
+        </a>
+
+        <h1 class="page-title">Order Details</h1>
+        <p class="page-meta">#99AE5592616B &nbsp;·&nbsp; Apr 13, 2026 &nbsp;·&nbsp; <span style="color:#92400E;">Pending</span></p>
+
+        <!-- Action Buttons -->
+        <div class="action-bar">
+            <a href="#" class="btn btn-dark">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Download Invoice
+            </a>
+            <a href="#" class="btn btn-outline">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                </svg>
+                Track Order
+            </a>
+            <a href="{% url 'orders' %}" class="btn btn-outline">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to Orders
+            </a>
+        </div>
+
+        <!-- Two-column detail layout -->
+        <div class="detail-grid">
+
+            <!-- ── Left Column ──────────────────────────────── -->
+            <div>
+
+                <!-- Items Ordered -->
+                <div class="module">
+                    <div class="module-header">
+                        <span class="module-label">Items Ordered</span>
+                        <span class="status-badge badge-pending">Pending</span>
+                    </div>
+                    <div class="module-body">
+                        <div class="product-row">
+                            <div class="prod-thumb">
+                                <img src="https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=200&q=80"
+                                     alt="Classic Brown Cotton Pant"
+                                     onerror="this.parentElement.style.background='#F5F3F0'">
+                            </div>
+                            <div class="prod-info">
+                                <div class="prod-name">Classic Brown Cotton Pant</div>
+                                <div class="prod-meta">Colour: Khaki &nbsp;·&nbsp; Size: L &nbsp;·&nbsp; Qty: 2</div>
+                            </div>
+                            <div class="prod-price">₹3,198.00</div>
+                        </div>
+                        <div class="product-row">
+                            <div class="prod-thumb">
+                                <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=200&q=80"
+                                     alt="Slim Fit Chino"
+                                     onerror="this.parentElement.style.background='#F5F3F0'">
+                            </div>
+                            <div class="prod-info">
+                                <div class="prod-name">Slim Fit Chino</div>
+                                <div class="prod-meta">Colour: Olive &nbsp;·&nbsp; Size: M &nbsp;·&nbsp; Qty: 1</div>
+                            </div>
+                            <div class="prod-price">₹2,349.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Shipping Address -->
+                <div class="module">
+                    <div class="module-header">
+                        <span class="module-label">Shipping Address</span>
+                    </div>
+                    <div class="module-body">
+                        <div class="info-row">
+                            <span class="info-label">Name</span>
+                            <span class="info-value"><strong>Arjun Mehta</strong></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Address</span>
+                            <span class="info-value">42 MG Road, Indiranagar,<br>Bangalore, Karnataka 560038</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Phone</span>
+                            <span class="info-value">+91 98765 43210</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Type</span>
+                            <span class="info-value">Home</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment -->
+                <div class="module">
+                    <div class="module-header">
+                        <span class="module-label">Payment</span>
+                    </div>
+                    <div class="module-body">
+                        <div class="info-row">
+                            <span class="info-label">Method</span>
+                            <span class="info-value"><strong>Cash on Delivery</strong></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Status</span>
+                            <span class="info-value" style="color:#92400E; font-weight:500;">Pending — Pay on Delivery</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Map -->
+                <div class="module">
+                    <div class="module-header">
+                        <span class="module-label">Delivery Location</span>
+                    </div>
+                    <div class="module-body" style="padding:0;">
+                        <div class="map-wrap">
+                            <iframe
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.9750529799196!2d77.63760731482185!3d12.97159929085534!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae16884f46c349%3A0xb1fc9af9a3c23c76!2sMG%20Road%2C%20Bengaluru!5e0!3m2!1sen!2sin!4v1620000000000"
+                                loading="lazy"
+                                referrerpolicy="no-referrer-when-downgrade"
+                                title="Delivery Location">
+                            </iframe>
+                            <div class="map-chip">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                </svg>
+                                Bangalore, KA
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /left -->
+
+            <!-- ── Right Column ─────────────────────────────── -->
+            <div>
+
+                <!-- Price Breakdown -->
+                <div class="module">
+                    <div class="module-header">
+                        <span class="module-label">Price Breakdown</span>
+                    </div>
+                    <div class="module-body">
+                        <div class="price-row">
+                            <span class="price-label">Subtotal (3 items)</span>
+                            <span class="price-value">₹5,547.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span class="price-label">Discount</span>
+                            <span class="price-value" style="color:#14532D;">– ₹0.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span class="price-label">GST (incl.)</span>
+                            <span class="price-value">₹0.00</span>
+                        </div>
+                        <div class="price-row">
+                            <span class="price-label">Delivery</span>
+                            <span class="price-value" style="color:#14532D;">Free</span>
+                        </div>
+                        <div class="price-total">
+                            <span class="price-total-label">Total</span>
+                            <span class="price-total-value">₹5,547.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Timeline -->
+                <div class="module">
+                    <div class="module-header">
+                        <span class="module-label">Order Timeline</span>
+                    </div>
+                    <div class="module-body">
+                        <div class="timeline">
+                            <div class="timeline-step">
+                                <div class="timeline-dot done">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Order Placed</div>
+                                    <div class="timeline-date">Apr 13, 2026 · 10:22 AM</div>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="timeline-dot done">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                    </svg>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Payment Confirmed</div>
+                                    <div class="timeline-date">Apr 13, 2026 · 10:23 AM</div>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="timeline-dot current"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Packing in Progress</div>
+                                    <div class="timeline-date">Estimated Apr 13, 2026</div>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="timeline-dot">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
+                                    </svg>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title muted">Shipped</div>
+                                    <div class="timeline-date">Estimated Apr 14, 2026</div>
+                                </div>
+                            </div>
+                            <div class="timeline-step">
+                                <div class="timeline-dot">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                    </svg>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title muted">Delivered</div>
+                                    <div class="timeline-date">Estimated Apr 16, 2026</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div><!-- /right -->
+        </div><!-- /detail-grid -->
+
+    </main>
+</div>
+
+{% include 'user_base/components/footer.html' %}
+{% endblock %}
