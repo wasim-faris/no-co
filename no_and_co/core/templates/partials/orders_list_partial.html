@@ -1,0 +1,71 @@
+{% for order in orders %}
+<article class="order-card" data-search="{{ order.order_number|lower }} {{ order.items.first.variant.product.product_name|lower }}">
+    <div class="order-card-top">
+        <div class="order-id-group">
+            <div class="order-id-micro">Order ID</div>
+            <div class="order-id-value">#{{ order.order_number }}</div>
+        </div>
+        <div class="order-date">{{ order.created_at|date:"M d, Y" }}</div>
+        {% with item_status=order.items.first.item_status %}
+            {% if item_status == 'CANCELLED' %}
+                <span class="status-badge badge-cancelled">Cancelled</span>
+            {% elif order.payment_method == 'COD' %}
+                {% if item_status == 'DELIVERED' %}
+                    <span class="status-badge badge-delivered">Paid</span>
+                {% else %}
+                    <span class="status-badge badge-pending">Pending</span>
+                {% endif %}
+            {% else %}
+                {% if order.payment_status == 'PAID' %}
+                    <span class="status-badge badge-delivered">Paid</span>
+                {% elif order.payment_status == 'PENDING' %}
+                    <span class="status-badge badge-pending">Pending</span>
+                {% else %}
+                    <span class="status-badge badge-cancelled">Failed</span>
+                {% endif %}
+            {% endif %}
+        {% endwith %}
+    </div>
+    <div class="order-card-body">
+        <div class="order-thumb">
+            {% with item=order.items.first %}
+            {% if item.variant.images.first %}
+                <img src="{{ item.variant.images.first.image.url }}" alt="{{ item.variant.product.product_name }}"
+                     onerror="this.parentElement.style.background='#F5F3F0'">
+            {% else %}
+                <div style="width:100%; height:100%; background:#F5F3F0;"></div>
+            {% endif %}
+            {% endwith %}
+        </div>
+        <div class="order-info">
+            {% with item=order.items.first %}
+            <div class="order-product-name">{{ item.variant.product.product_name }}</div>
+            <div class="order-variant">{{ item.variant.color }} &nbsp;·&nbsp; Size {{ item.variant.size.name }} {% if order.items.count > 1 %}&nbsp;·&nbsp; +{{ order.items.count|add:"-1" }} more{% endif %}</div>
+            <div class="order-amount">₹{{ order.total_amount }} <span class="order-amount-label">Total</span></div>
+            {% endwith %}
+        </div>
+        <a href="{% url 'order_details' order.id %}" class="order-arrow" title="View Details">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
+            </svg>
+        </a>
+    </div>
+</article>
+{% empty %}
+<div class="empty-state" id="emptyState" style="display:flex;">
+    <span class="empty-state-label">No Orders Found</span>
+    <p class="empty-state-text">Try a different search query or check back later.</p>
+</div>
+{% endfor %}
+
+{% if orders.paginator.num_pages > 1 %}
+<nav class="pagination-wrap">
+    {% for num in orders.paginator.page_range %}
+        {% if orders.number == num %}
+        <span class="pagination-btn active">{{ num }}</span>
+        {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
+        <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="pagination-btn">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+</nav>
+{% endif %}

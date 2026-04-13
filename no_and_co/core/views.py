@@ -22,6 +22,7 @@ from .models import Order, OrderItem
 from django.db.models import F
 from io import BytesIO
 from django.template.loader import get_template
+from django.core.paginator import Paginator
 # Create your views here.
 
 
@@ -466,19 +467,36 @@ def order_success(request):
 
 @login_required(login_url="login")
 def orders(request):
-    from django.core.paginator import Paginator
+    search_query = request.GET.get("search") or request.GET.get("q")
     
     orders_list = Order.objects.filter(user=request.user).prefetch_related(
-        'items', 'items__variant', 'items__variant__product', 
+        'items', 'items__variant', 'items__variant__product',
         'items__variant__size', 'items__variant__images'
-    ).order_by('-id')
-    
-    paginator = Paginator(orders_list, 4)  # Show 4 orders per page
+    ).distinct()
+
+    if search_query:
+        orders_list = orders_list.filter(
+            Q(order_number__icontains=search_query) |
+            Q(address__first_name__icontains=search_query) |
+            Q(address__last_name__icontains=search_query) |
+            Q(payment_method__icontains=search_query) |
+            Q(items__item_status__icontains=search_query) |
+            Q(created_at__icontains=search_query)
+        ).distinct()
+
+    orders_list = orders_list.order_by('-id')
+
+    paginator = Paginator(orders_list, 4)
     page_number = request.GET.get('page')
-    orders = paginator.get_page(page_number)
-    
+    orders_obj = paginator.get_page(page_number)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'partials/orders_list_partial.html', {
+            'orders': orders_obj
+        })
+
     return render(request, 'orders.html', {
-        'orders': orders
+        'orders': orders_obj
     })
 
 
@@ -496,7 +514,6 @@ def download_invoice(request, id):
 
     order = get_object_or_404(Order, user=request.user, id=id)
 
-    # Pre-compute per-line totals (models have no property for this)
     items = list(
         order.items.select_related("variant__product", "variant__size").all()
     )
@@ -509,9 +526,8 @@ def download_invoice(request, id):
         "is_pdf": False,
     }
 
-    # ── Attempt true PDF generation via xhtml2pdf ──────────────────
     try:
-        from xhtml2pdf import pisa  # noqa: F401
+        from xhtml2pdf import pisa
 
         context["is_pdf"] = True
         template = get_template("invoice/invoice_template.html")
@@ -533,9 +549,7 @@ def download_invoice(request, id):
             return response
 
     except ImportError:
-        # xhtml2pdf not installed — fall back to browser-print HTML
         pass
 
-    # ── Fallback: browser print-to-PDF ────────────────────────────
     context["is_pdf"] = False
     return render(request, "invoice/invoice_template.html", context)

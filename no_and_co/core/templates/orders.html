@@ -367,9 +367,9 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        gap: 10px;
-        margin-top: 30px;
-        margin-bottom: 10px;
+        gap: 12px;
+        margin-top: 60px;
+        margin-bottom: 20px;
         width: 100%;
     }
     .pagination-btn {
@@ -385,34 +385,27 @@
         font-weight: 500;
         border-radius: 50%;
         border: 1px solid #000;
-        transition: all 0.2s ease;
+        transition: var(--transition);
+        cursor: pointer;
     }
     .pagination-btn:hover {
-        background: #000;
-        color: #fff;
+        background: var(--ink);
+        color: var(--pure-white);
     }
     .pagination-btn.active {
-        background: #000;
-        color: #fff;
+        background: var(--ink);
+        color: var(--pure-white);
         font-weight: 600;
         cursor: default;
     }
 
-    @media (max-width: 900px) {
-        .pagination-btn {
-            width: 34px;
-            height: 34px;
-            font-size: 13px;
-        }
-        .pagination-wrap { gap: 8px; }
-    }
     @media (max-width: 600px) {
         .pagination-btn {
             width: 32px;
             height: 32px;
             font-size: 12px;
         }
-        .pagination-wrap { gap: 6px; }
+        .pagination-wrap { gap: 8px; margin-top: 40px; }
     }
 </style>
 
@@ -479,102 +472,20 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
                 <input type="text" id="orderSearch" placeholder="Search by Order ID or Product..." autocomplete="off">
+                <div id="searchLoader" style="display:none; margin-left: 10px;">
+                    <svg class="animate-spin h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
             </div>
-            <button class="btn-filter" id="filterBtn">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z"/>
-                </svg>
-                Filter
-            </button>
         </div>
 
-        <!-- Results count -->
-        <p class="results-count" id="resultsCount">{{ orders.paginator.count }} Orders</p>
+        <!-- Orders List Container -->
+        <div id="orders-container">
+            {% include 'partials/orders_list_partial.html' %}
+        </div>
 
-        <!-- Orders List -->
-        <div id="ordersList">
-
-            {% for order in orders %}
-            <article class="order-card" data-search="{{ order.order_number|lower }} {{ order.items.first.variant.product.product_name|lower }}">
-                <div class="order-card-top">
-                    <div class="order-id-group">
-                        <div class="order-id-micro">Order ID</div>
-                        <div class="order-id-value">#{{ order.order_number }}</div>
-                    </div>
-                    <div class="order-date">{{ order.created_at|date:"M d, Y" }}</div>
-                    {% with item_status=order.items.first.item_status %}
-                        {% if item_status == 'CANCELLED' %}
-                            <span class="status-badge badge-cancelled">Cancelled</span>
-                        {% elif order.payment_method == 'COD' %}
-                            {% if item_status == 'DELIVERED' %}
-                                <span class="status-badge badge-delivered">Paid</span>
-                            {% else %}
-                                <span class="status-badge badge-pending">Pending</span>
-                            {% endif %}
-                        {% else %}
-                            {% if order.payment_status == 'PAID' %}
-                                <span class="status-badge badge-delivered">Paid</span>
-                            {% elif order.payment_status == 'PENDING' %}
-                                <span class="status-badge badge-pending">Pending</span>
-                            {% else %}
-                                <span class="status-badge badge-cancelled">Failed</span>
-                            {% endif %}
-                        {% endif %}
-                    {% endwith %}
-                </div>
-                <div class="order-card-body">
-                    <div class="order-thumb">
-                        {% with item=order.items.first %}
-                        {% if item.variant.images.first %}
-                            <img src="{{ item.variant.images.first.image.url }}" alt="{{ item.variant.product.product_name }}"
-                                 onerror="this.parentElement.style.background='#F5F3F0'">
-                        {% else %}
-                            <div style="width:100%; height:100%; background:#F5F3F0;"></div>
-                        {% endif %}
-                        {% endwith %}
-                    </div>
-                    <div class="order-info">
-                        {% with item=order.items.first %}
-                        <div class="order-product-name">{{ item.variant.product.product_name }}</div>
-                        <div class="order-variant">{{ item.variant.color }} &nbsp;·&nbsp; Size {{ item.variant.size.name }} {% if order.items.count > 1 %}&nbsp;·&nbsp; +{{ order.items.count|add:"-1" }} more{% endif %}</div>
-                        <div class="order-amount">₹{{ order.total_amount }} <span class="order-amount-label">Total</span></div>
-                        {% endwith %}
-                    </div>
-                    <a href="{% url 'order_details' order.id %}" class="order-arrow" title="View Details">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5l7 7-7 7"/>
-                        </svg>
-                    </a>
-                </div>
-            </article>
-            {% empty %}
-            <!-- Empty State (shown when there are no orders) -->
-            <div class="empty-state" id="emptyState" style="display:flex;">
-                <span class="empty-state-label">No Orders</span>
-                <p class="empty-state-text">You haven't placed any orders yet.</p>
-            </div>
-            {% endfor %}
-
-            <!-- Empty State (shown when search finds nothing) -->
-            <div class="empty-state" id="searchEmptyState" style="display:none;">
-                <span class="empty-state-label">No Results</span>
-                <p class="empty-state-text">No orders match your search. Try a different query.</p>
-            </div>
-
-        </div><!-- /ordersList -->
-
-        <!-- Pagination -->
-        {% if orders.paginator.num_pages > 1 %}
-        <nav class="pagination-wrap">
-            {% for num in orders.paginator.page_range %}
-                {% if orders.number == num %}
-                <span class="pagination-btn active">{{ num }}</span>
-                {% elif num > orders.number|add:'-3' and num < orders.number|add:'3' %}
-                <a href="?page={{ num }}" class="pagination-btn">{{ num }}</a>
-                {% endif %}
-            {% endfor %}
-        </nav>
-        {% endif %}
 
     </main>
 </div>
@@ -583,32 +494,62 @@
 
 <script>
 (function() {
-    const input        = document.getElementById('orderSearch');
-    const cards        = document.querySelectorAll('.order-card[data-search]');
-    const searchEmpty  = document.getElementById('searchEmptyState');
-    const mainEmpty    = document.getElementById('emptyState');
-    const resultsCount = document.getElementById('resultsCount');
-    const total        = cards.length;
+    const searchInput = document.getElementById('orderSearch');
+    const container   = document.getElementById('orders-container');
+    const loader      = document.getElementById('searchLoader');
+    let debounceTimer;
 
-    if (input) {
-        input.addEventListener('input', function() {
-            const q = this.value.toLowerCase().trim();
-            let visible = 0;
+    // Main AJAX fetch function
+    const fetchOrders = (query = '', page = 1) => {
+        if (loader) loader.style.display = 'block';
+        
+        const url = `?search=${encodeURIComponent(query)}&page=${page}`;
+        
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            container.innerHTML = html;
+            if (loader) loader.style.display = 'none';
+        })
+        .catch(err => {
+            console.error('Search error:', err);
+            if (loader) loader.style.display = 'none';
+        });
+    };
 
-            cards.forEach(card => {
-                const match = !q || card.dataset.search.includes(q);
-                card.style.display = match ? '' : 'none';
-                if (match) visible++;
-            });
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            const query = this.value.trim();
+            
+            debounceTimer = setTimeout(() => {
+                // When searching, always reset to page 1
+                fetchOrders(query, 1);
+            }, 400); 
+        });
+    }
 
-            if(resultsCount) {
-                resultsCount.textContent = visible === total
-                    ? `${total} Orders`
-                    : `${visible} of ${total} Orders`;
-            }
-
-            if (searchEmpty) {
-                searchEmpty.style.display = (visible === 0 && total > 0) ? 'flex' : 'none';
+    // Handle AJAX Pagination clicks via Event Delegation
+    if (container) {
+        container.addEventListener('click', function(e) {
+            const link = e.target.closest('.pagination-btn');
+            if (link && link.tagName === 'A') {
+                e.preventDefault();
+                
+                // Extract parameters from the link's href
+                const urlParams = new URLSearchParams(link.href.split('?')[1]);
+                const pageNum   = urlParams.get('page') || 1;
+                const searchQuery = searchInput ? searchInput.value.trim() : '';
+                
+                fetchOrders(searchQuery, pageNum);
+                
+                // Scroll up to orders list start for better UX
+                window.scrollTo({
+                    top: container.offsetTop - 100,
+                    behavior: 'smooth'
+                });
             }
         });
     }
