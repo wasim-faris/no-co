@@ -204,11 +204,11 @@
         margin-bottom: 2px;
     }
     .shell .order-id-value {
-        font-size: 11px;
+        font-size: 14px;
         font-weight: 600;
-        color: var(--ink);
-        letter-spacing: 0.06em;
-        font-family: 'Courier New', monospace;
+        color: #111;
+        letter-spacing: 0.5px;
+        font-family: inherit;
     }
     .shell .order-date {
         font-size: 9px;
@@ -449,13 +449,25 @@
                         <div class="order-id-value">#{{ order.order_number }}</div>
                     </div>
                     <div class="order-date">{{ order.created_at|date:"M d, Y" }}</div>
-                    {% if order.payment_status == 'FAILED' or order.payment_status == 'REFUNDED' %}
-                        <span class="status-badge badge-cancelled">{{ order.payment_status }}</span>
-                    {% elif order.payment_status == 'PENDING' %}
-                        <span class="status-badge badge-pending">{{ order.payment_status }}</span>
-                    {% else %}
-                        <span class="status-badge badge-delivered">{{ order.payment_status }}</span>
-                    {% endif %}
+                    {% with item_status=order.items.first.item_status %}
+                        {% if item_status == 'CANCELLED' %}
+                            <span class="status-badge badge-cancelled">Cancelled</span>
+                        {% elif order.payment_method == 'COD' %}
+                            {% if item_status == 'DELIVERED' %}
+                                <span class="status-badge badge-delivered">Paid</span>
+                            {% else %}
+                                <span class="status-badge badge-pending">Pending</span>
+                            {% endif %}
+                        {% else %}
+                            {% if order.payment_status == 'PAID' %}
+                                <span class="status-badge badge-delivered">Paid</span>
+                            {% elif order.payment_status == 'PENDING' %}
+                                <span class="status-badge badge-pending">Pending</span>
+                            {% else %}
+                                <span class="status-badge badge-cancelled">Failed</span>
+                            {% endif %}
+                        {% endif %}
+                    {% endwith %}
                 </div>
                 <div class="order-card-body">
                     <div class="order-thumb">

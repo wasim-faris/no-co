@@ -85,9 +85,17 @@
         color: var(--ink); margin-bottom: 4px;
     }
     .shell .page-meta {
-        font-size: 10px; color: var(--ink-soft); letter-spacing: 0.14em;
+        font-size: 11px; color: var(--ink-soft); letter-spacing: 0.1em;
         text-transform: uppercase; margin-bottom: 36px;
-        font-family: 'Courier New', monospace;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .shell .page-meta .order-id-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111;
+        letter-spacing: 0.5px;
+        font-family: inherit;
+        text-transform: none;
     }
 
     /* ─── Action bar ─────────────────────────────────────────── */
@@ -327,7 +335,10 @@
         </a>
 
         <h1 class="page-title">Order Details</h1>
-        <p class="page-meta">#{{ order.order_number }} &nbsp;·&nbsp; {{ order.created_at|date:"M d, Y" }} &nbsp;·&nbsp; <span style="color:#92400E;">{{ order.payment_status }}</span></p>
+        <p class="page-meta">
+            <span class="order-id-value">#{{ order.order_number }}</span>
+            &nbsp;·&nbsp; {{ order.created_at|date:"M d, Y" }}
+        </p>
 
         <!-- Action Buttons -->
         <div class="action-bar">
@@ -361,13 +372,25 @@
                 <div class="module">
                     <div class="module-header">
                         <span class="module-label">Items Ordered</span>
-                        {% if order.payment_status == 'FAILED' or order.payment_status == 'REFUNDED' %}
-                            <span class="status-badge badge-cancelled">{{ order.payment_status }}</span>
-                        {% elif order.payment_status == 'PENDING' %}
-                            <span class="status-badge badge-pending">{{ order.payment_status }}</span>
-                        {% else %}
-                            <span class="status-badge badge-delivered">{{ order.payment_status }}</span>
-                        {% endif %}
+                        {% with item_status=order.items.first.item_status %}
+                            {% if item_status == 'CANCELLED' %}
+                                <span class="status-badge badge-cancelled">Cancelled</span>
+                            {% elif order.payment_method == 'COD' %}
+                                {% if item_status == 'DELIVERED' %}
+                                    <span class="status-badge badge-delivered">Paid</span>
+                                {% else %}
+                                    <span class="status-badge badge-pending">Pending</span>
+                                {% endif %}
+                            {% else %}
+                                {% if order.payment_status == 'PAID' %}
+                                    <span class="status-badge badge-delivered">Paid</span>
+                                {% elif order.payment_status == 'PENDING' %}
+                                    <span class="status-badge badge-pending">Pending</span>
+                                {% else %}
+                                    <span class="status-badge badge-cancelled">Failed</span>
+                                {% endif %}
+                            {% endif %}
+                        {% endwith %}
                     </div>
                     <div class="module-body">
                         {% for item in order.items.all %}
@@ -428,13 +451,25 @@
                         </div>
                         <div class="info-row">
                             <span class="info-label">Status</span>
-                            {% if order.payment_status == 'FAILED' or order.payment_status == 'REFUNDED' %}
-                                <span class="info-value" style="color:#7F1D1D; font-weight:500;">{{ order.get_payment_status_display }}</span>
-                            {% elif order.payment_status == 'PENDING' %}
-                                <span class="info-value" style="color:#92400E; font-weight:500;">{{ order.get_payment_status_display }}</span>
-                            {% else %}
-                                <span class="info-value" style="color:#14532D; font-weight:500;">{{ order.get_payment_status_display }}</span>
-                            {% endif %}
+                            {% with item_status=order.items.first.item_status %}
+                                {% if item_status == 'CANCELLED' %}
+                                    <span class="info-value" style="color:#7F1D1D; font-weight:500;">Cancelled</span>
+                                {% elif order.payment_method == 'COD' %}
+                                    {% if item_status == 'DELIVERED' %}
+                                        <span class="info-value" style="color:#14532D; font-weight:500;">Paid</span>
+                                    {% else %}
+                                        <span class="info-value" style="color:#92400E; font-weight:500;">Pending</span>
+                                    {% endif %}
+                                {% else %}
+                                    {% if order.payment_status == 'PAID' %}
+                                        <span class="info-value" style="color:#14532D; font-weight:500;">Paid</span>
+                                    {% elif order.payment_status == 'PENDING' %}
+                                        <span class="info-value" style="color:#92400E; font-weight:500;">Pending</span>
+                                    {% else %}
+                                        <span class="info-value" style="color:#7F1D1D; font-weight:500;">Failed</span>
+                                    {% endif %}
+                                {% endif %}
+                            {% endwith %}
                         </div>
                     </div>
                 </div>
