@@ -162,33 +162,43 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-50">
-                            <!-- Placeholder Row 1 -->
+                            {% for order in page_obj %}
                             <tr class="hover:bg-gray-50/50 transition-colors group">
                                 <td class="px-6 py-5">
-                                    <span class="text-[13px] font-bold text-gray-900 font-mono tracking-tighter">#ORD-2024-8742</span>
+                                    <span class="text-[13px] font-bold text-gray-900 font-mono tracking-tighter">#{{ order.order_id|default:order.order_number }}</span>
                                 </td>
                                 <td class="px-4 py-5">
                                     <div class="min-w-0">
-                                        <p class="font-bold text-[13px] text-gray-900 truncate">Alexander Wright</p>
-                                        <p class="text-[11px] text-gray-400 truncate">alex.wright@gmail.com</p>
+                                        <p class="font-bold text-[13px] text-gray-900 truncate">{{ order.user.get_full_name|default:order.user.username }}</p>
+                                        <p class="text-[11px] text-gray-400 truncate">{{ order.user.email }}</p>
                                     </div>
                                 </td>
                                 <td class="px-4 py-5">
-                                    <p class="text-[13px] text-gray-700 font-medium">May 12, 2024</p>
-                                    <p class="text-[10px] text-gray-400 uppercase">10:45 AM</p>
+                                    <p class="text-[13px] text-gray-700 font-medium">{{ order.created_at|date:"M d, Y" }}</p>
+                                    <p class="text-[10px] text-gray-400 uppercase">{{ order.created_at|time:"h:i A" }}</p>
                                 </td>
                                 <td class="px-4 py-5">
-                                    <span class="text-[14px] font-bold font-serif">₹ 12,450.00</span>
+                                    <span class="text-[14px] font-bold font-serif">₹ {{ order.total_amount }}</span>
                                 </td>
                                 <td class="px-4 py-5">
-                                    <span class="text-[11px] font-medium text-gray-500 uppercase tracking-widest">Visa Card</span>
+                                    <span class="text-[11px] font-medium text-gray-500 uppercase tracking-widest">{{ order.payment_method }}</span>
                                 </td>
                                 <td class="px-4 py-5">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600">Pending</span>
+                                    {% with status=order.status|upper %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold 
+                                        {% if status == 'PENDING' %}bg-amber-50 text-amber-600
+                                        {% elif status == 'SHIPPED' %}bg-blue-50 text-blue-600
+                                        {% elif status == 'OUT FOR DELIVERY' or status == 'OUT_FOR_DELIVERY' %}bg-purple-50 text-purple-600
+                                        {% elif status == 'DELIVERED' %}bg-green-50 text-green-600
+                                        {% elif status == 'CANCELLED' %}bg-red-50 text-red-600
+                                        {% else %}bg-gray-50 text-gray-600{% endif %}">
+                                        {{ order.status|default:"Pending"|title }}
+                                    </span>
+                                    {% endwith %}
                                 </td>
                                 <td class="px-6 py-5 text-right">
                                     <div class="flex items-center justify-end gap-3 transition-opacity">
-                                        <a href="{% url 'admin-order-detail' 'ORD-2024-8742' %}" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors px-3 py-1.5 border border-gray-100 rounded-lg hover:bg-gray-50">
+                                        <a href="{% url 'admin-order-detail' order.id %}" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors px-3 py-1.5 border border-gray-100 rounded-lg hover:bg-gray-50">
                                             View Details
                                         </a>
                                         <div class="relative group/actions">
@@ -199,160 +209,22 @@
                                     </div>
                                 </td>
                             </tr>
-                            <!-- Placeholder Row 2 -->
-                            <tr class="hover:bg-gray-50/50 transition-colors group">
-                                <td class="px-6 py-5">
-                                    <span class="text-[13px] font-bold text-gray-900 font-mono tracking-tighter">#ORD-2024-8741</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <div class="min-w-0">
-                                        <p class="font-bold text-[13px] text-gray-900 truncate">Siddharth Sharma</p>
-                                        <p class="text-[11px] text-gray-400 truncate">sid.sharma@outlook.com</p>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <p class="text-[13px] text-gray-700 font-medium">May 11, 2024</p>
-                                    <p class="text-[10px] text-gray-400 uppercase">04:20 PM</p>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="text-[14px] font-bold font-serif">₹ 9,200.00</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="text-[11px] font-medium text-gray-500 uppercase tracking-widest">Mastercard</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-600">Shipped</span>
-                                </td>
-                                <td class="px-6 py-5 text-right">
-                                    <div class="flex items-center justify-end gap-3">
-                                        <a href="#" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors px-3 py-1.5 border border-gray-100 rounded-lg hover:bg-gray-50">View Details</a>
-                                        <button class="p-2 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-black transition-all">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
-                                        </button>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="px-6 py-12 text-center">
+                                    <div class="flex flex-col items-center justify-center text-gray-400">
+                                        <svg class="w-12 h-12 mb-4 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                        <p class="text-sm font-medium">No orders found.</p>
                                     </div>
                                 </td>
                             </tr>
-                            <!-- Placeholder Row 3 -->
-                            <tr class="hover:bg-gray-50/50 transition-colors group">
-                                <td class="px-6 py-5">
-                                    <span class="text-[13px] font-bold text-gray-900 font-mono tracking-tighter">#ORD-2024-8740</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <div class="min-w-0">
-                                        <p class="font-bold text-[13px] text-gray-900 truncate">Meera Kapoor</p>
-                                        <p class="text-[11px] text-gray-400 truncate">meera.k@gmail.com</p>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <p class="text-[13px] text-gray-700 font-medium">May 11, 2024</p>
-                                    <p class="text-[10px] text-gray-400 uppercase">11:15 AM</p>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="text-[14px] font-bold font-serif">₹ 5,600.00</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="text-[11px] font-medium text-gray-500 uppercase tracking-widest">PayPal</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-600">Out for Delivery</span>
-                                </td>
-                                <td class="px-6 py-5 text-right">
-                                    <div class="flex items-center justify-end gap-3">
-                                        <a href="#" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors px-3 py-1.5 border border-gray-100 rounded-lg hover:bg-gray-50">View Details</a>
-                                        <button class="p-2 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-black transition-all">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Placeholder Row 4 -->
-                            <tr class="hover:bg-gray-50/50 transition-colors group">
-                                <td class="px-6 py-5">
-                                    <span class="text-[13px] font-bold text-gray-900 font-mono tracking-tighter">#ORD-2024-8739</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <div class="min-w-0">
-                                        <p class="font-bold text-[13px] text-gray-900 truncate">Rohan Malhotra</p>
-                                        <p class="text-[11px] text-gray-400 truncate">rohan.m@gmail.com</p>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <p class="text-[13px] text-gray-700 font-medium">May 10, 2024</p>
-                                    <p class="text-[10px] text-gray-400 uppercase">09:30 AM</p>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="text-[14px] font-bold font-serif">₹ 24,000.00</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="text-[11px] font-medium text-gray-500 uppercase tracking-widest">Bank Transfer</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-green-50 text-green-600">Delivered</span>
-                                </td>
-                                <td class="px-6 py-5 text-right">
-                                    <div class="flex items-center justify-end gap-3">
-                                        <a href="#" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors px-3 py-1.5 border border-gray-100 rounded-lg hover:bg-gray-50">View Details</a>
-                                        <button class="p-2 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-black transition-all">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <!-- Placeholder Row 5 -->
-                            <tr class="hover:bg-gray-50/50 transition-colors group">
-                                <td class="px-6 py-5">
-                                    <span class="text-[13px] font-bold text-gray-900 font-mono tracking-tighter">#ORD-2024-8738</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <div class="min-w-0">
-                                        <p class="font-bold text-[13px] text-gray-900 truncate">Ananya Iyer</p>
-                                        <p class="text-[11px] text-gray-400 truncate">ananya.i@gmail.com</p>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <p class="text-[13px] text-gray-700 font-medium">May 10, 2024</p>
-                                    <p class="text-[10px] text-gray-400 uppercase">02:15 PM</p>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="text-[14px] font-bold font-serif">₹ 3,200.00</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="text-[11px] font-medium text-gray-500 uppercase tracking-widest">COD</span>
-                                </td>
-                                <td class="px-4 py-5">
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-600">Cancelled</span>
-                                </td>
-                                <td class="px-6 py-5 text-right">
-                                    <div class="flex items-center justify-end gap-3">
-                                        <a href="#" class="text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-black transition-colors px-3 py-1.5 border border-gray-100 rounded-lg hover:bg-gray-50">View Details</a>
-                                        <button class="p-2 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-black transition-all">
-                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
 
-                <!-- Pagination -->
-                <div class="px-6 py-5 bg-white border-t border-gray-50">
-                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Showing 1 to 5 of 124 entries</p>
-                        <div class="flex items-center gap-1">
-                            <button class="w-10 h-10 flex items-center justify-center rounded-xl text-gray-400 hover:text-black hover:bg-gray-50 transition-all">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
-                            </button>
-                            <button class="w-10 h-10 flex items-center justify-center rounded-xl bg-black text-white text-[11px] font-bold shadow-lg shadow-black/20">1</button>
-                            <button class="w-10 h-10 flex items-center justify-center rounded-xl text-gray-400 hover:text-black hover:bg-gray-50 text-[11px] font-medium transition-all">2</button>
-                            <button class="w-10 h-10 flex items-center justify-center rounded-xl text-gray-400 hover:text-black hover:bg-gray-50 text-[11px] font-medium transition-all">3</button>
-                            <span class="px-2 text-gray-300">...</span>
-                            <button class="w-10 h-10 flex items-center justify-center rounded-xl text-gray-400 hover:text-black hover:bg-gray-50 text-[11px] font-medium transition-all">12</button>
-                            <button class="w-10 h-10 flex items-center justify-center rounded-xl text-gray-400 hover:text-black hover:bg-gray-50 transition-all">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
-                            </button>
-                        </div>
-                    </div>
+                <div id="paginationSection">
+                    {% include 'admin_base/components/pagination.html' %}
                 </div>
             </div>
         </main>
