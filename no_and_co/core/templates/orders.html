@@ -480,6 +480,47 @@
     const container   = document.getElementById('orders-container');
     const loader      = document.getElementById('searchLoader');
     let debounceTimer;
+    const orderStatePrefix = 'ecom_order_state_';
+
+    function statusBadgeClass(status) {
+        const normalized = (status || '').toUpperCase();
+        if (normalized === 'DELIVERED') return 'status-badge badge-delivered order-status-badge';
+        if (normalized === 'CANCELLED' || normalized === 'RETURNED' || normalized === 'REFUNDED') {
+            return 'status-badge badge-cancelled order-status-badge';
+        }
+        return 'status-badge badge-pending order-status-badge';
+    }
+
+    function titleStatus(status) {
+        return (status || '')
+            .toLowerCase()
+            .replace(/_/g, ' ')
+            .replace(/\b\w/g, function(ch) { return ch.toUpperCase(); });
+    }
+
+    function applyListingStatuses(scope) {
+        const cards = (scope || document).querySelectorAll('.order-card[data-order-number]');
+        cards.forEach(function(card) {
+            const orderNumber = card.getAttribute('data-order-number');
+            const defaultStatus = card.getAttribute('data-default-status') || 'PENDING';
+            const badge = card.querySelector('[data-role="listing-status"]');
+            if (!badge) return;
+
+            let currentStatus = defaultStatus;
+            try {
+                const raw = localStorage.getItem(orderStatePrefix + orderNumber);
+                if (raw) {
+                    const saved = JSON.parse(raw);
+                    if (saved && saved.orderStatus) currentStatus = saved.orderStatus;
+                }
+            } catch (error) {
+                console.warn('Unable to parse saved order status:', error);
+            }
+
+            badge.className = statusBadgeClass(currentStatus);
+            badge.textContent = titleStatus(currentStatus);
+        });
+    }
 
     // Main AJAX fetch function
     const fetchOrders = (query = '', page = 1) => {
@@ -493,6 +534,7 @@
         .then(response => response.text())
         .then(html => {
             container.innerHTML = html;
+            applyListingStatuses(container);
             if (loader) loader.style.display = 'none';
         })
         .catch(err => {
@@ -535,6 +577,8 @@
             }
         });
     }
+
+    applyListingStatuses(container);
 })();
 </script>
 {% endblock %}

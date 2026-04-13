@@ -115,6 +115,158 @@
     .shell .btn-outline { background: transparent; color: var(--ink); border: var(--border); }
     .shell .btn-outline:hover { border-color: var(--ink); }
     .shell .btn svg    { width: 13px; height: 13px; flex-shrink: 0; }
+    .shell .btn[disabled] {
+        opacity: 0.45;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+    .shell .order-action-mini {
+        margin-top: 10px;
+        padding: 8px 12px;
+        border: var(--border);
+        background: var(--pure-white);
+        color: var(--ink);
+        font-size: 8px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    .shell .order-action-mini:hover { border-color: var(--ink); background: var(--ink-ghost); }
+    .shell .order-action-mini[disabled] { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+    .shell .item-state-note {
+        margin-top: 8px;
+        font-size: 9px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--ink-soft);
+    }
+    .shell .item-state-note.cancelled { color: #7F1D1D; font-weight: 600; }
+    .shell .product-row.item-cancelled { opacity: 0.65; }
+    .shell .product-row.item-cancelled .prod-name { text-decoration: line-through; }
+    .toast-wrap {
+        position: fixed;
+        right: 22px;
+        top: 90px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .toast {
+        border: var(--border);
+        background: var(--pure-white);
+        color: var(--ink);
+        padding: 12px 14px;
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-weight: 600;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    }
+    .toast.error {
+        border-color: #FECACA;
+        color: #7F1D1D;
+        background: #FEF2F2;
+    }
+    .manage-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    .manage-modal.open { 
+        display: flex; 
+        opacity: 1;
+    }
+    .manage-modal-card {
+        width: min(520px, 95%);
+        background: #FFFFFF;
+        border-radius: 0; /* H&M style sharp edges */
+        padding: 40px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        position: relative;
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+    }
+    .manage-modal.open .manage-modal-card {
+        transform: translateY(0);
+    }
+    .manage-modal-title {
+        font-size: 14px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: #111111;
+        font-weight: 600;
+        margin-bottom: 12px;
+        text-align: left;
+    }
+    .manage-modal-subtitle {
+        font-size: 13px;
+        color: #444444;
+        margin-bottom: 24px;
+        text-align: left;
+        line-height: 1.6;
+        font-weight: 300;
+    }
+    .manage-modal-textarea {
+        width: 100%;
+        min-height: 100px;
+        border: 1px solid #E5E5E5;
+        padding: 15px;
+        background: #FFFFFF;
+        font-family: inherit;
+        font-size: 12px;
+        color: #111111;
+        resize: none;
+        outline: none;
+        margin-bottom: 30px;
+        transition: border-color 0.2s;
+    }
+    .manage-modal-textarea:focus { border-color: #111111; }
+    .manage-modal-textarea::placeholder { color: #999999; }
+
+    .manage-modal-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: flex-start;
+    }
+    .manage-modal-actions .btn {
+        flex: 1;
+        height: 45px;
+        font-size: 11px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-hm-primary {
+        background: #111111;
+        color: #FFFFFF;
+        border: 1px solid #111111;
+    }
+    .btn-hm-primary:hover {
+        background: #333333;
+    }
+    .btn-hm-secondary {
+        background: #FFFFFF;
+        color: #111111;
+        border: 1px solid #111111;
+    }
+    .btn-hm-secondary:hover {
+        background: #F5F5F5;
+    }
 
     /* ─── Two-col detail layout ──────────────────────────────── */
     .shell .detail-grid {
@@ -287,7 +439,7 @@
     }
 </style>
 
-<div class="shell">
+<div class="shell" data-order-number="{{ order.order_number }}" data-default-status="{{ order.items.first.item_status|default:'PENDING' }}">
 
     <!-- ─── Sidebar ──────────────────────────────────────────── -->
     <aside class="sidebar">
@@ -366,6 +518,8 @@
                 </svg>
                 Back to Orders
             </a>
+            <button type="button" class="btn btn-outline" id="cancel-order-btn">Cancel Order</button>
+            <button type="button" class="btn btn-outline" id="return-order-btn">Return Order</button>
         </div>
 
         <!-- Two-column detail layout -->
@@ -379,28 +533,18 @@
                     <div class="module-header">
                         <span class="module-label">Items Ordered</span>
                         {% with item_status=order.items.first.item_status %}
-                            {% if item_status == 'CANCELLED' %}
-                                <span class="status-badge badge-cancelled">Cancelled</span>
-                            {% elif order.payment_method == 'COD' %}
-                                {% if item_status == 'DELIVERED' %}
-                                    <span class="status-badge badge-delivered">Paid</span>
-                                {% else %}
-                                    <span class="status-badge badge-pending">Pending</span>
-                                {% endif %}
+                            {% if item_status == 'DELIVERED' %}
+                                <span class="status-badge badge-delivered" id="order-status-badge">{{ item_status|title }}</span>
+                            {% elif item_status == 'CANCELLED' or item_status == 'RETURNED' %}
+                                <span class="status-badge badge-cancelled" id="order-status-badge">{{ item_status|title }}</span>
                             {% else %}
-                                {% if order.payment_status == 'PAID' %}
-                                    <span class="status-badge badge-delivered">Paid</span>
-                                {% elif order.payment_status == 'PENDING' %}
-                                    <span class="status-badge badge-pending">Pending</span>
-                                {% else %}
-                                    <span class="status-badge badge-cancelled">Failed</span>
-                                {% endif %}
+                                <span class="status-badge badge-pending" id="order-status-badge">{{ item_status|title }}</span>
                             {% endif %}
                         {% endwith %}
                     </div>
                     <div class="module-body">
                         {% for item in order.items.all %}
-                        <div class="product-row">
+                        <div class="product-row" data-item-index="{{ forloop.counter0 }}" data-item-status="{{ item.item_status|default:'PENDING' }}">
                             <div class="prod-thumb">
                                 {% if item.variant.images.first %}
                                 <img src="{{ item.variant.images.first.image.url }}"
@@ -413,6 +557,8 @@
                             <div class="prod-info">
                                 <div class="prod-name">{{ item.variant.product.product_name }}</div>
                                 <div class="prod-meta">Colour: {{ item.variant.color }} &nbsp;·&nbsp; Size: {{ item.variant.size.name }} &nbsp;·&nbsp; Qty: {{ item.quantity }}</div>
+                                <button type="button" class="order-action-mini cancel-item-btn" data-item-index="{{ forloop.counter0 }}">Cancel Item</button>
+                                <div class="item-state-note" data-role="item-state-note">Status: {{ item.item_status|title }}</div>
                             </div>
                             <div class="prod-price">₹{{ item.price }}</div>
                         </div>
@@ -462,22 +608,12 @@
                         <div class="info-row">
                             <span class="info-label">Status</span>
                             {% with item_status=order.items.first.item_status %}
-                                {% if item_status == 'CANCELLED' %}
-                                    <span class="info-value" style="color:#7F1D1D; font-weight:500;">Cancelled</span>
-                                {% elif order.payment_method == 'COD' %}
-                                    {% if item_status == 'DELIVERED' %}
-                                        <span class="info-value" style="color:#14532D; font-weight:500;">Paid</span>
-                                    {% else %}
-                                        <span class="info-value" style="color:#92400E; font-weight:500;">Pending</span>
-                                    {% endif %}
+                                {% if item_status == 'DELIVERED' %}
+                                    <span class="info-value" style="color:#14532D; font-weight:500;" id="order-status-text">{{ item_status|title }}</span>
+                                {% elif item_status == 'CANCELLED' or item_status == 'RETURNED' %}
+                                    <span class="info-value" style="color:#7F1D1D; font-weight:500;" id="order-status-text">{{ item_status|title }}</span>
                                 {% else %}
-                                    {% if order.payment_status == 'PAID' %}
-                                        <span class="info-value" style="color:#14532D; font-weight:500;">Paid</span>
-                                    {% elif order.payment_status == 'PENDING' %}
-                                        <span class="info-value" style="color:#92400E; font-weight:500;">Pending</span>
-                                    {% else %}
-                                        <span class="info-value" style="color:#7F1D1D; font-weight:500;">Failed</span>
-                                    {% endif %}
+                                    <span class="info-value" style="color:#92400E; font-weight:500;" id="order-status-text">{{ item_status|title }}</span>
                                 {% endif %}
                             {% endwith %}
                         </div>
@@ -654,6 +790,309 @@
 
     </main>
 </div>
+
+<div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
+
+<div class="manage-modal" id="manage-modal" aria-hidden="true">
+    <div class="manage-modal-card" role="dialog" aria-modal="true" aria-labelledby="manage-modal-title">
+        <div class="manage-modal-title" id="manage-modal-title">Confirm Action</div>
+        <div class="manage-modal-subtitle" id="manage-modal-subtitle"></div>
+        <textarea id="manage-modal-reason" class="manage-modal-textarea" placeholder="Add a reason"></textarea>
+        <div class="manage-modal-actions">
+            <button type="button" class="btn btn-hm-secondary" id="manage-modal-cancel">Keep Order</button>
+            <button type="button" class="btn btn-hm-primary" id="manage-modal-confirm">Confirm Cancellation</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const shell = document.querySelector('.shell[data-order-number]');
+    if (!shell) return;
+
+    const orderNumber = shell.dataset.orderNumber;
+    const storageKey = 'ecom_order_state_' + orderNumber;
+    const allStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED', 'REFUNDED', 'RETURNED'];
+
+    const cancelOrderBtn = document.getElementById('cancel-order-btn');
+    const returnOrderBtn = document.getElementById('return-order-btn');
+    const statusBadge = document.getElementById('order-status-badge');
+    const statusText = document.getElementById('order-status-text');
+    const productRows = Array.from(document.querySelectorAll('.product-row[data-item-index]'));
+
+    const modal = document.getElementById('manage-modal');
+    const modalTitle = document.getElementById('manage-modal-title');
+    const modalSubtitle = document.getElementById('manage-modal-subtitle');
+    const modalReason = document.getElementById('manage-modal-reason');
+    const modalConfirm = document.getElementById('manage-modal-confirm');
+    const modalCancel = document.getElementById('manage-modal-cancel');
+    const toastWrap = document.getElementById('toast-wrap');
+
+    let actionPayload = null;
+
+    function norm(status) {
+        const value = (status || '').toUpperCase().replace(/\s+/g, '_');
+        return allStatuses.includes(value) ? value : 'PENDING';
+    }
+
+    function titleStatus(status) {
+        return status.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, function(ch) { return ch.toUpperCase(); });
+    }
+
+    function getInitialState() {
+        const defaultStatus = norm(shell.dataset.defaultStatus || 'PENDING');
+        const items = productRows.map(function(row) {
+            return { status: norm(row.dataset.itemStatus || defaultStatus), reason: '' };
+        });
+        return { orderStatus: defaultStatus, items: items, reason: '' };
+    }
+
+    function readState() {
+        try {
+            const raw = localStorage.getItem(storageKey);
+            if (!raw) return getInitialState();
+            const parsed = JSON.parse(raw);
+            if (!parsed || !Array.isArray(parsed.items)) return getInitialState();
+            return parsed;
+        } catch (error) {
+            return getInitialState();
+        }
+    }
+
+    function writeState(state) {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+    }
+
+    function toast(message, isError) {
+        const item = document.createElement('div');
+        item.className = isError ? 'toast error' : 'toast';
+        item.textContent = message;
+        toastWrap.appendChild(item);
+        setTimeout(function() {
+            item.remove();
+        }, 2800);
+    }
+
+    function badgeClass(status) {
+        if (status === 'DELIVERED') return 'status-badge badge-delivered';
+        if (status === 'CANCELLED' || status === 'RETURNED' || status === 'REFUNDED') return 'status-badge badge-cancelled';
+        return 'status-badge badge-pending';
+    }
+
+    function statusColor(status) {
+        if (status === 'DELIVERED') return '#14532D';
+        if (status === 'CANCELLED' || status === 'RETURNED' || status === 'REFUNDED') return '#7F1D1D';
+        return '#92400E';
+    }
+
+    function isTerminal(status) {
+        return status === 'DELIVERED' || status === 'CANCELLED' || status === 'RETURNED';
+    }
+
+    function updateControls(state) {
+        const status = norm(state.orderStatus);
+        if (statusBadge) {
+            statusBadge.className = badgeClass(status);
+            statusBadge.textContent = titleStatus(status);
+        }
+        if (statusText) {
+            statusText.textContent = titleStatus(status);
+            statusText.style.color = statusColor(status);
+            statusText.style.fontWeight = '500';
+        }
+
+        productRows.forEach(function(row, index) {
+            const item = state.items[index];
+            if (!item) return;
+            const itemStatus = norm(item.status);
+            const note = row.querySelector('[data-role="item-state-note"]');
+            const button = row.querySelector('.cancel-item-btn');
+            row.dataset.itemStatus = itemStatus;
+            row.classList.toggle('item-cancelled', itemStatus === 'CANCELLED');
+            if (note) {
+                note.textContent = 'Status: ' + titleStatus(itemStatus);
+                note.classList.toggle('cancelled', itemStatus === 'CANCELLED');
+            }
+            if (button) {
+                button.disabled = isTerminal(status) || itemStatus === 'CANCELLED';
+            }
+        });
+
+        if (cancelOrderBtn) {
+            cancelOrderBtn.disabled = isTerminal(status);
+        }
+        if (returnOrderBtn) {
+            returnOrderBtn.disabled = status !== 'DELIVERED';
+        }
+    }
+
+    function openModal(config) {
+        actionPayload = config;
+        modalTitle.textContent = config.title;
+        modalSubtitle.textContent = config.subtitle;
+        modalReason.value = '';
+        modalReason.placeholder = config.placeholder || 'Add a reason';
+        modalReason.setAttribute('data-required', config.reasonRequired ? 'true' : 'false');
+        modalConfirm.textContent = config.confirmText || 'Confirm';
+        modalCancel.textContent = config.cancelText || 'Keep Order';
+        
+        // Use timeout to ensure display: flex is applied before adding opacity/transform classes
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+        
+        // Focus textarea after animation starts
+        setTimeout(() => modalReason.focus(), 100);
+    }
+
+    function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.style.overflow = '';
+        actionPayload = null;
+    }
+
+    function resolveOrderStatus(items, fallback) {
+        if (items.length > 0 && items.every(function(item) { return norm(item.status) === 'CANCELLED'; })) {
+            return 'CANCELLED';
+        }
+        return fallback;
+    }
+
+    modalCancel.addEventListener('click', closeModal);
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) closeModal();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('open')) {
+            closeModal();
+        }
+    });
+
+    modalConfirm.addEventListener('click', function() {
+        if (!actionPayload) return;
+        const reason = modalReason.value.trim();
+        const reasonRequired = modalReason.getAttribute('data-required') === 'true';
+        if (reasonRequired && !reason) {
+            toast('Reason is required for this action.', true);
+            return;
+        }
+
+        const state = readState();
+        const currentStatus = norm(state.orderStatus);
+
+        if (actionPayload.type === 'cancel-order') {
+            if (isTerminal(currentStatus)) {
+                toast('This order can no longer be cancelled.', true);
+                closeModal();
+                return;
+            }
+            state.orderStatus = 'CANCELLED';
+            state.reason = reason || '';
+            state.items = state.items.map(function(item) {
+                return { status: 'CANCELLED', reason: reason || item.reason || '' };
+            });
+            toast('Order cancelled. Stock restored (demo).');
+        }
+
+        if (actionPayload.type === 'cancel-item') {
+            if (isTerminal(currentStatus)) {
+                toast('Items cannot be cancelled in current status.', true);
+                closeModal();
+                return;
+            }
+            const itemIndex = actionPayload.itemIndex;
+            if (state.items[itemIndex] && norm(state.items[itemIndex].status) !== 'CANCELLED') {
+                state.items[itemIndex].status = 'CANCELLED';
+                state.items[itemIndex].reason = reason || '';
+                state.orderStatus = resolveOrderStatus(state.items, currentStatus);
+                toast('Item cancelled. Stock restored (demo).');
+            } else {
+                toast('This item is already cancelled.', true);
+            }
+        }
+
+        if (actionPayload.type === 'return-order') {
+            if (currentStatus !== 'DELIVERED') {
+                toast('Only delivered orders can be returned.', true);
+                closeModal();
+                return;
+            }
+            state.orderStatus = 'RETURNED';
+            state.reason = reason;
+            toast('Return request submitted (demo).');
+        }
+
+        writeState(state);
+        updateControls(state);
+        closeModal();
+    });
+
+    if (cancelOrderBtn) {
+        cancelOrderBtn.addEventListener('click', function() {
+            const state = readState();
+            if (isTerminal(norm(state.orderStatus))) {
+                toast('This order cannot be cancelled.', true);
+                return;
+            }
+            openModal({
+                type: 'cancel-order',
+                title: 'Cancel Entire Order',
+                subtitle: 'You can optionally tell us why you are cancelling this order.',
+                placeholder: 'Optional reason for cancellation',
+                reasonRequired: false,
+                confirmText: 'Confirm Cancellation',
+                cancelText: 'Keep Order'
+            });
+        });
+    }
+
+    if (returnOrderBtn) {
+        returnOrderBtn.addEventListener('click', function() {
+            const state = readState();
+            if (norm(state.orderStatus) !== 'DELIVERED') {
+                toast('Return is allowed only for delivered orders.', true);
+                return;
+            }
+            openModal({
+                type: 'return-order',
+                title: 'Return Order',
+                subtitle: 'Please provide a reason to submit your return request.',
+                placeholder: 'Reason for return (required)',
+                reasonRequired: true,
+                confirmText: 'Return Order'
+            });
+        });
+    }
+
+    document.querySelectorAll('.cancel-item-btn').forEach(function(button) {
+        button.addEventListener('click', function() {
+            const index = Number(button.getAttribute('data-item-index'));
+            const state = readState();
+            const orderStatus = norm(state.orderStatus);
+            if (isTerminal(orderStatus)) {
+                toast('This order no longer supports item cancellation.', true);
+                return;
+            }
+            if (state.items[index] && norm(state.items[index].status) === 'CANCELLED') {
+                toast('This item is already cancelled.', true);
+                return;
+            }
+            openModal({
+                type: 'cancel-item',
+                itemIndex: index,
+                title: 'Cancel This Product',
+                subtitle: 'You can optionally add a reason for cancelling this item.',
+                placeholder: 'Optional reason for item cancellation',
+                reasonRequired: false,
+                confirmText: 'Cancel Item'
+            });
+        });
+    });
+
+    updateControls(readState());
+})();
+</script>
 
 {% include 'user_base/components/footer.html' %}
 {% endblock %}

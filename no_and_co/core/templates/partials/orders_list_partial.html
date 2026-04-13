@@ -1,30 +1,19 @@
 {% for order in orders %}
-<article class="order-card" data-search="{{ order.order_number|lower }} {{ order.items.first.variant.product.product_name|lower }}">
+{% with item_status=order.items.first.item_status|default:'PENDING' %}
+<article class="order-card" data-search="{{ order.order_number|lower }} {{ order.items.first.variant.product.product_name|lower }}" data-order-number="{{ order.order_number }}" data-default-status="{{ item_status }}">
     <div class="order-card-top">
         <div class="order-id-group">
             <div class="order-id-micro">Order ID</div>
             <div class="order-id-value">#{{ order.order_number }}</div>
         </div>
         <div class="order-date">{{ order.created_at|date:"M d, Y" }}</div>
-        {% with item_status=order.items.first.item_status %}
-            {% if item_status == 'CANCELLED' %}
-                <span class="status-badge badge-cancelled">Cancelled</span>
-            {% elif order.payment_method == 'COD' %}
-                {% if item_status == 'DELIVERED' %}
-                    <span class="status-badge badge-delivered">Paid</span>
-                {% else %}
-                    <span class="status-badge badge-pending">Pending</span>
-                {% endif %}
-            {% else %}
-                {% if order.payment_status == 'PAID' %}
-                    <span class="status-badge badge-delivered">Paid</span>
-                {% elif order.payment_status == 'PENDING' %}
-                    <span class="status-badge badge-pending">Pending</span>
-                {% else %}
-                    <span class="status-badge badge-cancelled">Failed</span>
-                {% endif %}
-            {% endif %}
-        {% endwith %}
+        {% if item_status == 'DELIVERED' %}
+            <span class="status-badge badge-delivered order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
+        {% elif item_status == 'CANCELLED' or item_status == 'RETURNED' %}
+            <span class="status-badge badge-cancelled order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
+        {% else %}
+            <span class="status-badge badge-pending order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
+        {% endif %}
     </div>
     <div class="order-card-body">
         <div class="order-thumb">
@@ -51,6 +40,7 @@
         </a>
     </div>
 </article>
+{% endwith %}
 {% empty %}
 <div class="empty-state" id="emptyState" style="display:flex;">
     <span class="empty-state-label">No Orders Found</span>
