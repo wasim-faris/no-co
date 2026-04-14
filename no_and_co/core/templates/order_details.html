@@ -811,16 +811,45 @@
     </main>
 </div>
 
+<!-- Client-side toast for local state actions -->
 <div id="inlineToast" class="inline-toast" role="alert" aria-live="polite"></div>
+
+{% if messages %}
+<div id="djangoToast" class="inline-toast show" role="alert" aria-live="polite">
+    {% for message in messages %}
+    <div class="toast-left-content">
+        <div class="toast-icon-circle">{% if message.tags == 'error' %}✕{% else %}✓{% endif %}</div>
+        <div class="toast-message-wrapper">
+            <span class="toast-main-text">{{ message }}</span>
+            <span class="toast-sub-text">Notification</span>
+        </div>
+    </div>
+    <div class="toast-close-btn" onclick="this.parentElement.classList.remove('show')">✕</div>
+    {% endfor %}
+</div>
+<script>
+(function() {
+    const t = document.getElementById('djangoToast');
+    if (t) {
+        setTimeout(function() {
+            t.classList.remove('show');
+        }, 3000);
+    }
+})();
+</script>
+{% endif %}
 
 <div class="manage-modal" id="manage-modal" aria-hidden="true">
     <div class="manage-modal-card" role="dialog" aria-modal="true" aria-labelledby="manage-modal-title">
         <div class="manage-modal-title" id="manage-modal-title">Confirm Action</div>
         <div class="manage-modal-subtitle" id="manage-modal-subtitle"></div>
-        <div class="manage-modal-actions">
-            <button type="button" class="btn btn-hm-secondary" id="manage-modal-cancel">Keep Order</button>
-            <button type="button" class="btn btn-hm-primary" id="manage-modal-confirm">Confirm Cancellation</button>
-        </div>
+        <form id="cancelOrderForm" method="POST" action="{% url 'cancel-order' order.id %}">
+            {% csrf_token %}
+            <div class="manage-modal-actions">
+                <button type="button" class="btn btn-hm-secondary" id="manage-modal-cancel">Keep Order</button>
+                <button type="submit" class="btn btn-hm-primary" id="manage-modal-confirm">Confirm Cancellation</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -844,26 +873,9 @@
     const modalSubtitle = document.getElementById('manage-modal-subtitle');
     const modalConfirm = document.getElementById('manage-modal-confirm');
     const modalCancel = document.getElementById('manage-modal-cancel');
+    const cancelOrderForm = document.getElementById('cancelOrderForm');
 
     let actionPayload = null;
-    let isProcessing = false;
-
-    // Get CSRF token from cookie
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-    const csrftoken = getCookie('csrftoken');
 
     function norm(status) {
         const value = (status || '').toUpperCase().replace(/\s+/g, '_');
@@ -898,7 +910,7 @@
         localStorage.setItem(storageKey, JSON.stringify(state));
     }
 
-    /* ─── Cart-style Toast Notification ────────────────────────────────── */
+    /* ─── Client-side Toast Notification (for local state actions) ─────── */
     let toastTimer = null;
     function showToast(msg, isError = false, duration = 2500) {
         const t = document.getElementById('inlineToast');
@@ -919,6 +931,14 @@
         t.classList.add('show');
         clearTimeout(toastTimer);
         toastTimer = setTimeout(() => t.classList.remove('show'), duration);
+    }
+
+    /* ─── Processing State for Cancel Order Form ─────────────────────────── */
+    if (cancelOrderForm && modalConfirm) {
+        cancelOrderForm.addEventListener('submit', function() {
+            modalConfirm.disabled = true;
+            modalConfirm.textContent = 'Processing...';
+        });
     }
 
     function badgeClass(status) {
@@ -981,10 +1001,11 @@
         modalConfirm.textContent = config.confirmText || 'Confirm';
         modalCancel.textContent = config.cancelText || 'Keep Order';
         
-        // Reset processing state
-        isProcessing = false;
-        modalConfirm.disabled = false;
-        modalConfirm.textContent = config.confirmText || 'Confirm';
+        // Reset button state for non-form actions
+        if (config.type !== 'cancel-order') {
+            modalConfirm.disabled = false;
+            modalConfirm.textContent = config.confirmText || 'Confirm';
+        }
         
         modal.classList.add('open');
         modal.setAttribute('aria-hidden', 'false');
@@ -1015,71 +1036,19 @@
         }
     });
 
+    // Handle cancel-item and return-order via local state (cancel-order uses form submit)
     modalConfirm.addEventListener('click', function() {
-        if (!actionPayload || isProcessing) return;
+        if (!actionPayload) return;
 
         const state = readState();
         const currentStatus = norm(state.orderStatus);
 
+        // cancel-order is handled by form submission - just validate before opening modal
         if (actionPayload.type === 'cancel-order') {
-            if (isTerminal(currentStatus)) {
-                showToast('This order can no longer be cancelled.', true);
-                closeModal();
-                return;
-            }
-
-            // Set processing state
-            isProcessing = true;
-            modalConfirm.disabled = true;
-            modalConfirm.textContent = 'Processing...';
-
-            // Get order ID from shell data attribute
-            const orderId = shell.dataset.orderId;
-            if (!orderId) {
-                showToast('Order ID not found.', true);
-                isProcessing = false;
-                modalConfirm.disabled = false;
-                modalConfirm.textContent = actionPayload.confirmText || 'Confirm';
-                return;
-            }
-
-            // Call backend API
-            fetch(`/cancel-order/${orderId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                credentials: 'same-origin'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update local state
-                    state.orderStatus = 'CANCELLED';
-                    state.items = state.items.map(function(item) {
-                        return { status: 'CANCELLED', reason: '' };
-                    });
-                    writeState(state);
-                    updateControls(state);
-                    showToast('Order cancelled successfully.');
-                } else {
-                    showToast(data.message || 'Failed to cancel order.', true);
-                }
-                closeModal();
-            })
-            .catch(error => {
-                console.error('Cancel order error:', error);
-                showToast('Something went wrong. Please try again.', true);
-                isProcessing = false;
-                modalConfirm.disabled = false;
-                modalConfirm.textContent = actionPayload.confirmText || 'Confirm';
-            });
+            // Form will submit normally, button type="submit" handles it
             return;
         }
 
-        // Handle other modal types (cancel-item, return-order) with local state only
         if (actionPayload.type === 'cancel-item') {
             if (isTerminal(currentStatus)) {
                 showToast('Items cannot be cancelled in current status.', true);

@@ -577,7 +577,7 @@ def cancel_order(request, order_id):
             messages.error(
                 request,"This order cannot be cancelled as it has already been shipped."
             )
-            return redirect("order-details",id=order_id)
+            return redirect("order_details",id=order_id)
 
         order.items.update(item_status = "CANCELLED")
 
@@ -593,4 +593,4 @@ def cancel_order(request, order_id):
 
         order.save()
         messages.success(request, "Order cancellation succesfully")
-    return redirect("order-details", id=order_id)
+    return redirect("order_details", id=order_id)
