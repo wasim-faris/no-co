@@ -322,6 +322,88 @@
         .similar-items-section { padding-top: 15px !important; } /* Tightened top gap on mobile */
     }
     /* ════════════════════════════════════════
+       IMAGE ZOOM TOGGLE
+    ════════════════════════════════════════ */
+    .zoom-toggle-btn {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        z-index: 50;
+        width: 40px;
+        height: 40px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border: 1px solid rgba(0, 0, 0, 0.10);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+        outline: none;
+    }
+    .zoom-toggle-btn:hover {
+        background: rgba(0, 0, 0, 0.06);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+        transform: scale(1.06);
+    }
+    .zoom-toggle-btn:focus-visible {
+        outline: 2px solid #000;
+        outline-offset: 2px;
+    }
+    .zoom-toggle-btn.zoom-active {
+        background: #000;
+        border-color: #000;
+    }
+    .zoom-toggle-btn.zoom-active svg {
+        stroke: #fff;
+    }
+    .zoom-toggle-btn svg {
+        width: 18px;
+        height: 18px;
+        stroke: #111;
+        fill: none;
+        stroke-width: 1.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        transition: stroke 0.2s ease;
+        pointer-events: none;
+    }
+
+    /* Zoom lens (the magnified preview circle) */
+    .zoom-lens {
+        position: fixed;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        border: 1px solid rgba(0,0,0,0.12);
+        box-shadow: 0 8px 40px rgba(0,0,0,0.18), inset 0 0 0 1px rgba(255,255,255,0.6);
+        pointer-events: none;
+        z-index: 9999;
+        overflow: hidden;
+        display: none;
+        background-color: #f5f5f5;
+        background-repeat: no-repeat;
+        opacity: 0;
+        transform: scale(0.85);
+        transition: opacity 0.18s ease, transform 0.18s ease;
+    }
+    .zoom-lens.visible {
+        display: block;
+    }
+    .zoom-lens.shown {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    /* While zoom is active, all product images get a subtle cursor hint */
+    .zoom-mode-active #imageContainer img {
+        cursor: crosshair !important;
+    }
+
+    /* ════════════════════════════════════════
        FULLSCREEN LIGHTBOX MODAL
     ════════════════════════════════════════ */
     #imageContainer img {
@@ -855,7 +937,25 @@
 <div id="toast-container"></div>
 
 <main class="pdp-wrapper">
-    <div class="pdp-image-section">
+    <div class="pdp-image-section" id="pdpImageSection">
+        <!-- ── Premium Zoom Toggle ── -->
+        <button
+            class="zoom-toggle-btn"
+            id="zoomToggleBtn"
+            aria-label="Toggle image zoom"
+            aria-pressed="false"
+            title="Toggle zoom"
+            tabindex="0"
+        >
+            <!-- Magnifier icon (SVG, self-contained, no external deps) -->
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <circle cx="11" cy="11" r="7"/>
+                <line x1="16.5" y1="16.5" x2="22" y2="22"/>
+                <line x1="11" y1="8" x2="11" y2="14"/>
+                <line x1="8" y1="11" x2="14" y2="11"/>
+            </svg>
+        </button>
+
         <div class="pdp-image-column" id="imageContainer">
             {% with all_imgs=default_variant.images.all %}
                 {% if all_imgs|length == 1 %}
@@ -1074,6 +1174,9 @@
     <img src="" class="lightbox-img" id="lightboxImg" alt="Zoomed Product">
     <button class="lightbox-btn next" id="lightboxNext">&#8250;</button>
 </div>
+
+<!-- Premium Zoom Lens (appended to body, follows cursor via JS) -->
+<div class="zoom-lens" id="zoomLens" aria-hidden="true"></div>
 
 <!-- SIMILAR ITEMS SECTION (OUTSIDE WRAPPER FOR FULL WIDTH) -->
 <div class="mt-4 md:mt-20">
@@ -1929,6 +2032,116 @@
             }
         });
     });
+
+    // ════════════════════════════════════════
+    // PREMIUM IMAGE ZOOM (Toggle-Based Hover Zoom)
+    // ════════════════════════════════════════
+    (function initZoom() {
+        const toggleBtn    = document.getElementById('zoomToggleBtn');
+        const lens         = document.getElementById('zoomLens');
+        const imageSection = document.getElementById('pdpImageSection');
+        const imgContainer = document.getElementById('imageContainer');
+
+        if (!toggleBtn || !lens || !imageSection || !imgContainer) return;
+
+        const ZOOM_FACTOR = 2.8;   // Magnification level
+        const MIN_DIM     = 300;   // Min natural image resolution (px) to enable zoom
+        const LENS_SIZE   = 200;   // Lens diameter in px
+
+        let zoomActive  = false;
+        let currentImg  = null;
+        let hideTimeout = null;
+
+        /* ── Toggle ──────────────────────────────────────────── */
+        function enableZoom() {
+            zoomActive = true;
+            toggleBtn.classList.add('zoom-active');
+            toggleBtn.setAttribute('aria-pressed', 'true');
+            imageSection.classList.add('zoom-mode-active');
+        }
+        function disableZoom() {
+            zoomActive = false;
+            toggleBtn.classList.remove('zoom-active');
+            toggleBtn.setAttribute('aria-pressed', 'false');
+            imageSection.classList.remove('zoom-mode-active');
+            hideLens();
+        }
+
+        toggleBtn.addEventListener('click', () => zoomActive ? disableZoom() : enableZoom());
+        toggleBtn.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                zoomActive ? disableZoom() : enableZoom();
+            }
+        });
+
+        /* ── Lens Reveal/Hide ───────────────────────────────── */
+        function showLens() {
+            clearTimeout(hideTimeout);
+            lens.classList.add('visible');
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() { lens.classList.add('shown'); });
+            });
+        }
+        function hideLens() {
+            lens.classList.remove('shown');
+            hideTimeout = setTimeout(function() {
+                lens.classList.remove('visible');
+                currentImg = null;
+            }, 200);
+        }
+
+        /* ── Zoom Calculation ───────────────────────────────── */
+        document.addEventListener('mousemove', function(e) {
+            if (!zoomActive) return;
+            var img = e.target;
+            if (img.tagName !== 'IMG' || !img.closest('#imageContainer')) {
+                if (currentImg) hideLens();
+                return;
+            }
+            // Graceful degradation for low-res images
+            if (img.naturalWidth < MIN_DIM || img.naturalHeight < MIN_DIM) {
+                hideLens(); return;
+            }
+            if (currentImg !== img) { currentImg = img; showLens(); }
+
+            var rect   = img.getBoundingClientRect();
+            var relX   = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+            var relY   = Math.max(0, Math.min(e.clientY - rect.top,  rect.height));
+            var ratioX = relX / rect.width;
+            var ratioY = relY / rect.height;
+            var bgW    = rect.width  * ZOOM_FACTOR;
+            var bgH    = rect.height * ZOOM_FACTOR;
+            var bgX    = ratioX * bgW - LENS_SIZE / 2;
+            var bgY    = ratioY * bgH - LENS_SIZE / 2;
+
+            lens.style.left               = (e.clientX - LENS_SIZE / 2) + 'px';
+            lens.style.top                = (e.clientY - LENS_SIZE / 2) + 'px';
+            lens.style.backgroundImage    = "url('" + img.src + "')";
+            lens.style.backgroundSize     = bgW + 'px ' + bgH + 'px';
+            lens.style.backgroundPosition = '-' + bgX + 'px -' + bgY + 'px';
+        }, { passive: true });
+
+        imgContainer.addEventListener('mouseleave', function(e) {
+            if (!zoomActive) return;
+            var related = e.relatedTarget;
+            if (!related || !related.closest || !related.closest('#imageContainer')) {
+                hideLens();
+            }
+        });
+
+        /* ── Desktop only ───────────────────────────────────── */
+        function handleResize() {
+            if (window.innerWidth <= 900) {
+                if (zoomActive) disableZoom();
+                toggleBtn.style.display = 'none';
+            } else {
+                toggleBtn.style.display = '';
+            }
+        }
+        window.addEventListener('resize', handleResize, { passive: true });
+        handleResize();
+    })();
 </script>
 
 {% endwith %}
