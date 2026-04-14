@@ -102,6 +102,19 @@
     .shell .action-bar {
         display: flex; justify-content: space-between; gap: 10px; margin-bottom: 40px; flex-wrap: wrap;
     }
+    .shell .page-header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 10px;
+    }
+    @media (max-width: 768px) {
+        .shell .page-header-flex {
+            flex-direction: column;
+            gap: 24px;
+        }
+    }
     .shell .btn {
         display: inline-flex; align-items: center; justify-content: center;
         gap: 8px;
@@ -121,20 +134,50 @@
         pointer-events: none;
     }
     .shell .order-action-mini {
-        margin-top: 10px;
-        padding: 8px 12px;
-        border: var(--border);
-        background: var(--pure-white);
-        color: var(--ink);
-        font-size: 8px;
-        letter-spacing: 0.18em;
+        display: inline-block;
+        padding: 6px 14px;
+        background: transparent;
+        border: 1px solid #111111;
+        color: #111111;
+        font-size: 11px;
+        font-weight: 500;
         text-transform: uppercase;
-        font-weight: 600;
+        letter-spacing: 0.05em;
         cursor: pointer;
-        transition: var(--transition);
+        transition: all 0.2s;
+        margin-top: 12px;
+        margin-right: 8px;
     }
-    .shell .order-action-mini:hover { border-color: var(--ink); background: var(--ink-ghost); }
-    .shell .order-action-mini[disabled] { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+    .shell .order-action-mini:hover {
+        background: #111111;
+        color: #FFFFFF;
+    }
+    .shell .order-action-mini:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .shell .return-item-btn {
+        color: #6B7280;
+        border-color: #E5E7EB;
+    }
+    .shell .return-item-btn:hover {
+        background: #F9FAFB;
+        color: #111111;
+        border-color: #111111;
+    }
+
+    .shell .prod-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .shell .timeline-title.completed {
+        color: #111111;
+        font-weight: 600;
+    }
+
     .shell .item-state-note {
         margin-top: 8px;
         font-size: 9px;
@@ -154,11 +197,10 @@
         max-width: 90vw;
         background: #000;
         color: #fff;
-        padding: 16px 20px;
+        padding: 0;
         border-radius: 2px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        display: none;
+        flex-direction: column;
         box-shadow: 0 20px 40px rgba(0,0,0,0.15);
         opacity: 0;
         transform: translateX(30px);
@@ -167,8 +209,19 @@
         pointer-events: auto;
     }
     .inline-toast.show {
+        display: flex;
         opacity: 1;
         transform: translateX(0);
+    }
+    .toast-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .toast-item:last-child {
+        border-bottom: none;
     }
     .toast-left-content { display: flex; align-items: center; gap: 14px; }
     .toast-icon-circle {
@@ -286,6 +339,130 @@
     }
     .btn-hm-secondary:hover {
         background: #F5F5F5;
+    }
+
+    /* ─── Return Modal Specific Styles ───────────────────────── */
+    .return-modal-card {
+        padding: 40px;
+        position: relative;
+    }
+    .return-modal-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: #666;
+        transition: color 0.2s;
+    }
+    .return-modal-close:hover {
+        color: #111;
+    }
+    .return-product-info {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid #E5E5E5;
+    }
+    .return-product-thumb {
+        width: 80px;
+        height: 100px;
+        background: #F5F5F5;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    .return-product-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .return-product-details {
+        flex: 1;
+    }
+    .return-product-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111;
+        margin-bottom: 4px;
+    }
+    .return-product-order {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 8px;
+    }
+    .return-product-meta {
+        display: flex;
+        gap: 8px;
+    }
+    .return-product-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        background: #F5F5F5;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #666;
+    }
+    .return-form-group {
+        margin-bottom: 20px;
+    }
+    .return-form-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #111;
+        margin-bottom: 8px;
+    }
+    .return-required {
+        color: #DC2626;
+    }
+    .return-form-select {
+        width: 100%;
+        height: 45px;
+        padding: 0 15px;
+        border: 1px solid #E5E5E5;
+        background: #FFFFFF;
+        font-family: inherit;
+        font-size: 13px;
+        color: #111;
+        outline: none;
+        transition: border-color 0.2s;
+        cursor: pointer;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 15px center;
+    }
+    .return-form-select:focus {
+        border-color: #111;
+    }
+    .return-form-select:invalid {
+        color: #999;
+    }
+    .return-textarea {
+        min-height: 100px;
+        margin-bottom: 0;
+    }
+    .return-form-error {
+        display: none;
+        font-size: 11px;
+        color: #DC2626;
+        margin-top: 6px;
+    }
+    .return-form-error.show {
+        display: block;
+    }
+    .return-modal-actions {
+        margin-top: 30px;
     }
 
     /* ─── Two-col detail layout ──────────────────────────────── */
@@ -518,28 +695,20 @@
             Back to Orders
         </a>
 
-        <h1 class="page-title">Order Details</h1>
-        <p class="page-meta">
-            <span class="order-id-value">#{{ order.order_number }}</span>
-            &nbsp;·&nbsp; {{ order.created_at|date:"M d, Y" }}
-        </p>
-
-        <!-- Action Buttons -->
-        <div class="action-bar">
+        <div class="page-header-flex">
+            <div>
+                <h1 class="page-title">Order Details</h1>
+                <p class="page-meta">
+                    <span class="order-id-value">#{{ order.order_number }}</span>
+                    &nbsp;·&nbsp; {{ order.created_at|date:"M d, Y" }}
+                </p>
+            </div>
             <a href="{% url 'download_invoice' order.id %}" target="_blank" class="btn btn-dark" id="download-invoice-btn">
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
                 Download Invoice
             </a>
-            <a href="{% url 'orders' %}" class="btn btn-outline">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 19l-7-7 7-7"/>
-                </svg>
-                Back to Orders
-            </a>
-            <button type="button" class="btn btn-outline" id="cancel-order-btn">Cancel Order</button>
-            <button type="button" class="btn btn-outline" id="return-order-btn">Return Order</button>
         </div>
 
         <!-- Two-column detail layout -->
@@ -564,7 +733,7 @@
                     </div>
                     <div class="module-body">
                         {% for item in order.items.all %}
-                        <div class="product-row" data-item-index="{{ forloop.counter0 }}" data-item-status="{{ item.item_status|default:'PENDING' }}">
+                        <div class="product-row" data-item-index="{{ forloop.counter0 }}" data-order-item-id="{{ item.id }}" data-item-status="{{ item.item_status|default:'PENDING' }}">
                             <div class="prod-thumb">
                                 {% if item.variant.images.first %}
                                 <img src="{{ item.variant.images.first.image.url }}"
@@ -577,7 +746,15 @@
                             <div class="prod-info">
                                 <div class="prod-name">{{ item.variant.product.product_name }}</div>
                                 <div class="prod-meta">Colour: {{ item.variant.color }} &nbsp;·&nbsp; Size: {{ item.variant.size.name }} &nbsp;·&nbsp; Qty: {{ item.quantity }}</div>
-                                <button type="button" class="order-action-mini cancel-item-btn" data-item-index="{{ forloop.counter0 }}">Cancel Item</button>
+                                <div class="prod-actions">
+                                    {% if item.item_status == 'PENDING' or item.item_status == 'CONFIRMED' or item.item_status == 'PROCESSING' or item.item_status == 'PACKED' %}
+                                    <button type="button" class="order-action-mini cancel-item-btn" data-item-index="{{ forloop.counter0 }}">Cancel Item</button>
+                                    {% endif %}
+                                    
+                                    {% if item.item_status == 'DELIVERED' %}
+                                    <button type="button" class="order-action-mini return-item-btn" data-item-index="{{ forloop.counter0 }}" data-order-item-id="{{ item.id }}">Return Item</button>
+                                    {% endif %}
+                                </div>
                                 <div class="item-state-note" data-role="item-state-note">Status: {{ item.item_status|title }}</div>
                             </div>
                             <div class="prod-price">₹{{ item.price }}</div>
@@ -752,7 +929,7 @@
                                     {% endif %}
                                 </div>
                                 <div class="timeline-content">
-                                    <div class="timeline-title {% if status == 'PENDING' %}{% else %}muted{% endif %}">Processing</div>
+                                    <div class="timeline-title {% if status == 'PROCESSING' or status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}completed{% elif status == 'PENDING' %}{% else %}muted{% endif %}">Processing</div>
                                     <div class="timeline-date">Order is being packed</div>
                                 </div>
                             </div>
@@ -814,31 +991,6 @@
 <!-- Client-side toast for local state actions -->
 <div id="inlineToast" class="inline-toast" role="alert" aria-live="polite"></div>
 
-{% if messages %}
-<div id="djangoToast" class="inline-toast show" role="alert" aria-live="polite">
-    {% for message in messages %}
-    <div class="toast-left-content">
-        <div class="toast-icon-circle">{% if message.tags == 'error' %}✕{% else %}✓{% endif %}</div>
-        <div class="toast-message-wrapper">
-            <span class="toast-main-text">{{ message }}</span>
-            <span class="toast-sub-text">Notification</span>
-        </div>
-    </div>
-    <div class="toast-close-btn" onclick="this.parentElement.classList.remove('show')">✕</div>
-    {% endfor %}
-</div>
-<script>
-(function() {
-    const t = document.getElementById('djangoToast');
-    if (t) {
-        setTimeout(function() {
-            t.classList.remove('show');
-        }, 3000);
-    }
-})();
-</script>
-{% endif %}
-
 <div class="manage-modal" id="manage-modal" aria-hidden="true">
     <div class="manage-modal-card" role="dialog" aria-modal="true" aria-labelledby="manage-modal-title">
         <div class="manage-modal-title" id="manage-modal-title">Confirm Action</div>
@@ -848,6 +1000,75 @@
             <div class="manage-modal-actions">
                 <button type="button" class="btn btn-hm-secondary" id="manage-modal-cancel">Keep Order</button>
                 <button type="submit" class="btn btn-hm-primary" id="manage-modal-confirm">Confirm Cancellation</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Return Order Modal -->
+<div class="manage-modal" id="return-modal" aria-hidden="true">
+    <div class="manage-modal-card return-modal-card" role="dialog" aria-modal="true" aria-labelledby="return-modal-title">
+        <!-- Close Button -->
+        <button type="button" class="return-modal-close" id="return-modal-close" aria-label="Close modal">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+        </button>
+
+        <div class="manage-modal-title" id="return-modal-title">Return Item</div>
+        <div class="manage-modal-subtitle">Submit a request to return this product.</div>
+
+        <!-- Product Information -->
+        <div class="return-product-info">
+            <div class="return-product-thumb">
+                <img id="return-product-image" src="" alt="Product" class="return-product-img">
+            </div>
+            <div class="return-product-details">
+                <h4 class="return-product-name" id="return-product-name">Product Name</h4>
+                <p class="return-product-order">Order ID: #<span id="return-product-order-id">{{ order.order_number }}</span></p>
+                <div class="return-product-meta">
+                    <span class="return-product-badge" id="return-product-size">Size: M</span>
+                    <span class="return-product-badge" id="return-product-color">Color: Black</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Return Form -->
+        <form id="returnOrderForm" method="POST" action="{% url 'return-order' order.id %}">
+            {% csrf_token %}
+
+            <!-- Return Reason Dropdown -->
+            <div class="return-form-group">
+                <label for="return-reason" class="return-form-label">Reason for Return <span class="return-required">*</span></label>
+                <select id="return-reason" name="return_reason" class="return-form-select" required>
+                    <option value="" disabled selected>Select a reason</option>
+                    <option value="WRONG_SIZE">Wrong Size Delivered</option>
+                    <option value="DAMAGED_PRODUCT">Damaged Product</option>
+                    <option value="NOT_AS_DESCRIBED">Not As Described</option>
+                    <option value="DEFECTIVE_ITEM">Defective Item</option>
+                    <option value="OTHER">Other</option>
+                </select>
+                <span class="return-form-error" id="return-reason-error">Please select a return reason</span>
+            </div>
+
+            <!-- Additional Details Textarea -->
+            <div class="return-form-group">
+                <label for="return-description" class="return-form-label">Additional Details <span class="return-required">*</span></label>
+                <textarea id="return-description" name="return_description" class="manage-modal-textarea return-textarea"
+                    placeholder="Please describe the reason for your return."
+                    rows="4" required></textarea>
+                <span class="return-form-error" id="return-description-error">Please provide additional details</span>
+            </div>
+
+            <!-- Hidden field for item index -->
+            <input type="hidden" id="return-item-index" name="item_index" value="">
+            
+            <!-- Hidden field for unique order item ID -->
+            <input type="hidden" id="return-order-item-id" name="order_item_id" value="">
+
+            <div class="manage-modal-actions return-modal-actions">
+                <button type="button" class="btn btn-hm-secondary" id="return-modal-cancel">Cancel</button>
+                <button type="submit" class="btn btn-hm-primary" id="return-modal-submit">Submit Return Request</button>
             </div>
         </form>
     </div>
@@ -1099,6 +1320,216 @@
         });
     }
 
+    /* ─────────────────────────────────────────────────────────────────────────────
+       RETURN REQUEST MODAL LOGIC
+       This section handles the functionality for the Return Request modal, 
+       including opening/closing, form validation, and backend submission.
+       ───────────────────────────────────────────────────────────────────────────── */
+
+    // Select all necessary elements from the DOM
+    const returnModal = document.getElementById('return-modal');
+    const returnModalClose = document.getElementById('return-modal-close');
+    const returnModalCancel = document.getElementById('return-modal-cancel');
+    const returnOrderForm = document.getElementById('returnOrderForm');
+    const returnReason = document.getElementById('return-reason');
+    const returnDescription = document.getElementById('return-description');
+    const returnReasonError = document.getElementById('return-reason-error');
+    const returnDescriptionError = document.getElementById('return-description-error');
+    const returnItemIndexInput = document.getElementById('return-item-index');
+    const returnOrderItemIdInput = document.getElementById('return-order-item-id');
+    const returnSubmitBtn = document.getElementById('return-modal-submit');
+
+    /**
+     * Initializes the Return Modal event listeners.
+     * This function should be called once when the script runs.
+     */
+    function initializeReturnModal() {
+        // Event listener for the close (X) button
+        if (returnModalClose) {
+            returnModalClose.addEventListener('click', closeReturnModal);
+        }
+
+        // Event listener for the Cancel button inside the modal
+        if (returnModalCancel) {
+            returnModalCancel.addEventListener('click', closeReturnModal);
+        }
+
+        // Event listener to close modal when clicking on the backdrop overlay
+        if (returnModal) {
+            returnModal.addEventListener('click', function(e) {
+                // If the user clicks exactly on the modal backdrop, close it
+                if (e.target === returnModal) closeReturnModal();
+            });
+        }
+
+        // Event listener for the ESC key to close the modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && returnModal && returnModal.classList.contains('open')) {
+                closeReturnModal();
+            }
+        });
+
+        // Event listener for form submission
+        if (returnOrderForm) {
+            returnOrderForm.addEventListener('submit', handleReturnFormSubmission);
+        }
+
+        // Clear error messages when the user starts typing or changes selection
+        if (returnReason) {
+            returnReason.addEventListener('change', function() {
+                if (this.value) {
+                    returnReasonError.classList.remove('show');
+                    this.style.borderColor = '#E5E5E5';
+                }
+            });
+        }
+        if (returnDescription) {
+            returnDescription.addEventListener('input', function() {
+                if (this.value.trim()) {
+                    returnDescriptionError.classList.remove('show');
+                    this.style.borderColor = '#E5E5E5';
+                }
+            });
+        }
+    }
+
+    /**
+     * Opens the Return Request modal and populates it with product data.
+     * @param {number|string} itemIndex - The index of the item in the order.
+     */
+    function openReturnModal(itemIndex) {
+        if (!returnModal) return;
+
+        // 1. Show the modal by adding the 'open' class
+        returnModal.classList.add('open');
+        returnModal.setAttribute('aria-hidden', 'false');
+        document.body.style.overflow = 'hidden';
+
+        // 2. Reset the form to its initial state
+        returnOrderForm.reset();
+        
+        // 3. Clear any previous error styling or messages
+        returnReasonError.classList.remove('show');
+        returnDescriptionError.classList.remove('show');
+        returnReason.style.borderColor = '#E5E5E5';
+        returnDescription.style.borderColor = '#E5E5E5';
+
+        // 4. Populate dynamic product data from the selected row
+        const row = document.querySelector(`.product-row[data-item-index="${itemIndex}"]`);
+        
+        if (row) {
+            // Get data from the row using existing classes
+            const img = row.querySelector('.prod-thumb img');
+            const name = row.querySelector('.prod-name')?.textContent || 'Product Name';
+            const meta = row.querySelector('.prod-meta')?.textContent || '';
+            
+            // Extract size and color from metadata text (e.g. "Colour: Black · Size: M · Qty: 1")
+            const sizeMatch = meta.match(/Size:\s*([^·]+)/i);
+            const colorMatch = meta.match(/Colour:\s*([^·]+)/i);
+            
+            const size = sizeMatch ? sizeMatch[1].trim() : 'N/A';
+            const color = colorMatch ? colorMatch[1].trim() : 'N/A';
+            
+            // Get modal elements
+            const modalImg = document.getElementById('return-product-image');
+            const modalName = document.getElementById('return-product-name');
+            const modalSize = document.getElementById('return-product-size');
+            const modalColor = document.getElementById('return-product-color');
+
+            // Set data in the modal
+            if (modalImg && img) modalImg.src = img.src;
+            if (modalName) modalName.textContent = name;
+            if (modalSize) modalSize.textContent = `Size: ${size}`;
+            if (modalColor) modalColor.textContent = `Color: ${color}`;
+            
+            // Store the unique ID in the hidden input for the backend after the form reset
+            if (returnOrderItemIdInput) {
+                const orderItemId = row.getAttribute('data-order-item-id');
+                returnOrderItemIdInput.value = orderItemId;
+            }
+
+            // Store the item index for frontend tracking if needed
+            if (returnItemIndexInput) {
+                returnItemIndexInput.value = itemIndex;
+            }
+        }
+    }
+
+    /**
+     * Closes the Return Request modal.
+     */
+    function closeReturnModal() {
+        if (!returnModal) return;
+        
+        // Remove the 'open' class to hide the modal
+        returnModal.classList.remove('open');
+        returnModal.setAttribute('aria-hidden', 'true');
+        
+        // Restore background scrolling
+        document.body.style.overflow = '';
+    }
+
+    /**
+     * Validates the return form fields.
+     * @returns {boolean} - Returns true if the form is valid, false otherwise.
+     */
+    function validateReturnForm() {
+        let isValid = true;
+
+        // Check if a return reason has been selected
+        if (!returnReason.value) {
+            returnReasonError.classList.add('show');
+            returnReason.style.borderColor = '#DC2626'; // Red border for error
+            isValid = false;
+        }
+
+        // Check if description is provided and not just whitespace
+        if (!returnDescription.value.trim()) {
+            returnDescriptionError.classList.add('show');
+            returnDescription.style.borderColor = '#DC2626'; // Red border for error
+            isValid = false;
+        }
+
+        // Check if order_item_id is set
+        if (!returnOrderItemIdInput.value) {
+            console.error("Critical Error: order_item_id is missing.");
+            showToast('An internal error occurred. Please try again.', true);
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    /**
+     * Handles the form submission process.
+     * @param {Event} e - The submission event.
+     */
+    function handleReturnFormSubmission(e) {
+        // First, validate the form
+        const isFormValid = validateReturnForm();
+
+        // If validation fails, stop the submission
+        if (!isFormValid) {
+            e.preventDefault();
+            return;
+        }
+
+        // If validation passes, prepare the UI for submission
+        if (returnSubmitBtn) {
+            returnSubmitBtn.disabled = true; // Prevent double clicking
+            returnSubmitBtn.textContent = 'Processing...'; // Visual feedback
+        }
+        
+        // The form will now submit naturally as a POST request to the backend.
+    }
+
+    // Initialize the modal logic when the script loads
+    initializeReturnModal();
+
+    // ─── Button Trigger Handling ───────────────────────────────────────────
+
+    // 1. Global "Return Order" Button
+    // If clicked, it dynamically finds the first eligible (delivered) item.
     if (returnOrderBtn) {
         returnOrderBtn.addEventListener('click', function() {
             const state = readState();
@@ -1106,15 +1537,52 @@
                 showToast('Return is allowed only for delivered orders.', true);
                 return;
             }
-            openModal({
-                type: 'return-order',
-                title: 'Return Order',
-                subtitle: 'Are you sure you want to return this order?',
-                confirmText: 'Return Order',
-                cancelText: 'Keep Order'
+            
+            // Find the first eligible item dynamically instead of hardcoding 0
+            // We look for a row that is not cancelled and is delivered
+            const eligibleRow = document.querySelector('.product-row[data-item-status="DELIVERED"]');
+            
+            if (eligibleRow) {
+                const index = eligibleRow.getAttribute('data-item-index');
+                openReturnModal(index);
+            } else {
+                // Fallback to first row if no DELIVERED status found but order is DELIVERED
+                openReturnModal(0);
+            }
+        });
+    }
+
+    // 2. Individual "Return Item" Buttons (found in each product row)
+    function bindReturnItemButtons() {
+        const itemReturnButtons = document.querySelectorAll('.return-item-btn');
+        
+        itemReturnButtons.forEach(btn => {
+            // Prevent duplicate event listeners
+            if (btn.dataset.returnBound === 'true') return;
+            btn.dataset.returnBound = 'true';
+            
+            btn.addEventListener('click', function() {
+                const productRow = this.closest('.product-row');
+                const index = this.getAttribute('data-item-index');
+                const status = productRow ? productRow.getAttribute('data-item-status') : '';
+                
+                if (status !== 'DELIVERED') {
+                    showToast('This item can only be returned if delivered.', true);
+                    return;
+                }
+                
+                // openReturnModal will handle populating hidden fields AFTER reset
+
+                
+                if (index !== null) {
+                    openReturnModal(index);
+                }
             });
         });
     }
+
+    // Run the binding function
+    bindReturnItemButtons();
 
     document.querySelectorAll('.cancel-item-btn').forEach(function(button) {
         button.addEventListener('click', function() {

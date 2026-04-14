@@ -10,6 +10,8 @@ from django.shortcuts import get_object_or_404
 from django.contrib import messages
 from django.shortcuts import get_object_or_404
 from core.models import OrderStatusHistory
+
+
 def orders_list(request):
 
     orders = Order.objects.all().order_by("-created_at")

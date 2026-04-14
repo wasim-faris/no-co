@@ -19,7 +19,7 @@ from django.contrib.auth.decorators import login_required
 from cart.models import Cart
 from django.db.models import Sum
 from django.db import transaction
-from .models import Order, OrderItem,OrderStatusHistory
+from .models import Order, OrderItem,OrderStatusHistory,ReturnRequest
 from django.db.models import F
 from io import BytesIO
 from django.template.loader import get_template
@@ -594,3 +594,43 @@ def cancel_order(request, order_id):
         order.save()
         messages.success(request, "Order cancellation succesfully")
     return redirect("order_details", id=order_id)
+
+
+def return_order(request, order_id):
+
+    order = get_object_or_404(Order, id=order_id , user=request.user)
+
+    if request.method == "POST":
+        print(dict(request.POST))
+        reason = request.POST.get("return_reason", "").strip()
+        description = request.POST.get("return_description", "").strip()
+        order_item_id = request.POST.get("order_item_id", "").strip()
+        print("Reason:", reason)
+        print("Description:", description)
+        print("Order Item ID:", order_item_id)
+
+        if not all([reason, description, order_item_id]):
+            messages.error(request, "All filed are required")
+            return redirect("order_details", id = order.id)
+
+        order_item = get_object_or_404(OrderItem, id=order_item_id, order = order)
+
+        if order_item.item_status != "DELIVERED":
+            messages.error(request,"Only delivered items can be returened")
+            return redirect("order_details", id = order.id)
+
+        ReturnRequest.objects.create(
+            order = order,
+            order_item = order_item,
+            customer = request.user,
+            reason = reason,
+            description = description,
+            status = "REQUESTED",
+            requested_at = timezone.now()
+        )
+
+        order_item.item_status = "RETURN_REQUESTED"
+        order_item.save()
+
+        messages.success(request, "return request submitted successfully")
+        return redirect("order_details", id = order.id)
