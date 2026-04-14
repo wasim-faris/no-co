@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -52,9 +52,24 @@
                     <h1 class="text-4xl font-serif text-gray-900">Order #{{ order.order_number|default:order.id }}</h1>
                     <div class="w-12 h-[2px] bg-gray-900 mt-2"></div>
                     <div class="mt-3">
-                        <span id="current-status-pill" class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 uppercase tracking-widest">
-                            {{ order.items.first.item_status|default:"PENDING" }}
-                        </span>
+                        {% with return_request=order.returns.first %}
+                            {% if return_request %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold 
+                                    {% if return_request.status == 'REFUNDED' %}bg-rose-50 text-rose-600
+                                    {% elif return_request.status == 'APPROVED' %}bg-amber-50 text-amber-600
+                                    {% elif return_request.status == 'REJECTED' %}bg-red-50 text-red-600
+                                    {% else %}bg-amber-50 text-amber-600{% endif %} uppercase tracking-widest">
+                                    {% if return_request.status == 'REFUNDED' %}Refunded
+                                    {% elif return_request.status == 'APPROVED' %}Return Approved
+                                    {% elif return_request.status == 'REQUESTED' %}Return Requested
+                                    {% else %}Return Rejected{% endif %}
+                                </span>
+                            {% else %}
+                                <span id="current-status-pill" class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 uppercase tracking-widest">
+                                    {{ order.items.first.item_status|default:"PENDING" }}
+                                </span>
+                            {% endif %}
+                        {% endwith %}
                     </div>
                 </div>
                 <div class="flex gap-4">
@@ -220,10 +235,27 @@
                             </div>
                         </div>
                         <div class="mt-8 pt-6 border-t border-white/10">
-                            <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">Payment Method</p>
+                            <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2">Payment Method & Status</p>
                             <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-xs">P</div>
-                                <span class="text-[13px] font-medium">{{ order.get_payment_method_display }} | {{ order.get_payment_status_display }}</span>
+                                <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-[10px] font-bold">{% if order.payment_method == 'COD' %}COD{% else %}OP{% endif %}</div>
+                                <span class="text-[13px] font-medium">
+                                    {{ order.get_payment_method_display }} | 
+                                    {% if order.payment_method == 'COD' %}
+                                        {% with return_request=order.returns.first %}
+                                            {% if return_request %}
+                                                {% if return_request.status == 'REFUNDED' %}Refunded
+                                                {% elif return_request.status == 'APPROVED' %}Refund in Process
+                                                {% elif return_request.status == 'REQUESTED' %}Refund Not Applicable
+                                                {% else %}Paid{% endif %}
+                                            {% else %}
+                                                {% if order.items.first.item_status == 'DELIVERED' or order.delivered_date %}Paid
+                                                {% else %}Pending{% endif %}
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% else %}
+                                        {{ order.get_payment_status_display }}
+                                    {% endif %}
+                                </span>
                             </div>
                         </div>
                     </section>
@@ -246,11 +278,28 @@
                                 </div>
                             </div>
                             <div class="relative flex gap-6 items-start">
-                                <div class="w-[24px] h-[24px] rounded-full {% if order.delivered_date %}bg-green-500{% else %}bg-gray-100{% endif %} border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
-                                <div>
-                                    <p id="activity-status-label" class="text-[13px] font-bold {% if order.delivered_date %}text-gray-900{% else %}text-gray-300{% endif %}">{% if order.delivered_date %}Delivered{% else %}Processing in Warehouse{% endif %}</p>
-                                    <p id="activity-status-time" class="text-[11px] {% if order.delivered_date %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if order.delivered_date %}{{ order.delivered_date|date:"M d, Y" }} at {{ order.delivered_date|time:"h:i A" }}{% else %}Pending{% endif %}</p>
-                                </div>
+                                {% with return_request=order.returns.first %}
+                                    {% if return_request %}
+                                        <div class="w-[24px] h-[24px] rounded-full bg-amber-500 border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
+                                        <div>
+                                            <p class="text-[13px] font-bold text-gray-900">
+                                                {% if return_request.status == 'REFUNDED' %}Refunded
+                                                {% elif return_request.status == 'APPROVED' %}Return Approved
+                                                {% elif return_request.status == 'REQUESTED' %}Return Requested
+                                                {% else %}Return Rejected{% endif %}
+                                            </p>
+                                            <p class="text-[11px] text-gray-400 mt-0.5">{{ return_request.updated_at|date:"M d, Y" }} at {{ return_request.updated_at|time:"h:i A" }}</p>
+                                        </div>
+                                    {% else %}
+                                        {% with status=order.items.first.item_status %}
+                                        <div class="w-[24px] h-[24px] rounded-full {% if order.delivered_date or status == 'DELIVERED' %}bg-green-500{% else %}bg-gray-100{% endif %} border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
+                                        <div>
+                                            <p id="activity-status-label" class="text-[13px] font-bold {% if order.delivered_date or status == 'DELIVERED' %}text-gray-900{% else %}text-gray-300{% endif %}">{% if order.delivered_date or status == 'DELIVERED' %}Delivered{% else %}Processing in Warehouse{% endif %}</p>
+                                            <p id="activity-status-time" class="text-[11px] {% if order.delivered_date or status == 'DELIVERED' %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if order.delivered_date or status == 'DELIVERED' %}{{ order.delivered_date|date:"M d, Y" }} at {{ order.delivered_date|time:"h:i A" }}{% else %}Pending{% endif %}</p>
+                                        </div>
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endwith %}
                             </div>
                         </div>
                     </section>

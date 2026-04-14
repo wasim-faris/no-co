@@ -10,11 +10,11 @@
         {% with return_request=order.returns.first %}
             {% if return_request %}
                 {% if return_request.status == "REFUNDED" %}
-                    <span class="status-badge badge-refunded order-status-badge" data-role="listing-status">Refund Completed</span>
+                    <span class="status-badge badge-refunded order-status-badge" data-role="listing-status">Refunded</span>
                 {% elif return_request.status == "APPROVED" %}
-                    <span class="status-badge badge-return-approved order-status-badge" data-role="listing-status">Return Approved – Refund in Progress</span>
+                    <span class="status-badge badge-return-approved order-status-badge" data-role="listing-status">Return Approved</span>
                 {% elif return_request.status == "REQUESTED" %}
-                    <span class="status-badge badge-return-requested order-status-badge" data-role="listing-status">Return Requested – Awaiting Approval</span>
+                    <span class="status-badge badge-return-requested order-status-badge" data-role="listing-status">Return Requested</span>
                 {% elif return_request.status == "REJECTED" %}
                     <span class="status-badge badge-cancelled order-status-badge" data-role="listing-status">Return Rejected</span>
                 {% endif %}

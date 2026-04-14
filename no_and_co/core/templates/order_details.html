@@ -502,9 +502,9 @@
     .shell .badge-pending           { color: #92400E; border-color: #FDE68A; background: #FFFBEB; }
     .shell .badge-delivered         { color: #14532D; border-color: #BBF7D0; background: #F0FDF4; }
     .shell .badge-cancelled         { color: #7F1D1D; border-color: #FECACA; background: #FEF2F2; }
-    .shell .badge-return-requested   { color: #0c5460; border-color: #bee5eb; background: #d1ecf1; }
-    .shell .badge-return-approved    { color: #856404; border-color: #ffeeba; background: #fff3cd; }
-    .shell .badge-refunded          { color: #155724; border-color: #c3e6cb; background: #d4edda; }
+    .shell .badge-return-requested   { color: #92400E; border-color: #FDE68A; background: #FFFBEB; }
+    .shell .badge-return-approved    { color: #4338CA; border-color: #C7D2FE; background: #EEF2FF; }
+    .shell .badge-refunded          { color: #0F766E; border-color: #99F6E4; background: #F0FDFA; }
 
     /* ─── Product rows ───────────────────────────────────────── */
     .shell .product-row {
@@ -727,13 +727,13 @@
                         {% with return_request=order.returns.first %}
                             {% if return_request %}
                                 {% if return_request.status == "REFUNDED" %}
-                                    <span class="status-badge badge-refunded" id="order-status-badge">Refund Completed</span>
+                                    <span class="status-badge badge-refunded" id="order-status-badge">Refunded</span>
                                 {% elif return_request.status == "APPROVED" %}
-                                    <span class="status-badge badge-return-approved" id="order-status-badge">Return Approved – Refund in Progress</span>
-                                {% elif return_request.status == "REQUESTED" %}
-                                    <span class="status-badge badge-return-requested" id="order-status-badge">Return Requested – Awaiting Approval</span>
+                                    <span class="status-badge badge-return-approved" id="order-status-badge">Return Approved</span>
                                 {% elif return_request.status == "REJECTED" %}
                                     <span class="status-badge badge-cancelled" id="order-status-badge">Return Rejected</span>
+                                {% elif return_request.status == "REQUESTED" %}
+                                    <span class="status-badge badge-return-requested" id="order-status-badge">Return Requested</span>
                                 {% endif %}
                             {% else %}
                                 {% with item_status=order.items.first.item_status %}
@@ -779,13 +779,13 @@
                                     {% with return_request=item.returns.first %}
                                         {% if return_request %}
                                             {% if return_request.status == "REFUNDED" %}
-                                                <span style="color: #155724; font-weight: 500;">Refund Completed</span>
+                                                <span style="color: #155724; font-weight: 500;">Refunded</span>
                                             {% elif return_request.status == "APPROVED" %}
-                                                <span style="color: #856404; font-weight: 600;">Return Approved – Refund in Progress</span>
+                                                <span style="color: #856404; font-weight: 600;">Return Approved</span>
                                             {% elif return_request.status == "REQUESTED" %}
-                                                <span style="color: #0c5460;">Return Requested – Awaiting Approval</span>
+                                                <span style="color: #0c5460;">Return Requested</span>
                                             {% elif return_request.status == "REJECTED" %}
-                                                <span style="color: #7F1D1D;">Return Rejected</span>
+                                                <span style="color: #7F1D1D; font-weight: 600;">Return Rejected</span>
                                             {% endif %}
                                         {% else %}
                                             {% if item.item_status == 'DELIVERED' or order.delivered_date %}
@@ -844,8 +844,32 @@
                         </div>
                         <div class="info-row">
                             <span class="info-label">Status</span>
-                                <span class="info-value" style="color:{% if order.payment_status == 'PAID' %}#14532D{% elif order.payment_status == 'FAILED' %}#7F1D1D{% else %}#92400E{% endif %}; font-weight:500;">
-                                    {{ order.get_payment_status_display }}
+                                <span class="info-value" style="font-weight:500;">
+                                    {% if order.payment_method == 'COD' %}
+                                        {% with return_request=order.returns.first %}
+                                            {% if return_request %}
+                                                {% if return_request.status == 'REFUNDED' %}
+                                                    <span style="color:#111;">Refunded</span>
+                                                {% elif return_request.status == 'APPROVED' %}
+                                                    <span style="color:#92400E;">Refund in Process</span>
+                                                {% elif return_request.status == 'REQUESTED' %}
+                                                    <span style="color:#92400E;">Refund Not Applicable</span>
+                                                {% elif return_request.status == 'REJECTED' %}
+                                                    <span style="color:#14532D;">Paid</span>
+                                                {% endif %}
+                                            {% else %}
+                                                {% if order.items.first.item_status == 'DELIVERED' or order.delivered_date %}
+                                                    <span style="color:#14532D;">Paid</span>
+                                                {% else %}
+                                                    <span style="color:#92400E;">Pending</span>
+                                                {% endif %}
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% else %}
+                                        <span style="color:{% if order.payment_status == 'PAID' %}#14532D{% elif order.payment_status == 'FAILED' %}#7F1D1D{% else %}#92400E{% endif %};">
+                                            {{ order.get_payment_status_display }}
+                                        </span>
+                                    {% endif %}
                                 </span>
                         </div>
                     </div>
@@ -924,124 +948,86 @@
                     </div>
                     <div class="module-body">
                         <div class="timeline">
-                            {% with status=order.items.first.item_status %}
-                            
-                            <!-- ORDER PLACED -->
+                            <!-- 1. ORDER PLACED (Fixed) -->
                             <div class="timeline-step">
                                 <div class="timeline-dot done">
-                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                    </svg>
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </div>
                                 <div class="timeline-content">
                                     <div class="timeline-title">Order Placed</div>
                                     <div class="timeline-date">{{ order.created_at|date:"M d, Y · h:i A" }}</div>
                                 </div>
                             </div>
-                            
+
+                            <!-- 2. DELIVERED (Historical milestone if return exists, or current state if delivered) -->
+                            {% if order.delivered_date or order.items.first.item_status == 'DELIVERED' or order.returns.first %}
+                            <div class="timeline-step">
+                                <div class="timeline-dot done" style="background: #14532D; border-color: #14532D;">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Delivered</div>
+                                    <div class="timeline-date">Verified historical milestone</div>
+                                </div>
+                            </div>
+                            {% elif order.items.first.item_status != 'PENDING' and order.items.first.item_status != 'CANCELLED' %}
+                            <!-- SHIPPED / PROCESSING (Intermediate) -->
+                            <div class="timeline-step">
+                                <div class="timeline-dot current"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">{{ order.items.first.item_status|title }}</div>
+                                    <div class="timeline-date">In progress</div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- 3. RETURN FLOW (if exists) -->
                             {% with return_request=order.returns.first %}
                                 {% if return_request %}
-                                <div class="timeline-step">
-                                    <div class="timeline-dot done" style="background:{% if return_request.status == 'REFUNDED' %}#155724{% elif return_request.status == 'APPROVED' %}#856404{% elif return_request.status == 'REJECTED' %}#7F1D1D{% else %}#0c5460{% endif %}; border-color:transparent;">
-                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
+                                    <div class="timeline-step">
+                                        <div class="timeline-dot done" style="background: #92400E; border-color: #92400E;">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-title">Return Requested</div>
+                                            <div class="timeline-date">{{ return_request.requested_at|date:"M d, Y" }}</div>
+                                        </div>
                                     </div>
-                                    <div class="timeline-content">
-                                        <div class="timeline-title">
-                                            {% if return_request.status == 'REFUNDED' %}
-                                                Refund Completed
-                                            {% elif return_request.status == 'APPROVED' %}
-                                                Return Approved – Refund in Progress
-                                            {% elif return_request.status == 'REQUESTED' %}
-                                                Return Requested – Awaiting Approval
-                                            {% else %}
-                                                Return Rejected
-                                            {% endif %}
+
+                                    {% if return_request.status != 'REQUESTED' %}
+                                    <div class="timeline-step">
+                                        <div class="timeline-dot done" style="background: {% if return_request.status == 'REFUNDED' %}#0F766E{% elif return_request.status == 'APPROVED' %}#4338CA{% elif return_request.status == 'REJECTED' %}#7F1D1D{% endif %}; border-color: transparent;">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         </div>
-                                        <div class="timeline-date">Order lifecycle update</div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-title">
+                                                {% if return_request.status == 'REFUNDED' %}Refunded
+                                                {% elif return_request.status == 'APPROVED' %}Return Approved
+                                                {% elif return_request.status == 'REJECTED' %}Return Rejected
+                                                {% endif %}
+                                            </div>
+                                            <div class="timeline-date">Final update</div>
+                                        </div>
                                     </div>
-                                </div>
-                                {% else %}
-                                    {% with status=order.items.first.item_status %}
-                                        {% if status == 'CANCELLED' %}
-                                        <div class="timeline-step">
-                                            <div class="timeline-dot done" style="background:#7F1D1D; border-color:#7F1D1D;">
-                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                </svg>
-                                            </div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Order Cancelled</div>
-                                                <div class="timeline-date">Order was cancelled</div>
-                                            </div>
-                                        </div>
-                                        {% else %}
-                                        <!-- PROCESSING -->
-                                        <div class="timeline-step">
-                                            <div class="timeline-dot {% if status == 'PROCESSING' or status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}done{% elif status == 'PENDING' %}current{% endif %}">
-                                                {% if status == 'PROCESSING' or status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}
-                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                                {% endif %}
-                                            </div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title {% if status == 'PROCESSING' or status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}completed{% elif status == 'PENDING' %}{% else %}muted{% endif %}">Processing</div>
-                                                <div class="timeline-date">Order is being packed</div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- SHIPPED -->
-                                        <div class="timeline-step">
-                                            <div class="timeline-dot {% if status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}done{% elif status == 'PROCESSING' %}current{% endif %}">
-                                                {% if status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}
-                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                                {% elif status != 'PROCESSING' and status != 'SHIPPED' and status != 'DELIVERED' and status != 'RETURNED' %}
-                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/>
-                                                </svg>
-                                                {% endif %}
-                                            </div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title {% if status == 'PROCESSING' or status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}{% else %}muted{% endif %}">Shipped</div>
-                                                <div class="timeline-date">Order has been dispatched</div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- DELIVERED -->
-                                        <div class="timeline-step">
-                                            <div class="timeline-dot {% if status == 'DELIVERED' or status == 'RETURNED' %}done{% elif status == 'SHIPPED' %}current{% endif %}">
-                                                {% if status == 'DELIVERED' or status == 'RETURNED' %}
-                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                                                </svg>
-                                                {% elif status != 'SHIPPED' and status != 'DELIVERED' and status != 'RETURNED' %}
-                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                                                </svg>
-                                                {% endif %}
-                                            </div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title {% if status == 'SHIPPED' or status == 'DELIVERED' or status == 'RETURNED' %}{% else %}muted{% endif %}">Delivered</div>
-                                                {% if order.delivered_date %}
-                                                <div class="timeline-date">{{ order.delivered_date|date:"M d, Y" }}</div>
-                                                {% else %}
-                                                <div class="timeline-date">Awaiting delivery</div>
-                                                {% endif %}
-                                            </div>
-                                        </div>
-                                        {% endif %}
-                                    {% endwith %}
+                                    {% endif %}
                                 {% endif %}
                             {% endwith %}
-                            {% endwith %}
+
+                            <!-- 4. CANCELLED (if applicable) -->
+                            {% if order.items.first.item_status == 'CANCELLED' %}
+                            <div class="timeline-step">
+                                <div class="timeline-dot done" style="background:#7F1D1D; border-color:#7F1D1D;">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">Order Cancelled</div>
+                                    <div class="timeline-date">Order was cancelled</div>
+                                </div>
+                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
-
             </div><!-- /right -->
         </div><!-- /detail-grid -->
 

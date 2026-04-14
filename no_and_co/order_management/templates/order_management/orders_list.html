@@ -181,19 +181,53 @@
                                     <span class="text-[14px] font-bold font-serif">₹ {{ order.total_amount }}</span>
                                 </td>
                                 <td class="px-4 py-5">
-                                    <span class="text-[11px] font-medium text-gray-500 uppercase tracking-widest">{{ order.payment_method }}</span>
+                                    <div class="flex flex-col">
+                                        <span class="text-[11px] font-bold text-gray-900 uppercase tracking-widest">{{ order.get_payment_method_display }}</span>
+                                        <span class="text-[10px] font-medium text-gray-400">
+                                            {% if order.payment_method == 'COD' %}
+                                                {% with return_request=order.returns.first %}
+                                                    {% if return_request %}
+                                                        {% if return_request.status == 'REFUNDED' %}Refunded
+                                                        {% elif return_request.status == 'APPROVED' %}Refund in Process
+                                                        {% elif return_request.status == 'REJECTED' %}Paid
+                                                        {% else %}Refund N/A{% endif %}
+                                                    {% else %}
+                                                        {% if order.items.first.item_status == 'DELIVERED' or order.delivered_date %}Paid
+                                                        {% else %}Pending{% endif %}
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% else %}
+                                                {{ order.get_payment_status_display }}
+                                            {% endif %}
+                                        </span>
+                                    </div>
                                 </td>
                                 <td class="px-4 py-5">
-                                    {% with status=order.status|upper %}
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold 
-                                        {% if status == 'PENDING' %}bg-amber-50 text-amber-600
-                                        {% elif status == 'SHIPPED' %}bg-blue-50 text-blue-600
-                                        {% elif status == 'OUT FOR DELIVERY' or status == 'OUT_FOR_DELIVERY' %}bg-purple-50 text-purple-600
-                                        {% elif status == 'DELIVERED' %}bg-green-50 text-green-600
-                                        {% elif status == 'CANCELLED' %}bg-red-50 text-red-600
-                                        {% else %}bg-gray-50 text-gray-600{% endif %}">
-                                        {{ order.status|default:"Pending"|title }}
-                                    </span>
+                                    {% with return_request=order.returns.first %}
+                                        {% if return_request %}
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold 
+                                                {% if return_request.status == 'REFUNDED' %}bg-rose-50 text-rose-600
+                                                {% elif return_request.status == 'APPROVED' %}bg-amber-50 text-amber-600
+                                                {% elif return_request.status == 'REJECTED' %}bg-red-50 text-red-600
+                                                {% else %}bg-amber-50 text-amber-600{% endif %} uppercase tracking-widest">
+                                                {% if return_request.status == 'REFUNDED' %}Refunded
+                                                {% elif return_request.status == 'APPROVED' %}Return Approved
+                                                {% elif return_request.status == 'REQUESTED' %}Return Requested
+                                                {% else %}Return Rejected{% endif %}
+                                            </span>
+                                        {% else %}
+                                            {% with status=order.items.first.item_status|default:'PENDING'|upper %}
+                                            <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold 
+                                                {% if status == 'PENDING' %}bg-amber-50 text-amber-600
+                                                {% elif status == 'SHIPPED' %}bg-blue-50 text-blue-600
+                                                {% elif status == 'OUT FOR DELIVERY' or status == 'OUT_FOR_DELIVERY' %}bg-purple-50 text-purple-600
+                                                {% elif status == 'DELIVERED' %}bg-green-50 text-green-600
+                                                {% elif status == 'CANCELLED' %}bg-red-50 text-red-600
+                                                {% else %}bg-gray-50 text-gray-600{% endif %} uppercase tracking-widest">
+                                                {{ order.items.first.item_status|default:"Pending"|title }}
+                                            </span>
+                                            {% endwith %}
+                                        {% endif %}
                                     {% endwith %}
                                 </td>
                                 <td class="px-6 py-5 text-right">

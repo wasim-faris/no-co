@@ -294,6 +294,27 @@
                         <div class="info-row"><span class="info-label">Invoice No</span> #INV-{{ order.order_number }}</div>
                         <div class="info-row"><span class="info-label">Order No</span> #{{ order.order_number }}</div>
                         <div class="info-row"><span class="info-label">Date</span> {{ order.created_at|date:"d M Y" }}</div>
+                        <div class="info-row" style="margin-top: 10px;">
+                            <span class="info-label">Payment Mode</span> {{ order.get_payment_method_display }}
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Pay Status</span> 
+                            {% if order.payment_method == 'COD' %}
+                                {% with return_request=order.returns.first %}
+                                    {% if return_request %}
+                                        {% if return_request.status == 'REFUNDED' %}Refunded
+                                        {% elif return_request.status == 'APPROVED' %}Refund in Process
+                                        {% elif return_request.status == 'REJECTED' %}Paid
+                                        {% else %}Refund N/A{% endif %}
+                                    {% else %}
+                                        {% if order.items.first.item_status == 'DELIVERED' or order.delivered_date %}Paid
+                                        {% else %}Pending{% endif %}
+                                    {% endif %}
+                                {% endwith %}
+                            {% else %}
+                                {{ order.get_payment_status_display }}
+                            {% endif %}
+                        </div>
                     </div>
                 </td>
             </tr>

@@ -5,6 +5,7 @@ from django.utils import timezone
 from django.contrib import messages
 def admin_returns(request):
     return_requests = ReturnRequest.objects.all()
+    return_requests = return_requests.order_by("-requested_at")
     return render(request, "returns/returns.html", {
         "return_requests":return_requests
     })
