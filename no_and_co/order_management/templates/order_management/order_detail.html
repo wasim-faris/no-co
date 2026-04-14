@@ -58,7 +58,7 @@
                                     {% if return_request.status == 'REFUNDED' %}bg-rose-50 text-rose-600
                                     {% elif return_request.status == 'APPROVED' %}bg-amber-50 text-amber-600
                                     {% elif return_request.status == 'REJECTED' %}bg-red-50 text-red-600
-                                    {% else %}bg-amber-50 text-amber-600{% endif %} uppercase tracking-widest">
+                                    {% else %}bg-orange-50 text-orange-600{% endif %} uppercase tracking-widest">
                                     {% if return_request.status == 'REFUNDED' %}Refunded
                                     {% elif return_request.status == 'APPROVED' %}Return Approved
                                     {% elif return_request.status == 'REQUESTED' %}Return Requested
@@ -114,6 +114,7 @@
                                         <th class="px-8 py-4">Product</th>
                                         <th class="px-4 py-4">Price</th>
                                         <th class="px-4 py-4">Qty</th>
+                                        <th class="px-4 py-4">Status</th>
                                         <th class="px-8 py-4 text-right">Total</th>
                                     </tr>
                                 </thead>
@@ -140,11 +141,31 @@
                                         </td>
                                         <td class="px-4 py-6 font-medium text-[13px]">Rs. {{ item.price }}</td>
                                         <td class="px-4 py-6 text-[13px]">{{ item.quantity }}</td>
+                                        <td class="px-4 py-6">
+                                            {% with return_request=item.returns.first %}
+                                                {% if return_request %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold 
+                                                        {% if return_request.status == 'REFUNDED' %}bg-rose-50 text-rose-600
+                                                        {% elif return_request.status == 'APPROVED' %}bg-amber-50 text-amber-600
+                                                        {% elif return_request.status == 'REJECTED' %}bg-red-50 text-red-600
+                                                        {% else %}bg-orange-50 text-orange-600{% endif %} uppercase tracking-widest">
+                                                        {% if return_request.status == 'REFUNDED' %}Refunded
+                                                        {% elif return_request.status == 'APPROVED' %}Approved
+                                                        {% elif return_request.status == 'REQUESTED' %}Requested
+                                                        {% else %}Rejected{% endif %}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold bg-gray-50 text-gray-600 uppercase tracking-widest">
+                                                        {{ item.item_status|default:"Pending"|title }}
+                                                    </span>
+                                                {% endif %}
+                                            {% endwith %}
+                                        </td>
                                         <td class="px-8 py-6 text-right font-bold text-[14px]">Rs. {{ item.price }} x {{ item.quantity }}</td>
                                     </tr>
                                     {% empty %}
                                     <tr>
-                                        <td colspan="4" class="px-8 py-10 text-center text-sm text-gray-400">No ordered items found.</td>
+                                        <td colspan="5" class="px-8 py-10 text-center text-sm text-gray-400">No ordered items found.</td>
                                     </tr>
                                     {% endfor %}
                                 </tbody>

@@ -219,9 +219,9 @@
                                 <td class="px-4 py-3">
                                     <span id="status-badge-{{ return_request.id }}" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wide uppercase
                                         {% if return_request.status == 'REFUNDED' %}bg-teal-50 text-teal-700 border border-teal-100
-                                        {% elif return_request.status == 'APPROVED' %}bg-indigo-50 text-indigo-700 border border-indigo-100
+                                        {% elif return_request.status == 'APPROVED' %}bg-amber-50 text-amber-700 border border-amber-200
                                         {% elif return_request.status == 'REJECTED' %}bg-rose-50 text-rose-700 border border-rose-100
-                                        {% else %}bg-amber-50 text-amber-700 border border-amber-100{% endif %}">
+                                        {% else %}bg-orange-50 text-orange-700 border border-orange-100{% endif %}">
                                         {% if return_request.status == 'REFUNDED' %}Refunded
                                         {% elif return_request.status == 'APPROVED' %}Approved
                                         {% elif return_request.status == 'REQUESTED' %}Requested
@@ -517,11 +517,11 @@
             if (s === 'REFUNDED') {
                 badgeHTML = '<span class="px-3 py-1 bg-teal-50 text-teal-700 border border-teal-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Refunded</span>';
             } else if (s === 'APPROVED') {
-                badgeHTML = '<span class="px-3 py-1 bg-indigo-50 text-indigo-700 border border-indigo-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Approved</span>';
+                badgeHTML = '<span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-bold uppercase tracking-wider">Approved</span>';
             } else if (s === 'REJECTED') {
                 badgeHTML = '<span class="px-3 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Rejected</span>';
             } else {
-                badgeHTML = '<span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Requested</span>';
+                badgeHTML = '<span class="px-3 py-1 bg-orange-50 text-orange-700 border border-orange-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Requested</span>';
             }
             statusContainer.innerHTML = badgeHTML;
 

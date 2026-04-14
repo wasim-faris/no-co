@@ -222,8 +222,8 @@
     .shell .badge-pending           { color: #92400E; border-color: #FDE68A; background: #FFFBEB; }
     .shell .badge-delivered         { color: #14532D; border-color: #BBF7D0; background: #F0FDF4; }
     .shell .badge-cancelled         { color: #7F1D1D; border-color: #FECACA; background: #FEF2F2; }
-    .shell .badge-return-requested   { color: #92400E; border-color: #FDE68A; background: #FFFBEB; }
-    .shell .badge-return-approved    { color: #4338CA; border-color: #C7D2FE; background: #EEF2FF; }
+    .shell .badge-return-requested   { color: #C2410C; border-color: #FFEDD5; background: #FFF7ED; }
+    .shell .badge-return-approved    { color: #854D0E; border-color: #FEF3C7; background: #FFFBEB; }
     .shell .badge-refunded          { color: #0F766E; border-color: #99F6E4; background: #F0FDFA; }
 
     /* ─── Card Body ──────────────────────────────────────────── */
@@ -501,27 +501,39 @@
             .replace(/\b\w/g, function(ch) { return ch.toUpperCase(); });
     }
 
-    function applyListingStatuses(scope) {
+    /**
+     * Audit: Prevent JS from overriding priority return statuses with stale local storage.
+     * We only allow local storage overrides for 'simple' statuses like Pending/Confirmed
+     * to prevent 'Return Rejected' from being replaced by 'Delivered'.
+     */
+    function safeApplyListingStatuses(scope) {
+        const priorityStatuses = ['RETURN REQUESTED', 'RETURN APPROVED', 'RETURN REJECTED', 'REFUNDED'];
         const cards = (scope || document).querySelectorAll('.order-card[data-order-number]');
+        
         cards.forEach(function(card) {
             const orderNumber = card.getAttribute('data-order-number');
-            const defaultStatus = card.getAttribute('data-default-status') || 'PENDING';
             const badge = card.querySelector('[data-role="listing-status"]');
             if (!badge) return;
 
-            let currentStatus = defaultStatus;
+            const serverStatus = badge.textContent.trim().toUpperCase();
+            
+            // If the server says it's a return-related priority, DO NOT override with local storage
+            if (priorityStatuses.indexOf(serverStatus) !== -1) {
+                return;
+            }
+
             try {
                 const raw = localStorage.getItem(orderStatePrefix + orderNumber);
                 if (raw) {
                     const saved = JSON.parse(raw);
-                    if (saved && saved.orderStatus) currentStatus = saved.orderStatus;
+                    if (saved && saved.orderStatus) {
+                        badge.className = statusBadgeClass(saved.orderStatus);
+                        badge.textContent = titleStatus(saved.orderStatus);
+                    }
                 }
             } catch (error) {
                 console.warn('Unable to parse saved order status:', error);
             }
-
-            badge.className = statusBadgeClass(currentStatus);
-            badge.textContent = titleStatus(currentStatus);
         });
     }
 
@@ -537,7 +549,7 @@
         .then(response => response.text())
         .then(html => {
             container.innerHTML = html;
-            applyListingStatuses(container);
+            safeApplyListingStatuses(container);
             if (loader) loader.style.display = 'none';
         })
         .catch(err => {
@@ -581,7 +593,7 @@
         });
     }
 
-    applyListingStatuses(container);
+    safeApplyListingStatuses(container);
 })();
 </script>
 {% endblock %}
