@@ -145,31 +145,51 @@
     .shell .item-state-note.cancelled { color: #7F1D1D; font-weight: 600; }
     .shell .product-row.item-cancelled { opacity: 0.65; }
     .shell .product-row.item-cancelled .prod-name { text-decoration: line-through; }
-    .toast-wrap {
+    /* ─── Inline Toast (Cart/Product Detail style) ───────────────────────── */
+    .inline-toast {
         position: fixed;
-        right: 22px;
-        top: 90px;
-        z-index: 9999;
+        top: 20px;
+        right: 20px;
+        width: 320px;
+        max-width: 90vw;
+        background: #000;
+        color: #fff;
+        padding: 16px 20px;
+        border-radius: 2px;
         display: flex;
-        flex-direction: column;
-        gap: 8px;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        opacity: 0;
+        transform: translateX(30px);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        z-index: 99999;
+        pointer-events: auto;
     }
-    .toast {
-        border: var(--border);
-        background: var(--pure-white);
-        color: var(--ink);
-        padding: 12px 14px;
-        font-size: 10px;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        font-weight: 600;
-        box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    .inline-toast.show {
+        opacity: 1;
+        transform: translateX(0);
     }
-    .toast.error {
-        border-color: #FECACA;
-        color: #7F1D1D;
-        background: #FEF2F2;
+    .toast-left-content { display: flex; align-items: center; gap: 14px; }
+    .toast-icon-circle {
+        width: 24px; height: 24px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.2);
+        color: #fff; background: transparent;
     }
+    .toast-message-wrapper { display: flex; flex-direction: column; }
+    .toast-main-text {
+        font-size: 12px; font-weight: 700;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        line-height: 1.2;
+    }
+    .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .toast-close-btn {
+        cursor: pointer; font-size: 14px; opacity: 0.4;
+        transition: opacity 0.2s; padding: 4px; line-height: 1;
+    }
+    .toast-close-btn:hover { opacity: 1; }
     .manage-modal {
         position: fixed;
         inset: 0;
@@ -439,7 +459,7 @@
     }
 </style>
 
-<div class="shell" data-order-number="{{ order.order_number }}" data-default-status="{{ order.items.first.item_status|default:'PENDING' }}">
+<div class="shell" data-order-number="{{ order.order_number }}" data-order-id="{{ order.id }}" data-default-status="{{ order.items.first.item_status|default:'PENDING' }}">
 
     <!-- ─── Sidebar ──────────────────────────────────────────── -->
     <aside class="sidebar">
@@ -791,13 +811,12 @@
     </main>
 </div>
 
-<div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
+<div id="inlineToast" class="inline-toast" role="alert" aria-live="polite"></div>
 
 <div class="manage-modal" id="manage-modal" aria-hidden="true">
     <div class="manage-modal-card" role="dialog" aria-modal="true" aria-labelledby="manage-modal-title">
         <div class="manage-modal-title" id="manage-modal-title">Confirm Action</div>
         <div class="manage-modal-subtitle" id="manage-modal-subtitle"></div>
-        <textarea id="manage-modal-reason" class="manage-modal-textarea" placeholder="Add a reason"></textarea>
         <div class="manage-modal-actions">
             <button type="button" class="btn btn-hm-secondary" id="manage-modal-cancel">Keep Order</button>
             <button type="button" class="btn btn-hm-primary" id="manage-modal-confirm">Confirm Cancellation</button>
@@ -823,12 +842,28 @@
     const modal = document.getElementById('manage-modal');
     const modalTitle = document.getElementById('manage-modal-title');
     const modalSubtitle = document.getElementById('manage-modal-subtitle');
-    const modalReason = document.getElementById('manage-modal-reason');
     const modalConfirm = document.getElementById('manage-modal-confirm');
     const modalCancel = document.getElementById('manage-modal-cancel');
-    const toastWrap = document.getElementById('toast-wrap');
 
     let actionPayload = null;
+    let isProcessing = false;
+
+    // Get CSRF token from cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
 
     function norm(status) {
         const value = (status || '').toUpperCase().replace(/\s+/g, '_');
@@ -863,14 +898,27 @@
         localStorage.setItem(storageKey, JSON.stringify(state));
     }
 
-    function toast(message, isError) {
-        const item = document.createElement('div');
-        item.className = isError ? 'toast error' : 'toast';
-        item.textContent = message;
-        toastWrap.appendChild(item);
-        setTimeout(function() {
-            item.remove();
-        }, 2800);
+    /* ─── Cart-style Toast Notification ────────────────────────────────── */
+    let toastTimer = null;
+    function showToast(msg, isError = false, duration = 2500) {
+        const t = document.getElementById('inlineToast');
+        if (!t) return;
+        const icon = isError ? '✕' : '✓';
+        t.innerHTML = `
+            <div class="toast-left-content">
+                <div class="toast-icon-circle">${icon}</div>
+                <div class="toast-message-wrapper">
+                    <span class="toast-main-text">${msg}</span>
+                    <span class="toast-sub-text">Notification</span>
+                </div>
+            </div>
+            <div class="toast-close-btn" onclick="this.parentElement.classList.remove('show')">✕</div>
+        `;
+        t.classList.remove('show');
+        void t.offsetWidth;
+        t.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => t.classList.remove('show'), duration);
     }
 
     function badgeClass(status) {
@@ -930,19 +978,17 @@
         actionPayload = config;
         modalTitle.textContent = config.title;
         modalSubtitle.textContent = config.subtitle;
-        modalReason.value = '';
-        modalReason.placeholder = config.placeholder || 'Add a reason';
-        modalReason.setAttribute('data-required', config.reasonRequired ? 'true' : 'false');
         modalConfirm.textContent = config.confirmText || 'Confirm';
         modalCancel.textContent = config.cancelText || 'Keep Order';
         
-        // Use timeout to ensure display: flex is applied before adding opacity/transform classes
+        // Reset processing state
+        isProcessing = false;
+        modalConfirm.disabled = false;
+        modalConfirm.textContent = config.confirmText || 'Confirm';
+        
         modal.classList.add('open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
-        
-        // Focus textarea after animation starts
-        setTimeout(() => modalReason.focus(), 100);
     }
 
     function closeModal() {
@@ -970,61 +1016,100 @@
     });
 
     modalConfirm.addEventListener('click', function() {
-        if (!actionPayload) return;
-        const reason = modalReason.value.trim();
-        const reasonRequired = modalReason.getAttribute('data-required') === 'true';
-        if (reasonRequired && !reason) {
-            toast('Reason is required for this action.', true);
-            return;
-        }
+        if (!actionPayload || isProcessing) return;
 
         const state = readState();
         const currentStatus = norm(state.orderStatus);
 
         if (actionPayload.type === 'cancel-order') {
             if (isTerminal(currentStatus)) {
-                toast('This order can no longer be cancelled.', true);
+                showToast('This order can no longer be cancelled.', true);
                 closeModal();
                 return;
             }
-            state.orderStatus = 'CANCELLED';
-            state.reason = reason || '';
-            state.items = state.items.map(function(item) {
-                return { status: 'CANCELLED', reason: reason || item.reason || '' };
+
+            // Set processing state
+            isProcessing = true;
+            modalConfirm.disabled = true;
+            modalConfirm.textContent = 'Processing...';
+
+            // Get order ID from shell data attribute
+            const orderId = shell.dataset.orderId;
+            if (!orderId) {
+                showToast('Order ID not found.', true);
+                isProcessing = false;
+                modalConfirm.disabled = false;
+                modalConfirm.textContent = actionPayload.confirmText || 'Confirm';
+                return;
+            }
+
+            // Call backend API
+            fetch(`/cancel-order/${orderId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local state
+                    state.orderStatus = 'CANCELLED';
+                    state.items = state.items.map(function(item) {
+                        return { status: 'CANCELLED', reason: '' };
+                    });
+                    writeState(state);
+                    updateControls(state);
+                    showToast('Order cancelled successfully.');
+                } else {
+                    showToast(data.message || 'Failed to cancel order.', true);
+                }
+                closeModal();
+            })
+            .catch(error => {
+                console.error('Cancel order error:', error);
+                showToast('Something went wrong. Please try again.', true);
+                isProcessing = false;
+                modalConfirm.disabled = false;
+                modalConfirm.textContent = actionPayload.confirmText || 'Confirm';
             });
-            toast('Order cancelled. Stock restored (demo).');
+            return;
         }
 
+        // Handle other modal types (cancel-item, return-order) with local state only
         if (actionPayload.type === 'cancel-item') {
             if (isTerminal(currentStatus)) {
-                toast('Items cannot be cancelled in current status.', true);
+                showToast('Items cannot be cancelled in current status.', true);
                 closeModal();
                 return;
             }
             const itemIndex = actionPayload.itemIndex;
             if (state.items[itemIndex] && norm(state.items[itemIndex].status) !== 'CANCELLED') {
                 state.items[itemIndex].status = 'CANCELLED';
-                state.items[itemIndex].reason = reason || '';
                 state.orderStatus = resolveOrderStatus(state.items, currentStatus);
-                toast('Item cancelled. Stock restored (demo).');
+                writeState(state);
+                updateControls(state);
+                showToast('Item cancelled.');
             } else {
-                toast('This item is already cancelled.', true);
+                showToast('This item is already cancelled.', true);
             }
         }
 
         if (actionPayload.type === 'return-order') {
             if (currentStatus !== 'DELIVERED') {
-                toast('Only delivered orders can be returned.', true);
+                showToast('Only delivered orders can be returned.', true);
                 closeModal();
                 return;
             }
             state.orderStatus = 'RETURNED';
-            state.reason = reason;
-            toast('Return request submitted (demo).');
+            writeState(state);
+            updateControls(state);
+            showToast('Return request submitted.');
         }
 
-        writeState(state);
-        updateControls(state);
         closeModal();
     });
 
@@ -1032,15 +1117,13 @@
         cancelOrderBtn.addEventListener('click', function() {
             const state = readState();
             if (isTerminal(norm(state.orderStatus))) {
-                toast('This order cannot be cancelled.', true);
+                showToast('This order cannot be cancelled.', true);
                 return;
             }
             openModal({
                 type: 'cancel-order',
                 title: 'Cancel Entire Order',
-                subtitle: 'You can optionally tell us why you are cancelling this order.',
-                placeholder: 'Optional reason for cancellation',
-                reasonRequired: false,
+                subtitle: 'Are you sure you want to cancel this order?',
                 confirmText: 'Confirm Cancellation',
                 cancelText: 'Keep Order'
             });
@@ -1051,16 +1134,15 @@
         returnOrderBtn.addEventListener('click', function() {
             const state = readState();
             if (norm(state.orderStatus) !== 'DELIVERED') {
-                toast('Return is allowed only for delivered orders.', true);
+                showToast('Return is allowed only for delivered orders.', true);
                 return;
             }
             openModal({
                 type: 'return-order',
                 title: 'Return Order',
-                subtitle: 'Please provide a reason to submit your return request.',
-                placeholder: 'Reason for return (required)',
-                reasonRequired: true,
-                confirmText: 'Return Order'
+                subtitle: 'Are you sure you want to return this order?',
+                confirmText: 'Return Order',
+                cancelText: 'Keep Order'
             });
         });
     }
@@ -1071,21 +1153,20 @@
             const state = readState();
             const orderStatus = norm(state.orderStatus);
             if (isTerminal(orderStatus)) {
-                toast('This order no longer supports item cancellation.', true);
+                showToast('This order no longer supports item cancellation.', true);
                 return;
             }
             if (state.items[index] && norm(state.items[index].status) === 'CANCELLED') {
-                toast('This item is already cancelled.', true);
+                showToast('This item is already cancelled.', true);
                 return;
             }
             openModal({
                 type: 'cancel-item',
                 itemIndex: index,
                 title: 'Cancel This Product',
-                subtitle: 'You can optionally add a reason for cancelling this item.',
-                placeholder: 'Optional reason for item cancellation',
-                reasonRequired: false,
-                confirmText: 'Cancel Item'
+                subtitle: 'Are you sure you want to cancel this item?',
+                confirmText: 'Cancel Item',
+                cancelText: 'Keep Item'
             });
         });
     });
