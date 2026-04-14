@@ -9,15 +9,16 @@
         <div class="order-date">{{ order.created_at|date:"M d, Y" }}</div>
         {% with return_request=order.returns.first %}
             {% if return_request %}
-                {% if return_request.status == "REFUNDED" %}
-                    <span class="status-badge badge-refunded order-status-badge" data-role="listing-status">Refunded</span>
-                {% elif return_request.status == "APPROVED" %}
-                    <span class="status-badge badge-return-approved order-status-badge" data-role="listing-status">Return Approved</span>
-                {% elif return_request.status == "REQUESTED" %}
-                    <span class="status-badge badge-return-requested order-status-badge" data-role="listing-status">Return Requested</span>
-                {% elif return_request.status == "REJECTED" %}
-                    <span class="status-badge badge-cancelled order-status-badge" data-role="listing-status">Return Rejected</span>
-                {% endif %}
+                <span class="status-badge 
+                    {% if return_request.status == 'REFUNDED' %}badge-refunded
+                    {% elif return_request.status == 'APPROVED' %}badge-return-approved
+                    {% elif return_request.status == 'REJECTED' %}badge-cancelled
+                    {% else %}badge-return-requested{% endif %} order-status-badge" data-role="listing-status">
+                    {% if return_request.status == 'REFUNDED' %}Refunded
+                    {% elif return_request.status == 'APPROVED' %}Return Approved
+                    {% elif return_request.status == 'REQUESTED' %}Return Requested
+                    {% else %}Return Rejected{% endif %}
+                </span>
             {% else %}
                 {% with item_status=order.items.first.item_status %}
                     {% if item_status == 'DELIVERED' or order.delivered_date %}

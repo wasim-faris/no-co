@@ -218,7 +218,6 @@ class ReturnRequest(models.Model):
         default='REQUESTED'
     )
 
-    is_eligible = models.BooleanField(default=True)
 
     requested_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
