@@ -145,3 +145,28 @@ class OrderItem(models.Model):
 
     def __str__(self):
         return f"{self.variant} x {self.quantity}"
+
+class OrderStatusHistory(models.Model):
+    STATUS_CHOICES = (
+        ("PENDING", "Pending"),
+        ("PROCESSING", "Processing"),
+        ("SHIPPED", "Shipped"),
+        ("DELIVERED", "Delivered"),
+        ("CANCELLED", "Cancelled"),
+        ("RETURNED", "Returned"),
+    )
+
+    order = models.ForeignKey(
+        "Order",
+        on_delete=models.CASCADE,
+        related_name="status_history"
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    updated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "order_status_history"
+        ordering = ["-updated_at"]
+
+    def __str__(self):
+        return f"{self.order.order_number} - {self.status}"
