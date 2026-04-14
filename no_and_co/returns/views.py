@@ -1,3 +1,4 @@
 from django.shortcuts import render
 
-# Create your views here.
+def admin_returns(request):
+    return render(request, "returns/returns.html")
