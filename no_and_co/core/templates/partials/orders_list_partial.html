@@ -7,13 +7,32 @@
             <div class="order-id-value">#{{ order.order_number }}</div>
         </div>
         <div class="order-date">{{ order.created_at|date:"M d, Y" }}</div>
-        {% if item_status == 'DELIVERED' %}
-            <span class="status-badge badge-delivered order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
-        {% elif item_status == 'CANCELLED' or item_status == 'RETURNED' %}
-            <span class="status-badge badge-cancelled order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
-        {% else %}
-            <span class="status-badge badge-pending order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
-        {% endif %}
+        {% with return_request=order.returns.first %}
+            {% if return_request %}
+                {% if return_request.status == "REFUNDED" %}
+                    <span class="status-badge badge-refunded order-status-badge" data-role="listing-status">Refund Completed</span>
+                {% elif return_request.status == "APPROVED" %}
+                    <span class="status-badge badge-return-approved order-status-badge" data-role="listing-status">Return Approved – Refund in Progress</span>
+                {% elif return_request.status == "REQUESTED" %}
+                    <span class="status-badge badge-return-requested order-status-badge" data-role="listing-status">Return Requested – Awaiting Approval</span>
+                {% elif return_request.status == "REJECTED" %}
+                    <span class="status-badge badge-cancelled order-status-badge" data-role="listing-status">Return Rejected</span>
+                {% endif %}
+            {% else %}
+                {% with item_status=order.items.first.item_status %}
+                    {% if item_status == 'DELIVERED' or order.delivered_date %}
+                        <span class="status-badge badge-delivered order-status-badge" data-role="listing-status">Delivered</span>
+                    {% elif item_status == 'SHIPPED' %}
+                        <span class="status-badge" style="color: #1a3a3a; border-color: #bee5eb; background: #e3f2fd;" data-role="listing-status">Shipped</span>
+                    {% elif item_status == 'CANCELLED' or item_status == 'RETURNED' %}
+                        <span class="status-badge badge-cancelled order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
+                    {% else %}
+                        <span class="status-badge badge-pending order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
+                    {% endif %}
+                {% endwith %}
+            {% endif %}
+        {% endwith %}
+
     </div>
     <div class="order-card-body">
         <div class="order-thumb">

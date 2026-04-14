@@ -218,10 +218,15 @@
                                 </td>
                                 <td class="px-4 py-4">
                                     <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-medium
-                                        {% if return_request.status == 'Approved' %}bg-green-50 text-green-700 border border-green-200
-                                        {% elif return_request.status == 'Rejected' %}bg-red-50 text-red-700 border border-red-200
+                                        {% if return_request.status == 'REFUNDED' %}bg-green-100 text-green-800 border border-green-200
+                                        {% elif return_request.status == 'APPROVED' %}bg-blue-50 text-blue-700 border border-blue-200
+                                        {% elif return_request.status == 'REJECTED' %}bg-red-50 text-red-700 border border-red-200
                                         {% else %}bg-amber-50 text-amber-700 border border-amber-200{% endif %}">
-                                        {{ return_request.status }}
+                                        {% if return_request.status == 'REFUNDED' %}Refund Completed
+                                        {% elif return_request.status == 'APPROVED' %}Return Approved – Refund in Progress
+                                        {% elif return_request.status == 'REQUESTED' %}Return Requested – Awaiting Approval
+                                        {% elif return_request.status == 'REJECTED' %}Return Rejected
+                                        {% else %}{{ return_request.status|title }}{% endif %}
                                     </span>
                                 </td>
                                 <td class="px-4 py-4">
@@ -480,7 +485,8 @@
             // Show/hide action buttons based on status
             const approveBtn = document.getElementById('approveBtn');
             const rejectBtn = document.getElementById('rejectBtn');
-            if (status === 'Approved' || status === 'Rejected') {
+            const upperStatus = status.toUpperCase();
+            if (upperStatus === 'APPROVED' || upperStatus === 'REJECTED' || upperStatus === 'REFUNDED') {
                 approveBtn.style.display = 'none';
                 rejectBtn.style.display = 'none';
             } else {

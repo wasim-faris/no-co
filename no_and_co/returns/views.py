@@ -42,4 +42,4 @@ def reject_return(request):
 
         messages.error(request, "return request rejected")
 
-    return redirect("admin-return")
+    return redirect("admin-returns")
