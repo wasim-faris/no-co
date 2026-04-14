@@ -1,5 +1,6 @@
 from ctypes import addressof
 from decimal import Decimal
+from winreg import REG_QWORD
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.cache import never_cache
@@ -18,11 +19,12 @@ from django.contrib.auth.decorators import login_required
 from cart.models import Cart
 from django.db.models import Sum
 from django.db import transaction
-from .models import Order, OrderItem
+from .models import Order, OrderItem,OrderStatusHistory
 from django.db.models import F
 from io import BytesIO
 from django.template.loader import get_template
 from django.core.paginator import Paginator
+from django.utils import timezone
 # Create your views here.
 
 
@@ -435,6 +437,12 @@ def place_order(request):
                     discount_amount=discount,
                 )
 
+                OrderStatusHistory.objects.create(
+                    order = order,
+                    status = "PENDING",
+                    updated_at = timezone.now()
+                )
+
                 for item in cart_items:
                     updated = Variant.objects.filter(
                         id=item.variant.id, stock__gte=item.quantity
@@ -556,3 +564,33 @@ def download_invoice(request, id):
 
     context["is_pdf"] = False
     return render(request, "invoice/invoice_template.html", context)
+
+def cancel_order(request, order_id):
+    order = get_object_or_404(Order, id=order_id , user=request.user)
+
+    cancelable_order_status = ["PENDING", "PROCESSING"]
+
+    if request.method == "POST":
+        if order.items.filter(
+            item_status__in=["SHIPPED", "DELIVERED"]
+        ).exists():
+            messages.error(
+                request,"This order cannot be cancelled as it has already been shipped."
+            )
+            return redirect("order-details",id=order_id)
+
+        order.items.update(item_status = "CANCELLED")
+
+        OrderStatusHistory.objects.create(
+            order=order,
+            status = "CANCELLED",
+            updated_at = timezone.now()
+        )
+
+
+        if order.payment_method == "ONLINE" and order.payment_status == "PAID":
+            order.payment_status = "REFUNDED"
+
+        order.save()
+        messages.success(request, "Order cancellation succesfully")
+    return redirect("order-details", id=order_id)
