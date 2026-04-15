@@ -4,10 +4,35 @@ from django.utils import timezone
 from django.contrib import messages
 from django.db import transaction
 
+from django.core.paginator import Paginator
+
 def admin_returns(request):
-    return_requests = ReturnRequest.objects.all().order_by("-requested_at")
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    
+    return_requests_list = ReturnRequest.objects.all().order_by("-requested_at")
+    
+    if search_query:
+        from django.db.models import Q
+        return_requests_list = return_requests_list.filter(
+            Q(id__icontains=search_query.replace('#', '')) |
+            Q(order__order_number__icontains=search_query.replace('#', '')) |
+            Q(customer__username__icontains=search_query) |
+            Q(customer__email__icontains=search_query)
+        )
+        
+    if status_filter:
+        return_requests_list = return_requests_list.filter(status=status_filter)
+    
+    paginator = Paginator(return_requests_list, 4)
+    page_number = request.GET.get('page')
+    return_requests = paginator.get_page(page_number)
+    
     return render(request, "returns/returns.html", {
-        "return_requests": return_requests
+        "page_obj": return_requests,
+        "total_returns": return_requests_list.count(),
+        "search_query": search_query,
+        "status_filter": status_filter
     })
 
 def approve_return(request):

@@ -153,29 +153,29 @@
 
             <!-- Filter & Search Section -->
             <section class="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-                <div class="flex flex-wrap items-center gap-4">
+                <form method="GET" class="flex flex-wrap items-center gap-4">
                     <div class="flex-1 min-w-[280px] relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
-                        <input type="text" id="searchInput" placeholder="Search by Return ID, Order ID, or customer..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gray-400 transition-all">
+                        <input type="text" name="search" value="{{ search_query }}" placeholder="Search by Return ID, Order ID, or customer..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gray-400 transition-all">
                     </div>
 
-                    <select class="px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 focus:outline-none focus:border-gray-400 min-w-[140px]">
+                    <select name="status" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 focus:outline-none focus:border-gray-400 min-w-[140px]">
                         <option value="">All Status</option>
-                        <option>Return Requested</option>
-                        <option>Return Approved</option>
-                        <option>Return Pickup Scheduled</option>
-                        <option>Return Picked Up</option>
-                        <option>Return Rejected</option>
+                        <option value="REQUESTED" {% if status_filter == 'REQUESTED' %}selected{% endif %}>Return Requested</option>
+                        <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Return Approved</option>
+                        <option value="PICKUP_SCHEDULED" {% if status_filter == 'PICKUP_SCHEDULED' %}selected{% endif %}>Return Pickup Scheduled</option>
+                        <option value="PICKED_UP" {% if status_filter == 'PICKED_UP' %}selected{% endif %}>Return Picked Up</option>
+                        <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Return Rejected</option>
                     </select>
 
-                    <input type="date" class="px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 focus:outline-none focus:border-gray-400">
-
-                    <button class="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Clear Filters">
+                    <button type="submit" class="px-6 py-2.5 bg-[#1a1a1a] text-white rounded-lg text-xs font-bold uppercase tracking-wider hover:bg-black transition-all">Apply</button>
+                    
+                    <a href="{% url 'admin-returns' %}" class="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors" title="Clear Filters">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                    </button>
-                </div>
+                    </a>
+                </form>
             </section>
 
             <!-- Table Container -->
@@ -195,7 +195,7 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100">
-                            {% for return_request in return_requests %}
+                            {% for return_request in page_obj %}
                             <tr class="hover:bg-gray-50/50 transition-all duration-200 group">
                                 <td class="px-6 py-3">
                                     <span class="text-[13px] font-semibold text-gray-900 tracking-tight">#{{ return_request.formatted_return_id|default:return_request.id }}</span>
@@ -273,31 +273,25 @@
                             {% endfor %}
                         </tbody>
                     </table>
-                </div>
-
-                <!-- Pagination - Only show when more than 5 entries -->
-                {% if return_requests|length > 5 %}
-                <div class="px-6 py-5 bg-white border-t border-gray-100">
-                    <div class="flex justify-center">
-                        <nav class="flex items-center gap-2">
-                            <!-- Previous Button -->
-                            <button class="w-10 h-10 flex items-center justify-center rounded-full bg-white text-gray-400 border border-gray-200 hover:bg-gray-50 hover:text-gray-600 transition-all duration-200" disabled>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-                            </button>
-
-                            <!-- Page Numbers -->
-                            <button class="w-10 h-10 flex items-center justify-center rounded-full bg-[#111111] text-white text-sm font-medium shadow-md">1</button>
-                            <button class="w-10 h-10 flex items-center justify-center rounded-full bg-white text-[#374151] border border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 text-sm font-medium">2</button>
-                            <button class="w-10 h-10 flex items-center justify-center rounded-full bg-white text-[#374151] border border-gray-200 hover:bg-gray-50 hover:text-gray-900 transition-all duration-200 text-sm font-medium">3</button>
-
-                            <!-- Next Button -->
-                            <button class="w-10 h-10 flex items-center justify-center rounded-full bg-white text-gray-400 border border-gray-200 hover:bg-gray-50 hover:text-gray-600 transition-all duration-200">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                            </button>
-                        </nav>
+                           <!-- Dynamic Pagination standardized -->
+                <div id="paginationSection">
+                    {% if page_obj.has_other_pages %}
+                    <div class="flex items-center justify-center gap-2.5 my-8">
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <span class="w-8 h-8 flex items-center justify-center rounded-full bg-black text-white text-[11px] font-bold shadow-md cursor-default">
+                                    {{ num }}
+                                </span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ num }}"
+                                   class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black hover:-translate-y-[1px] hover:shadow-sm transition-all duration-300">
+                                    {{ num }}
+                                </a>
+                            {% endif %}
+                        {% endfor %}
                     </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </main>
     </div>
@@ -430,7 +424,7 @@
                 </div>
                 <h3 class="text-xl font-serif text-gray-900 mb-2">Approve Return Request</h3>
                 <p class="text-sm text-gray-500 mb-8">Confirming this action will initiate the refund process for this order item. This action is irreversible.</p>
-                <form id="approveForm" method="POST" action="{% url "approve_return" %}" class="flex gap-3">
+                <form id="approveForm" method="POST" action="{% url "approve_return" %}" class="flex gap-3" onsubmit="this.querySelector('button[type=submit]').disabled = true; this.querySelector('button[type=submit]').innerHTML = 'Processing...';">
                     {% csrf_token %}
                     <input type="hidden" name="return_request_id" id="approveRequestId">
                     <input type="hidden" name="action" value="approve">
@@ -585,17 +579,6 @@
     </div>
 
     <script>
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('keyup', function() {
-            const filter = this.value.toLowerCase();
-            const rows = document.querySelectorAll('tbody tr');
-
-            rows.forEach(row => {
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
-            });
-        });
-
         // Toast animation
         document.addEventListener('DOMContentLoaded', function () {
             const toasts = document.querySelectorAll('.toast-item');
@@ -681,9 +664,25 @@
 
         function closeModal(modalId) {
             if (modalId) {
-                document.getElementById(modalId).classList.add('hidden');
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.add('hidden');
+                    // Reset any disabled buttons or forms inside the modal
+                    const submitBtn = modal.querySelector('button[type=submit]');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        if (modalId === 'approveModal') submitBtn.innerHTML = 'Approve Refund';
+                        if (modalId === 'rejectModal') submitBtn.innerHTML = 'Reject Request';
+                        if (modalId === 'scheduleModal') submitBtn.innerHTML = 'Schedule Now';
+                        if (modalId === 'pickupModal') submitBtn.innerHTML = 'Confirm Pickup';
+                    }
+                }
             } else {
-                document.querySelectorAll('[role="dialog"]').forEach(m => m.classList.add('hidden'));
+                document.querySelectorAll('[role="dialog"]').forEach(m => {
+                    m.classList.add('hidden');
+                    const btn = m.querySelector('button[type=submit]');
+                    if (btn) btn.disabled = false;
+                });
             }
             document.body.style.overflow = '';
         }
