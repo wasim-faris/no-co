@@ -90,8 +90,6 @@
                                 <button type="submit" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" onclick="setStatusValue('OUT_FOR_DELIVERY')">Out for Delivery</button>
                                 <button type="submit" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" onclick="setStatusValue('DELIVERED')">Delivered</button>
                                 <button type="submit" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" onclick="setStatusValue('CANCELLED')">Cancelled</button>
-                                <button type="submit" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" onclick="setStatusValue('REFUNDED')">Refunded</button>
-                                <button type="submit" class="status-option w-full text-left px-4 py-2.5 text-[11px] font-semibold uppercase tracking-widest text-gray-600 hover:bg-gray-50" onclick="setStatusValue('RETURNED')">Returned</button>
                             </div>
                         </form>
                     </div>
@@ -207,6 +205,36 @@
                             </div>
                         </section>
                     </div>
+
+                    <!-- Professional Management Card -->
+                    <section class="bg-white rounded-custom shadow-sm border border-white overflow-hidden">
+                        <div class="px-8 py-6 border-b border-gray-50">
+                            <h3 class="font-bold text-lg text-gray-900">Logistics & Internal Notes</h3>
+                        </div>
+                        <div class="p-8">
+                            <form method="POST" action="{% url 'admin-update-order-status' order.id %}" class="grid grid-cols-2 gap-8">
+                                {% csrf_token %}
+                                <div class="space-y-6">
+                                    <div>
+                                        <label class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2 block">Courier Name</label>
+                                        <input type="text" name="courier_name" value="{{ order.courier_name|default:'' }}" placeholder="e.g. BlueDart, Delhivery" class="w-full px-4 py-3 rounded-xl border border-gray-100 focus:border-gray-900 outline-none text-[13px] transition-all">
+                                    </div>
+                                    <div>
+                                        <label class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2 block">Tracking ID</label>
+                                        <input type="text" name="tracking_id" value="{{ order.tracking_id|default:'' }}" placeholder="Enter AWB Number" class="w-full px-4 py-3 rounded-xl border border-gray-100 focus:border-gray-900 outline-none text-[13px] transition-all">
+                                    </div>
+                                </div>
+                                <div class="space-y-6">
+                                    <div>
+                                        <label class="text-[10px] uppercase font-bold text-gray-400 tracking-widest mb-2 block">Admin Notes</label>
+                                        <textarea name="admin_notes" rows="4" placeholder="Internal communication or customer instructions..." class="w-full px-4 py-3 rounded-xl border border-gray-100 focus:border-gray-900 outline-none text-[13px] transition-all resize-none">{{ order.admin_notes|default:'' }}</textarea>
+                                    </div>
+                                    <button type="submit" class="w-full py-3 bg-gray-900 text-white rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-black transition-all">Update Details</button>
+                                </div>
+                            </form>
+                        </div>
+                    </section>
+                </div>
                 </div>
 
                 <div class="space-y-8">
@@ -299,59 +327,25 @@
                                     </div>
                                 {% else %}
                                     {% with item_status=order.items.first.item_status|default:"PENDING"|upper %}
-                                        <!-- 1. Pending -->
+                                        {% for status_entry in order.status_history.all %}
                                         <div class="relative flex gap-6 items-start">
-                                            <div class="w-[24px] h-[24px] rounded-full bg-green-500 border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
+                                            <div class="w-[24px] h-[24px] rounded-full bg-green-500 border-4 border-white shadow-sm flex-shrink-0 z-10 flex items-center justify-center">
+                                                <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                            </div>
                                             <div>
-                                                <p class="text-[13px] font-bold text-gray-900">Order Placed & Pending</p>
-                                                <p class="text-[11px] text-gray-400 mt-0.5">{{ order.created_at|date:"M d, Y" }} at {{ order.created_at|time:"h:i A" }}</p>
+                                                <p class="text-[13px] font-bold text-gray-900">{{ status_entry.get_status_display }}</p>
+                                                <p class="text-[11px] text-gray-400 mt-0.5">{{ status_entry.updated_at|date:"M d, Y" }} at {{ status_entry.updated_at|time:"h:i A" }}</p>
                                             </div>
                                         </div>
-
-                                        <!-- 2. Confirmed -->
+                                        {% empty %}
                                         <div class="relative flex gap-6 items-start">
-                                            <div class="w-[24px] h-[24px] rounded-full {% if item_status != 'PENDING' %}bg-green-500{% else %}bg-gray-100{% endif %} border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
+                                            <div class="w-[24px] h-[24px] rounded-full bg-blue-500 border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
                                             <div>
-                                                <p class="text-[13px] font-bold {% if item_status != 'PENDING' %}text-gray-900{% else %}text-gray-300{% endif %}">Order Confirmed</p>
-                                                <p class="text-[11px] {% if item_status != 'PENDING' %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if item_status != 'PENDING' %}Verified by system{% else %}Pending{% endif %}</p>
+                                                <p class="text-[13px] font-bold text-gray-900">Order Placed</p>
+                                                <p class="text-[11px] text-gray-400 mt-0.5">{{ order.created_at|date:"M d, Y" }}</p>
                                             </div>
                                         </div>
-
-                                        <!-- 3. Processing -->
-                                        <div class="relative flex gap-6 items-start">
-                                            <div class="w-[24px] h-[24px] rounded-full {% if item_status != 'PENDING' and item_status != 'CONFIRMED' %}bg-green-500{% else %}bg-gray-100{% endif %} border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
-                                            <div>
-                                                <p class="text-[13px] font-bold {% if item_status != 'PENDING' and item_status != 'CONFIRMED' %}text-gray-900{% else %}text-gray-300{% endif %}">Processing</p>
-                                                <p class="text-[11px] {% if item_status != 'PENDING' and item_status != 'CONFIRMED' %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if item_status != 'PENDING' and item_status != 'CONFIRMED' %}Packed & Quality Checked{% else %}Pending{% endif %}</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- 4. Shipped -->
-                                        <div class="relative flex gap-6 items-start">
-                                            <div class="w-[24px] h-[24px] rounded-full {% if item_status == 'SHIPPED' or item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}bg-green-500{% else %}bg-gray-100{% endif %} border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
-                                            <div>
-                                                <p class="text-[13px] font-bold {% if item_status == 'SHIPPED' or item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}text-gray-900{% else %}text-gray-300{% endif %}">Shipped</p>
-                                                <p class="text-[11px] {% if item_status == 'SHIPPED' or item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if item_status == 'SHIPPED' or item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}Handed to carrier{% else %}Awaiting dispatch{% endif %}</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- 5. Out for Delivery -->
-                                        <div class="relative flex gap-6 items-start">
-                                            <div class="w-[24px] h-[24px] rounded-full {% if item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}bg-green-500{% else %}bg-gray-100{% endif %} border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
-                                            <div>
-                                                <p class="text-[13px] font-bold {% if item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}text-gray-900{% else %}text-gray-300{% endif %}">Out for Delivery</p>
-                                                <p class="text-[11px] {% if item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}En route to customer{% else %}Pending{% endif %}</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- 6. Delivered -->
-                                        <div class="relative flex gap-6 items-start">
-                                            <div class="w-[24px] h-[24px] rounded-full {% if item_status == 'DELIVERED' or order.delivered_date %}bg-green-500{% else %}bg-gray-100{% endif %} border-4 border-white shadow-sm flex-shrink-0 z-10"></div>
-                                            <div>
-                                                <p class="text-[13px] font-bold {% if item_status == 'DELIVERED' or order.delivered_date %}text-gray-900{% else %}text-gray-300{% endif %}">Delivered</p>
-                                                <p class="text-[11px] {% if item_status == 'DELIVERED' or order.delivered_date %}text-gray-400{% else %}text-gray-300{% endif %} mt-0.5">{% if item_status == 'DELIVERED' or order.delivered_date %}{{ order.delivered_date|date:"M d, Y" }}{% else %}Wait for completion{% endif %}</p>
-                                            </div>
-                                        </div>
+                                        {% endfor %}
                                     {% endwith %}
                                 {% endif %}
                             {% endwith %}

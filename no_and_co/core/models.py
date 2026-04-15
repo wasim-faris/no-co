@@ -96,6 +96,11 @@ class Order(models.Model):
     cancelled_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # Professional E-commerce Fields
+    tracking_id = models.CharField(max_length=100, blank=True, null=True)
+    courier_name = models.CharField(max_length=100, blank=True, null=True)
+    admin_notes = models.TextField(blank=True, null=True)
+
     def save(self, *args, **kwargs):
         if not self.order_number:
             while True:
@@ -112,12 +117,17 @@ class OrderItem(models.Model):
     ITEM_STATUS_CHOICES = (
         ("PENDING", "Pending"),
         ("CONFIRMED", "Confirmed"),
+        ("PROCESSING", "Processing"),
         ("SHIPPED", "Shipped"),
         ("OUT_FOR_DELIVERY", "Out for Delivery"),
         ("DELIVERED", "Delivered"),
         ("CANCELLED", "Cancelled"),
         ("RETURN_REQUESTED", "Return Requested"),
         ("RETURN_APPROVED", "Return Approved"),
+        ("RETURN_PICKED_UP", "Return Picked Up"),
+        ("RETURN_RECEIVED", "Return Received"),
+        ("REFUND_INITIATED", "Refund Initiated"),
+        ("REFUND_COMPLETED", "Refund Completed"),
         ("RETURN_COMPLETED", "Return Completed"),
         ("RETURN_REJECTED", "Return Rejected"),
     )
@@ -155,12 +165,17 @@ class OrderStatusHistory(models.Model):
     STATUS_CHOICES = (
         ("PENDING", "Pending"),
         ("CONFIRMED", "Confirmed"),
+        ("PROCESSING", "Processing"),
         ("SHIPPED", "Shipped"),
         ("OUT_FOR_DELIVERY", "Out for Delivery"),
         ("DELIVERED", "Delivered"),
         ("CANCELLED", "Cancelled"),
         ("RETURN_REQUESTED", "Return Requested"),
         ("RETURN_APPROVED", "Return Approved"),
+        ("RETURN_PICKED_UP", "Return Picked Up"),
+        ("RETURN_RECEIVED", "Return Received"),
+        ("REFUND_INITIATED", "Refund Initiated"),
+        ("REFUND_COMPLETED", "Refund Completed"),
         ("RETURN_COMPLETED", "Return Completed"),
         ("RETURN_REJECTED", "Return Rejected"),
     )
@@ -184,8 +199,26 @@ class ReturnRequest(models.Model):
     STATUS_CHOICES = (
         ('REQUESTED', 'Return Requested'),
         ('APPROVED', 'Return Approved'),
-        ('REJECTED', 'Return Rejected'),
+        ('PICKED_UP', 'Return Picked Up'),
+        ('RECEIVED', 'Return Received'),
+        ('REFUND_INITIATED', 'Refund Initiated'),
+        ('REFUND_COMPLETED', 'Refund Completed'),
         ('COMPLETED', 'Return Completed'),
+        ('REJECTED', 'Return Rejected'),
+    )
+
+    REFUND_STATUS_CHOICES = (
+        ('N/A', 'Not Applicable'),
+        ('PENDING', 'Pending'),
+        ('INITIATED', 'Initiated'),
+        ('COMPLETED', 'Completed'),
+        ('FAILED', 'Failed'),
+    )
+
+    REFUND_METHOD_CHOICES = (
+        ('ORIGINAL_SOURCE', 'Original Payment Source'),
+        ('WALLET', 'Account Wallet'),
+        ('BANK_TRANSFER', 'Bank Transfer'),
     )
 
     RETURN_REASON_CHOICES = (
@@ -226,6 +259,21 @@ class ReturnRequest(models.Model):
         choices=STATUS_CHOICES,
         default='REQUESTED'
     )
+
+    refund_status = models.CharField(
+        max_length=20,
+        choices=REFUND_STATUS_CHOICES,
+        default='N/A'
+    )
+
+    refund_method = models.CharField(
+        max_length=20,
+        choices=REFUND_METHOD_CHOICES,
+        blank=True,
+        null=True
+    )
+
+    admin_remarks = models.TextField(blank=True, null=True)
 
 
     requested_at = models.DateTimeField(auto_now_add=True)

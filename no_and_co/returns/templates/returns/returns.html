@@ -163,9 +163,14 @@
 
                     <select class="px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 focus:outline-none focus:border-gray-400 min-w-[140px]">
                         <option value="">All Status</option>
-                        <option>Requested</option>
-                        <option>Approved</option>
-                        <option>Rejected</option>
+                        <option>Return Requested</option>
+                        <option>Return Approved</option>
+                        <option>Return Picked Up</option>
+                        <option>Return Received</option>
+                        <option>Refund Initiated</option>
+                        <option>Refund Completed</option>
+                        <option>Return Completed</option>
+                        <option>Return Rejected</option>
                     </select>
 
                     <input type="date" class="px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 focus:outline-none focus:border-gray-400">
@@ -218,15 +223,12 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     <span id="status-badge-{{ return_request.id }}" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wide uppercase
-                                        {% if return_request.status == 'COMPLETED' %}bg-teal-50 text-teal-700 border border-teal-100
-                                        {% elif return_request.status == 'APPROVED' %}bg-amber-50 text-amber-700 border border-amber-200
+                                        {% if return_request.status == 'COMPLETED' or return_request.status == 'REFUND_COMPLETED' %}bg-teal-50 text-teal-700 border border-teal-100
+                                        {% elif return_request.status == 'APPROVED' or return_request.status == 'PICKED_UP' or return_request.status == 'RECEIVED' %}bg-amber-50 text-amber-700 border border-amber-200
+                                        {% elif return_request.status == 'REFUND_INITIATED' %}bg-blue-50 text-blue-700 border border-blue-100
                                         {% elif return_request.status == 'REJECTED' %}bg-rose-50 text-rose-700 border border-rose-100
                                         {% else %}bg-orange-50 text-orange-700 border border-orange-100{% endif %}">
-                                        {% if return_request.status == 'COMPLETED' %}Completed
-                                        {% elif return_request.status == 'APPROVED' %}Approved
-                                        {% elif return_request.status == 'REQUESTED' %}Requested
-                                        {% elif return_request.status == 'REJECTED' %}Rejected
-                                        {% else %}{{ return_request.status|title }}{% endif %}
+                                        {{ return_request.get_status_display }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-3">
@@ -235,22 +237,42 @@
                                 <td class="px-6 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2">
                                         <!-- View Details (👁) -->
-                                        <button onclick="openModal('{{ return_request.formatted_return_id|default:return_request.id }}', '{{ return_request.order.order_number }}', '{{ return_request.customer.username }}', '{{ return_request.customer.email }}', '{{ return_request.order_item.variant.product.product_name|escapejs }}', '{{ return_request.order_item.variant.size.name }}', '{{ return_request.order_item.variant.color }}', '{{ return_request.get_reason_display }}', '{{ return_request.status }}', '{{ return_request.requested_at }}', '{{ return_request.order_item.price }}', '{{ return_request.description|escapejs }}', '{{ return_request.order_item.variant.images.first.image.url }}', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-[#F3F4F6] text-[#374151] hover:bg-black hover:text-white transition-all cursor-pointer" title="View Details">
+                                        <button onclick="openModal('{{ return_request.formatted_return_id|default:return_request.id }}', '{{ return_request.order.order_number }}', '{{ return_request.customer.username }}', '{{ return_request.customer.email }}', '{{ return_request.order_item.variant.product.product_name|escapejs }}', '{{ return_request.order_item.variant.size.name }}', '{{ return_request.order_item.variant.color }}', '{{ return_request.get_reason_display }}', '{{ return_request.status }}', '{{ return_request.requested_at }}', '{{ return_request.order_item.price }}', '{{ return_request.description|escapejs }}', '{{ return_request.order_item.variant.images.first.image.url }}', '{{ return_request.id }}', '{{ return_request.get_refund_method_display }}', '{{ return_request.admin_remarks|escapejs }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-[#F3F4F6] text-[#374151] hover:bg-black hover:text-white transition-all cursor-pointer" title="View Details">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
                                         </button>
 
                                         {% if return_request.status == 'REQUESTED' %}
-                                        <!-- Quick Approve (✔) -->
+                                        <!-- Approve (✔) -->
                                         <button onclick="quickAction('approve', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-[#E8F8F0] text-[#16A34A] hover:bg-[#16A34A] hover:text-white transition-all cursor-pointer" title="Approve Return">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                         </button>
-                                        <!-- Quick Reject (✖) -->
+                                        <!-- Reject (✖) -->
                                         <button onclick="quickAction('reject', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FDECEC] text-[#DC2626] hover:bg-[#DC2626] hover:text-white transition-all cursor-pointer" title="Reject Return">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                                         </button>
                                         {% elif return_request.status == 'APPROVED' %}
-                                        <!-- Quick Complete (✓✓) -->
-                                        <button onclick="quickAction('complete', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-teal-50 text-teal-600 hover:bg-teal-600 hover:text-white transition-all cursor-pointer" title="Complete Return">
+                                        <!-- Mark Picked Up (🚚) -->
+                                        <button onclick="quickAction('pickup', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white transition-all cursor-pointer" title="Mark Picked Up">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                                        </button>
+                                        {% elif return_request.status == 'PICKED_UP' %}
+                                        <!-- Mark Received (📦) -->
+                                        <button onclick="quickAction('receive', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all cursor-pointer" title="Mark Received">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                                        </button>
+                                        {% elif return_request.status == 'RECEIVED' %}
+                                        <!-- Initiate Refund (💸) -->
+                                        <button onclick="quickAction('initiate_refund', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-all cursor-pointer" title="Initiate Refund">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        </button>
+                                        {% elif return_request.status == 'REFUND_INITIATED' %}
+                                        <!-- Complete Refund (✅) -->
+                                        <button onclick="quickAction('complete_refund', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-teal-50 text-teal-600 hover:bg-teal-600 hover:text-white transition-all cursor-pointer" title="Complete Refund">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        </button>
+                                        {% elif return_request.status == 'REFUND_COMPLETED' %}
+                                        <!-- Finalize Return (🏁) -->
+                                        <button onclick="quickAction('complete', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-900 text-white hover:bg-black transition-all cursor-pointer" title="Finalize Return">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         </button>
                                         {% endif %}
@@ -387,22 +409,22 @@
                                         <span id="modalItemPrice" class="font-medium text-gray-900">€0.00</span>
                                     </div>
                                     <div class="flex justify-between text-xs">
-                                        <span class="text-gray-500">Estimated Tax</span>
-                                        <span id="modalTax" class="font-medium text-gray-900">€0.00</span>
+                                        <span class="text-gray-500">Refund Method</span>
+                                        <span id="modalRefundMethod" class="font-medium text-gray-900">-</span>
                                     </div>
-                                    <div class="flex justify-between text-xs">
+                                    <div class="flex justify-between text-xs pt-2 border-t border-gray-50">
                                         <span class="text-gray-500 text-red-500 font-bold">Total Refund</span>
                                         <span id="modalTotalRefund" class="text-lg font-serif text-gray-900">€0.00</span>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Status Card -->
-                            <div class="flex items-start gap-3 p-4 bg-amber-50/40 rounded-xl border border-amber-100/50">
-                                <svg class="w-4 h-4 text-amber-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                <p class="text-[9px] text-amber-800 leading-relaxed font-semibold uppercase tracking-wider">
-                                    Compliant: 30-Day Policy Verified
-                                </p>
+                            <!-- Admin Remarks -->
+                            <div>
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] mb-4">Admin Remarks</p>
+                                <div class="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                                    <p id="modalAdminRemarks" class="text-xs text-gray-500 italic">No internal remarks provided.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -460,21 +482,101 @@
         </div>
     </div>
 
+    <!-- Pickup Return Modal -->
+    <div id="pickupModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('pickupModal')"></div>
+            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
+                <div class="w-16 h-16 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                </div>
+                <h3 class="text-xl font-serif text-gray-900 mb-2">Mark as Picked Up</h3>
+                <p class="text-sm text-gray-500 mb-8">Confirm that the item has been picked up from the customer's location.</p>
+                <form id="pickupForm" method="POST" action="{% url "pickup_return" %}" class="flex gap-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="return_request_id" id="pickupRequestId">
+                    <button type="button" onclick="closeModal('pickupModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 px-6 py-3 bg-amber-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-amber-700 transition-all">Confirm Pickup</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receive Return Modal -->
+    <div id="receiveModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('receiveModal')"></div>
+            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
+                <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                </div>
+                <h3 class="text-xl font-serif text-gray-900 mb-2">Mark as Received</h3>
+                <p class="text-sm text-gray-500 mb-8">Confirm that the returned item has been received at the warehouse.</p>
+                <form id="receiveForm" method="POST" action="{% url "receive_return" %}" class="flex gap-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="return_request_id" id="receiveRequestId">
+                    <button type="button" onclick="closeModal('receiveModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all">Confirm Receipt</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Initiate Refund Modal -->
+    <div id="initiateRefundModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('initiateRefundModal')"></div>
+            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
+                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                </div>
+                <h3 class="text-xl font-serif text-gray-900 mb-2">Initiate Refund</h3>
+                <p class="text-sm text-gray-500 mb-8">Click to start the refund process. The customer will be informed that their refund is being processed.</p>
+                <form id="initiateRefundForm" method="POST" action="{% url "initiate_refund" %}" class="flex gap-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="return_request_id" id="initiateRefundRequestId">
+                    <button type="button" onclick="closeModal('initiateRefundModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 transition-all">Initiate Refund</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Refund Modal -->
+    <div id="completeRefundModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('completeRefundModal')"></div>
+            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
+                <div class="w-16 h-16 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                </div>
+                <h3 class="text-xl font-serif text-gray-900 mb-2">Complete Refund</h3>
+                <p class="text-sm text-gray-500 mb-8">Final confirmation that the amount has been successfully credited back to the customer.</p>
+                <form id="completeRefundForm" method="POST" action="{% url "complete_refund" %}" class="flex gap-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="return_request_id" id="completeRefundRequestId">
+                    <button type="button" onclick="closeModal('completeRefundModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 px-6 py-3 bg-teal-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-teal-700 transition-all">Confirm Refund</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Complete Return Modal -->
     <div id="completeModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('completeModal')"></div>
             <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
-                <div class="w-16 h-16 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div class="w-16 h-16 bg-gray-900 text-white rounded-full flex items-center justify-center mx-auto mb-6">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
-                <h3 class="text-xl font-serif text-gray-900 mb-2">Complete Return & Refund</h3>
-                <p class="text-sm text-gray-500 mb-8">Confirm that the item has been received and the refund has been processed. This will close the return request.</p>
+                <h3 class="text-xl font-serif text-gray-900 mb-2">Finalize Return Process</h3>
+                <p class="text-sm text-gray-500 mb-8">This marks the entire lifecycle of the return as finished. No further actions can be taken.</p>
                 <form id="completeForm" method="POST" action="{% url "complete_return" %}" class="flex gap-3">
                     {% csrf_token %}
                     <input type="hidden" name="return_request_id" id="completeRequestId">
                     <button type="button" onclick="closeModal('completeModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
-                    <button type="submit" class="flex-1 px-6 py-3 bg-teal-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-teal-700 transition-all">Complete Return</button>
+                    <button type="submit" class="flex-1 px-6 py-3 bg-gray-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">Finalize Return</button>
                 </form>
             </div>
         </div>
@@ -507,7 +609,7 @@
             });
         });
 
-        function openModal(returnId, orderNumber, customer, email, product, size, color, reason, status, date, price, description, imageUrl, requestId) {
+        function openModal(returnId, orderNumber, customer, email, product, size, color, reason, status, date, price, description, imageUrl, requestId, refundMethod, adminRemarks) {
             document.getElementById('modalReturnId').textContent = '#' + returnId;
             document.getElementById('modalOrderId').textContent = '#' + orderNumber;
             document.getElementById('modalCustomer').textContent = customer;
@@ -526,23 +628,26 @@
                 imgEl.src = imageUrl;
             }
 
+            // Refund Method & Remarks
+            const methodEl = document.getElementById('modalRefundMethod');
+            if (methodEl) methodEl.textContent = refundMethod || 'Original Payment Source';
+
+            const remarksEl = document.getElementById('modalAdminRemarks');
+            if (remarksEl) remarksEl.textContent = adminRemarks || 'No internal remarks provided.';
+
             // Format prices
             const itemPrice = parseFloat(price);
-            const taxAmount = itemPrice * 0.08;
-            const totalRefund = itemPrice + taxAmount;
-
             document.getElementById('modalItemPrice').textContent = '₹' + itemPrice.toFixed(2);
-            document.getElementById('modalTax').textContent = '₹' + taxAmount.toFixed(2);
-            document.getElementById('modalTotalRefund').textContent = '₹' + totalRefund.toFixed(2);
+            document.getElementById('modalTotalRefund').textContent = '₹' + itemPrice.toFixed(2);
 
             // Update Status Badge in Modal
             const statusContainer = document.getElementById('modalStatusContainer');
             let badgeHTML = '';
             const s = status.toUpperCase();
-            if (s === 'COMPLETED') {
-                badgeHTML = '<span class="px-3 py-1 bg-teal-50 text-teal-700 border border-teal-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Completed</span>';
-            } else if (s === 'APPROVED') {
-                badgeHTML = '<span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-bold uppercase tracking-wider">Approved</span>';
+            if (s === 'COMPLETED' || s === 'REFUND_COMPLETED') {
+                badgeHTML = `<span class="px-3 py-1 bg-teal-50 text-teal-700 border border-teal-100 rounded-full text-[10px] font-bold uppercase tracking-wider">${status.replace(/_/g, ' ')}</span>`;
+            } else if (s === 'APPROVED' || s === 'PICKED_UP' || s === 'RECEIVED') {
+                badgeHTML = `<span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-bold uppercase tracking-wider">${status.replace(/_/g, ' ')}</span>`;
             } else if (s === 'REJECTED') {
                 badgeHTML = '<span class="px-3 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Rejected</span>';
             } else {
@@ -562,6 +667,18 @@
             } else if (action === 'reject') {
                 document.getElementById('rejectRequestId').value = requestId;
                 document.getElementById('rejectModal').classList.remove('hidden');
+            } else if (action === 'pickup') {
+                document.getElementById('pickupRequestId').value = requestId;
+                document.getElementById('pickupModal').classList.remove('hidden');
+            } else if (action === 'receive') {
+                document.getElementById('receiveRequestId').value = requestId;
+                document.getElementById('receiveModal').classList.remove('hidden');
+            } else if (action === 'initiate_refund') {
+                document.getElementById('initiateRefundRequestId').value = requestId;
+                document.getElementById('initiateRefundModal').classList.remove('hidden');
+            } else if (action === 'complete_refund') {
+                document.getElementById('completeRefundRequestId').value = requestId;
+                document.getElementById('completeRefundModal').classList.remove('hidden');
             } else if (action === 'complete') {
                 document.getElementById('completeRequestId').value = requestId;
                 document.getElementById('completeModal').classList.remove('hidden');
