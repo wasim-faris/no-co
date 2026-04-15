@@ -10,6 +10,19 @@
         body { font-family: 'Inter', sans-serif; background-color: #f5f1eb; -webkit-font-smoothing: antialiased; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .rounded-custom { border-radius: 24px; }
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+            70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+        .step-pulse { animation: pulse 2s infinite; }
+        .progress-line-animate { 
+            position: absolute; 
+            top: 0; left: 0; height: 100%; 
+            background: #22c55e; 
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 1;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen flex">
@@ -207,72 +220,176 @@
                         </section>
                     </div>
 
-                    <!-- Horizontal Order Stepper -->
+                    <!-- Improved Order Progress Stepper -->
                     <section class="bg-white p-6 rounded-custom shadow-sm border border-white mt-8">
-                        <div class="flex items-center justify-between mb-8">
-                            <h3 class="font-bold text-sm text-gray-900 uppercase tracking-tight">Order Progress</h3>
-                            {% with item_status=order.items.first.item_status|default:"PENDING"|upper %}
-                                {% if item_status == 'CANCELLED' %}
-                                    <span class="px-3 py-1 bg-red-50 text-red-600 rounded-full text-[10px] font-bold uppercase tracking-widest">Cancelled</span>
-                                {% endif %}
-                            {% endwith %}
-                        </div>
-                        
-                        <div class="relative px-4">
-                            <!-- Background Line -->
-                            <div class="absolute top-4 left-4 right-4 h-0.5 bg-gray-100 -z-0"></div>
+                        {% with latest_status=order.status_history.first.status|upper|default:"PENDING" %}
+                        {% with item_status=order.items.first.item_status|default:"PENDING"|upper %}
+                        {% with return_request=order.returns.first %}
                             
-                            {% with current_status=order.items.first.item_status|default:"PENDING"|upper %}
-                            <div class="flex flex-wrap md:flex-nowrap justify-between relative z-10 gap-y-6">
-                                <!-- Pending -->
-                                <div class="flex flex-col items-center text-center min-w-[80px]">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] 
-                                        {% if current_status != 'CANCELLED' %}bg-green-500 text-white{% else %}bg-gray-200 text-gray-400{% endif %}">1</div>
-                                    <span class="mt-2 text-[10px] font-bold {% if current_status != 'CANCELLED' %}text-gray-900{% else %}text-gray-400{% endif %} uppercase tracking-tighter">Pending</span>
-                                </div>
-
-                                <!-- Confirmed -->
-                                <div class="flex flex-col items-center text-center min-w-[80px]">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] 
-                                        {% if current_status == 'CONFIRMED' or current_status == 'PROCESSING' or current_status == 'SHIPPED' or current_status == 'OUT_FOR_DELIVERY' or current_status == 'DELIVERED' %}bg-green-500 text-white{% else %}bg-gray-200 text-gray-400{% endif %}">2</div>
-                                    <span class="mt-2 text-[10px] font-bold uppercase tracking-tighter 
-                                        {% if current_status == 'CONFIRMED' or current_status == 'PROCESSING' or current_status == 'SHIPPED' or current_status == 'OUT_FOR_DELIVERY' or current_status == 'DELIVERED' %}text-gray-900{% else %}text-gray-400{% endif %}">Confirmed</span>
-                                </div>
-
-                                <!-- Processing -->
-                                <div class="flex flex-col items-center text-center min-w-[80px]">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] 
-                                        {% if current_status == 'PROCESSING' or current_status == 'SHIPPED' or current_status == 'OUT_FOR_DELIVERY' or current_status == 'DELIVERED' %}bg-green-500 text-white{% else %}bg-gray-200 text-gray-400{% endif %}">3</div>
-                                    <span class="mt-2 text-[10px] font-bold uppercase tracking-tighter 
-                                        {% if current_status == 'PROCESSING' or current_status == 'SHIPPED' or current_status == 'OUT_FOR_DELIVERY' or current_status == 'DELIVERED' %}text-gray-900{% else %}text-gray-400{% endif %}">Processing</span>
-                                </div>
-
-                                <!-- Shipped -->
-                                <div class="flex flex-col items-center text-center min-w-[80px]">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] 
-                                        {% if current_status == 'SHIPPED' or current_status == 'OUT_FOR_DELIVERY' or current_status == 'DELIVERED' %}bg-green-500 text-white{% else %}bg-gray-200 text-gray-400{% endif %}">4</div>
-                                    <span class="mt-2 text-[10px] font-bold uppercase tracking-tighter 
-                                        {% if current_status == 'SHIPPED' or current_status == 'OUT_FOR_DELIVERY' or current_status == 'DELIVERED' %}text-gray-900{% else %}text-gray-400{% endif %}">Shipped</span>
-                                </div>
-
-                                <!-- Out for Delivery -->
-                                <div class="flex flex-col items-center text-center min-w-[80px]">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] 
-                                        {% if current_status == 'OUT_FOR_DELIVERY' or current_status == 'DELIVERED' %}bg-green-500 text-white{% else %}bg-gray-200 text-gray-400{% endif %}">5</div>
-                                    <span class="mt-2 text-[10px] font-bold uppercase tracking-tighter 
-                                        {% if current_status == 'OUT_FOR_DELIVERY' or current_status == 'DELIVERED' %}text-gray-900{% else %}text-gray-400{% endif %}">Dispatched</span>
-                                </div>
-
-                                <!-- Delivered -->
-                                <div class="flex flex-col items-center text-center min-w-[80px]">
-                                    <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] 
-                                        {% if current_status == 'DELIVERED' %}bg-green-500 text-white{% else %}bg-gray-200 text-gray-400{% endif %}">6</div>
-                                    <span class="mt-2 text-[10px] font-bold uppercase tracking-tighter 
-                                        {% if current_status == 'DELIVERED' %}text-gray-900{% else %}text-gray-400{% endif %}">Delivered</span>
+                            <div class="flex items-center justify-between mb-10">
+                                <h3 class="font-bold text-sm text-gray-900 uppercase tracking-tight">
+                                    {% if return_request %}Return Journey{% elif item_status == 'CANCELLED' %}Order Terminated{% else %}Order Progress{% endif %}
+                                </h3>
+                                <div>
+                                    {% if item_status == 'CANCELLED' %}
+                                        <span class="px-3 py-1 bg-red-50 text-red-600 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">Cancelled</span>
+                                    {% elif return_request %}
+                                        <span class="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm">{{ return_request.get_status_display }}</span>
+                                    {% endif %}
                                 </div>
                             </div>
-                            {% endwith %}
-                        </div>
+
+                            {% if item_status == 'CANCELLED' %}
+                                <!-- Cancellation Message -->
+                                <div class="flex items-center gap-4 p-5 bg-red-50 rounded-2xl border border-red-100">
+                                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-red-600 shadow-sm flex-shrink-0">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-bold text-red-700">Order has been cancelled</p>
+                                        <p class="text-[12px] text-red-600/70">No further progress steps are applicable for this order.</p>
+                                    </div>
+                                </div>
+                            {% elif return_request %}
+                                <!-- Return Horizontal Stepper -->
+                                <div class="relative px-4">
+                                    <div class="absolute top-4 left-4 right-4 h-0.5 bg-gray-100 -z-0">
+                                        {% with rs=return_request.status %}
+                                        <div class="progress-line-animate" style="width: {% if rs == 'REQUESTED' %}0{% elif rs == 'APPROVED' %}20%{% elif rs == 'PICKED_UP' %}40%{% elif rs == 'RECEIVED' %}60%{% elif rs == 'REFUND_INITIATED' %}80%{% elif rs == 'REFUND_COMPLETED' or rs == 'COMPLETED' %}100%{% else %}0{% endif %};"></div>
+                                        {% endwith %}
+                                    </div>
+                                    <div class="flex justify-between relative z-10">
+                                        {% with rs=return_request.status %}
+                                        <!-- Step 1: Requested -->
+                                        <div class="flex flex-col items-center text-center">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                {% if rs == 'REJECTED' %}bg-red-500 text-white{% else %}bg-green-500 text-white{% endif %} {% if rs == 'REQUESTED' %}step-pulse{% endif %}">
+                                                {% if rs != 'REQUESTED' %}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{% else %}1{% endif %}
+                                            </div>
+                                            <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter text-gray-900">Requested</span>
+                                        </div>
+
+                                        <!-- Step 2: Approved / Rejected -->
+                                        <div class="flex flex-col items-center text-center">
+                                            {% if rs == 'REJECTED' %}
+                                                <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] bg-red-500 text-white">
+                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                </div>
+                                                <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter text-red-600">Rejected</span>
+                                            {% else %}
+                                                <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                    {% if rs != 'REQUESTED' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-400{% endif %} {% if rs == 'APPROVED' %}step-pulse{% endif %}">
+                                                    {% if rs != 'REQUESTED' and rs != 'APPROVED' %}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{% else %}2{% endif %}
+                                                </div>
+                                                <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter {% if rs != 'REQUESTED' %}text-gray-900{% else %}text-gray-400{% endif %}">Approved</span>
+                                            {% endif %}
+                                        </div>
+
+                                        <!-- Step 3: Picked Up -->
+                                        <div class="flex flex-col items-center text-center">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                {% if rs == 'PICKED_UP' or rs == 'RECEIVED' or rs == 'REFUND_INITIATED' or rs == 'REFUND_COMPLETED' or rs == 'COMPLETED' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-400{% endif %} {% if rs == 'PICKED_UP' %}step-pulse{% endif %}">
+                                                {% if rs != 'REQUESTED' and rs != 'APPROVED' and rs != 'PICKED_UP' %}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{% else %}3{% endif %}
+                                            </div>
+                                            <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter {% if rs == 'PICKED_UP' or rs == 'RECEIVED' or rs == 'REFUND_INITIATED' or rs == 'REFUND_COMPLETED' or rs == 'COMPLETED' %}text-gray-900{% else %}text-gray-400{% endif %}">Picked Up</span>
+                                        </div>
+
+                                        <!-- Step 4: Received -->
+                                        <div class="flex flex-col items-center text-center">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                {% if rs == 'RECEIVED' or rs == 'REFUND_INITIATED' or rs == 'REFUND_COMPLETED' or rs == 'COMPLETED' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-400{% endif %} {% if rs == 'RECEIVED' %}step-pulse{% endif %}">
+                                                {% if rs != 'REQUESTED' and rs != 'APPROVED' and rs != 'PICKED_UP' and rs != 'RECEIVED' %}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{% else %}4{% endif %}
+                                            </div>
+                                            <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter {% if rs == 'RECEIVED' or rs == 'REFUND_INITIATED' or rs == 'REFUND_COMPLETED' or rs == 'COMPLETED' %}text-gray-900{% else %}text-gray-400{% endif %}">Received</span>
+                                        </div>
+
+                                        <!-- Step 5: Refunded -->
+                                        <div class="flex flex-col items-center text-center">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                {% if rs == 'REFUND_INITIATED' or rs == 'REFUND_COMPLETED' or rs == 'COMPLETED' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-400{% endif %} {% if rs == 'REFUND_INITIATED' %}step-pulse{% endif %}">
+                                                {% if rs == 'COMPLETED' or rs == 'REFUND_COMPLETED' %}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{% else %}5{% endif %}
+                                            </div>
+                                            <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter {% if rs == 'REFUND_INITIATED' or rs == 'REFUND_COMPLETED' or rs == 'COMPLETED' %}text-gray-900{% else %}text-gray-400{% endif %}">Refunded</span>
+                                        </div>
+
+                                        <!-- Step 6: Completed -->
+                                        <div class="flex flex-col items-center text-center">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                {% if rs == 'COMPLETED' %}bg-green-500 text-white shadow-green-200/50 shadow-lg{% else %}bg-gray-100 text-gray-400{% endif %}">6</div>
+                                            <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter {% if rs == 'COMPLETED' %}text-green-600{% else %}text-gray-400{% endif %}">Done</span>
+                                        </div>
+                                        {% endwith %}
+                                    </div>
+                                </div>
+                            {% else %}
+                                <!-- Standard Order Horizontal Stepper -->
+                                <div class="relative px-4">
+                                    <div class="absolute top-4 left-4 right-4 h-0.5 bg-gray-100 -z-0">
+                                        <div class="progress-line-animate" style="width: {% if item_status == 'PENDING' %}0{% elif item_status == 'CONFIRMED' %}20%{% elif item_status == 'PROCESSING' %}40%{% elif item_status == 'SHIPPED' %}60%{% elif item_status == 'OUT_FOR_DELIVERY' %}80%{% elif item_status == 'DELIVERED' %}100%{% else %}0{% endif %};"></div>
+                                    </div>
+                                    
+                                    <div class="flex flex-wrap md:flex-nowrap justify-between relative z-10 gap-y-6">
+                                        <!-- Pending -->
+                                        <div class="flex flex-col items-center text-center min-w-[80px]">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                bg-green-500 text-white {% if item_status == 'PENDING' %}step-pulse{% endif %}">
+                                                {% if item_status != 'PENDING' %}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{% else %}1{% endif %}
+                                            </div>
+                                            <span class="mt-3 text-[10px] font-bold text-gray-900 uppercase tracking-tighter">Pending</span>
+                                        </div>
+
+                                        <!-- Confirmed -->
+                                        <div class="flex flex-col items-center text-center min-w-[80px]">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                {% if item_status == 'CONFIRMED' or item_status == 'PROCESSING' or item_status == 'SHIPPED' or item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-400{% endif %} {% if item_status == 'CONFIRMED' %}step-pulse{% endif %}">
+                                                {% if item_status != 'PENDING' and item_status != 'CONFIRMED' %}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{% else %}2{% endif %}
+                                            </div>
+                                            <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter 
+                                                {% if item_status != 'PENDING' %}text-gray-900{% else %}text-gray-400{% endif %}">Confirmed</span>
+                                        </div>
+
+                                        <!-- Processing -->
+                                        <div class="flex flex-col items-center text-center min-w-[80px]">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                {% if item_status == 'PROCESSING' or item_status == 'SHIPPED' or item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-400{% endif %} {% if item_status == 'PROCESSING' %}step-pulse{% endif %}">
+                                                {% if item_status != 'PENDING' and item_status != 'CONFIRMED' and item_status != 'PROCESSING' %}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{% else %}3{% endif %}
+                                            </div>
+                                            <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter 
+                                                {% if item_status != 'PENDING' and item_status != 'CONFIRMED' %}text-gray-900{% else %}text-gray-400{% endif %}">Processing</span>
+                                        </div>
+
+                                        <!-- Shipped -->
+                                        <div class="flex flex-col items-center text-center min-w-[80px]">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                {% if item_status == 'SHIPPED' or item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-400{% endif %} {% if item_status == 'SHIPPED' %}step-pulse{% endif %}">
+                                                {% if item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{% else %}4{% endif %}
+                                            </div>
+                                            <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter 
+                                                {% if item_status == 'SHIPPED' or item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}text-gray-900{% else %}text-gray-400{% endif %}">Shipped</span>
+                                        </div>
+
+                                        <!-- Out for Delivery -->
+                                        <div class="flex flex-col items-center text-center min-w-[80px]">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                {% if item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}bg-green-500 text-white{% else %}bg-gray-100 text-gray-400{% endif %} {% if item_status == 'OUT_FOR_DELIVERY' %}step-pulse{% endif %}">
+                                                {% if item_status == 'DELIVERED' %}<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>{% else %}5{% endif %}
+                                            </div>
+                                            <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter 
+                                                {% if item_status == 'OUT_FOR_DELIVERY' or item_status == 'DELIVERED' %}text-gray-900{% else %}text-gray-400{% endif %}">Dispatched</span>
+                                        </div>
+
+                                        <!-- Delivered -->
+                                        <div class="flex flex-col items-center text-center min-w-[80px]">
+                                            <div class="w-8 h-8 rounded-full flex items-center justify-center border-4 border-white shadow-sm font-bold text-[10px] transition-all duration-500
+                                                {% if item_status == 'DELIVERED' %}bg-green-500 text-white shadow-green-200/50 shadow-lg{% else %}bg-gray-100 text-gray-400{% endif %}">6</div>
+                                            <span class="mt-3 text-[10px] font-bold uppercase tracking-tighter {% if item_status == 'DELIVERED' %}text-green-600{% else %}text-gray-400{% endif %}">Delivered</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                        {% endwith %}
+                        {% endwith %}
                     </section>
                 </div>
 
