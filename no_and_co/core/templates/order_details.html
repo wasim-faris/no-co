@@ -886,7 +886,9 @@
                                                     <span style="color:#14532D;">Paid</span>
                                                 {% endif %}
                                             {% else %}
-                                                {% if order.items.first.item_status == 'DELIVERED' or order.delivered_date %}
+                                                {% if order.items.first.item_status == 'CANCELLED' %}
+                                                    <span style="color:#7F1D1D;">Voided</span>
+                                                {% elif order.items.first.item_status == 'DELIVERED' or order.delivered_date %}
                                                     <span style="color:#14532D;">Paid</span>
                                                 {% else %}
                                                     <span style="color:#92400E;">Pending</span>
@@ -894,9 +896,13 @@
                                             {% endif %}
                                         {% endwith %}
                                     {% else %}
-                                        <span style="color:{% if order.payment_status == 'PAID' %}#14532D{% elif order.payment_status == 'FAILED' %}#7F1D1D{% else %}#92400E{% endif %};">
-                                            {{ order.get_payment_status_display }}
-                                        </span>
+                                        {% if order.items.first.item_status == 'CANCELLED' %}
+                                            <span style="color:#7F1D1D;">Voided</span>
+                                        {% else %}
+                                            <span style="color:{% if order.payment_status == 'PAID' %}#14532D{% elif order.payment_status == 'FAILED' %}#7F1D1D{% else %}#92400E{% endif %};">
+                                                {{ order.get_payment_status_display }}
+                                            </span>
+                                        {% endif %}
                                     {% endif %}
                                 </span>
                         </div>
