@@ -55,11 +55,21 @@
         transition: var(--transition);
     }
     .shell .nav-link:hover  { color: var(--ink); background: var(--ink-ghost); }
-    .shell .nav-link.active { background: var(--ink); color: white; }
-    .shell .nav-icon { width: 14px; height: 14px; opacity: 0.5; flex-shrink: 0; }
+    .shell .nav-link.active,
+    .shell .nav-link.active:hover { 
+        background: var(--ink); 
+        color: #FFFFFF !important; 
+    }
+    .shell .nav-icon { width: 14px; height: 14px; opacity: 0.5; flex-shrink: 0; transition: var(--transition); }
     .shell .nav-link.active .nav-icon,
-    .shell .nav-link:hover   .nav-icon { opacity: 1; }
-    /* Removed filter: invert(1) because stroke="currentColor" handles white icon when text is white */
+    .shell .nav-link:hover   .nav-icon { 
+        opacity: 1; 
+        stroke: #FFFFFF;
+    }
+    /* Explicitly make icon white for active link even if currentColor fails */
+    .shell .nav-link.active .nav-icon {
+        stroke: #FFFFFF !important;
+    }
 
     /* ─── Main ───────────────────────────────────────────────── */
     .shell .main {
