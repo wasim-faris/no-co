@@ -48,7 +48,21 @@ def admin_update_order_status(request, order_id):
 
         with transaction.atomic():
             if new_status in valid_statuses:
-                order.items.update(item_status=new_status)
+                from django.core.exceptions import ValidationError
+                
+                # Check for validation errors first
+                try:
+                    for item in order.items.all():
+                        item.item_status = new_status
+                        item.clean()
+                except ValidationError as e:
+                    messages.error(request, e.message)
+                    return redirect("admin-order-detail", order_id=order_id)
+
+                # If validation passes, save everything
+                for item in order.items.all():
+                    item.item_status = new_status
+                    item.save()
                 
                 # Only create history if status actually changed
                 last_history = order.status_history.first()

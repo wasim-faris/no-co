@@ -158,6 +158,33 @@ class OrderItem(models.Model):
         default="PENDING"
     )
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        super().clean()
+        
+        if self.pk:
+            old_item = OrderItem.objects.get(pk=self.pk)
+            old_status = old_item.item_status
+            new_status = self.item_status
+
+            if old_status == new_status:
+                return
+
+            valid_transitions = {
+                "PENDING": ["CONFIRMED", "CANCELLED"],
+                "CONFIRMED": ["PROCESSING", "CANCELLED"],
+                "PROCESSING": ["SHIPPED"],
+                "SHIPPED": ["DELIVERED"],
+                "DELIVERED": [],
+                "CANCELLED": [],
+            }
+
+            # Only enforce the strict forward-flow rules for these core statuses
+            if old_status in valid_transitions and new_status in valid_transitions:
+                allowed_next = valid_transitions[old_status]
+                if new_status not in allowed_next:
+                    raise ValidationError(f"Invalid order status transition from {old_status} to {new_status}.")
+
     def __str__(self):
         return f"{self.variant} x {self.quantity}"
 
