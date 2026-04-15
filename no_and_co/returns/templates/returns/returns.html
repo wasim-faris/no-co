@@ -282,7 +282,7 @@
                                 <span class="w-8 h-8 flex items-center justify-center rounded-full bg-black text-white text-[11px] font-bold shadow-md cursor-default">
                                     {{ num }}
                                 </span>
-                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            {% else %}
                                 <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if status_filter %}status={{ status_filter }}&{% endif %}page={{ num }}"
                                    class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black hover:-translate-y-[1px] hover:shadow-sm transition-all duration-300">
                                     {{ num }}
