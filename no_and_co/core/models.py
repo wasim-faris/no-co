@@ -112,11 +112,14 @@ class OrderItem(models.Model):
     ITEM_STATUS_CHOICES = (
         ("PENDING", "Pending"),
         ("CONFIRMED", "Confirmed"),
-        ("PROCESSING", "Processing"),
         ("SHIPPED", "Shipped"),
+        ("OUT_FOR_DELIVERY", "Out for Delivery"),
         ("DELIVERED", "Delivered"),
         ("CANCELLED", "Cancelled"),
-        ("RETURNED", "Returned"),
+        ("RETURN_REQUESTED", "Return Requested"),
+        ("RETURN_APPROVED", "Return Approved"),
+        ("RETURN_COMPLETED", "Return Completed"),
+        ("RETURN_REJECTED", "Return Rejected"),
     )
 
     order = models.ForeignKey(
@@ -152,11 +155,14 @@ class OrderStatusHistory(models.Model):
     STATUS_CHOICES = (
         ("PENDING", "Pending"),
         ("CONFIRMED", "Confirmed"),
-        ("PROCESSING", "Processing"),
         ("SHIPPED", "Shipped"),
+        ("OUT_FOR_DELIVERY", "Out for Delivery"),
         ("DELIVERED", "Delivered"),
         ("CANCELLED", "Cancelled"),
-        ("RETURNED", "Returned"),
+        ("RETURN_REQUESTED", "Return Requested"),
+        ("RETURN_APPROVED", "Return Approved"),
+        ("RETURN_COMPLETED", "Return Completed"),
+        ("RETURN_REJECTED", "Return Rejected"),
     )
 
     order = models.ForeignKey(
@@ -179,10 +185,7 @@ class ReturnRequest(models.Model):
         ('REQUESTED', 'Return Requested'),
         ('APPROVED', 'Return Approved'),
         ('REJECTED', 'Return Rejected'),
-        ('CANCELLED', 'Return Cancelled'),
-        ('PICKUP_COMPLETED', 'Pickup Completed'),
-        ('REFUND_INITIATED', 'Refund Initiated'),
-        ('REFUNDED', 'Refund Completed'),
+        ('COMPLETED', 'Return Completed'),
     )
 
     RETURN_REASON_CHOICES = (

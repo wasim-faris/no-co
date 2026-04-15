@@ -504,6 +504,8 @@
     .shell .badge-cancelled         { color: #7F1D1D; border-color: #FECACA; background: #FEF2F2; }
     .shell .badge-return-requested   { color: #C2410C; border-color: #FFEDD5; background: #FFF7ED; }
     .shell .badge-return-approved    { color: #854D0E; border-color: #FEF3C7; background: #FFFBEB; }
+    .shell .badge-return-completed   { color: #065F46; border-color: #A7F3D0; background: #ECFDF5; }
+    .shell .badge-return-rejected    { color: #991B1B; border-color: #FECACA; background: #FEF2F2; }
     .shell .badge-refunded          { color: #0F766E; border-color: #99F6E4; background: #F0FDFA; }
 
     /* ─── Product rows ───────────────────────────────────────── */
@@ -736,12 +738,12 @@
                         <span class="module-label">Items Ordered</span>
                         {% with return_request=order.returns.first %}
                             {% if return_request %}
-                                {% if return_request.status == "REFUNDED" %}
-                                    <span class="status-badge badge-refunded" id="order-status-badge">Refunded</span>
+                                {% if return_request.status == "COMPLETED" %}
+                                    <span class="status-badge badge-return-completed" id="order-status-badge">Return Completed</span>
                                 {% elif return_request.status == "APPROVED" %}
                                     <span class="status-badge badge-return-approved" id="order-status-badge">Return Approved</span>
                                 {% elif return_request.status == "REJECTED" %}
-                                    <span class="status-badge badge-cancelled" id="order-status-badge">Return Rejected</span>
+                                    <span class="status-badge badge-return-rejected" id="order-status-badge">Return Rejected</span>
                                 {% elif return_request.status == "REQUESTED" %}
                                     <span class="status-badge badge-return-requested" id="order-status-badge">Return Requested</span>
                                 {% endif %}
@@ -751,10 +753,14 @@
                                         <span class="status-badge badge-delivered" id="order-status-badge">Delivered</span>
                                     {% elif item_status == 'SHIPPED' %}
                                         <span class="status-badge" style="color: #1a3a3a; border-color: #bee5eb; background: #e3f2fd;" id="order-status-badge">Shipped</span>
-                                    {% elif item_status == 'CANCELLED' or item_status == 'RETURNED' %}
-                                        <span class="status-badge badge-cancelled" id="order-status-badge">{{ item_status|title }}</span>
+                                    {% elif item_status == 'OUT_FOR_DELIVERY' %}
+                                        <span class="status-badge" style="color: #065F46; border-color: #A7F3D0; background: #ECFDF5;" id="order-status-badge">Out for Delivery</span>
+                                    {% elif item_status == 'CANCELLED' %}
+                                        <span class="status-badge badge-cancelled" id="order-status-badge">Cancelled</span>
+                                    {% elif item_status == 'RETURN_COMPLETED' %}
+                                        <span class="status-badge badge-return-completed" id="order-status-badge">Return Completed</span>
                                     {% else %}
-                                        <span class="status-badge badge-pending" id="order-status-badge">{{ item_status|title }}</span>
+                                        <span class="status-badge badge-pending" id="order-status-badge">{{ order.items.first.get_item_status_display|default:"Order Placed" }}</span>
                                     {% endif %}
                                 {% endwith %}
                             {% endif %}
@@ -998,46 +1004,24 @@
                                             </div>
                                         {% else %}
                                             <!-- Return Approved -->
-                                            <div class="timeline-step {% if return_request.status == 'REQUESTED' %}pending{% elif return_request.status == 'APPROVED' %}active{% else %}done{% endif %}">
-                                                <div class="timeline-dot {% if return_request.status == 'APPROVED' %}current{% elif return_request.status == 'REQUESTED' %}{% else %}done{% endif %}">
-                                                    {% if return_request.status != 'REQUESTED' and return_request.status != 'APPROVED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                            <div class="timeline-step {% if return_request.status == 'REQUESTED' %}pending{% else %}done{% endif %}">
+                                                <div class="timeline-dot {% if return_request.status == 'REQUESTED' %}{% else %}done{% endif %}">
+                                                    {% if return_request.status != 'REQUESTED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
                                                 </div>
                                                 <div class="timeline-content">
-                                                    <div class="timeline-title">Return Approved {% if return_request.status == 'APPROVED' %}<span class="timeline-progress-tag">In progress</span>{% endif %}</div>
+                                                    <div class="timeline-title">Return Approved</div>
                                                     <div class="timeline-date">{% if return_request.status == 'REQUESTED' %}Awaiting approval{% else %}{% if return_request.approved_at %}{{ return_request.approved_at|date:"M d, Y" }}{% else %}Approved{% endif %}{% endif %}</div>
                                                 </div>
                                             </div>
     
-                                            <!-- Pickup Scheduled / Collected -->
-                                            <div class="timeline-step {% if return_request.status == 'REQUESTED' or return_request.status == 'APPROVED' %}pending{% elif return_request.status == 'PICKUP_COMPLETED' %}active{% else %}done{% endif %}">
-                                                <div class="timeline-dot {% if return_request.status == 'PICKUP_COMPLETED' %}current{% elif return_request.status == 'REQUESTED' or return_request.status == 'APPROVED' %}{% else %}done{% endif %}">
-                                                    {% if return_request.status != 'REQUESTED' and return_request.status != 'APPROVED' and return_request.status != 'PICKUP_COMPLETED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                            <!-- Return Completed -->
+                                            <div class="timeline-step {% if return_request.status == 'APPROVED' %}active{% elif return_request.status == 'COMPLETED' %}done{% else %}pending{% endif %}">
+                                                <div class="timeline-dot {% if return_request.status == 'COMPLETED' %}done{% elif return_request.status == 'APPROVED' %}current{% else %}{% endif %}" {% if return_request.status == 'COMPLETED' %}style="background: #14532D; border-color: #14532D;"{% endif %}>
+                                                    {% if return_request.status == 'COMPLETED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
                                                 </div>
                                                 <div class="timeline-content">
-                                                    <div class="timeline-title">Item Collected {% if return_request.status == 'PICKUP_COMPLETED' %}<span class="timeline-progress-tag">In progress</span>{% endif %}</div>
-                                                    <div class="timeline-date">{% if return_request.status == 'REQUESTED' or return_request.status == 'APPROVED' %}Scheduled for pickup{% else %}{% if return_request.pickup_completed_at %}{{ return_request.pickup_completed_at|date:"M d, Y" }}{% else %}Collected{% endif %}{% endif %}</div>
-                                                </div>
-                                            </div>
-    
-                                            <!-- Refund Initiated -->
-                                            <div class="timeline-step {% if return_request.status == 'REFUND_INITIATED' %}active{% elif return_request.status == 'REFUNDED' %}done{% else %}pending{% endif %}">
-                                                <div class="timeline-dot {% if return_request.status == 'REFUND_INITIATED' %}current{% elif return_request.status == 'REFUNDED' %}done{% else %}{% endif %}">
-                                                    {% if return_request.status == 'REFUNDED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
-                                                </div>
-                                                <div class="timeline-content">
-                                                    <div class="timeline-title">Refund Initiated {% if return_request.status == 'REFUND_INITIATED' %}<span class="timeline-progress-tag">In progress</span>{% endif %}</div>
-                                                    <div class="timeline-date">{% if return_request.status == 'REFUNDED' %}{% if return_request.refund_initiated_at %}{{ return_request.refund_initiated_at|date:"M d, Y" }}{% else %}Initiated{% endif %}{% elif return_request.status == 'REFUND_INITIATED' %}Processing with bank{% else %}Awaiting pickup completion{% endif %}</div>
-                                                </div>
-                                            </div>
-    
-                                            <!-- Refund Completed -->
-                                            <div class="timeline-step {% if return_request.status == 'REFUNDED' %}done{% else %}pending{% endif %}">
-                                                <div class="timeline-dot {% if return_request.status == 'REFUNDED' %}done{% else %}{% endif %}" {% if return_request.status == 'REFUNDED' %}style="background: #14532D; border-color: #14532D;"{% endif %}>
-                                                    {% if return_request.status == 'REFUNDED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
-                                                </div>
-                                                <div class="timeline-content">
-                                                    <div class="timeline-title">Refund Completed</div>
-                                                    <div class="timeline-date">{% if return_request.status == 'REFUNDED' %}{% if return_request.refunded_at %}{{ return_request.refunded_at|date:"M d, Y" }}{% else %}{{ return_request.updated_at|date:"M d, Y" }}{% endif %}{% else %}Pending completion{% endif %}</div>
+                                                    <div class="timeline-title">Return Completed {% if return_request.status == 'APPROVED' %}<span class="timeline-progress-tag">In progress</span>{% endif %}</div>
+                                                    <div class="timeline-date">{% if return_request.status == 'COMPLETED' %}{{ return_request.updated_at|date:"M d, Y" }}{% else %}Wait for refund processing{% endif %}</div>
                                                 </div>
                                             </div>
                                         {% endif %}
@@ -1225,16 +1209,6 @@
     const shell = document.querySelector('.shell[data-order-number]');
     if (!shell) return;
 
-    const orderNumber = shell.dataset.orderNumber;
-    const storageKey = 'ecom_order_state_' + orderNumber;
-    const allStatuses = ['PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED', 'RETURN_REQUESTED', 'RETURN_APPROVED', 'REFUNDED', 'CANCELLED'];
-
-    const cancelOrderBtn = document.getElementById('cancel-order-btn');
-    const returnOrderBtn = document.getElementById('return-order-btn');
-    const statusBadge = document.getElementById('order-status-badge');
-    const statusText = document.getElementById('order-status-text');
-    const productRows = Array.from(document.querySelectorAll('.product-row[data-item-index]'));
-
     const modal = document.getElementById('manage-modal');
     const modalTitle = document.getElementById('manage-modal-title');
     const modalSubtitle = document.getElementById('manage-modal-subtitle');
@@ -1242,146 +1216,12 @@
     const modalCancel = document.getElementById('manage-modal-cancel');
     const cancelOrderForm = document.getElementById('cancelOrderForm');
 
-    let actionPayload = null;
-
-    function norm(status) {
-        const value = (status || '').toUpperCase().replace(/\s+/g, '_');
-        return allStatuses.includes(value) ? value : 'PENDING';
-    }
-
-    function titleStatus(status) {
-        if (status === 'RETURN_APPROVED') return 'Return Approved – Refund in Progress';
-        if (status === 'RETURN_REQUESTED') return 'Return Requested – Awaiting Approval';
-        if (status === 'REFUNDED') return 'Refund Completed';
-        return status.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, function(ch) { return ch.toUpperCase(); });
-    }
-
-    function getInitialState() {
-        const defaultStatus = norm(shell.dataset.defaultStatus || 'PENDING');
-        const items = productRows.map(function(row) {
-            return { status: norm(row.dataset.itemStatus || defaultStatus), reason: '' };
-        });
-        return { orderStatus: defaultStatus, items: items, reason: '' };
-    }
-
-    function readState() {
-        try {
-            const raw = localStorage.getItem(storageKey);
-            if (!raw) return getInitialState();
-            const parsed = JSON.parse(raw);
-            if (!parsed || !Array.isArray(parsed.items)) return getInitialState();
-            return parsed;
-        } catch (error) {
-            return getInitialState();
-        }
-    }
-
-    function writeState(state) {
-        localStorage.setItem(storageKey, JSON.stringify(state));
-    }
-
-    /* ─── Client-side Toast Notification (for local state actions) ─────── */
-    let toastTimer = null;
-    function showToast(msg, isError = false, duration = 2500) {
-        const t = document.getElementById('inlineToast');
-        if (!t) return;
-        const icon = isError ? '✕' : '✓';
-        t.innerHTML = `
-            <div class="toast-left-content">
-                <div class="toast-icon-circle">${icon}</div>
-                <div class="toast-message-wrapper">
-                    <span class="toast-main-text">${msg}</span>
-                    <span class="toast-sub-text">Notification</span>
-                </div>
-            </div>
-            <div class="toast-close-btn" onclick="this.parentElement.classList.remove('show')">✕</div>
-        `;
-        t.classList.remove('show');
-        void t.offsetWidth;
-        t.classList.add('show');
-        clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => t.classList.remove('show'), duration);
-    }
-
-    /* ─── Processing State for Cancel Order Form ─────────────────────────── */
-    if (cancelOrderForm && modalConfirm) {
-        cancelOrderForm.addEventListener('submit', function() {
-            modalConfirm.disabled = true;
-            modalConfirm.textContent = 'Processing...';
-        });
-    }
-
-    function badgeClass(status) {
-        if (status === 'REFUNDED') return 'status-badge badge-refunded';
-        if (status === 'RETURN_APPROVED') return 'status-badge badge-return-approved';
-        if (status === 'RETURN_REQUESTED') return 'status-badge badge-return-requested';
-        if (status === 'DELIVERED') return 'status-badge badge-delivered';
-        if (status === 'CANCELLED') return 'status-badge badge-cancelled';
-        return 'status-badge badge-pending';
-    }
-
-    function statusColor(status) {
-        if (status === 'REFUNDED') return '#155724';
-        if (status === 'RETURN_APPROVED') return '#856404';
-        if (status === 'RETURN_REQUESTED') return '#0c5460';
-        if (status === 'DELIVERED') return '#14532D';
-        if (status === 'CANCELLED') return '#7F1D1D';
-        return '#92400E';
-    }
-
-    function isTerminal(status) {
-        return status === 'DELIVERED' || status === 'CANCELLED' || status === 'REFUNDED' || status === 'RETURN_APPROVED';
-    }
-
-    function updateControls(state) {
-        const status = norm(state.orderStatus);
-        if (statusBadge) {
-            statusBadge.className = badgeClass(status);
-            statusBadge.textContent = titleStatus(status);
-        }
-        if (statusText) {
-            statusText.textContent = titleStatus(status);
-            statusText.style.color = statusColor(status);
-            statusText.style.fontWeight = '500';
-        }
-
-        productRows.forEach(function(row, index) {
-            const item = state.items[index];
-            if (!item) return;
-            const itemStatus = norm(item.status);
-            const note = row.querySelector('[data-role="item-state-note"]');
-            const button = row.querySelector('.cancel-item-btn');
-            row.dataset.itemStatus = itemStatus;
-            row.classList.toggle('item-cancelled', itemStatus === 'CANCELLED');
-            if (note) {
-                note.textContent = 'Status: ' + titleStatus(itemStatus);
-                note.classList.toggle('cancelled', itemStatus === 'CANCELLED');
-            }
-            if (button) {
-                button.disabled = isTerminal(status) || itemStatus === 'CANCELLED';
-            }
-        });
-
-        if (cancelOrderBtn) {
-            cancelOrderBtn.disabled = isTerminal(status);
-        }
-        if (returnOrderBtn) {
-            returnOrderBtn.disabled = status !== 'DELIVERED';
-        }
-    }
-
-    function openModal(config) {
-        actionPayload = config;
-        modalTitle.textContent = config.title;
-        modalSubtitle.textContent = config.subtitle;
-        modalConfirm.textContent = config.confirmText || 'Confirm';
-        modalCancel.textContent = config.cancelText || 'Keep Order';
-        
-        // Reset button state for non-form actions
-        if (config.type !== 'cancel-order') {
-            modalConfirm.disabled = false;
-            modalConfirm.textContent = config.confirmText || 'Confirm';
-        }
+    /* ─── Modal Logic ─────────────────────────────────────────── */
+    function openModal(title, subtitle, confirmText, cancelText) {
+        modalTitle.textContent = title;
+        modalSubtitle.textContent = subtitle;
+        modalConfirm.textContent = confirmText || 'Confirm';
+        modalCancel.textContent = cancelText || 'Cancel';
         
         modal.classList.add('open');
         modal.setAttribute('aria-hidden', 'false');
@@ -1392,96 +1232,42 @@
         modal.classList.remove('open');
         modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
-        actionPayload = null;
-    }
-
-    function resolveOrderStatus(items, fallback) {
-        if (items.length > 0 && items.every(function(item) { return norm(item.status) === 'CANCELLED'; })) {
-            return 'CANCELLED';
-        }
-        return fallback;
     }
 
     modalCancel.addEventListener('click', closeModal);
     modal.addEventListener('click', function(e) {
         if (e.target === modal) closeModal();
     });
+    
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && modal.classList.contains('open')) {
             closeModal();
         }
     });
 
-    // Handle cancel-item and return-order via local state (cancel-order uses form submit)
-    modalConfirm.addEventListener('click', function() {
-        if (!actionPayload) return;
+    if (cancelOrderForm && modalConfirm) {
+        cancelOrderForm.addEventListener('submit', function() {
+            modalConfirm.disabled = true;
+            modalConfirm.textContent = 'Processing...';
+        });
+    }
 
-        const state = readState();
-        const currentStatus = norm(state.orderStatus);
-
-        // cancel-order is handled by form submission - just validate before opening modal
-        if (actionPayload.type === 'cancel-order') {
-            // Form will submit normally, button type="submit" handles it
-            return;
-        }
-
-        if (actionPayload.type === 'cancel-item') {
-            if (isTerminal(currentStatus)) {
-                showToast('Items cannot be cancelled in current status.', true);
-                closeModal();
-                return;
-            }
-            const itemIndex = actionPayload.itemIndex;
-            if (state.items[itemIndex] && norm(state.items[itemIndex].status) !== 'CANCELLED') {
-                state.items[itemIndex].status = 'CANCELLED';
-                state.orderStatus = resolveOrderStatus(state.items, currentStatus);
-                writeState(state);
-                updateControls(state);
-                showToast('Item cancelled.');
-            } else {
-                showToast('This item is already cancelled.', true);
-            }
-        }
-
-        if (actionPayload.type === 'return-order') {
-            if (currentStatus !== 'DELIVERED') {
-                showToast('Only delivered orders can be returned.', true);
-                closeModal();
-                return;
-            }
-            state.orderStatus = 'RETURNED';
-            writeState(state);
-            updateControls(state);
-            showToast('Return request submitted.');
-        }
-
-        closeModal();
-    });
-
+    // Trigger for full order cancellation
+    const cancelOrderBtn = document.getElementById('cancel-order-btn');
     if (cancelOrderBtn) {
         cancelOrderBtn.addEventListener('click', function() {
-            const state = readState();
-            if (isTerminal(norm(state.orderStatus))) {
-                showToast('This order cannot be cancelled.', true);
-                return;
-            }
-            openModal({
-                type: 'cancel-order',
-                title: 'Cancel Entire Order',
-                subtitle: 'Are you sure you want to cancel this order?',
-                confirmText: 'Confirm Cancellation',
-                cancelText: 'Keep Order'
-            });
+            openModal(
+                'Cancel Entire Order',
+                'Are you sure you want to cancel this order? This action will cancel all items in this order.',
+                'Confirm Cancellation',
+                'Keep Order'
+            );
         });
     }
 
     /* ─────────────────────────────────────────────────────────────────────────────
        RETURN REQUEST MODAL LOGIC
-       This section handles the functionality for the Return Request modal, 
-       including opening/closing, form validation, and backend submission.
        ───────────────────────────────────────────────────────────────────────────── */
-
-    // Select all necessary elements from the DOM
     const returnModal = document.getElementById('return-modal');
     const returnModalClose = document.getElementById('return-modal-close');
     const returnModalCancel = document.getElementById('return-modal-cancel');
@@ -1494,276 +1280,93 @@
     const returnOrderItemIdInput = document.getElementById('return-order-item-id');
     const returnSubmitBtn = document.getElementById('return-modal-submit');
 
-    /**
-     * Initializes the Return Modal event listeners.
-     * This function should be called once when the script runs.
-     */
-    function initializeReturnModal() {
-        // Event listener for the close (X) button
-        if (returnModalClose) {
-            returnModalClose.addEventListener('click', closeReturnModal);
-        }
+    function openReturnModal(row) {
+        if (!returnModal || !row) return;
 
-        // Event listener for the Cancel button inside the modal
-        if (returnModalCancel) {
-            returnModalCancel.addEventListener('click', closeReturnModal);
-        }
-
-        // Event listener to close modal when clicking on the backdrop overlay
-        if (returnModal) {
-            returnModal.addEventListener('click', function(e) {
-                // If the user clicks exactly on the modal backdrop, close it
-                if (e.target === returnModal) closeReturnModal();
-            });
-        }
-
-        // Event listener for the ESC key to close the modal
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && returnModal && returnModal.classList.contains('open')) {
-                closeReturnModal();
-            }
-        });
-
-        // Event listener for form submission
-        if (returnOrderForm) {
-            returnOrderForm.addEventListener('submit', handleReturnFormSubmission);
-        }
-
-        // Clear error messages when the user starts typing or changes selection
-        if (returnReason) {
-            returnReason.addEventListener('change', function() {
-                if (this.value) {
-                    returnReasonError.classList.remove('show');
-                    this.style.borderColor = '#E5E5E5';
-                }
-            });
-        }
-        if (returnDescription) {
-            returnDescription.addEventListener('input', function() {
-                if (this.value.trim()) {
-                    returnDescriptionError.classList.remove('show');
-                    this.style.borderColor = '#E5E5E5';
-                }
-            });
-        }
-    }
-
-    /**
-     * Opens the Return Request modal and populates it with product data.
-     * @param {number|string} itemIndex - The index of the item in the order.
-     */
-    function openReturnModal(itemIndex) {
-        if (!returnModal) return;
-
-        // 1. Show the modal by adding the 'open' class
         returnModal.classList.add('open');
         returnModal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
-        // 2. Reset the form to its initial state
         returnOrderForm.reset();
-        
-        // 3. Clear any previous error styling or messages
         returnReasonError.classList.remove('show');
         returnDescriptionError.classList.remove('show');
         returnReason.style.borderColor = '#E5E5E5';
         returnDescription.style.borderColor = '#E5E5E5';
 
-        // 4. Populate dynamic product data from the selected row
-        const row = document.querySelector(`.product-row[data-item-index="${itemIndex}"]`);
+        const name = row.querySelector('.prod-name')?.textContent || 'Product Name';
+        const img = row.querySelector('.prod-thumb img');
+        const meta = row.querySelector('.prod-meta')?.textContent || '';
+        const orderItemId = row.getAttribute('data-order-item-id');
+
+        const sizeMatch = meta.match(/Size:\s*([^·]+)/i);
+        const colorMatch = meta.match(/Colour:\s*([^·]+)/i);
         
-        if (row) {
-            // Get data from the row using existing classes
-            const img = row.querySelector('.prod-thumb img');
-            const name = row.querySelector('.prod-name')?.textContent || 'Product Name';
-            const meta = row.querySelector('.prod-meta')?.textContent || '';
-            
-            // Extract size and color from metadata text (e.g. "Colour: Black · Size: M · Qty: 1")
-            const sizeMatch = meta.match(/Size:\s*([^·]+)/i);
-            const colorMatch = meta.match(/Colour:\s*([^·]+)/i);
-            
-            const size = sizeMatch ? sizeMatch[1].trim() : 'N/A';
-            const color = colorMatch ? colorMatch[1].trim() : 'N/A';
-            
-            // Get modal elements
-            const modalImg = document.getElementById('return-product-image');
-            const modalName = document.getElementById('return-product-name');
-            const modalSize = document.getElementById('return-product-size');
-            const modalColor = document.getElementById('return-product-color');
-
-            // Set data in the modal
-            if (modalImg && img) modalImg.src = img.src;
-            if (modalName) modalName.textContent = name;
-            if (modalSize) modalSize.textContent = size;
-            if (modalColor) modalColor.textContent = color;
-            
-            // Store the unique ID in the hidden input for the backend after the form reset
-            if (returnOrderItemIdInput) {
-                const orderItemId = row.getAttribute('data-order-item-id');
-                returnOrderItemIdInput.value = orderItemId;
-            }
-
-            // Store the item index for frontend tracking if needed
-            if (returnItemIndexInput) {
-                returnItemIndexInput.value = itemIndex;
-            }
-        }
+        document.getElementById('return-product-name').textContent = name;
+        if (img) document.getElementById('return-product-image').src = img.src;
+        document.getElementById('return-product-size').textContent = sizeMatch ? sizeMatch[1].trim() : 'N/A';
+        document.getElementById('return-product-color').textContent = colorMatch ? colorMatch[1].trim() : 'N/A';
+        
+        if (returnOrderItemIdInput) returnOrderItemIdInput.value = orderItemId;
     }
 
-    /**
-     * Closes the Return Request modal.
-     */
     function closeReturnModal() {
-        if (!returnModal) return;
-        
-        // Remove the 'open' class to hide the modal
-        returnModal.classList.remove('open');
-        returnModal.setAttribute('aria-hidden', 'true');
-        
-        // Restore background scrolling
-        document.body.style.overflow = '';
+        if (returnModal) {
+            returnModal.classList.remove('open');
+            returnModal.setAttribute('aria-hidden', 'true');
+            document.body.style.overflow = '';
+        }
     }
 
-    /**
-     * Validates the return form fields.
-     * @returns {boolean} - Returns true if the form is valid, false otherwise.
-     */
-    function validateReturnForm() {
-        let isValid = true;
-
-        // Check if a return reason has been selected
-        if (!returnReason.value) {
-            returnReasonError.classList.add('show');
-            returnReason.style.borderColor = '#DC2626'; // Red border for error
-            isValid = false;
-        }
-
-        // Check if description is provided and not just whitespace
-        if (!returnDescription.value.trim()) {
-            returnDescriptionError.classList.add('show');
-            returnDescription.style.borderColor = '#DC2626'; // Red border for error
-            isValid = false;
-        }
-
-        // Check if order_item_id is set
-        if (!returnOrderItemIdInput.value) {
-            console.error("Critical Error: order_item_id is missing.");
-            showToast('An internal error occurred. Please try again.', true);
-            isValid = false;
-        }
-
-        return isValid;
+    if (returnModalClose) returnModalClose.addEventListener('click', closeReturnModal);
+    if (returnModalCancel) returnModalCancel.addEventListener('click', closeReturnModal);
+    if (returnModal) {
+        returnModal.addEventListener('click', function(e) {
+            if (e.target === returnModal) closeReturnModal();
+        });
     }
 
-    /**
-     * Handles the form submission process.
-     * @param {Event} e - The submission event.
-     */
-    function handleReturnFormSubmission(e) {
-        // First, validate the form
-        const isFormValid = validateReturnForm();
-
-        // If validation fails, stop the submission
-        if (!isFormValid) {
-            e.preventDefault();
-            return;
-        }
-
-        // If validation passes, prepare the UI for submission
-        if (returnSubmitBtn) {
-            returnSubmitBtn.disabled = true; // Prevent double clicking
-            returnSubmitBtn.textContent = 'Processing...'; // Visual feedback
-        }
-        
-        // The form will now submit naturally as a POST request to the backend.
-    }
-
-    // Initialize the modal logic when the script loads
-    initializeReturnModal();
-
-    // ─── Button Trigger Handling ───────────────────────────────────────────
-
-    // 1. Global "Return Order" Button
-    // If clicked, it dynamically finds the first eligible (delivered) item.
-    if (returnOrderBtn) {
-        returnOrderBtn.addEventListener('click', function() {
-            const state = readState();
-            if (norm(state.orderStatus) !== 'DELIVERED') {
-                showToast('Return is allowed only for delivered orders.', true);
-                return;
+    if (returnOrderForm) {
+        returnOrderForm.addEventListener('submit', function(e) {
+            let isValid = true;
+            if (!returnReason.value) {
+                returnReasonError.classList.add('show');
+                returnReason.style.borderColor = '#DC2626';
+                isValid = false;
             }
-            
-            // Find the first eligible item dynamically instead of hardcoding 0
-            // We look for a row that is not cancelled and is delivered
-            const eligibleRow = document.querySelector('.product-row[data-item-status="DELIVERED"]');
-            
-            if (eligibleRow) {
-                const index = eligibleRow.getAttribute('data-item-index');
-                openReturnModal(index);
-            } else {
-                // Fallback to first row if no DELIVERED status found but order is DELIVERED
-                openReturnModal(0);
+            if (!returnDescription.value.trim()) {
+                returnDescriptionError.classList.add('show');
+                returnDescription.style.borderColor = '#DC2626';
+                isValid = false;
+            }
+
+            if (!isValid) e.preventDefault();
+            else {
+                returnSubmitBtn.disabled = true;
+                returnSubmitBtn.textContent = 'Submitting...';
             }
         });
     }
 
-    // 2. Individual "Return Item" Buttons (found in each product row)
-    function bindReturnItemButtons() {
-        const itemReturnButtons = document.querySelectorAll('.return-item-btn');
-        
-        itemReturnButtons.forEach(btn => {
-            // Prevent duplicate event listeners
-            if (btn.dataset.returnBound === 'true') return;
-            btn.dataset.returnBound = 'true';
-            
-            btn.addEventListener('click', function() {
-                const productRow = this.closest('.product-row');
-                const index = this.getAttribute('data-item-index');
-                const status = productRow ? productRow.getAttribute('data-item-status') : '';
-                
-                if (status !== 'DELIVERED') {
-                    showToast('This item can only be returned if delivered.', true);
-                    return;
-                }
-                
-                // openReturnModal will handle populating hidden fields AFTER reset
-
-                
-                if (index !== null) {
-                    openReturnModal(index);
-                }
-            });
-        });
-    }
-
-    // Run the binding function
-    bindReturnItemButtons();
-
-    document.querySelectorAll('.cancel-item-btn').forEach(function(button) {
-        button.addEventListener('click', function() {
-            const index = Number(button.getAttribute('data-item-index'));
-            const state = readState();
-            const orderStatus = norm(state.orderStatus);
-            if (isTerminal(orderStatus)) {
-                showToast('This order no longer supports item cancellation.', true);
-                return;
-            }
-            if (state.items[index] && norm(state.items[index].status) === 'CANCELLED') {
-                showToast('This item is already cancelled.', true);
-                return;
-            }
-            openModal({
-                type: 'cancel-item',
-                itemIndex: index,
-                title: 'Cancel This Product',
-                subtitle: 'Are you sure you want to cancel this item?',
-                confirmText: 'Cancel Item',
-                cancelText: 'Keep Item'
-            });
+    // Bind return buttons in product rows
+    document.querySelectorAll('.return-item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('.product-row');
+            openReturnModal(row);
         });
     });
 
-    updateControls(readState());
+    // Individual item cancellation trigger
+    document.querySelectorAll('.cancel-item-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            openModal(
+                'Cancel Item',
+                'Are you sure you want to cancel this specific item?',
+                'Confirm Cancellation',
+                'Keep Item'
+            );
+        });
+    });
+
 })();
 </script>
 

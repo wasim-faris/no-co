@@ -218,11 +218,11 @@
                                 </td>
                                 <td class="px-4 py-3">
                                     <span id="status-badge-{{ return_request.id }}" class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-bold tracking-wide uppercase
-                                        {% if return_request.status == 'REFUNDED' %}bg-teal-50 text-teal-700 border border-teal-100
+                                        {% if return_request.status == 'COMPLETED' %}bg-teal-50 text-teal-700 border border-teal-100
                                         {% elif return_request.status == 'APPROVED' %}bg-amber-50 text-amber-700 border border-amber-200
                                         {% elif return_request.status == 'REJECTED' %}bg-rose-50 text-rose-700 border border-rose-100
                                         {% else %}bg-orange-50 text-orange-700 border border-orange-100{% endif %}">
-                                        {% if return_request.status == 'REFUNDED' %}Refunded
+                                        {% if return_request.status == 'COMPLETED' %}Completed
                                         {% elif return_request.status == 'APPROVED' %}Approved
                                         {% elif return_request.status == 'REQUESTED' %}Requested
                                         {% elif return_request.status == 'REJECTED' %}Rejected
@@ -247,6 +247,11 @@
                                         <!-- Quick Reject (✖) -->
                                         <button onclick="quickAction('reject', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-[#FDECEC] text-[#DC2626] hover:bg-[#DC2626] hover:text-white transition-all cursor-pointer" title="Reject Return">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                        </button>
+                                        {% elif return_request.status == 'APPROVED' %}
+                                        <!-- Quick Complete (✓✓) -->
+                                        <button onclick="quickAction('complete', '{{ return_request.id }}')" class="w-8 h-8 flex items-center justify-center rounded-lg bg-teal-50 text-teal-600 hover:bg-teal-600 hover:text-white transition-all cursor-pointer" title="Complete Return">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         </button>
                                         {% endif %}
                                     </div>
@@ -415,7 +420,7 @@
     <div id="approveModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
         <div class="flex items-center justify-center min-h-screen p-4">
             <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('approveModal')"></div>
-            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
+            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-md text-center">
                 <div class="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-6">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                 </div>
@@ -450,6 +455,26 @@
                     <input type="hidden" name="action" value="reject">
                     <button type="button" onclick="closeModal('rejectModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
                     <button type="submit" class="flex-1 px-6 py-3 bg-[#DC2626] text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-[#b91c1c] transition-all">Reject Request</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete Return Modal -->
+    <div id="completeModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('completeModal')"></div>
+            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
+                <div class="w-16 h-16 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 class="text-xl font-serif text-gray-900 mb-2">Complete Return & Refund</h3>
+                <p class="text-sm text-gray-500 mb-8">Confirm that the item has been received and the refund has been processed. This will close the return request.</p>
+                <form id="completeForm" method="POST" action="{% url "complete_return" %}" class="flex gap-3">
+                    {% csrf_token %}
+                    <input type="hidden" name="return_request_id" id="completeRequestId">
+                    <button type="button" onclick="closeModal('completeModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 px-6 py-3 bg-teal-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-teal-700 transition-all">Complete Return</button>
                 </form>
             </div>
         </div>
@@ -514,8 +539,8 @@
             const statusContainer = document.getElementById('modalStatusContainer');
             let badgeHTML = '';
             const s = status.toUpperCase();
-            if (s === 'REFUNDED') {
-                badgeHTML = '<span class="px-3 py-1 bg-teal-50 text-teal-700 border border-teal-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Refunded</span>';
+            if (s === 'COMPLETED') {
+                badgeHTML = '<span class="px-3 py-1 bg-teal-50 text-teal-700 border border-teal-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Completed</span>';
             } else if (s === 'APPROVED') {
                 badgeHTML = '<span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-bold uppercase tracking-wider">Approved</span>';
             } else if (s === 'REJECTED') {
@@ -537,6 +562,9 @@
             } else if (action === 'reject') {
                 document.getElementById('rejectRequestId').value = requestId;
                 document.getElementById('rejectModal').classList.remove('hidden');
+            } else if (action === 'complete') {
+                document.getElementById('completeRequestId').value = requestId;
+                document.getElementById('completeModal').classList.remove('hidden');
             }
             document.body.style.overflow = 'hidden';
         }
@@ -556,8 +584,6 @@
                 closeModal();
             }
         });
-
-
     </script>
 </body>
 </html>

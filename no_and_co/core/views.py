@@ -601,36 +601,39 @@ def return_order(request, order_id):
     order = get_object_or_404(Order, id=order_id , user=request.user)
 
     if request.method == "POST":
-        print(dict(request.POST))
         reason = request.POST.get("return_reason", "").strip()
         description = request.POST.get("return_description", "").strip()
         order_item_id = request.POST.get("order_item_id", "").strip()
-        print("Reason:", reason)
-        print("Description:", description)
-        print("Order Item ID:", order_item_id)
 
         if not all([reason, description, order_item_id]):
-            messages.error(request, "All filed are required")
-            return redirect("order_details", id = order.id)
+            messages.error(request, "All fields are required")
+            return redirect("order_details", id=order.id)
 
-        order_item = get_object_or_404(OrderItem, id=order_item_id, order = order)
+        order_item = get_object_or_404(OrderItem, id=order_item_id, order=order)
 
         if order_item.item_status != "DELIVERED":
-            messages.error(request,"Only delivered items can be returened")
-            return redirect("order_details", id = order.id)
+            messages.error(request, "Only delivered items can be returned")
+            return redirect("order_details", id=order.id)
 
-        ReturnRequest.objects.create(
-            order = order,
-            order_item = order_item,
-            customer = request.user,
-            reason = reason,
-            description = description,
-            status = "REQUESTED",
-            requested_at = timezone.now()
-        )
+        with transaction.atomic():
+            ReturnRequest.objects.create(
+                order=order,
+                order_item=order_item,
+                customer=request.user,
+                reason=reason,
+                description=description,
+                status="REQUESTED",
+                requested_at=timezone.now()
+            )
 
-        order_item.item_status = "RETURN_REQUESTED"
-        order_item.save()
+            order_item.item_status = "RETURN_REQUESTED"
+            order_item.save()
 
-        messages.success(request, "return request submitted successfully")
-        return redirect("order_details", id = order.id)
+            # Update timeline
+            OrderStatusHistory.objects.create(
+                order=order,
+                status="RETURN_REQUESTED"
+            )
+
+        messages.success(request, "Return request submitted successfully")
+        return redirect("order_details", id=order.id)
