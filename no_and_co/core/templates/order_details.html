@@ -960,8 +960,89 @@
                         <div class="timeline">
                             {% with latest_status=order.status_history.first.status|upper|default:"PENDING" %}
                             {% with item_cancelled=order.items.first.item_status|upper %}
+                            {% with return_request=order.returns.first %}
                                 
-                                {% if latest_status == 'CANCELLED' or item_cancelled == 'CANCELLED' %}
+                                {% if return_request %}
+                                    <!-- Return Timeline Logic -->
+                                    {% if return_request.status == 'CANCELLED' %}
+                                        <div class="timeline-step failed">
+                                            <div class="timeline-dot failed" style="background: #7F1D1D; border-color: #7F1D1D; color: white;">
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title" style="color: #7F1D1D; font-weight: 700;">Return Cancelled</div>
+                                                <div class="timeline-date">{% if return_request.cancelled_at %}{{ return_request.cancelled_at|date:"M d, Y" }}{% else %}{{ return_request.updated_at|date:"M d, Y" }}{% endif %}</div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <!-- Return Requested -->
+                                        <div class="timeline-step {% if return_request.status == 'REQUESTED' %}active{% else %}done{% endif %}">
+                                            <div class="timeline-dot {% if return_request.status == 'REQUESTED' %}current{% else %}done{% endif %}">
+                                                {% if return_request.status != 'REQUESTED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                            </div>
+                                            <div class="timeline-content">
+                                                <div class="timeline-title">Return Requested {% if return_request.status == 'REQUESTED' %}<span class="timeline-progress-tag">In progress</span>{% endif %}</div>
+                                                <div class="timeline-date">{{ return_request.requested_at|date:"M d, Y" }}</div>
+                                            </div>
+                                        </div>
+
+                                        {% if return_request.status == 'REJECTED' %}
+                                            <div class="timeline-step failed">
+                                                <div class="timeline-dot failed" style="background: #7F1D1D; border-color: #7F1D1D; color: white;">
+                                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <div class="timeline-title" style="color: #7F1D1D; font-weight: 700;">Return Rejected</div>
+                                                    <div class="timeline-date">{% if return_request.rejected_at %}{{ return_request.rejected_at|date:"M d, Y" }}{% else %}{{ return_request.updated_at|date:"M d, Y" }}{% endif %}</div>
+                                                </div>
+                                            </div>
+                                        {% else %}
+                                            <!-- Return Approved -->
+                                            <div class="timeline-step {% if return_request.status == 'REQUESTED' %}pending{% elif return_request.status == 'APPROVED' %}active{% else %}done{% endif %}">
+                                                <div class="timeline-dot {% if return_request.status == 'APPROVED' %}current{% elif return_request.status == 'REQUESTED' %}{% else %}done{% endif %}">
+                                                    {% if return_request.status != 'REQUESTED' and return_request.status != 'APPROVED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <div class="timeline-title">Return Approved {% if return_request.status == 'APPROVED' %}<span class="timeline-progress-tag">In progress</span>{% endif %}</div>
+                                                    <div class="timeline-date">{% if return_request.status == 'REQUESTED' %}Awaiting approval{% else %}{% if return_request.approved_at %}{{ return_request.approved_at|date:"M d, Y" }}{% else %}Approved{% endif %}{% endif %}</div>
+                                                </div>
+                                            </div>
+    
+                                            <!-- Pickup Scheduled / Collected -->
+                                            <div class="timeline-step {% if return_request.status == 'REQUESTED' or return_request.status == 'APPROVED' %}pending{% elif return_request.status == 'PICKUP_COMPLETED' %}active{% else %}done{% endif %}">
+                                                <div class="timeline-dot {% if return_request.status == 'PICKUP_COMPLETED' %}current{% elif return_request.status == 'REQUESTED' or return_request.status == 'APPROVED' %}{% else %}done{% endif %}">
+                                                    {% if return_request.status != 'REQUESTED' and return_request.status != 'APPROVED' and return_request.status != 'PICKUP_COMPLETED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <div class="timeline-title">Item Collected {% if return_request.status == 'PICKUP_COMPLETED' %}<span class="timeline-progress-tag">In progress</span>{% endif %}</div>
+                                                    <div class="timeline-date">{% if return_request.status == 'REQUESTED' or return_request.status == 'APPROVED' %}Scheduled for pickup{% else %}{% if return_request.pickup_completed_at %}{{ return_request.pickup_completed_at|date:"M d, Y" }}{% else %}Collected{% endif %}{% endif %}</div>
+                                                </div>
+                                            </div>
+    
+                                            <!-- Refund Initiated -->
+                                            <div class="timeline-step {% if return_request.status == 'REFUND_INITIATED' %}active{% elif return_request.status == 'REFUNDED' %}done{% else %}pending{% endif %}">
+                                                <div class="timeline-dot {% if return_request.status == 'REFUND_INITIATED' %}current{% elif return_request.status == 'REFUNDED' %}done{% else %}{% endif %}">
+                                                    {% if return_request.status == 'REFUNDED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <div class="timeline-title">Refund Initiated {% if return_request.status == 'REFUND_INITIATED' %}<span class="timeline-progress-tag">In progress</span>{% endif %}</div>
+                                                    <div class="timeline-date">{% if return_request.status == 'REFUNDED' %}{% if return_request.refund_initiated_at %}{{ return_request.refund_initiated_at|date:"M d, Y" }}{% else %}Initiated{% endif %}{% elif return_request.status == 'REFUND_INITIATED' %}Processing with bank{% else %}Awaiting pickup completion{% endif %}</div>
+                                                </div>
+                                            </div>
+    
+                                            <!-- Refund Completed -->
+                                            <div class="timeline-step {% if return_request.status == 'REFUNDED' %}done{% else %}pending{% endif %}">
+                                                <div class="timeline-dot {% if return_request.status == 'REFUNDED' %}done{% else %}{% endif %}" {% if return_request.status == 'REFUNDED' %}style="background: #14532D; border-color: #14532D;"{% endif %}>
+                                                    {% if return_request.status == 'REFUNDED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <div class="timeline-title">Refund Completed</div>
+                                                    <div class="timeline-date">{% if return_request.status == 'REFUNDED' %}{% if return_request.refunded_at %}{{ return_request.refunded_at|date:"M d, Y" }}{% else %}{{ return_request.updated_at|date:"M d, Y" }}{% endif %}{% else %}Pending completion{% endif %}</div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
+                                    {% endif %}
+                                {% elif latest_status == 'CANCELLED' or item_cancelled == 'CANCELLED' %}
                                     <!-- Only Cancelled Status Milestone -->
                                     <div class="timeline-step failed">
                                         <div class="timeline-dot failed" style="background: #7F1D1D; border-color: #7F1D1D; color: white;">
@@ -969,7 +1050,7 @@
                                         </div>
                                         <div class="timeline-content">
                                             <div class="timeline-title" style="color: #7F1D1D; font-weight: 700;">Order Cancelled</div>
-                                            <div class="timeline-date">The delivery journey has been stopped.</div>
+                                            <div class="timeline-date">{% if order.cancelled_at %}{{ order.cancelled_at|date:"M d, Y" }}{% else %}The delivery journey has been stopped.{% endif %}</div>
                                         </div>
                                     </div>
                                 {% else %}
@@ -1041,6 +1122,7 @@
                                         </div>
                                     {% endwith %}
                                 {% endif %}
+                            {% endwith %}
                             {% endwith %}
                             {% endwith %}
                         </div>

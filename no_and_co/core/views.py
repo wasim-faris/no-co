@@ -587,7 +587,7 @@ def cancel_order(request, order_id):
             updated_at = timezone.now()
         )
 
-
+        order.cancelled_at = timezone.now()
         if order.payment_method == "ONLINE" and order.payment_status == "PAID":
             order.payment_status = "REFUNDED"
 

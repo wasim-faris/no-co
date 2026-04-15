@@ -93,6 +93,7 @@ class Order(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     delivered_date = models.DateTimeField(null=True, blank=True)
+    cancelled_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
@@ -110,6 +111,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     ITEM_STATUS_CHOICES = (
         ("PENDING", "Pending"),
+        ("CONFIRMED", "Confirmed"),
         ("PROCESSING", "Processing"),
         ("SHIPPED", "Shipped"),
         ("DELIVERED", "Delivered"),
@@ -149,6 +151,7 @@ class OrderItem(models.Model):
 class OrderStatusHistory(models.Model):
     STATUS_CHOICES = (
         ("PENDING", "Pending"),
+        ("CONFIRMED", "Confirmed"),
         ("PROCESSING", "Processing"),
         ("SHIPPED", "Shipped"),
         ("DELIVERED", "Delivered"),
@@ -173,10 +176,13 @@ class OrderStatusHistory(models.Model):
 
 class ReturnRequest(models.Model):
     STATUS_CHOICES = (
-        ('REQUESTED', 'Requested'),
-        ('APPROVED', 'Approved'),
-        ('REJECTED', 'Rejected'),
-        ('REFUNDED', 'Refunded'),
+        ('REQUESTED', 'Return Requested'),
+        ('APPROVED', 'Return Approved'),
+        ('REJECTED', 'Return Rejected'),
+        ('CANCELLED', 'Return Cancelled'),
+        ('PICKUP_COMPLETED', 'Pickup Completed'),
+        ('REFUND_INITIATED', 'Refund Initiated'),
+        ('REFUNDED', 'Refund Completed'),
     )
 
     RETURN_REASON_CHOICES = (
@@ -223,3 +229,7 @@ class ReturnRequest(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     approved_at = models.DateTimeField(blank=True, null=True)
     rejected_at = models.DateTimeField(blank=True, null=True)
+    cancelled_at = models.DateTimeField(blank=True, null=True)
+    pickup_completed_at = models.DateTimeField(blank=True, null=True)
+    refund_initiated_at = models.DateTimeField(blank=True, null=True)
+    refunded_at = models.DateTimeField(blank=True, null=True)

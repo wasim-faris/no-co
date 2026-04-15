@@ -63,6 +63,9 @@ def admin_update_order_status(request, order_id):
         status = new_status,
     )
 
+    if new_status == "CANCELLED":
+        order.cancelled_at = timezone.now()
+
     if new_status == "DELIVERED":
         order.delivered_date = timezone.now()
 
