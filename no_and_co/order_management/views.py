@@ -4,8 +4,9 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from django.db import transaction
 from core.models import Order, OrderStatusHistory
+from admin_dashboard.decorators import admin_required
 
-
+@admin_required
 def orders_list(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
@@ -38,7 +39,7 @@ def orders_list(request):
     paginator = Paginator(orders, 4)
     page_number = request.GET.get("page")
     order_obj = paginator.get_page(page_number)
-    
+
     context = {
         "page_obj": order_obj,
         "orders_count": orders.count(),
@@ -53,6 +54,7 @@ def orders_list(request):
 
     return render(request, 'order_management/orders_list.html', context)
 
+@admin_required
 def order_detail(request, order_id):
     order = get_object_or_404(Order, id=order_id)
     return render(request, 'order_management/order_detail.html', {'order_id': order_id, "order":order})
@@ -68,7 +70,7 @@ def admin_update_order_status(request, order_id):
         admin_notes = request.POST.get("admin_notes", "").strip()
 
         order = get_object_or_404(Order, id=order_id)
-        
+
         valid_statuses = [
             "PENDING",
             "CONFIRMED",
@@ -82,8 +84,7 @@ def admin_update_order_status(request, order_id):
         with transaction.atomic():
             if new_status in valid_statuses:
                 from django.core.exceptions import ValidationError
-                
-                # Check for validation errors first
+
                 try:
                     for item in order.items.all():
                         item.item_status = new_status
@@ -92,12 +93,10 @@ def admin_update_order_status(request, order_id):
                     messages.error(request, e.message)
                     return redirect("admin-order-detail", order_id=order_id)
 
-                # If validation passes, save everything
                 for item in order.items.all():
                     item.item_status = new_status
                     item.save()
-                
-                # Only create history if status actually changed
+
                 last_history = order.status_history.first()
                 if not last_history or last_history.status != new_status:
                     OrderStatusHistory.objects.create(
@@ -110,15 +109,14 @@ def admin_update_order_status(request, order_id):
 
                 if new_status == "DELIVERED":
                     order.delivered_date = timezone.now()
-
-            # Always update these fields if provided or changed
+                    
             if tracking_id:
                 order.tracking_id = tracking_id
             if courier_name:
                 order.courier_name = courier_name
             if admin_notes:
                 order.admin_notes = admin_notes
-                
+
             order.save()
 
         messages.success(request, "Order details updated successfully.")

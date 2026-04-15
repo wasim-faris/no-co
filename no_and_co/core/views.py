@@ -510,7 +510,7 @@ def orders(request):
         'orders': orders_obj
     })
 
-
+@login_required(login_url="login")
 def order_details(request, id):
 
     order = get_object_or_404(Order, user=request.user ,id=id)
@@ -568,7 +568,6 @@ def download_invoice(request, id):
 def cancel_order(request, order_id):
     order = get_object_or_404(Order, id=order_id , user=request.user)
 
-    cancelable_order_status = ["PENDING", "PROCESSING"]
 
     if request.method == "POST":
         if order.items.filter(
@@ -578,6 +577,13 @@ def cancel_order(request, order_id):
                 request,"This order cannot be cancelled as it has already been shipped."
             )
             return redirect("order_details",id=order_id)
+
+        for item in order.items.select_related("variant").exclude(
+            item_status = "CANCELLED"
+        ):
+            variant = item.variant
+            variant.stock += item.quantity
+            variant.save()
 
         order.items.update(item_status = "CANCELLED")
 

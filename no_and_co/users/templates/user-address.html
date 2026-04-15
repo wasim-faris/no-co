@@ -7,6 +7,17 @@
        CRITICAL FIX: Scope ALL resets and styles to .shell only
        Never use bare * or body selectors in child templates
     ============================================================ */
+
+    .nav-link.active {
+    background-color: #000; /* Matches your dark theme */
+    color: #ffffff !important;
+}
+
+.nav-link.active .nav-icon,
+.nav-link.active svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+}
     .shell *, .shell *::before, .shell *::after {
         box-sizing: border-box;
         margin: 0;
@@ -906,19 +917,19 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'orders' %}" class="nav-link">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                     Orders
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'wishlist' %}" class="nav-link">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                     Wishlist
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link active">
+                <a href="{% url 'user-address' %}" class="nav-link active">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                     Addresses
                 </a>
@@ -934,7 +945,7 @@
 
     <!-- MAIN CONTENT -->
     <main class="main animate-in">
-       
+
         <header class="page-header">
             <div>
                 <p class="breadcrumb">Account / Addresses</p>

@@ -3,9 +3,10 @@ from core.models import ReturnRequest, OrderItem, OrderStatusHistory
 from django.utils import timezone
 from django.contrib import messages
 from django.db import transaction
-
+from admin_dashboard.decorators import admin_required
 from django.core.paginator import Paginator
 
+@admin_required
 def admin_returns(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
@@ -35,7 +36,7 @@ def admin_returns(request):
             "search_query": search_query,
             "status_filter": status_filter
         })
-    
+
     return render(request, "returns/returns.html", {
         "page_obj": return_requests,
         "total_returns": return_requests_list.count(),

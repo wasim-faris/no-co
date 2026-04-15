@@ -7,6 +7,17 @@
 
 {% block content %}
 <style>
+
+    .nav-link.active {
+    background-color: #000; /* Matches your dark theme */
+    color: #ffffff !important;
+}
+
+.nav-link.active .nav-icon,
+.nav-link.active svg {
+    color: #ffffff !important;
+    stroke: #ffffff !important;
+}
     /* ─── Design tokens — copied verbatim from user-profile.html ── */
     .shell *,
     .shell *::before,
@@ -530,7 +541,7 @@
         <span class="sidebar-section-label">Account</span>
         <ul class="nav-list">
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'user-profile' request.user.id %}" class="nav-link">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M4 6h16M4 12h10M4 18h16" />
@@ -549,7 +560,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'wishlist' %}" class="nav-link">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                             d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />

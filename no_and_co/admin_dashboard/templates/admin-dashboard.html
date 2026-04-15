@@ -103,6 +103,14 @@
                 <span class="font-medium text-sm">Orders</span>
             </a>
 
+          <a href="{% url 'admin-returns' %}"
+   class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 font-semibold transition-all duration-300">
+    <svg class="w-5 h-5 text-current" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+    </svg>
+    <span class="font-medium text-sm">Returns</span>
+</a>
+
             <a href="{% url 'admin-inventory-list' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
                 <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
                 <span class="font-medium text-sm">Inventory</span>
