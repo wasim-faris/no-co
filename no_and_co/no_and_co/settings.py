@@ -183,8 +183,8 @@ ACCOUNT_SIGNUP_FIELDS = [
 
 SITE_ID = 1
 
+ACCOUNT_ADAPTER = 'accounts.adapters.MyAccountAdapter'
 SOCIALACCOUNT_ADAPTER = 'accounts.adapters.MySocialAccountAdapter'
-SOCIALACCOUNT_ADAPTER = "accounts.adapters.MySocialAccountAdapter"
 
 SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True

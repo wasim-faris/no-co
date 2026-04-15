@@ -172,8 +172,6 @@ def login_user(request):
             merge_cart_after_login(request, user, old_session_key)
             merge_wishlist_item(request, user, old_session_key)
             request.session["login_attempts"] = 0
-
-            messages.success(request, "login succesfuly")
             return redirect("home")
         else:
             login_attempts += 1

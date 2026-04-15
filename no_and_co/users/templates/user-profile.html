@@ -87,8 +87,8 @@
             align-items: center;
             gap: 14px;
             padding: 11px 16px;
-            font-size: 10px;
-            letter-spacing: 0.16em;
+            font-size: 8.5px;
+            letter-spacing: 0.28em;
             text-transform: uppercase;
             font-weight: 500;
             color: var(--ink-mid);
@@ -96,6 +96,9 @@
             border-radius: var(--radius-sm);
             transition: var(--transition);
             border: 1px solid transparent;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
         .shell .nav-link:hover {
@@ -105,7 +108,7 @@
 
         .shell .nav-link.active {
             background: var(--ink);
-            color: white;
+            color: white !important;
         }
 
         .shell .nav-icon {
@@ -1063,7 +1066,9 @@
             .shell .product-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        font-family: 'Playfair Display', serif;
+        .shell {
+            font-family: 'Playfair Display', serif;
+        }
     </style>
 
 <body class="page-loading">
@@ -1077,19 +1082,19 @@
         <span class="sidebar-section-label">Account</span>
         <ul class="nav-list">
             <li class="nav-item">
-                <a href="#" class="nav-link active">
+                <a href="{% url 'user-profile' request.user.id %}" class="nav-link active">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h10M4 18h16"/></svg>
                     Overview
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'orders' %}" class="nav-link">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                     Orders
                 </a>
             </li>
             <li class="nav-item">
-                <a href="#" class="nav-link">
+                <a href="{% url 'wishlist' %}" class="nav-link">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                     Wishlist
                 </a>
@@ -1148,7 +1153,7 @@
                 </div>
 
                 <div class="profile-meta skeleton-target">
-                    <h1 class="profile-name">{{ request.user.username }}</h1>
+                    <h1 class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</h1>
                     <p class="profile-email">{{ user.email }}</p>
                     {% if not user.socialaccount_set.exists %}
                     <a href="{% url "change-password" %}" style="font-size:12px; text-decoration: underline; display:inline-block; margin-top:4px;">
@@ -1156,7 +1161,7 @@
                     </a>
                     {% endif %}
                     <p class="profile-phone">{{ request.user.phone_number|default_if_none:'' }}</p>
-                    <p class="member-since">Member since <span>Nov 2024</span></p>
+                    <p class="member-since">Member since <span>{{ request.user.date_joined|date:"M Y" }}</span></p>
                 </div>
             </div>
 

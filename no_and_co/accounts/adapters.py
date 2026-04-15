@@ -1,13 +1,18 @@
+from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from django.contrib import messages
 from django.contrib.auth import get_user_model
-from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
 from allauth.exceptions import ImmediateHttpResponse
 from django.shortcuts import redirect
-from django.contrib import messages
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
+class MyAccountAdapter(DefaultAccountAdapter):
+    def add_message(self, request, level, message_template, message_context=None, extra_tags=''):
+        # Filter out the 'Successfully signed in as [username]' message
+        if 'logged_in' in message_template or 'successfully' in str(message_template).lower():
+            return
+        super().add_message(request, level, message_template, message_context, extra_tags)
 
 class MySocialAccountAdapter(DefaultSocialAccountAdapter):
 

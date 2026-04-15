@@ -122,10 +122,10 @@ def cart_view(request):
         or 0
     )
 
-    if order_total < 1999:
-        delivery_fee = 0
-    else:
+    if order_total <= 999:
         delivery_fee = 149
+    else:
+        delivery_fee = 0
 
     full_total = delivery_fee + order_total
 

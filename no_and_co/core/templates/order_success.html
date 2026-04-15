@@ -406,7 +406,7 @@ body {
         <!-- Strict Call to Activation links -->
         <div class="buttons-group stagger-in delay-4">
             <a href="{% url 'home' %}" class="btn btn-primary">Continue Shopping</a>
-            <a href="" class="btn btn-secondary">View Order</a>
+            <a href="{% url 'order_details' order.id %}" class="btn btn-secondary">View Order</a>
         </div>
 
     </div>
