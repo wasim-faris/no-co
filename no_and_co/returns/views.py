@@ -78,90 +78,39 @@ def pickup_return(request):
         messages.success(request, "Item marked as picked up.")
     return redirect("admin-returns")
 
-def receive_return(request):
+def schedule_pickup(request):
     if request.method == "POST":
         return_request_id = request.POST.get("return_request_id")
         return_request = get_object_or_404(ReturnRequest, id=return_request_id)
 
         with transaction.atomic():
-            return_request.status = "RECEIVED"
+            return_request.status = "PICKUP_SCHEDULED"
             return_request.save()
 
             order_item = return_request.order_item
-            order_item.item_status = "RETURN_RECEIVED"
+            order_item.item_status = "RETURN_PICKUP_SCHEDULED"
             order_item.save()
 
             OrderStatusHistory.objects.create(
                 order=return_request.order,
-                status="RETURN_RECEIVED"
+                status="RETURN_PICKUP_SCHEDULED"
             )
 
-        messages.success(request, "Item marked as received.")
+        messages.success(request, "Pickup scheduled for the return.")
+    return redirect("admin-returns")
+
+def receive_return(request):
+    messages.error(request, "This action is temporarily disabled.")
     return redirect("admin-returns")
 
 def initiate_refund(request):
-    if request.method == "POST":
-        return_request_id = request.POST.get("return_request_id")
-        return_request = get_object_or_404(ReturnRequest, id=return_request_id)
-
-        with transaction.atomic():
-            return_request.status = "REFUND_INITIATED"
-            return_request.refund_status = "INITIATED"
-            return_request.refund_initiated_at = timezone.now()
-            return_request.save()
-
-            order_item = return_request.order_item
-            order_item.item_status = "REFUND_INITIATED"
-            order_item.save()
-
-            OrderStatusHistory.objects.create(
-                order=return_request.order,
-                status="REFUND_INITIATED"
-            )
-
-        messages.success(request, "Refund initiated.")
+    messages.error(request, "This action is temporarily disabled.")
     return redirect("admin-returns")
 
 def complete_refund(request):
-    if request.method == "POST":
-        return_request_id = request.POST.get("return_request_id")
-        return_request = get_object_or_404(ReturnRequest, id=return_request_id)
-
-        with transaction.atomic():
-            return_request.status = "REFUND_COMPLETED"
-            return_request.refund_status = "COMPLETED"
-            return_request.refunded_at = timezone.now()
-            return_request.save()
-
-            order_item = return_request.order_item
-            order_item.item_status = "REFUND_COMPLETED"
-            order_item.save()
-
-            OrderStatusHistory.objects.create(
-                order=return_request.order,
-                status="REFUND_COMPLETED"
-            )
-
-        messages.success(request, "Refund completed.")
+    messages.error(request, "This action is temporarily disabled.")
     return redirect("admin-returns")
 
 def complete_return(request):
-    if request.method == "POST":
-        return_request_id = request.POST.get("return_request_id")
-        return_request = get_object_or_404(ReturnRequest, id=return_request_id)
-
-        with transaction.atomic():
-            return_request.status = "COMPLETED"
-            return_request.save()
-
-            order_item = return_request.order_item
-            order_item.item_status = "RETURN_COMPLETED"
-            order_item.save()
-
-            OrderStatusHistory.objects.create(
-                order=return_request.order,
-                status="RETURN_COMPLETED"
-            )
-
-        messages.success(request, "Return process completed.")
+    messages.error(request, "This action is temporarily disabled.")
     return redirect("admin-returns")

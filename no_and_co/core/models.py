@@ -124,11 +124,8 @@ class OrderItem(models.Model):
         ("CANCELLED", "Cancelled"),
         ("RETURN_REQUESTED", "Return Requested"),
         ("RETURN_APPROVED", "Return Approved"),
+        ("RETURN_PICKUP_SCHEDULED", "Return Pickup Scheduled"),
         ("RETURN_PICKED_UP", "Return Picked Up"),
-        ("RETURN_RECEIVED", "Return Received"),
-        ("REFUND_INITIATED", "Refund Initiated"),
-        ("REFUND_COMPLETED", "Refund Completed"),
-        ("RETURN_COMPLETED", "Return Completed"),
         ("RETURN_REJECTED", "Return Rejected"),
     )
 
@@ -153,7 +150,7 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField()
 
     item_status = models.CharField(
-        max_length=20,
+        max_length=50,
         choices=ITEM_STATUS_CHOICES,
         default="PENDING"
     )
@@ -199,11 +196,8 @@ class OrderStatusHistory(models.Model):
         ("CANCELLED", "Cancelled"),
         ("RETURN_REQUESTED", "Return Requested"),
         ("RETURN_APPROVED", "Return Approved"),
+        ("RETURN_PICKUP_SCHEDULED", "Return Pickup Scheduled"),
         ("RETURN_PICKED_UP", "Return Picked Up"),
-        ("RETURN_RECEIVED", "Return Received"),
-        ("REFUND_INITIATED", "Refund Initiated"),
-        ("REFUND_COMPLETED", "Refund Completed"),
-        ("RETURN_COMPLETED", "Return Completed"),
         ("RETURN_REJECTED", "Return Rejected"),
     )
 
@@ -212,7 +206,7 @@ class OrderStatusHistory(models.Model):
         on_delete=models.CASCADE,
         related_name="status_history"
     )
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES)
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES)
     updated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -226,11 +220,8 @@ class ReturnRequest(models.Model):
     STATUS_CHOICES = (
         ('REQUESTED', 'Return Requested'),
         ('APPROVED', 'Return Approved'),
+        ('PICKUP_SCHEDULED', 'Return Pickup Scheduled'),
         ('PICKED_UP', 'Return Picked Up'),
-        ('RECEIVED', 'Return Received'),
-        ('REFUND_INITIATED', 'Refund Initiated'),
-        ('REFUND_COMPLETED', 'Refund Completed'),
-        ('COMPLETED', 'Return Completed'),
         ('REJECTED', 'Return Rejected'),
     )
 
@@ -282,7 +273,7 @@ class ReturnRequest(models.Model):
     )
 
     status = models.CharField(
-        max_length=20,
+        max_length=50,
         choices=STATUS_CHOICES,
         default='REQUESTED'
     )
