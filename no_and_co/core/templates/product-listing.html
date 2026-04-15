@@ -690,7 +690,27 @@
   </a>
 
   {% endfor %}
-</div>
+    </div>
+    
+    <!-- ══ PAGINATION ══ -->
+    <div id="paginationSection">
+        {% if page_obj.has_other_pages %}
+        <div class="flex items-center justify-center flex-wrap gap-2.5 my-16">
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <span class="w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-[13px] font-bold shadow-lg shadow-black/10 cursor-default">
+                        {{ num }}
+                    </span>
+                {% else %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}"
+                       class="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-[#eee] text-black text-[13px] font-semibold hover:border-black hover:-translate-y-[1px] transition-all">
+                        {{ num }}
+                    </a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
 {% else %}
 <div class="empty-state">
     <div class="empty-icon">
@@ -963,6 +983,10 @@
             const oldTags = document.querySelector('.active-filters');
             const newTags = newDoc.querySelector('.active-filters');
             if (oldTags && newTags) oldTags.outerHTML = newTags.outerHTML;
+
+            const oldPage = document.getElementById('paginationSection');
+            const newPage = newDoc.getElementById('paginationSection');
+            if (oldPage && newPage) oldPage.innerHTML = newPage.innerHTML;
 
             // Update Header UX
             updatePageHeader(url.searchParams);

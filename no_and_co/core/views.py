@@ -262,11 +262,16 @@ def product_listing(request):
     elif sort == "name_desc":
         variants = variants.order_by("-product__product_name")
 
+    paginator = Paginator(variants, 12)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(
         request,
         "product-listing.html",
         {
-            "variants": variants,
+            "variants": page_obj,
+            "page_obj": page_obj,
             "query": query,
             "search_history": request.session.get("search_history", []),
             "whishlist_items": wishlist_items,
