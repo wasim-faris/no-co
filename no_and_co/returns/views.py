@@ -9,9 +9,9 @@ from django.core.paginator import Paginator
 def admin_returns(request):
     search_query = request.GET.get('search', '')
     status_filter = request.GET.get('status', '')
-    
+
     return_requests_list = ReturnRequest.objects.all().order_by("-requested_at")
-    
+
     if search_query:
         from django.db.models import Q
         return_requests_list = return_requests_list.filter(
@@ -20,13 +20,21 @@ def admin_returns(request):
             Q(customer__username__icontains=search_query) |
             Q(customer__email__icontains=search_query)
         )
-        
+
     if status_filter:
         return_requests_list = return_requests_list.filter(status=status_filter)
-    
+
     paginator = Paginator(return_requests_list, 4)
     page_number = request.GET.get('page')
     return_requests = paginator.get_page(page_number)
+
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, "returns/returns.html", {
+            "page_obj": return_requests,
+            "total_returns": return_requests_list.count(),
+            "search_query": search_query,
+            "status_filter": status_filter
+        })
     
     return render(request, "returns/returns.html", {
         "page_obj": return_requests,
@@ -122,20 +130,4 @@ def schedule_pickup(request):
             )
 
         messages.success(request, "Pickup scheduled for the return.")
-    return redirect("admin-returns")
-
-def receive_return(request):
-    messages.error(request, "This action is temporarily disabled.")
-    return redirect("admin-returns")
-
-def initiate_refund(request):
-    messages.error(request, "This action is temporarily disabled.")
-    return redirect("admin-returns")
-
-def complete_refund(request):
-    messages.error(request, "This action is temporarily disabled.")
-    return redirect("admin-returns")
-
-def complete_return(request):
-    messages.error(request, "This action is temporarily disabled.")
     return redirect("admin-returns")

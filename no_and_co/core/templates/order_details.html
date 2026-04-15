@@ -738,16 +738,10 @@
                         <span class="module-label">Items Ordered</span>
                         {% with return_request=order.returns.first %}
                             {% if return_request %}
-                                {% if return_request.status == "COMPLETED" %}
-                                    <span class="status-badge badge-return-completed" id="order-status-badge">Return Completed</span>
-                                {% elif return_request.status == "REFUND_COMPLETED" %}
-                                    <span class="status-badge badge-return-completed" id="order-status-badge">Refund Completed</span>
-                                {% elif return_request.status == "REFUND_INITIATED" %}
-                                    <span class="status-badge" style="color: #1e40af; border-color: #bfdbfe; background: #eff6ff;" id="order-status-badge">Refund Initiated</span>
-                                {% elif return_request.status == "RECEIVED" %}
-                                    <span class="status-badge" style="color: #3730a3; border-color: #e0e7ff; background: #f5f3ff;" id="order-status-badge">Return Received</span>
-                                {% elif return_request.status == "PICKED_UP" %}
+                                {% if return_request.status == "PICKED_UP" %}
                                     <span class="status-badge" style="color: #854d0e; border-color: #fef3c7; background: #fffbeb;" id="order-status-badge">Return Picked Up</span>
+                                {% elif return_request.status == "PICKUP_SCHEDULED" %}
+                                    <span class="status-badge" style="color: #1e40af; border-color: #bfdbfe; background: #eff6ff;" id="order-status-badge">Pickup Scheduled</span>
                                 {% elif return_request.status == "APPROVED" %}
                                     <span class="status-badge badge-return-approved" id="order-status-badge">Return Approved</span>
                                 {% elif return_request.status == "REJECTED" %}

@@ -171,7 +171,7 @@
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
-                        <input type="text" name="search" value="{{ search_query }}" placeholder="Search by Return ID, Order ID, or customer..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gray-400 transition-all">
+                        <input type="text" id="searchInput" name="search" value="{{ search_query }}" placeholder="Search by Return ID, Order ID, or customer..." class="w-full pl-11 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-gray-400 transition-all font-medium">
                     </div>
 
                     <select name="status" onchange="this.form.submit()" class="px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-600 focus:outline-none focus:border-gray-400 min-w-[140px]">
@@ -206,7 +206,7 @@
                                 <th class="px-5 py-4 font-bold text-right">Options</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-50 text-sm">
+                        <tbody id="returnTableBody" class="divide-y divide-gray-50 text-sm">
                             {% for return_request in page_obj %}
                             <tr class="hover:bg-gray-50/50 transition-colors group">
                                 <td class="px-5 py-4 align-middle">
@@ -526,87 +526,67 @@
         </div>
     </div>
 
-    <!-- Receive Return Modal -->
-    <div id="receiveModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('receiveModal')"></div>
-            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
-                <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                </div>
-                <h3 class="text-xl font-serif text-gray-900 mb-2">Mark as Received</h3>
-                <p class="text-sm text-gray-500 mb-8">Confirm that the returned item has been received at the warehouse.</p>
-                <form id="receiveForm" method="POST" action="{% url "receive_return" %}" class="flex gap-3">
-                    {% csrf_token %}
-                    <input type="hidden" name="return_request_id" id="receiveRequestId">
-                    <button type="button" onclick="closeModal('receiveModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
-                    <button type="submit" class="flex-1 px-6 py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-indigo-700 transition-all">Confirm Receipt</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Initiate Refund Modal -->
-    <div id="initiateRefundModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('initiateRefundModal')"></div>
-            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
-                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-                </div>
-                <h3 class="text-xl font-serif text-gray-900 mb-2">Initiate Refund</h3>
-                <p class="text-sm text-gray-500 mb-8">Click to start the refund process. The customer will be informed that their refund is being processed.</p>
-                <form id="initiateRefundForm" method="POST" action="{% url "initiate_refund" %}" class="flex gap-3">
-                    {% csrf_token %}
-                    <input type="hidden" name="return_request_id" id="initiateRefundRequestId">
-                    <button type="button" onclick="closeModal('initiateRefundModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
-                    <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-blue-700 transition-all">Initiate Refund</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Complete Refund Modal -->
-    <div id="completeRefundModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('completeRefundModal')"></div>
-            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
-                <div class="w-16 h-16 bg-teal-50 text-teal-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                </div>
-                <h3 class="text-xl font-serif text-gray-900 mb-2">Complete Refund</h3>
-                <p class="text-sm text-gray-500 mb-8">Final confirmation that the amount has been successfully credited back to the customer.</p>
-                <form id="completeRefundForm" method="POST" action="{% url "complete_refund" %}" class="flex gap-3">
-                    {% csrf_token %}
-                    <input type="hidden" name="return_request_id" id="completeRefundRequestId">
-                    <button type="button" onclick="closeModal('completeRefundModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
-                    <button type="submit" class="flex-1 px-6 py-3 bg-teal-600 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-teal-700 transition-all">Confirm Refund</button>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Complete Return Modal -->
-    <div id="completeModal" class="fixed inset-0 z-50 hidden overflow-hidden" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm" onclick="closeModal('completeModal')"></div>
-            <div class="relative bg-white rounded-2xl p-8 shadow-2xl w-full max-w-md text-center">
-                <div class="w-16 h-16 bg-gray-900 text-white rounded-full flex items-center justify-center mx-auto mb-6">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <h3 class="text-xl font-serif text-gray-900 mb-2">Finalize Return Process</h3>
-                <p class="text-sm text-gray-500 mb-8">This marks the entire lifecycle of the return as finished. No further actions can be taken.</p>
-                <form id="completeForm" method="POST" action="{% url "complete_return" %}" class="flex gap-3">
-                    {% csrf_token %}
-                    <input type="hidden" name="return_request_id" id="completeRequestId">
-                    <button type="button" onclick="closeModal('completeModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
-                    <button type="submit" class="flex-1 px-6 py-3 bg-gray-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black transition-all">Finalize Return</button>
-                </form>
-            </div>
-        </div>
-    </div>
 
     <script>
+        // Real-time Search Functionality with Debounce
+        (function() {
+            const searchInput = document.getElementById('searchInput');
+            const statusFilter = document.querySelector('select[name="status"]');
+            const tableBody = document.getElementById('returnTableBody');
+            const paginationSection = document.getElementById('paginationSection');
+            let debounceTimer;
+
+            function updateResults() {
+                const search = searchInput.value;
+                const status = statusFilter.value;
+                const url = new URL(window.location.href);
+                
+                url.searchParams.set('search', search);
+                url.searchParams.set('status', status);
+                url.searchParams.set('page', '1'); // Reset to page 1 on search/filter
+
+                // Update browser URL without reload
+                window.history.pushState({}, '', url);
+
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    
+                    const newTableBody = doc.getElementById('returnTableBody');
+                    const newPagination = doc.getElementById('paginationSection');
+                    
+                    if (newTableBody) tableBody.innerHTML = newTableBody.innerHTML;
+                    if (newPagination) paginationSection.innerHTML = newPagination.innerHTML;
+                })
+                .catch(error => console.error('Error fetching search results:', error));
+            }
+
+            searchInput.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(updateResults, 300);
+            });
+
+            statusFilter.addEventListener('change', (e) => {
+                e.preventDefault(); // Prevent the default form submission from onchange="this.form.submit()"
+                updateResults();
+            });
+
+            // Prevent form submit on enter but still trigger update
+            const form = searchInput.closest('form');
+            if (form) {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    updateResults();
+                });
+            }
+        })();
+
         // Toast animation
         document.addEventListener('DOMContentLoaded', function () {
             const toasts = document.querySelectorAll('.toast-item');
