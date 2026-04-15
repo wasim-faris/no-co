@@ -6,6 +6,8 @@
     <title>Variant Management - NØ & CO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -29,6 +31,18 @@
         }
         [x-cloak] {
             display: none !important;
+        }
+        .cropper-container-wrapper {
+            max-height: 400px;
+            width: 100%;
+            overflow: hidden;
+            background: #f9f9f7;
+            border-radius: 12px;
+            border: 1px solid #f1f1ef;
+        }
+        #cropper-image {
+            display: block;
+            max-width: 100%;
         }
     </style>
 </head>
@@ -689,7 +703,31 @@
         </form>
     </div>
 </div>
+
+<!-- CROP MODAL -->
+<div id="cropModal" class="fixed inset-0 z-[200] flex items-center justify-center p-6 hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeCropModal()"></div>
+    <div class="relative bg-white w-full max-w-md rounded-[32px] p-8 shadow-2xl z-10 transition-all transform scale-100 opacity-100">
+        <div class="mb-6">
+            <h2 class="text-xl font-semibold">Fine Tune Image</h2>
+            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Adjust to Square Aspect Ratio</p>
+        </div>
+
+        <div class="cropper-container-wrapper mb-8 flex items-center justify-center">
+            <img id="cropper-image" src="" class="block w-full">
+        </div>
+
+        <div class="flex gap-4">
+            <button type="button" onclick="closeCropModal()" class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">Cancel</button>
+            <button type="button" onclick="saveCroppedImage()" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">Crop & Save</button>
+        </div>
+    </div>
+</div>
+
 <script>
+let cropper = null;
+let currentCropData = null; // Stores { modalType, index }
+
 function closeModal(id) {
     document.getElementById(id).classList.add('hidden');
     ['add', 'edit'].forEach(function(prefix) {
@@ -832,27 +870,76 @@ document.addEventListener('click', function(e) {
 
 function previewImage(input, modalType, index) {
     if (input.files && input.files[0]) {
-        var reader = new FileReader();
+        const file = input.files[0];
+        const reader = new FileReader();
         reader.onload = function(e) {
-            document.getElementById(`${modalType}-preview-${index}`).src = e.target.result;
-            document.getElementById(`${modalType}-preview-container-${index}`).classList.remove('hidden');
+            currentCropData = { modalType, index };
+            const cropModal = document.getElementById('cropModal');
+            const cropImg = document.getElementById('cropper-image');
+            
+            cropImg.src = e.target.result;
+            cropModal.classList.remove('hidden');
+            
+            if (cropper) cropper.destroy();
+            cropper = new Cropper(cropImg, {
+                aspectRatio: 1,
+                viewMode: 1,
+                background: false,
+                autoCropArea: 1,
+            });
+        }
+        reader.readAsDataURL(file);
+    }
+}
 
-            var imgErr = document.getElementById(`${modalType}-image-error`);
-            if (imgErr) imgErr.classList.add('hidden');
+function closeCropModal() {
+    document.getElementById('cropModal').classList.add('hidden');
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+}
 
-            let radioEl = document.getElementById(`${modalType}-radio-${index}`);
+function saveCroppedImage() {
+    if (!cropper) return;
+    
+    const canvas = cropper.getCroppedCanvas({
+        width: 800,
+        height: 800,
+    });
+    
+    canvas.toBlob((blob) => {
+        const { modalType, index } = currentCropData;
+        
+        // Update Preview
+        const previewImg = document.getElementById(`${modalType}-preview-${index}`);
+        previewImg.src = URL.createObjectURL(blob);
+        document.getElementById(`${modalType}-preview-container-${index}`).classList.remove('hidden');
+        
+        // Use DataTransfer to put the cropped blob into the file input
+        // This allows standard form submission to pick up the cropped file
+        const file = new File([blob], `variant_image_${index}.jpg`, { type: 'image/jpeg' });
+        const dt = new DataTransfer();
+        dt.items.add(file);
+        const inputEl = document.getElementById(`${modalType}-img-input-${index}`);
+        inputEl.files = dt.files;
 
-            if (radioEl) {
-                radioEl.value = `new_${index}`;
-                radioEl.onchange = () => setPrimary(modalType, `new_${index}`);
-                if (!document.getElementById(`${modalType}_primary_image`).value) {
-                    radioEl.checked = true;
-                    setPrimary(modalType, `new_${index}`);
-                }
+        // Update primary selection logic
+        let radioEl = document.getElementById(`${modalType}-radio-${index}`);
+        if (radioEl) {
+            radioEl.value = `new_${index}`;
+            radioEl.onchange = () => setPrimary(modalType, `new_${index}`);
+            if (!document.getElementById(`${modalType}_primary_image`).value) {
+                radioEl.checked = true;
+                setPrimary(modalType, `new_${index}`);
             }
         }
-        reader.readAsDataURL(input.files[0]);
-    }
+        
+        const imgErr = document.getElementById(`${modalType}-image-error`);
+        if (imgErr) imgErr.classList.add('hidden');
+        
+        closeCropModal();
+    }, 'image/jpeg', 0.9);
 }
 
 function removeImage(modalType, index) {
@@ -946,6 +1033,8 @@ function validateForm(modalType, e) {
             btn.disabled = true;
             btn.classList.add('opacity-80', 'cursor-not-allowed');
         }
+
+        // Use standard form submission for reliability with Django messages and redirects
         document.getElementById(`${modalType}Form`).submit();
     }
     return false;
