@@ -744,6 +744,19 @@
                         }, 320);
                     }
                 }
+
+                if (typeof showToast === 'function') {
+                    const msg = data.status === 'added' ? "Added to wishlist" : "Removed from wishlist";
+                    showToast(msg, "success");
+                }
+
+                // Update counts globally
+                if (data.wishlist_count !== undefined) {
+                    window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: data.wishlist_count } }));
+                }
+                if (data.cart_count !== undefined) {
+                    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart_count } }));
+                }
             })
             .catch(err => {
                 console.error('Wishlist Sync Error:', err);
@@ -973,6 +986,14 @@
                                 }
                             }
                         }, 300);
+                    }
+
+                    // Update counts globally
+                    if (response.data.cart_count !== undefined) {
+                        window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: response.data.cart_count } }));
+                    }
+                    if (response.data.wishlist_count !== undefined) {
+                        window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: response.data.wishlist_count } }));
                     }
                 } else {
                     // Fallback reset if ok is true but success field is missing (e.g. unexpected redirect)

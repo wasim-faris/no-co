@@ -6,7 +6,7 @@ from .models import Wishlist
 from django.contrib import messages
 from django.http import HttpResponse
 from django.http import JsonResponse
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Sum
 from cart.models import Cart
 
 
@@ -76,12 +76,24 @@ def wishlist_toggle(request):
 
     if item.exists():
         item.delete()
-
-        return JsonResponse({"status": "removed"})
-
+        status = "removed"
     else:
         Wishlist.objects.create(user=user, session_key=session_key, variant=variant)
-        return JsonResponse({"status": "added"})
+        status = "added"
+
+    # Calculate updated counts
+    if request.user.is_authenticated:
+        cart_count = Cart.objects.filter(user=request.user).aggregate(total=Sum("quantity"))["total"] or 0
+        wishlist_count = Wishlist.objects.filter(user=request.user).count()
+    else:
+        cart_count = Cart.objects.filter(session_key=request.session.session_key).aggregate(total=Sum("quantity"))["total"] or 0
+        wishlist_count = Wishlist.objects.filter(session_key=request.session.session_key).count()
+
+    return JsonResponse({
+        "status": status,
+        "cart_count": cart_count,
+        "wishlist_count": wishlist_count
+    })
 
 
 def wishlist_add_to_cart(request):
@@ -133,7 +145,19 @@ def wishlist_add_to_cart(request):
             if wishlist_id:
                 Wishlist.objects.filter(id=wishlist_id).delete()
 
-    return JsonResponse({"success": True}, status=200)
+    # Calculate updated counts
+    if request.user.is_authenticated:
+        cart_count = Cart.objects.filter(user=request.user).aggregate(total=Sum("quantity"))["total"] or 0
+        wishlist_count = Wishlist.objects.filter(user=request.user).count()
+    else:
+        cart_count = Cart.objects.filter(session_key=request.session.session_key).aggregate(total=Sum("quantity"))["total"] or 0
+        wishlist_count = Wishlist.objects.filter(session_key=request.session.session_key).count()
+
+    return JsonResponse({
+        "success": True, 
+        "cart_count": cart_count,
+        "wishlist_count": wishlist_count
+    }, status=200)
 
 
 def merge_wishlist_item(request, user, old_session_key):
