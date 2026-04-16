@@ -12,7 +12,7 @@ import string
 from django.conf import settings
 from django.db import models
 from django.utils.timezone import now
-
+from django.core.exceptions import ValidationError
 
 def generate_order_number():
     date_part = now().strftime("%Y%m%d")
@@ -156,9 +156,8 @@ class OrderItem(models.Model):
     )
 
     def clean(self):
-        from django.core.exceptions import ValidationError
         super().clean()
-        
+
         if self.pk:
             old_item = OrderItem.objects.get(pk=self.pk)
             old_status = old_item.item_status
@@ -171,12 +170,12 @@ class OrderItem(models.Model):
                 "PENDING": ["CONFIRMED", "CANCELLED"],
                 "CONFIRMED": ["PROCESSING", "CANCELLED"],
                 "PROCESSING": ["SHIPPED"],
-                "SHIPPED": ["DELIVERED"],
+                "SHIPPED": ["OUT_FOR_DELIVERY"],
+                "OUT_FOR_DELIVERY": ["DELIVERED"],
                 "DELIVERED": [],
                 "CANCELLED": [],
             }
 
-            # Only enforce the strict forward-flow rules for these core statuses
             if old_status in valid_transitions and new_status in valid_transitions:
                 allowed_next = valid_transitions[old_status]
                 if new_status not in allowed_next:

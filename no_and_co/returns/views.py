@@ -58,7 +58,7 @@ def approve_return(request):
             order_item.item_status = "RETURN_APPROVED"
             order_item.save()
 
-            # Update timeline
+  
             OrderStatusHistory.objects.create(
                 order=return_request.order,
                 status="RETURN_APPROVED"
@@ -81,7 +81,6 @@ def reject_return(request):
             order_item.item_status = "RETURN_REJECTED"
             order_item.save()
 
-            # Update timeline
             OrderStatusHistory.objects.create(
                 order=return_request.order,
                 status="RETURN_REJECTED"

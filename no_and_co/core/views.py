@@ -25,6 +25,8 @@ from io import BytesIO
 from django.template.loader import get_template
 from django.core.paginator import Paginator
 from django.utils import timezone
+from xhtml2pdf import pisa
+from django.http import JsonResponse
 # Create your views here.
 
 
@@ -100,7 +102,6 @@ def product_details(request, id):
         .order_by("-is_default", "id")
     )
 
-    # Handle explicit variant requested via query param (e.g. from wishlist)
     variant_id = request.GET.get("variant")
     default_variant = None
     if variant_id:
@@ -281,8 +282,6 @@ def product_listing(request):
 
 
 def get_variant_sizes(request, variant_id):
-    """API: return all same-product/same-color variants so the drawer can list sizes."""
-    from django.http import JsonResponse
 
     variant = get_object_or_404(Variant, id=variant_id)
 
@@ -301,7 +300,6 @@ def get_variant_sizes(request, variant_id):
         {"id": v.id, "size": v.size.name, "stock": v.stock} for v in same_color_variants
     ]
 
-    # Resolve image URL
     image_url = None
     primary = variant.images.filter(is_primary=True).first()
     if primary:
@@ -543,8 +541,6 @@ def download_invoice(request, id):
     }
 
     try:
-        from xhtml2pdf import pisa
-
         context["is_pdf"] = True
         template = get_template("invoice/invoice_template.html")
         html_string = template.render(context)
@@ -599,6 +595,7 @@ def cancel_order(request, order_id):
         )
 
         order.cancelled_at = timezone.now()
+
         if order.payment_method == "ONLINE" and order.payment_status == "PAID":
             order.payment_status = "REFUNDED"
 
@@ -640,7 +637,6 @@ def return_order(request, order_id):
             order_item.item_status = "RETURN_REQUESTED"
             order_item.save()
 
-            # Update timeline
             OrderStatusHistory.objects.create(
                 order=order,
                 status="RETURN_REQUESTED"

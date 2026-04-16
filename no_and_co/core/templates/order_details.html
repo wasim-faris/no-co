@@ -1069,20 +1069,20 @@
                                 {% else %}
                                     {% with status=order.items.first.item_status|default:"PENDING"|upper %}
                                         <!-- 1. Pending -->
-                                        <div class="timeline-step {% if status == 'PENDING' %}active{% else %}done{% endif %}">
+                                        <div class="timeline-step done">
                                             <div class="timeline-dot {% if status == 'PENDING' %}current{% else %}done{% endif %}">
-                                                {% if status == 'PENDING' %}{% else %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                             </div>
                                             <div class="timeline-content">
                                                 <div class="timeline-title">Pending {% if status == 'PENDING' %}<span class="timeline-progress-tag">In Progress</span>{% endif %}</div>
-                                                <div class="timeline-date">{% if status == 'PENDING' %}Awaiting verification{% else %}{{ order.created_at|date:"M d, Y" }}{% endif %}</div>
+                                                <div class="timeline-date">{{ order.created_at|date:"M d, Y" }}</div>
                                             </div>
                                         </div>
 
                                         <!-- 2. Confirmed -->
-                                        <div class="timeline-step {% if status == 'PENDING' %}pending{% elif status == 'CONFIRMED' %}active{% else %}done{% endif %}">
+                                        <div class="timeline-step {% if status == 'PENDING' %}pending{% else %}done{% endif %}">
                                             <div class="timeline-dot {% if status == 'CONFIRMED' %}current{% elif status == 'PENDING' %}{% else %}done{% endif %}">
-                                                {% if status != 'PENDING' and status != 'CONFIRMED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                {% if status != 'PENDING' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
                                             </div>
                                             <div class="timeline-content">
                                                 <div class="timeline-title">Confirmed {% if status == 'CONFIRMED' %}<span class="timeline-progress-tag">In Progress</span>{% endif %}</div>
@@ -1091,9 +1091,9 @@
                                         </div>
 
                                         <!-- 3. Processing -->
-                                        <div class="timeline-step {% if status == 'PENDING' or status == 'CONFIRMED' %}pending{% elif status == 'PROCESSING' %}active{% else %}done{% endif %}">
+                                        <div class="timeline-step {% if status == 'PENDING' or status == 'CONFIRMED' %}pending{% else %}done{% endif %}">
                                             <div class="timeline-dot {% if status == 'PROCESSING' %}current{% elif status == 'PENDING' or status == 'CONFIRMED' %}{% else %}done{% endif %}">
-                                                {% if status != 'PENDING' and status != 'CONFIRMED' and status != 'PROCESSING' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                {% if status != 'PENDING' and status != 'CONFIRMED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
                                             </div>
                                             <div class="timeline-content">
                                                 <div class="timeline-title">Processing {% if status == 'PROCESSING' %}<span class="timeline-progress-tag">In Progress</span>{% endif %}</div>
@@ -1102,9 +1102,9 @@
                                         </div>
 
                                         <!-- 4. Shipped -->
-                                        <div class="timeline-step {% if status == 'SHIPPED' %}active{% elif status == 'OUT_FOR_DELIVERY' or status == 'DELIVERED' %}done{% else %}pending{% endif %}">
+                                        <div class="timeline-step {% if status == 'PENDING' or status == 'CONFIRMED' or status == 'PROCESSING' %}pending{% else %}done{% endif %}">
                                             <div class="timeline-dot {% if status == 'SHIPPED' %}current{% elif status == 'OUT_FOR_DELIVERY' or status == 'DELIVERED' %}done{% else %}{% endif %}">
-                                                {% if status == 'OUT_FOR_DELIVERY' or status == 'DELIVERED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                {% if status == 'SHIPPED' or status == 'OUT_FOR_DELIVERY' or status == 'DELIVERED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
                                             </div>
                                             <div class="timeline-content">
                                                 <div class="timeline-title">Shipped {% if status == 'SHIPPED' %}<span class="timeline-progress-tag">In Transit</span>{% endif %}</div>
@@ -1113,9 +1113,9 @@
                                         </div>
 
                                         <!-- 5. Out for Delivery -->
-                                        <div class="timeline-step {% if status == 'OUT_FOR_DELIVERY' %}active{% elif status == 'DELIVERED' %}done{% else %}pending{% endif %}">
+                                        <div class="timeline-step {% if status == 'PENDING' or status == 'CONFIRMED' or status == 'PROCESSING' or status == 'SHIPPED' %}pending{% else %}done{% endif %}">
                                             <div class="timeline-dot {% if status == 'OUT_FOR_DELIVERY' %}current{% elif status == 'DELIVERED' %}done{% else %}{% endif %}">
-                                                {% if status == 'DELIVERED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                {% if status == 'OUT_FOR_DELIVERY' or status == 'DELIVERED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
                                             </div>
                                             <div class="timeline-content">
                                                 <div class="timeline-title">Out for Delivery {% if status == 'OUT_FOR_DELIVERY' %}<span class="timeline-progress-tag">Today</span>{% endif %}</div>
