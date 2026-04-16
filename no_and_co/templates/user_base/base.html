@@ -275,7 +275,7 @@
     </main>
 
     <!-- Mobile Bottom Navigation -->
-    <div class="mobile-nav-container md:hidden">
+    <div id="bottom-nav" class="mobile-nav-container md:hidden transition-transform duration-300 ease-in-out">
         <nav class="mobile-bottom-nav">
             <a href="/" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
@@ -422,6 +422,29 @@
                 }, 3000);
             }
         })();
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const bottomNav = document.getElementById("bottom-nav");
+            if (!bottomNav) return;
+
+            let lastScrollTop = 0;
+
+            window.addEventListener("scroll", function () {
+                let currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+
+                if (currentScroll > lastScrollTop && currentScroll > 50) {
+                    // Scrolling Down → Hide Navbar
+                    // Adjusting translation to fully hide including the 24px bottom offset of the glass island
+                    bottomNav.style.transform = "translateY(calc(100% + 30px))";
+                } else {
+                    // Scrolling Up → Show Navbar
+                    bottomNav.style.transform = "translateY(0)";
+                }
+
+                lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
+            });
+        });
     </script>
 </body>
 
