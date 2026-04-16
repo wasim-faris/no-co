@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.core.paginator import Paginator
@@ -60,7 +61,7 @@ def order_detail(request, order_id):
     return render(request, 'order_management/order_detail.html', {'order_id': order_id, "order":order})
 
 def inventory_list(request):
-    pass
+    return HttpResponse("currenlty unavailable")
 
 def admin_update_order_status(request, order_id):
     if request.method == "POST":
