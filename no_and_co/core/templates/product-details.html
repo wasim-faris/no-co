@@ -408,6 +408,12 @@
     ════════════════════════════════════════ */
     #imageContainer img {
         cursor: zoom-in; /* Let the user know it's clickable */
+        transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+ 
+    .gallery-swapping img {
+        opacity: 0 !important;
+        filter: blur(10px);
     }
 
     .lightbox-modal {
@@ -1041,9 +1047,11 @@
                      data-color="{{ variant.color }}"
                      data-price="{{ variant.price }}"
                      data-sizes="{% for v in variants %}{% if v.color == variant.color %}{{ v.size.name }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}"
-                     data-img1="{% if variant.primary_images.all %}{{ variant.primary_images.0.image.url }}{% elif variant.images.all %}{{ variant.images.all.0.image.url }}{% endif %}"
-                     {% for img in variant.images.all|slice:"1:4" %}
-                        data-img{{ forloop.counter|add:1 }}="{{ img.image.url }}"
+                     data-img1="{% if variant.primary_images %}{{ variant.primary_images.0.image.url }}{% elif variant.images.all %}{{ variant.images.all.0.image.url }}{% endif %}"
+                     {% for img in variant.images.all %}
+                        {% if not variant.primary_images or img.id != variant.primary_images.0.id %}
+                            data-img-extra-{{ forloop.counter }}="{{ img.image.url }}"
+                        {% endif %}
                      {% endfor %}
                      onclick="selectVariant(this)">
 
@@ -1366,25 +1374,58 @@
         priceDisplay.innerText = `Rs. ${element.getAttribute('data-price')}`;
         colorLabel.innerText = `COLOUR: ${element.getAttribute('data-color')}`;
 
+        // Premium Animation: Fade out gallery first
+        const imageContainer = document.getElementById('imageContainer');
+        if (imageContainer) {
+            imageContainer.classList.add('gallery-swapping');
+            // Reset scroll for mobile gallery
+            imageContainer.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+        }
+
         // Update Images with fade transition
-        for (let i = 1; i <= 4; i++) {
+        const extraImgs = Array.from(element.attributes)
+            .filter(attr => attr.name.startsWith('data-img-extra-'))
+            .map(attr => attr.value);
+        
+        const allNewSources = [element.getAttribute('data-img1'), ...extraImgs];
+
+        let loadPromises = [];
+
+        // We support up to 5 image slots in the CSS (mainImage + images 2,3,4,5)
+        for (let i = 1; i <= 5; i++) {
             const targetId = (i === 1) ? 'mainImage' : `image${i}`;
             const imgElement = document.getElementById(targetId);
-            const newSrc = element.getAttribute(`data-img${i}`);
+            const newSrc = allNewSources[i-1];
 
             if (imgElement) {
                 if (newSrc) {
-                    imgElement.style.opacity = '0';
-                    setTimeout(() => {
-                        imgElement.src = newSrc;
-                        imgElement.style.opacity = '1';
-                        imgElement.style.display = 'block';
-                    }, 100);
+                    // Create a promise for the primary image to ensure smooth reveal
+                    if (i === 1) {
+                        const p = new Promise(resolve => {
+                            const tempImg = new Image();
+                            tempImg.onload = resolve;
+                            tempImg.onerror = resolve; // Continue anyway on error
+                            tempImg.src = newSrc;
+                        });
+                        loadPromises.push(p);
+                    }
+                    imgElement.src = newSrc;
+                    imgElement.style.display = 'block';
                 } else if (i > 1) {
                     imgElement.style.display = 'none';
+                    imgElement.src = ''; // Clear src to avoid flicker on next swap
                 }
             }
         }
+
+        // Reveal after small delay or once hero image is ready
+        Promise.all(loadPromises).then(() => {
+            setTimeout(() => {
+                if (imageContainer) {
+                    imageContainer.classList.remove('gallery-swapping');
+                }
+            }, 50); // Small buffer for DOM to catch up
+        });
 
         // Update Sizes
         const sizesRaw = element.getAttribute('data-sizes');

@@ -39,7 +39,7 @@ def home(request):
 
     variants = (
         Variant.objects.filter(
-            is_default=True, is_deleted=False, product__is_deleted=False
+            is_default=True, is_deleted=False, product__is_deleted=False, product__category__category_name = "MENS"
         )
         .prefetch_related(
             Prefetch(
@@ -59,8 +59,20 @@ def home(request):
 
 
 def ladies(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect("admin-dashboard")
+    variants = ( Variant.objects.filter(
+        is_default = True, is_deleted = False, product__is_deleted =False , product__category__category_name = "LADIES"
+    ).prefetch_related(
+         Prefetch(
+                "images",
+                queryset=VariantImage.objects.filter(is_primary=True),
+                to_attr="primary_images",
+            )
+    ).order_by("-created_at")[:6]
+    )
     search_history = request.session.get("search_history", [])
-    return render(request, "ladies.html", {"search_history": search_history})
+    return render(request, "ladies.html", {"search_history": search_history, "variants": variants})
 
 def kids(request):
     search_history = request.session.get("search_history", [])

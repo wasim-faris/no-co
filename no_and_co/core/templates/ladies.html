@@ -201,20 +201,23 @@
 
 
     <section class="w-full grid grid-cols-3 md:grid-cols-6 no-gap">
-      <!-- Row 1 -->
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/59/e5/59e5ed40f2898edbb63ab64e90c11fc392b9319d.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/f1/4c/f14c5e1b3746ea0ba81b60079e319f51f3af9456.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/fb/3d/fb3dfcb0daec50394b251264b07927d0bdbdbdd5.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/12/87/12877886731c50eda70e6324b7280df7e939c894.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/9c/2f/9c2fd263a957787e7b7171580abe57f98f62ba4d.jpg?imwidth=2160" class="w-full h-full object-cover lazy-image"></div></div>
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/28/1b/281b11ba5770bd2f19c2db9ed3d81ab118768ca2.jpg?imwidth=1260" class="w-full h-full object-cover lazy-image"></div></div>
-      <!-- Row 2 -->
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/00/13/0013300d0a6fdcde50571381734f13f917022992.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/b8/47/b8472c2bc7bef21dea1afda22f8f7b1c50daf846.jpg?imwidth=2160" class="w-full h-full object-cover lazy-image"></div></div>
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/3e/b4/3eb46a8906c06c1b2de0c0cc24b7955020efbe69.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/c7/b8/c7b8ed5bb65ce332e3914d5ab64a6c0aaaa76874.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/24/de/24dec0e5d6d5c5bf877af864fc151c240aeeb1be.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
-      <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/10/e4/10e48c5b86e7832b7e2200c95125858647be84f6.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
+        {% for variant in variants %}
+        <a href="{% url 'product-details' variant.product.id %}" class="product-grid-item aspect-[3/4] skeleton-wrapper block">
+            <div class="w-full h-full relative">
+                <div class="skeleton skeleton-img"></div>
+                {% if variant.primary_images %}
+                    <img data-src="{{ variant.primary_images.0.image.url }}" alt="" class="w-full h-full object-cover lazy-image">
+                {% else %}
+                    <div class="w-full h-full bg-gray-100 actual-content" style="display:block !important;"></div>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+
+        <!-- STATIC GRID REPLACEMENTS (to ensure a full 6-column look) -->
+        <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/59/e5/59e5ed40f2898edbb63ab64e90c11fc392b9319d.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
+        <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/f1/4c/f14c5e1b3746ea0ba81b60079e319f51f3af9456.jpg?imwidth=384" class="w-full h-full object-cover lazy-image"></div></div>
+        <div class="product-grid-item aspect-[3/4] skeleton-wrapper block"><div class="w-full h-full relative"><div class="skeleton skeleton-img"></div><img data-src="https://image.hm.com/assets/hm/9c/2f/9c2fd263a957787e7b7171580abe57f98f62ba4d.jpg?imwidth=2160" class="w-full h-full object-cover lazy-image"></div></div>
     </section>
 
     <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white">
