@@ -83,25 +83,20 @@ def verify_payment(request):
             order.payment_status = "PAID"
             order.save()
 
-            cart_items = Cart.objects.filter(user=order.user)
-
-            for item in cart_items:
+            # Update stock based on FINAL OrderItems (not current cart)
+            # and delete the cart now that payment is confirmed
+            order_items = OrderItem.objects.filter(order=order)
+            for item in order_items:
                 updated = Variant.objects.filter(
                     id=item.variant.id,
                     stock__gte=item.quantity
                 ).update(stock=F("stock") - item.quantity)
 
                 if not updated:
-                    raise ValueError("Stock not available")
+                    raise ValueError(f"Stock not available for {item.variant.product.product_name}")
 
-                OrderItem.objects.create(
-                    order=order,
-                    variant=item.variant,
-                    price=item.variant.price,
-                    quantity=item.quantity
-                )
-
-            cart_items.delete()
+            # Clear user's cart
+            Cart.objects.filter(user=order.user).delete()
 
         return JsonResponse({"status": "success"})
 
@@ -138,21 +133,19 @@ def razorpay_callback(request):
                 order.payment_status = "PAID"
                 order.save()
                 
-                cart_items = Cart.objects.filter(user=order.user)
-                for item in cart_items:
+                # Update stock based on FINAL OrderItems
+                order_items = OrderItem.objects.filter(order=order)
+                for item in order_items:
                     updated = Variant.objects.filter(
                         id=item.variant.id,
                         stock__gte=item.quantity
                     ).update(stock=F("stock") - item.quantity)
                     if not updated:
-                        raise ValueError("Stock not available")
-                    OrderItem.objects.create(
-                        order=order,
-                        variant=item.variant,
-                        price=item.variant.price,
-                        quantity=item.quantity
-                    )
-                cart_items.delete()
+                        raise ValueError(f"Stock not available for {item.variant.product.product_name}")
+                
+                # Clear user's cart
+                Cart.objects.filter(user=order.user).delete()
+
             return redirect('order-success')
         except Exception as e:
             print("CALLBACK VERIFY ERROR:", e)

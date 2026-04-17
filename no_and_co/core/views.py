@@ -446,16 +446,8 @@ def place_order(request):
                     updated_at = timezone.now()
                 )
 
+                # Record OrderItems immediately so they are captured at checkout time
                 for item in cart_items:
-                    updated = Variant.objects.filter(
-                        id=item.variant.id, stock__gte=item.quantity
-                    ).update(stock=F("stock") - item.quantity)
-
-                    if not updated:
-                        raise ValueError(
-                            f"Insufficient stock for {item.variant.product.name}."
-                        )
-
                     OrderItem.objects.create(
                         order=order,
                         variant=item.variant,
@@ -463,13 +455,23 @@ def place_order(request):
                         quantity=item.quantity,
                     )
 
-                cart_items.delete()
+                if payment_method == "COD":
+                    # For COD, we process stock and clear cart immediately
+                    for item in cart_items:
+                        updated = Variant.objects.filter(
+                            id=item.variant.id, stock__gte=item.quantity
+                        ).update(stock=F("stock") - item.quantity)
 
-            if payment_method == "ONLINE":
+                        if not updated:
+                            raise ValueError(
+                                f"Insufficient stock for {item.variant.product.name}."
+                            )
+                    cart_items.delete()
+                    return redirect("order-success")
+                
+                # For ONLINE, we redirect to payment without clearing cart or updating stock
+                # These will be handled in verify_payment or callback upon success
                 return redirect("payment-page", order_id=order.id)
-
-
-            return redirect("order-success")
         
         finally:
             request.session.pop("order_processing", None)
