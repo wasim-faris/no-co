@@ -1,0 +1,562 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}Complete Payment – NO&CO{% endblock %}
+
+{% block extra_head %}
+<style>
+    body {
+        background-color: #ffffff;
+        color: #000000;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .payment-container {
+        max-width: 520px;
+        margin: 0 auto;
+        padding: 60px 20px 80px;
+    }
+
+    .page-heading {
+        font-family: "Inter", "Helvetica Neue", Arial, sans-serif !important;
+        font-size: 36px;
+        line-height: 1.2;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 40px;
+    }
+
+    .section-title {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #f0f0f0;
+        color: #767676;
+    }
+
+    .order-summary-card {
+        border: 1px solid #e5e5e5;
+        padding: 28px;
+        margin-bottom: 32px;
+        background: #fafafa;
+    }
+
+    .order-number-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+    .order-number-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #767676;
+    }
+
+    .order-number-value {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+    }
+
+    .summary-line {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #555;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .summary-total-line {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 20px;
+        margin-top: 10px;
+        border-top: 2px solid #000;
+    }
+
+    .total-label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+    }
+
+    .total-amount {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+    }
+
+    .delivery-address-card {
+        border: 1px solid #e5e5e5;
+        padding: 20px 28px;
+        margin-bottom: 32px;
+    }
+
+    .address-name {
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 4px;
+    }
+
+    .address-detail {
+        font-size: 11px;
+        color: #767676;
+        line-height: 1.8;
+        letter-spacing: 0.02em;
+    }
+
+    .btn-pay-now {
+        width: 100%;
+        background: #000;
+        color: #fff;
+        padding: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        border: 1px solid #000;
+        cursor: pointer;
+        transition: opacity 0.3s ease, background 0.3s ease, color 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn-pay-now:hover:not(:disabled) {
+        opacity: 0.85;
+    }
+
+    .btn-pay-now:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .security-note {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 20px;
+    }
+
+    .security-note p {
+        font-size: 9px;
+        color: #aaa;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+    }
+
+    .razorpay-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 12px;
+    }
+
+    .razorpay-badge span {
+        font-size: 9px;
+        color: #bbb;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+
+    /* --- TOAST (matches existing design) --- */
+    #toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        pointer-events: none;
+    }
+
+    .custom-pill-toast {
+        width: 320px;
+        max-width: 90vw;
+        padding: 16px 20px;
+        background: #000;
+        color: #fff;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        opacity: 0;
+        transform: translateX(30px);
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        pointer-events: auto;
+    }
+
+    .custom-pill-toast.show { opacity: 1; transform: translateX(0); }
+    .toast-left-content { display: flex; align-items: center; gap: 14px; }
+    .toast-icon-circle {
+        width: 24px; height: 24px; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 11px; flex-shrink: 0;
+        border: 1px solid rgba(255,255,255,0.2);
+    }
+    .toast-message-wrapper { display: flex; flex-direction: column; }
+    .toast-main-text {
+        font-size: 12px; font-weight: 500;
+        text-transform: uppercase; letter-spacing: 0.1em;
+        line-height: 1.2;
+    }
+    .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .toast-close-btn {
+        cursor: pointer; font-size: 14px; opacity: 0.4;
+        transition: opacity 0.2s; padding: 4px;
+        line-height: 1;
+    }
+    .toast-close-btn:hover { opacity: 1; }
+
+    @media (max-width: 600px) {
+        .page-heading { font-size: 24px; }
+        .payment-container { padding: 40px 16px 80px; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="toast-container"></div>
+
+<div class="payment-container">
+
+    <!-- Breadcrumb -->
+    <nav class="text-sm text-gray-500 mb-6 uppercase tracking-widest" style="font-size:10px;">
+        <a href="{% url 'home' %}" class="hover:text-black">Home</a>
+        <span class="mx-2">/</span>
+        <a href="{% url 'orders' %}" class="hover:text-black">Orders</a>
+        <span class="mx-2">/</span>
+        <span class="text-black font-semibold">Payment</span>
+    </nav>
+
+    <h1 class="page-heading">Complete Payment</h1>
+
+    <!-- Order Summary -->
+    <p class="section-title">Order Summary</p>
+
+    <div class="order-summary-card">
+        <div class="order-number-row">
+            <span class="order-number-label">Order</span>
+            <span class="order-number-value">#{{ order.order_number }}</span>
+        </div>
+
+        <div class="summary-line">
+            <span>Subtotal</span>
+            <span>₹{{ order.subtotal|floatformat:2 }}</span>
+        </div>
+        <div class="summary-line">
+            <span>GST (12%)</span>
+            <span>₹{{ order.tax_amount|floatformat:2 }}</span>
+        </div>
+        {% if order.discount_amount %}
+        <div class="summary-line">
+            <span>Discount</span>
+            <span>–₹{{ order.discount_amount|floatformat:2 }}</span>
+        </div>
+        {% endif %}
+        <div class="summary-line">
+            <span>Delivery</span>
+            <span>
+                {% if order.delivery_charge == 0 %}
+                    <span style="color:#16a34a; font-weight:700;">FREE</span>
+                {% else %}
+                    ₹{{ order.delivery_charge|floatformat:2 }}
+                {% endif %}
+            </span>
+        </div>
+
+        <div class="summary-total-line">
+            <span class="total-label">Total</span>
+            <span class="total-amount">₹{{ order.total_amount|floatformat:2 }}</span>
+        </div>
+    </div>
+
+    <!-- Delivery Address -->
+    {% if order.address %}
+    <p class="section-title">Delivering To</p>
+    <div class="delivery-address-card">
+        <p class="address-name">{{ order.address.first_name }} {{ order.address.last_name }}</p>
+        <p class="address-detail">
+            {{ order.address.address_line1 }}{% if order.address.address_line2 %}, {{ order.address.address_line2 }}{% endif %}<br>
+            {{ order.address.city }}, {{ order.address.state }} {{ order.address.pin_code }}<br>
+            {{ order.address.country }}<br>
+            {{ order.address.phone_number }}
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Pay Now Button -->
+    <button
+        id="pay-now-btn"
+        class="btn-pay-now"
+        type="button"
+        aria-label="Pay ₹{{ order.total_amount|floatformat:2 }} via Razorpay"
+    >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+            <line x1="1" y1="10" x2="23" y2="10"/>
+        </svg>
+        Pay ₹{{ order.total_amount|floatformat:2 }}
+    </button>
+
+    <!-- Security note -->
+    <div class="security-note">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <p>Secured by SSL · 256-bit encryption</p>
+    </div>
+
+    <div class="razorpay-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+            <path d="M2 17l10 5 10-5"/>
+            <path d="M2 12l10 5 10-5"/>
+        </svg>
+        <span>Powered by Razorpay</span>
+    </div>
+
+</div>
+
+<!-- Razorpay Checkout Script -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+(function () {
+    'use strict';
+
+    /* ── CSRF Helper ── */
+    function getCsrfToken() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const c = cookies[i].trim();
+            if (c.startsWith(name + '=')) {
+                return decodeURIComponent(c.substring(name.length + 1));
+            }
+        }
+        // Fallback: read from hidden input on page if cookie missing
+        const el = document.querySelector('[name=csrfmiddlewaretoken]');
+        return el ? el.value : '';
+    }
+
+    /* ── Toast Helper (matches existing system) ── */
+    function showPaymentToast(message, type) {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+
+        const toast = document.createElement('div');
+        const toastClass = type === 'success' ? 'toast-success' : 'toast-error';
+        toast.className = 'custom-pill-toast ' + toastClass;
+        const icon = type === 'success' ? '✓' : '✕';
+
+        toast.innerHTML =
+            '<div class="toast-left-content">' +
+                '<div class="toast-icon-circle">' + icon + '</div>' +
+                '<div class="toast-message-wrapper">' +
+                    '<span class="toast-main-text">' + message + '</span>' +
+                    '<span class="toast-sub-text">Payment</span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>';
+
+        container.appendChild(toast);
+        setTimeout(function () { toast.classList.add('show'); }, 10);
+        setTimeout(function () {
+            if (toast.parentNode) {
+                toast.classList.remove('show');
+                setTimeout(function () { toast.remove(); }, 400);
+            }
+        }, 4000);
+    }
+
+    /* ── Verify Payment (POST to /verify-payment/) ── */
+    function verifyPayment(responseData) {
+        const btn = document.getElementById('pay-now-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span>Verifying payment…</span>';
+        }
+
+        fetch('/verify-payment/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfToken()
+            },
+            body: JSON.stringify({
+                razorpay_order_id:   responseData.razorpay_order_id,
+                razorpay_payment_id: responseData.razorpay_payment_id,
+                razorpay_signature:  responseData.razorpay_signature
+            })
+        })
+        .then(function (res) {
+            if (!res.ok) {
+                throw new Error('Server error: ' + res.status);
+            }
+            return res.json();
+        })
+        .then(function (data) {
+            if (data.status === 'success' || data.status === 'already_processed') {
+                showPaymentToast('Payment successful! Redirecting…', 'success');
+                setTimeout(function () {
+                    window.location.href = "{% url 'order-success' %}";
+                }, 800);
+            } else {
+                showPaymentToast(
+                    data.message || 'Payment verification failed. Please contact support.',
+                    'error'
+                );
+                resetPayBtn();
+            }
+        })
+        .catch(function (err) {
+            console.error('Verify payment error:', err);
+            showPaymentToast('Something went wrong during verification. Please try again.', 'error');
+            resetPayBtn();
+        });
+    }
+
+    function resetPayBtn() {
+        const btn = document.getElementById('pay-now-btn');
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML =
+                '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                    '<rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>' +
+                    '<line x1="1" y1="10" x2="23" y2="10"/>' +
+                '</svg>' +
+                ' Retry Payment';
+        }
+    }
+
+    /*
+     * ── Razorpay Checkout Options ─────────────────────────────────────────
+     *
+     * BLANK TAB PREVENTION & TOKENIZATION:
+     *   • No redirect URLs are passed.
+     *   • 'method' field strictly enforces popup-compatible options.
+     *   • remember_customer: false ignores save card checkbox.
+     *
+     * TEST CREDENTIALS:
+     *   Card:    4111 1111 1111 1111 | Expiry: 12/30 | CVV: 111
+     *   OTP:     123456
+     * ─────────────────────────────────────────────────────────────────────── */
+    var razorpayOptions = {
+        key: '{{ razorpay_key }}',
+        amount: {{ amount }},
+        currency: 'INR',
+        order_id: '{{ order_id }}',
+        name: 'NO\u0026CO',
+        description: 'Order #{{ order.order_number }}',
+        remember_customer: false,
+        method: {
+            card: true,
+            netbanking: false,
+            wallet: false,
+            upi: false,
+            emi: false,
+            paylater: false
+        },
+        prefill: {
+            name: '{{ order.address.first_name }} {{ order.address.last_name }}',
+            email: '{{ order.user.email }}',
+            contact: '{{ order.address.phone_number }}'
+        },
+        readonly: { contact: true, email: true },
+        notes: { order_number: '{{ order.order_number }}' },
+        theme: { color: '#000000' },
+        redirect: false,
+        handler: function (response) {
+            verifyPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+            });
+        },
+        modal: {
+            backdropclose: false,
+            escape: true,
+            animation: true,
+            ondismiss: function () {
+                _paymentStarted = false;
+                resetPayBtn();
+            }
+        }
+    };
+
+    /* ── Attach click handler to button ── */
+    var _paymentStarted = false; // guard against duplicate opens
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var btn = document.getElementById('pay-now-btn');
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            if (_paymentStarted) return;
+            _paymentStarted = true;
+
+            btn.disabled = true;
+            btn.innerHTML = '<span>Opening checkout…</span>';
+
+            try {
+                var rzp = new Razorpay(razorpayOptions);
+
+                rzp.on('payment.failed', function (response) {
+                    var errMsg = (response.error && response.error.description)
+                        ? response.error.description
+                        : 'Payment failed. Please try again.';
+                    showPaymentToast(errMsg, 'error');
+                    _paymentStarted = false;
+                    resetPayBtn();
+                });
+
+                rzp.open();
+                // Allow re-open if modal is dismissed
+                setTimeout(function () { _paymentStarted = false; }, 500);
+
+            } catch (e) {
+                console.error('Razorpay init error:', e);
+                showPaymentToast('Could not load payment gateway. Please refresh and try again.', 'error');
+                _paymentStarted = false;
+                resetPayBtn();
+            }
+        });
+    });
+
+    /* ── Prevent duplicate on back-forward cache ── */
+    window.addEventListener('pageshow', function (event) {
+        var navEntries = performance.getEntriesByType('navigation');
+        var isBackForward = navEntries.length > 0 && navEntries[0].type === 'back_forward';
+        if (event.persisted || isBackForward) {
+            window.location.reload();
+        }
+    });
+
+}());
+</script>
+
+{% endblock %}

@@ -5,14 +5,15 @@ from turtle import update
 from django.db import transaction
 from django.http import JsonResponse
 from .models import Payment
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
 import razorpay
 from django.conf import settings
-from django.shortcuts import get_object_or_404
 from core.models import Order, OrderItem
 from cart.models import Cart
 from products.models import Variant
 from django.db.models import F
+from django.views.decorators.csrf import csrf_exempt
+
 def payment(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
 
@@ -47,69 +48,112 @@ def payment(request, order_id):
         "order":order
     })
 
+
 def verify_payment(request):
-    data = json.loads(request.body)
+    if request.method != "POST":
+        return JsonResponse({"status": "failed"})
+
+    data = json.loads(request.body or "{}")
 
     client = razorpay.Client(
-        auth = (settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
     )
 
     try:
         client.utility.verify_payment_signature({
-            "razorpay_order_id": data["razorpay_order_id"],
-             "razorpay_payment_id": data["razorpay_payment_id"],
-             "razorpay_signature": data["razorpay_signature"]
+            "razorpay_order_id": data.get("razorpay_order_id"),
+            "razorpay_payment_id": data.get("razorpay_payment_id"),
+            "razorpay_signature": data.get("razorpay_signature")
         })
 
         with transaction.atomic():
             payment = Payment.objects.get(
-                razorpay_order_id = data["razorpay_order_id"]
+                razorpay_order_id=data.get("razorpay_order_id")
             )
 
             if payment.status == "success":
-                return JsonResponse({
-                    "status": "already_processed"
-                })
-            payment.razorpay_payment_id = data["razorpay_payment_id"]
-            payment.razorpay_signature = data["razorpay_signature"]
+                return JsonResponse({"status": "already_processed"})
+
+            payment.razorpay_payment_id = data.get("razorpay_payment_id")
+            payment.razorpay_signature = data.get("razorpay_signature")
             payment.status = "success"
             payment.save()
 
-            order = Order.objects.get(payment = payment)
+            order = Order.objects.get(payment=payment)
             order.payment_status = "PAID"
             order.save()
 
-            cart_items = Cart.objects.filter(user = order.user)
-
-            if not cart_items.exists:
-                return JsonResponse({
-                    "status": "failed"
-                })
+            cart_items = Cart.objects.filter(user=order.user)
 
             for item in cart_items:
                 updated = Variant.objects.filter(
                     id=item.variant.id,
-                    stock__gte = item.quantity
-                ).update(stock =F("stock") - item.quantity)
+                    stock__gte=item.quantity
+                ).update(stock=F("stock") - item.quantity)
 
                 if not updated:
-                    raise ValueError("stock not avaible")
+                    raise ValueError("Stock not available")
 
                 OrderItem.objects.create(
-                    order = order,
-                    variant = item.variant,
-                    price = item.variant.price,
-                    quantity = item.quantity
+                    order=order,
+                    variant=item.variant,
+                    price=item.variant.price,
+                    quantity=item.quantity
                 )
 
             cart_items.delete()
 
-        return JsonResponse({
-            "status": "success"
-        })
+        return JsonResponse({"status": "success"})
+
     except Exception as e:
-        print(e)
-        return JsonResponse({
-            "status": "failed",
-            "message": str(e)
-        })
+        print("VERIFY ERROR:", e)
+        return JsonResponse({"status": "failed", "message": str(e)})
+
+
+@csrf_exempt
+def razorpay_callback(request):
+    if request.method == "POST":
+        data = request.POST
+        client = razorpay.Client(
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        )
+        try:
+            client.utility.verify_payment_signature({
+                "razorpay_order_id": data.get("razorpay_order_id"),
+                "razorpay_payment_id": data.get("razorpay_payment_id"),
+                "razorpay_signature": data.get("razorpay_signature")
+            })
+            with transaction.atomic():
+                payment = Payment.objects.get(
+                    razorpay_order_id=data.get("razorpay_order_id")
+                )
+                if payment.status == "success":
+                    return redirect('order-success')
+                payment.razorpay_payment_id = data.get("razorpay_payment_id")
+                payment.razorpay_signature = data.get("razorpay_signature")
+                payment.status = "success"
+                payment.save()
+                
+                order = Order.objects.get(payment=payment)
+                order.payment_status = "PAID"
+                order.save()
+                
+                cart_items = Cart.objects.filter(user=order.user)
+                for item in cart_items:
+                    updated = Variant.objects.filter(
+                        id=item.variant.id,
+                        stock__gte=item.quantity
+                    ).update(stock=F("stock") - item.quantity)
+                    if not updated:
+                        raise ValueError("Stock not available")
+                    OrderItem.objects.create(
+                        order=order,
+                        variant=item.variant,
+                        price=item.variant.price,
+                        quantity=item.quantity
+                    )
+                cart_items.delete()
+            return redirect('order-success')
+        except Exception as e:
+            print("CALLBACK VERIFY ERROR:", e)
+    return redirect('home')
