@@ -1186,10 +1186,13 @@
                     if (idx > -1) wishlistedVariantIds.splice(idx, 1);
                 }
 
+                // Wishlist toast removed for cleaner UX
+                /*
                 if (typeof showToast === 'function') {
                     const msg = data.status === 'added' ? "Added to wishlist" : "Removed from wishlist";
                     showToast(msg, "success");
                 }
+                */
             })
             .catch(err => {
                 console.error('Wishlist Sync Error:', err);

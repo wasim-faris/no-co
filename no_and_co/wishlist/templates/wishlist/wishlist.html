@@ -738,10 +738,13 @@
                     }
                 }
 
+                // Show toast removed as per request for cleaner UI during wishlist toggle
+                /*
                 if (typeof showToast === 'function') {
                     const msg = data.status === 'added' ? "Added to wishlist" : "Removed from wishlist";
                     showToast(msg, "success");
                 }
+                */
 
                 // Update counts globally
                 if (data.wishlist_count !== undefined) {
