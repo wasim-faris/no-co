@@ -465,7 +465,11 @@ def place_order(request):
 
                 cart_items.delete()
 
+            if payment_method == "ONLINE":
+                return redirect("payment-page")
+
             return redirect("order-success")
+        
         finally:
             request.session.pop("order_processing", None)
 

@@ -13,7 +13,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
-
+from payment.models import Payment
 def generate_order_number():
     date_part = now().strftime("%Y%m%d")
     random_part = "".join(
@@ -44,6 +44,7 @@ class Order(models.Model):
         ("REFUNDED", "Refunded"),
     )
 
+    payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
