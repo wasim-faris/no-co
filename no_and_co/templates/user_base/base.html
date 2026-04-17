@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,10 +8,69 @@
     <title>{% block title %}NO&CO – Men's Fashion{% endblock %}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Figtree:wght@300;400;500;600&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
         rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
     <style>
+        @font-face {
+            font-family: 'Basteleur';
+            src: url('{% static "fonts/basteleur/Basteleur-Bold.woff2" %}') format('woff2'),
+                 url('{% static "fonts/basteleur/Basteleur-Bold.woff" %}') format('woff');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        /* Default Page Title Style (Inter) */
+        .page-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            text-transform: uppercase;
+            line-height: 1.2;
+            font-size: 2rem; /* Initial size for Inter headings */
+        }
+
+        /* Scoped Basteleur Style for Premium Pages - High Visual Impact */
+        .cart-page .page-title,
+        .checkout-page .page-title,
+        .wishlist-page .page-title,
+        .profile-page .page-title {
+            font-family: 'Basteleur', serif !important;
+            font-weight: 700;
+            font-size: 44px; /* Prominent desktop size */
+            letter-spacing: 0.1em; /* Increased letter-spacing for refined impact */
+            line-height: 1.25;
+            text-transform: uppercase;
+            
+            /* Enhanced Thickness Simulation */
+            -webkit-text-stroke: 0.4px currentColor;
+            text-shadow: 0.6px 0 currentColor, -0.2px 0 currentColor;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 1.8rem;
+            }
+            .cart-page .page-title,
+            .checkout-page .page-title,
+            .wishlist-page .page-title,
+            .profile-page .page-title {
+                font-size: 28px; /* Prominent mobile size */
+                letter-spacing: 0.05em;
+            }
+        }
+
+        .section-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+        }
+
         body {
             font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
             margin: 0;
@@ -240,7 +300,7 @@
     {% block extra_head %}{% endblock %}
 </head>
 
-<body class="bg-white text-black">
+<body class="bg-white text-black {% block body_class %}{% endblock %}">
 
     <!-- Announcement Bar -->
     <div class="w-full bg-white py-3 px-6 flex items-center justify-between border-b border-gray-100">

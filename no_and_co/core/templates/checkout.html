@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}Checkout – NO&CO{% endblock %}
+{% block body_class %}checkout-page{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -42,12 +43,6 @@
         margin-bottom: 24px;
     }
     .page-heading {
-        font-family: "Inter", "Helvetica Neue", Arial, sans-serif !important;
-        font-size: 36px;
-        line-height: 1.2;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
         margin-bottom: 48px;
     }
     .section-title {
@@ -312,15 +307,63 @@
     .truck-btn.is-animating .truck-animation-layer,
     .truck-btn.is-animating .processing-text { display: none !important; }
 
-    @media (max-width: 600px) {
-        .checkout-container { padding: 20px 16px; }
-        .page-heading { font-size: 24px; margin-bottom: 24px; }
+    @media (max-width: 768px) {
+        .checkout-container { padding: 16px 0; max-width: 100%; overflow-x: hidden; }
         .section-title { font-size: 13px; margin-bottom: 16px; padding-bottom: 8px; }
-        .breadcrumb-nav { font-size: 9px; margin-bottom: 16px; }
-        .address-card { padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
-        .payment-option { padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+        .breadcrumb-nav { font-size: 9px; margin-bottom: 16px; padding: 0 16px; }
+        .address-card, .payment-option { padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .btn-place-order { padding: 16px; font-size: 12px; }
-        .order-summary-card { padding: 16px; }
+        .grid { gap: 16px !important; }
+        .lg\:col-span-7 { padding: 0 16px; }
+        
+        /* Strict Mobile Order Summary */
+        .mobile-order-summary {
+            padding: 16px 16px !important;
+            border: none !important;
+            box-shadow: none !important;
+            width: 100% !important;
+        }
+        .mobile-product-item {
+            width: 100% !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+        }
+        .mobile-product-image {
+            width: 64px !important;
+            height: 80px !important;
+            flex-shrink: 0 !important;
+        }
+        .mobile-product-details {
+            flex: 1 1 0% !important;
+            min-width: 0 !important;
+            padding-right: 8px !important;
+        }
+        .mobile-product-title {
+            font-size: 11px !important;
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2 !important;
+            -webkit-box-orient: vertical !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            max-width: none !important;
+            width: 100% !important;
+            line-height: 1.3 !important;
+            white-space: normal !important;
+        }
+        .mobile-product-meta {
+            font-size: 10px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            display: block !important;
+        }
+        .mobile-product-price {
+            font-size: 13px !important;
+            font-weight: 700 !important;
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
+        }
     }
 </style>
 {% endblock %}
@@ -337,7 +380,7 @@
         </nav>
 
         <!-- Page Header -->
-        <h1 class="page-heading">Checkout</h1>
+        <h1 class="page-heading page-title">Checkout</h1>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <!-- Left Column: Address and Payment -->
@@ -517,7 +560,7 @@
 
             <!-- Right Column: Order Summary -->
             <div class="lg:col-span-12 xl:col-span-5 order-1 lg:order-2">
-                <div class="bg-white border border-gray-100 p-8 sticky top-24 shadow-sm">
+                <div class="bg-white border border-gray-100 p-8 sticky top-24 shadow-sm mobile-order-summary">
                     <h2 class="text-[11px] font-bold uppercase tracking-[0.2em] mb-8 pb-4 border-b border-gray-50">Order Summary</h2>
 
                     <!-- Item List -->
@@ -528,26 +571,26 @@
                             </div>
                         {% else %}
                             {% for item in cart_items %}
-                            <div class="flex gap-3 md:gap-6 group items-center border-b border-gray-50 pb-4 last:border-0 last:pb-0">
-                                <div class="w-[60px] h-[80px] md:w-20 md:h-28 flex-shrink-0 bg-gray-50 overflow-hidden">
+                            <div class="flex gap-3 md:gap-6 group items-center border-b border-gray-50 pb-4 last:border-0 last:pb-0 mobile-product-item">
+                                <div class="w-20 h-28 flex-shrink-0 bg-gray-50 overflow-hidden mobile-product-image">
                                     {% with primary_image=item.variant.images.all|dictsortreversed:"is_primary"|first %}
                                         <img src="{% if primary_image %}{{ primary_image.image.url }}{% else %}https://via.placeholder.com/120x160?text=No+Image{% endif %}"
                                              class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                              alt="{{ item.variant.product.name }}">
                                     {% endwith %}
                                 </div>
-                                <div class="flex-grow flex justify-between items-center py-1">
-                                    <div class="flex-1 pr-3">
-                                        <h3 class="text-[11px] md:text-[11px] font-bold uppercase tracking-wider mb-1 line-clamp-2 leading-tight max-w-[180px]">{{ item.variant.product.name }}</h3>
+                                <div class="flex-grow flex justify-between items-center py-1 mobile-product-details">
+                                    <div class="flex-1 pr-3 mobile-product-details">
+                                        <h3 class="text-[11px] font-bold uppercase tracking-wider mb-1 leading-tight mobile-product-title">{{ item.variant.product.name }}</h3>
                                         <div class="flex flex-col gap-0.5">
-                                            <p class="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-tighter">
+                                            <p class="text-[10px] text-gray-400 uppercase tracking-tighter mobile-product-meta">
                                                 Size: {{ item.variant.size.name }} &nbsp;|&nbsp; Color: {{ item.variant.color }}
                                             </p>
-                                            <span class="text-[9px] md:text-[10px] font-medium text-gray-500">QTY: {{ item.quantity }}</span>
+                                            <span class="text-[10px] font-medium text-gray-500 mobile-product-meta">QTY: {{ item.quantity }}</span>
                                         </div>
                                     </div>
-                                    <div class="text-right flex-shrink-0">
-                                        <span class="text-[13px] md:text-[11px] font-bold tracking-tight">₹{{ item.variant.price|floatformat:2 }}</span>
+                                    <div class="text-right flex-shrink-0 mobile-product-price">
+                                        <span class="text-[13px] md:text-[11px] font-bold tracking-tight mobile-product-price">₹{{ item.variant.price|floatformat:2 }}</span>
                                     </div>
                                 </div>
                             </div>

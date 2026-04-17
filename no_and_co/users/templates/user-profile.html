@@ -1,4 +1,5 @@
 {% extends 'user_base/base.html' %}
+{% block body_class %}profile-page{% endblock %}
 
 {% block extra_head %}
 
@@ -188,11 +189,6 @@
         .shell .avatar-overlay svg { width: 16px; height: 16px; color: white; }
 
         .shell .profile-name {
-            font-size: 24px;
-            font-weight: 400;
-            letter-spacing: -0.01em;
-            line-height: 1.1;
-            font-family: inherit;
             margin-bottom: 8px;
         }
 
@@ -1153,7 +1149,7 @@
                 </div>
 
                 <div class="profile-meta skeleton-target">
-                    <h1 class="profile-name">{{ request.user.get_full_name|default:request.user.username }}</h1>
+                    <h1 class="profile-name page-title">{{ request.user.get_full_name|default:request.user.username }}</h1>
                     <p class="profile-email">{{ user.email }}</p>
                     {% if not user.socialaccount_set.exists %}
                     <a href="{% url "change-password" %}" style="font-size:12px; text-decoration: underline; display:inline-block; margin-top:4px;">

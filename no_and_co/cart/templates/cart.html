@@ -2,18 +2,12 @@
 {% load static %}
 
 {% block title %}Shopping Bag – NO&CO{% endblock %}
+{% block body_class %}cart-page{% endblock %}
 
 {% block extra_head %}
 <style>
     /* ─── Layout ─────────────────────────────────────────────── */
     .page-heading {
-        font-family: "Inter", "Helvetica Neue", Arial, sans-serif !important;
-        font-size: 36px;
-        line-height: 1.2;
-        font-weight: 500;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        
         margin-top: 3rem;
         margin-bottom: 2.5rem;
         color: #000;
@@ -440,18 +434,14 @@
             overflow: hidden;
         }
     }
-    @media (max-width: 600px) {
-        .page-heading {
-            font-size: 24px;
-        }
-    }
+    @media (max-width: 767px) {
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-4 md:px-8 md:py-8 lg:pb-20 w-full">
 
-    <h1 class="page-heading">Shopping Bag</h1>
+    <h1 class="page-heading page-title">Shopping Bag</h1>
 
     <div class="info-banner uppercase">
         UPI payment supports quicker refunds
