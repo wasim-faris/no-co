@@ -62,6 +62,10 @@ def ladies(request):
     search_history = request.session.get("search_history", [])
     return render(request, "ladies.html", {"search_history": search_history})
 
+def kids(request):
+    search_history = request.session.get("search_history", [])
+    return render(request, "kids.html", {"search_history": search_history})
+
 
 def product_details(request, id):
     product = get_object_or_404(Product, id=id)
@@ -468,11 +472,11 @@ def place_order(request):
                             )
                     cart_items.delete()
                     return redirect("order-success")
-                
+
                 # For ONLINE, we redirect to payment without clearing cart or updating stock
                 # These will be handled in verify_payment or callback upon success
                 return redirect("payment-page", order_id=order.id)
-        
+
         finally:
             request.session.pop("order_processing", None)
 

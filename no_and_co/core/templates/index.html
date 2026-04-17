@@ -104,7 +104,7 @@
                 <div id="categoryDropdown" class="absolute top-10 left-0 w-[170px] bg-white rounded-[6px] border border-black/5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] py-2 transition-all duration-300 opacity-0 visibility-hidden max-h-0 overflow-hidden">
                     <a href="{% url 'home' %}" class="block px-4 py-2 text-[14px] font-semibold text-[#111]">Mens</a>
                     <a href="{% url 'ladies' %}" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Ladies</a>
-                    <a href="#" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Kids</a>
+                    <a href="{% url 'kids' %}" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Kids</a>
                 </div>
             </div>
             <video autoplay muted loop playsinline onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" class="w-full h-full object-cover object-top actual-content">
