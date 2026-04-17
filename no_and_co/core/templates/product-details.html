@@ -1651,27 +1651,24 @@
     }
 
     // ════════════════════════════════════════
-    // HOVER IMAGE SWAP (JS-DRIVEN)
+    // HOVER IMAGE SWAP (JS-DRIVEN) - Cursor Only
     // ════════════════════════════════════════
-    document.querySelectorAll('.product-img').forEach(img => {
-        const original = img.src;
-        const secondary = img.dataset.secondary;
+    if (window.matchMedia('(hover: hover)').matches) {
+        document.querySelectorAll('.product-img').forEach(img => {
+            const original = img.src;
+            const secondary = img.dataset.secondary;
 
-        if (!secondary) {
-            console.warn('Hover Swap: No secondary image found for card', img);
-            return;
-        }
+            if (!secondary) return;
 
-        console.log('Hover Swap Initialized: Secondary URL =', secondary);
+            img.addEventListener('mouseenter', () => {
+                img.src = secondary;
+            });
 
-        img.addEventListener('mouseenter', () => {
-            img.src = secondary;
+            img.addEventListener('mouseleave', () => {
+                img.src = original;
+            });
         });
-
-        img.addEventListener('mouseleave', () => {
-            img.src = original;
-        });
-    });
+    }
 </script>
 
 <script id="django-messages" type="application/json">

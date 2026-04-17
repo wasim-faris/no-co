@@ -89,12 +89,14 @@
         opacity: 0;
     }
 
-    /* Hover: Instant swap, no animation */
-    .plp-card:hover .plp-img-wrap.has-hover .plp-img-primary {
-        opacity: 0;
-    }
-    .plp-card:hover .plp-img-wrap.has-hover .plp-img-secondary {
-        opacity: 1;
+    /* Hover: Instant swap, only on devices that support hover (not touch) */
+    @media (hover: hover) {
+        .plp-card:hover .plp-img-wrap.has-hover .plp-img-primary {
+            opacity: 0;
+        }
+        .plp-card:hover .plp-img-wrap.has-hover .plp-img-secondary {
+            opacity: 1;
+        }
     }
 
     /* ── Product card refinements ── */
