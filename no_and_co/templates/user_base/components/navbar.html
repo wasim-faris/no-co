@@ -113,13 +113,13 @@
         <a href="/" class="brand text-2xl font-medium">NØ&CO</a>
 
         <nav class="hidden md:flex items-center gap-10">
-            <a href="{% url 'home' %}"
-                class="nav-link text-[11px] uppercase font-medium tracking-[0.15em] {% if request.resolver_match.url_name == 'home' %}active text-black{% else %}text-gray-400 hover:text-black{% endif %}">
+            <a href="{% url 'mens' %}"
+                class="nav-link text-[11px] uppercase font-medium tracking-[0.15em] {% if request.resolver_match.url_name == 'mens' %}active text-black{% else %}text-gray-400 hover:text-black{% endif %}">
                 Mens
             </a>
 
             <a href="{% url 'ladies' %}"
-                class="nav-link text-[11px] uppercase font-medium tracking-[0.15em] {% if request.resolver_match.url_name == 'ladies' %}active text-black{% else %}text-gray-400 hover:text-black{% endif %}">
+                class="nav-link text-[11px] uppercase font-medium tracking-[0.15em] {% if request.resolver_match.url_name == 'ladies' or request.resolver_match.url_name == 'home' %}active text-black{% else %}text-gray-400 hover:text-black{% endif %}">
                 Ladies
             </a>
 
