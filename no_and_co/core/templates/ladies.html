@@ -21,6 +21,17 @@
     pointer-events: none;
 }
 
+/* Force video to be present in DOM so it can play and trigger events */
+.skeleton-wrapper video.actual-content {
+    display: block !important;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.skeleton-wrapper.is-loaded video.actual-content {
+    opacity: 1;
+}
+
 .custom-pill-toast {
     width: max-content; /* Hugs the text */
     max-width: 90vw;
@@ -141,9 +152,13 @@
             <a href="#" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Kids</a>
         </div>
     </div>
-    <img data-src="{% static 'core/images/ladies-home.avif' %}" alt="Hero" class="w-full h-full object-cover object-top lazy-image">
+    <video autoplay muted loop playsinline onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" class="w-full h-full object-cover object-top actual-content">
+        <source src="{{ MEDIA_URL }}video/ladies-video.webm" type="video/webm">
+        <!-- Fallback Image -->
+        <img src="{% static 'core/images/ladies-home.avif' %}" alt="Hero" class="w-full h-full object-cover object-top">
+    </video>
   </div>
-    <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white actual-content" style="display:flex !important;">
+    <div class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white actual-content">
             <span class="section-label text-[10px] uppercase tracking-widest font-medium">Valid on selected styles</span>
             <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
