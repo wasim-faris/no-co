@@ -129,40 +129,34 @@
 
     /* ── Page header ── */
     .shell .page-header {
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        padding-bottom: 48px;
-        border-bottom: var(--border);
-        margin-bottom: 40px;
-        gap: 24px;
-        flex-wrap: wrap;
+        margin-bottom: 48px;
     }
 
-    .shell .breadcrumb {
-        font-size: 8px;
-        letter-spacing: 0.28em;
-        text-transform: uppercase;
-        font-weight: 600;
-        color: var(--ink-soft);
-        margin-bottom: 10px;
+    .shell .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        margin-bottom: 28px;
+    }
+
+    .shell .breadcrumb-nav .sep {
+        margin: 0 14px;
+        opacity: 0.3;
+        font-size: 10px;
     }
 
     .shell .page-title {
-        /* font-family removed to inherit Basteleur from .address-page .page-title in base.html */
-        font-size: 28px;
-        font-weight: 400;
-        letter-spacing: -0.01em;
-        color: var(--ink);
-        line-height: 1.1;
-        margin-bottom: 6px;
+        /* Inherits minimal Basteleur from base.html */
+        line-height: 1.3 !important; /* Increased for better legibility */
+        margin-bottom: 12px;
+        margin-top: 8px;
     }
 
     .shell .page-sub {
         font-size: 11px;
         color: var(--ink-soft);
         font-weight: 300;
-        letter-spacing: 0.01em;
+        letter-spacing: 0.02em;
+        margin-top: 16px;
     }
 
     /* ── Section divider ── */
@@ -948,22 +942,25 @@
     <main class="main animate-in">
 
         <header class="page-header">
-            <div>
-                <nav class="breadcrumb-nav text-[9px] text-gray-400 uppercase tracking-[0.2em] flex items-center mb-4">
-                    <a href="{% url 'user-profile' request.user.id %}" class="hover:text-black transition-colors">Account</a>
-                    <span class="mx-3 opacity-30 select-none">•</span>
-                    <span class="text-black font-semibold">Addresses</span>
-                </nav>
-                <h1 class="page-title">Saved Addresses</h1>
-                <p class="page-sub">Manage delivery addresses for faster checkout.</p>
+            <nav class="breadcrumb-nav text-[9px] text-gray-400 uppercase tracking-[0.2em]">
+                <a href="{% url 'user-profile' request.user.id %}" class="hover:text-black transition-colors">Account</a>
+                <span class="sep">•</span>
+                <span class="text-black font-semibold">Addresses</span>
+            </nav>
+
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-[#E4E0DC]">
+                <div>
+                    <h1 class="page-title">Saved Addresses</h1>
+                    <p class="page-sub">Manage delivery addresses for faster checkout.</p>
+                </div>
+                <button onclick="openModal()" class="btn btn-dark">
+                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    Add Address
+                </button>
             </div>
-            <button onclick="openModal()" class="btn btn-dark">
-                <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                Add Address
-            </button>
         </header>
 
-        <div class="section-head">
+        <div class="section-head mt-12">
             <span class="label" style="color:var(--ink);">Your Addresses</span>
             <span class="count-chip">{{ addresses.count }} saved</span>
         </div>
