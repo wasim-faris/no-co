@@ -467,10 +467,10 @@
                     <h2 class="section-title">Payment Method</h2>
                     <div class="space-y-4">
                         <!-- COD Option -->
-                        <div class="payment-option active" onclick="updatePaymentMethod('COD', this)">
+                        <div class="payment-option" onclick="updatePaymentMethod('COD', this)">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-4">
-                                    <input type="radio" name="payment_method" value="COD" checked class="accent-black w-4 h-4">
+                                    <input type="radio" name="payment_method" value="COD" class="accent-black w-4 h-4">
                                     <div>
                                         <p class="text-[13px] font-bold uppercase tracking-tight">Cash on Delivery</p>
                                         <p class="text-[10px] text-gray-500 uppercase mt-0.5">Pay when your order arrives</p>
@@ -507,7 +507,7 @@
                     {% if address %}
                     <form method="POST" action="{% url 'place_order' %}">
                         {% csrf_token %}
-                        <input type="hidden" name="payment_method" class="payment-method-field" value="COD">
+                        <input type="hidden" name="payment_method" class="payment-method-field" value="">
                         <input type="hidden" name="address_id" 
                                value="{% if default_address %}{{ default_address.id }}{% elif address %}{{ address.0.id }}{% endif %}">
                         <input type="hidden" name="total_amount" value="{{ total_cost }}">
@@ -644,7 +644,7 @@
                         {% if address %}
                         <form method="POST" action="{% url 'place_order' %}">
                             {% csrf_token %}
-                            <input type="hidden" name="payment_method" class="payment-method-field" value="COD">
+                            <input type="hidden" name="payment_method" class="payment-method-field" value="">
                             <input type="hidden" name="address_id" 
                                    value="{% if default_address %}{{ default_address.id }}{% elif address %}{{ address.0.id }}{% endif %}">
                             <input type="hidden" name="total_amount" value="{{ total_cost }}">
@@ -738,13 +738,23 @@
     function handlePlaceOrder(event, button) {
         event.preventDefault();
         
+        
         if (button.classList.contains('is-animating-cod') || button.classList.contains('is-animating-online') || button.classList.contains('is-animating')) return;
         
         const form = button.closest('form');
-        let selectedMethod = "COD";
+        let selectedMethod = "";
         const methodInput = form.querySelector('.payment-method-field');
         if (methodInput) {
             selectedMethod = methodInput.value;
+        }
+
+        if (!selectedMethod) {
+            if (typeof showToast === 'function') {
+                showToast("Please select a payment method to process checkout", 'error');
+            } else {
+                alert("Please select a payment method to process checkout");
+            }
+            return;
         }
         
         const processingText = button.querySelector('.processing-text');
