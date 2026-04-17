@@ -43,7 +43,7 @@
         margin-bottom: 24px;
     }
     .page-heading {
-        margin-bottom: 48px;
+        /* Controlled via inline classes for better responsive control */
     }
     .section-title {
         font-size: 14px;
@@ -308,9 +308,9 @@
     .truck-btn.is-animating .processing-text { display: none !important; }
 
     @media (max-width: 768px) {
-        .checkout-container { padding: 16px 0; max-width: 100%; overflow-x: hidden; }
+        .checkout-container { padding: 16px; max-width: 100%; overflow-x: hidden; }
         .section-title { font-size: 13px; margin-bottom: 16px; padding-bottom: 8px; }
-        .breadcrumb-nav { font-size: 9px; margin-bottom: 16px; padding: 0 16px; }
+        .breadcrumb-nav { font-size: 9px; margin-bottom: 24px; padding: 0 16px; }
         .address-card, .payment-option { padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
         .btn-place-order { padding: 16px; font-size: 12px; }
         .grid { gap: 16px !important; }
@@ -371,16 +371,16 @@
 {% block content %}
 <div class="checkout-container">
     <div id="checkoutMain">
-        <nav class="breadcrumb-nav text-[10px] md:text-sm text-gray-500 mb-4 md:mb-6 uppercase tracking-[0.15em] flex items-center">
-            <a href="{% url 'home' %}" class="hover:text-black">Home</a>
-            <span class="mx-2">/</span>
-            <a href="{% url 'cart' %}" class="hover:text-black">Cart</a>
-            <span class="mx-2">/</span>
-            <span class="text-black font-bold">Checkout</span>
+        <nav class="breadcrumb-nav text-[9px] md:text-[11px] text-gray-400 mt-2 mb-8 md:mt-4 md:mb-12 uppercase tracking-[0.2em] flex items-center px-4 md:px-0">
+            <a href="{% url 'home' %}" class="hover:text-black transition-colors">Home</a>
+            <span class="mx-3 opacity-30 select-none">•</span>
+            <a href="{% url 'cart' %}" class="hover:text-black transition-colors">Cart</a>
+            <span class="mx-3 opacity-30 select-none">•</span>
+            <span class="text-black font-semibold">Checkout</span>
         </nav>
 
         <!-- Page Header -->
-        <h1 class="page-heading page-title">Checkout</h1>
+        <h1 class="page-heading page-title mt-10 mb-10 md:mt-6 md:mb-16">Checkout</h1>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
             <!-- Left Column: Address and Payment -->

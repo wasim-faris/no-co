@@ -140,6 +140,36 @@
         cursor: pointer;
     }
     .btn-checkout:hover { background-color: #333; }
+    .btn-checkout.is-loading {
+        background-color: #333;
+        pointer-events: none;
+        color: transparent !important;
+        position: relative;
+    }
+    .btn-checkout.is-loading::after {
+        content: "";
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        margin: auto;
+        border: 2px solid transparent;
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: button-loading-spinner 0.6s linear infinite;
+    }
+    .btn-loading-text { display: none; }
+    .btn-checkout.is-loading .btn-loading-text {
+        display: none; /* We use the ::after spinner instead, or we can show text */
+    }
+
+    @keyframes button-loading-spinner {
+        from { transform: rotate(0turn); }
+        to { transform: rotate(1turn); }
+    }
 
     .btn-signin {
         background: #fff;
@@ -573,9 +603,10 @@
                         <span class="price-flash" id="summary-full-total">Rs. {{ full_total }}</span>
                     </div>
 
-                    <a href="{% url 'checkout' %}" class="btn-checkout inline-block text-center">
-    Continue to Checkout
-</a>
+                    <a href="{% url 'checkout' %}" class="btn-checkout inline-block text-center" id="checkoutBtn">
+                        <span class="btn-text">Continue to Checkout</span>
+                        <span class="btn-loading-text">Processing...</span>
+                    </a>
 
                     {% if not user.is_authenticated %}
                     <a href="{% url 'login' %}" class="btn-signin">Sign In</a>
@@ -1068,6 +1099,24 @@
         if (e.target.closest('#confirmRemoveBtn')) {
             confirmRemove();
             return;
+        }
+
+        // Checkout button loading
+        const checkoutBtn = e.target.closest('#checkoutBtn');
+        if (checkoutBtn) {
+            if (checkoutBtn.classList.contains('is-loading')) {
+                e.preventDefault();
+                return;
+            }
+            // Add loading state
+            checkoutBtn.classList.add('is-loading');
+            const btnText = checkoutBtn.querySelector('.btn-text');
+            const btnLoadingText = checkoutBtn.querySelector('.btn-loading-text');
+            if (btnText) btnText.style.display = 'none';
+            if (btnLoadingText) btnLoadingText.style.display = 'inline-block';
+            
+            // Allow a tiny delay for the animation to be seen before the browser starts unloading the page
+            // (Standard behavior for premium UX)
         }
     });
 
