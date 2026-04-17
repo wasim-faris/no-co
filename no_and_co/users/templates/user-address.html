@@ -1,4 +1,5 @@
 {% extends 'user_base/base.html' %}
+{% block body_class %}address-page{% endblock %}
 
 {% block content %}
 
@@ -148,7 +149,7 @@
     }
 
     .shell .page-title {
-        font-family: 'Playfair Display', serif;
+        /* font-family removed to inherit Basteleur from .address-page .page-title in base.html */
         font-size: 28px;
         font-weight: 400;
         letter-spacing: -0.01em;
@@ -948,7 +949,11 @@
 
         <header class="page-header">
             <div>
-                <p class="breadcrumb">Account / Addresses</p>
+                <nav class="breadcrumb-nav text-[9px] text-gray-400 uppercase tracking-[0.2em] flex items-center mb-4">
+                    <a href="{% url 'user-profile' request.user.id %}" class="hover:text-black transition-colors">Account</a>
+                    <span class="mx-3 opacity-30 select-none">•</span>
+                    <span class="text-black font-semibold">Addresses</span>
+                </nav>
                 <h1 class="page-title">Saved Addresses</h1>
                 <p class="page-sub">Manage delivery addresses for faster checkout.</p>
             </div>

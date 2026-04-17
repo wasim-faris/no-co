@@ -35,7 +35,6 @@
         .cart-page .page-title,
         .checkout-page .page-title,
         .wishlist-page .page-title,
-        .profile-page .page-title,
         .payment-page .page-title {
             font-family: 'Basteleur', serif !important;
             font-weight: 700;
@@ -51,6 +50,20 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
+        /* Minimal Basteleur for Order Management Pages */
+        .orders-page .page-title,
+        .order-details-page .page-title,
+        .address-page .page-title {
+            font-family: 'Basteleur', serif !important;
+            font-weight: 700;
+            font-size: 32px; /* Smaller, more minimal size as requested */
+            letter-spacing: 0.05em;
+            line-height: 1.2;
+            text-transform: uppercase;
+            -webkit-text-stroke: 0.2px currentColor; /* Subtler thickness */
+            text-shadow: 0.4px 0 currentColor;
+        }
+
         @media (max-width: 768px) {
             .page-title {
                 font-size: 1.8rem;
@@ -58,10 +71,15 @@
             .cart-page .page-title,
             .checkout-page .page-title,
             .wishlist-page .page-title,
-            .profile-page .page-title,
             .payment-page .page-title {
                 font-size: 28px; /* Prominent mobile size */
                 letter-spacing: 0.05em;
+            }
+            .orders-page .page-title,
+            .order-details-page .page-title,
+            .address-page .page-title {
+                font-size: 24px; /* Minimal mobile size */
+                letter-spacing: 0.03em;
             }
         }
 
