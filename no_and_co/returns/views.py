@@ -1,3 +1,5 @@
+from tkinter import W
+
 from django.shortcuts import render, redirect, get_object_or_404
 from core.models import ReturnRequest, OrderItem, OrderStatusHistory
 from django.utils import timezone
@@ -5,6 +7,8 @@ from django.contrib import messages
 from django.db import transaction
 from admin_dashboard.decorators import admin_required
 from django.core.paginator import Paginator
+from wallet.models import Wallet,WalletTransaction
+from decimal import Decimal
 
 @admin_required
 def admin_returns(request):
@@ -58,7 +62,7 @@ def approve_return(request):
             order_item.item_status = "RETURN_APPROVED"
             order_item.save()
 
-  
+
             OrderStatusHistory.objects.create(
                 order=return_request.order,
                 status="RETURN_APPROVED"
@@ -216,6 +220,23 @@ def complete_refund(request):
                 order=return_request.order,
                 status="RETURN_REFUNDED"
             )
+
+            user = return_request.order.user
+            amount = order_item.price
+            wallet , created = Wallet.objects.get_or_create(user=user)
+
+            wallet.balance = Decimal(wallet.balance) + Decimal(amount)
+            print(type(wallet.balance), type(amount))
+            wallet.save()
+
+            WalletTransaction.objects.create(
+                wallet = wallet,
+                order_id = return_request.order.id,
+                amount = amount,
+                payment_status = "SUCCESS",
+                description="Refund for returned item"
+            )
+
 
         messages.success(request, "Refund marked as completed.")
     return redirect("admin-returns")
