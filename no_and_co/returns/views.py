@@ -131,3 +131,91 @@ def schedule_pickup(request):
 
         messages.success(request, "Pickup scheduled for the return.")
     return redirect("admin-returns")
+
+def receive_return(request):
+    if request.method == "POST":
+        return_request_id = request.POST.get("return_request_id")
+        return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        with transaction.atomic():
+            return_request.status = "RECEIVED"
+            return_request.save()
+
+            order_item = return_request.order_item
+            order_item.item_status = "RETURN_RECEIVED"
+            order_item.save()
+
+            OrderStatusHistory.objects.create(
+                order=return_request.order,
+                status="RETURN_RECEIVED"
+            )
+
+        messages.success(request, "Item marked as received.")
+    return redirect("admin-returns")
+
+def inspect_return(request):
+    if request.method == "POST":
+        return_request_id = request.POST.get("return_request_id")
+        return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        with transaction.atomic():
+            return_request.status = "INSPECTED"
+            return_request.save()
+
+            order_item = return_request.order_item
+            order_item.item_status = "RETURN_INSPECTED"
+            order_item.save()
+
+            OrderStatusHistory.objects.create(
+                order=return_request.order,
+                status="RETURN_INSPECTED"
+            )
+
+        messages.success(request, "Item marked as inspected.")
+    return redirect("admin-returns")
+
+def initiate_refund(request):
+    if request.method == "POST":
+        return_request_id = request.POST.get("return_request_id")
+        return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        with transaction.atomic():
+            return_request.status = "REFUND_INITIATED"
+            return_request.refund_status = "INITIATED"
+            return_request.refund_initiated_at = timezone.now()
+            return_request.save()
+
+            order_item = return_request.order_item
+            order_item.item_status = "RETURN_REFUND_INITIATED"
+            order_item.save()
+
+            OrderStatusHistory.objects.create(
+                order=return_request.order,
+                status="RETURN_REFUND_INITIATED"
+            )
+
+        messages.success(request, "Refund initiated successfully.")
+    return redirect("admin-returns")
+
+def complete_refund(request):
+    if request.method == "POST":
+        return_request_id = request.POST.get("return_request_id")
+        return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        with transaction.atomic():
+            return_request.status = "REFUNDED"
+            return_request.refund_status = "COMPLETED"
+            return_request.refunded_at = timezone.now()
+            return_request.save()
+
+            order_item = return_request.order_item
+            order_item.item_status = "RETURN_REFUNDED"
+            order_item.save()
+
+            OrderStatusHistory.objects.create(
+                order=return_request.order,
+                status="RETURN_REFUNDED"
+            )
+
+        messages.success(request, "Refund marked as completed.")
+    return redirect("admin-returns")

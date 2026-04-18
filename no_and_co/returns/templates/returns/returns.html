@@ -208,6 +208,10 @@
                             <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Return Approved</option>
                             <option value="PICKUP_SCHEDULED" {% if status_filter == 'PICKUP_SCHEDULED' %}selected{% endif %}>Return Pickup Scheduled</option>
                             <option value="PICKED_UP" {% if status_filter == 'PICKED_UP' %}selected{% endif %}>Return Picked Up</option>
+                            <option value="RECEIVED" {% if status_filter == 'RECEIVED' %}selected{% endif %}>Return Received</option>
+                            <option value="INSPECTED" {% if status_filter == 'INSPECTED' %}selected{% endif %}>Return Inspected</option>
+                            <option value="REFUND_INITIATED" {% if status_filter == 'REFUND_INITIATED' %}selected{% endif %}>Return Refund Initiated</option>
+                            <option value="REFUNDED" {% if status_filter == 'REFUNDED' %}selected{% endif %}>Return Refunded</option>
                             <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Return Rejected</option>
                         </select>
 
@@ -264,8 +268,9 @@
                                 </td>
                                 <td class="px-3 py-4 align-middle text-center">
                                     <span id="status-badge-{{ return_request.id }}" class="inline-flex items-center px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider
-                                        {% if return_request.status == 'COMPLETED' or return_request.status == 'REFUND_COMPLETED' %}bg-teal-50 text-teal-700 border border-teal-100
+                                        {% if return_request.status == 'COMPLETED' or return_request.status == 'REFUND_COMPLETED' or return_request.status == 'REFUNDED' %}bg-teal-50 text-teal-700 border border-teal-100
                                         {% elif return_request.status == 'APPROVED' or return_request.status == 'PICKED_UP' or return_request.status == 'RECEIVED' %}bg-amber-50 text-amber-700 border border-amber-200
+                                        {% elif return_request.status == 'INSPECTED' %}bg-indigo-50 text-indigo-700 border border-indigo-100
                                         {% elif return_request.status == 'REFUND_INITIATED' %}bg-blue-50 text-blue-700 border border-blue-100/50
                                         {% elif return_request.status == 'REJECTED' %}bg-rose-50 text-rose-700 border border-rose-100
                                         {% else %}bg-[#FFFBEB] text-[#B45309] border border-[#FEF3C7]{% endif %} shadow-sm">
@@ -300,6 +305,26 @@
                                         <!-- Mark Picked Up -->
                                         <button onclick="quickAction('pickup', '{{ return_request.id }}')" class="p-1.5 text-amber-500 hover:text-amber-700 transition-colors rounded-lg hover:bg-amber-50" title="Mark Picked Up">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"></path></svg>
+                                        </button>
+                                        {% elif return_request.status == 'PICKED_UP' %}
+                                        <!-- Mark Received -->
+                                        <button onclick="submitStatusAction('{% url 'receive_return' %}', '{{ return_request.id }}')" class="p-1.5 text-indigo-400 hover:text-indigo-600 transition-colors rounded-lg hover:bg-indigo-50" title="Mark Received">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                                        </button>
+                                        {% elif return_request.status == 'RECEIVED' %}
+                                        <!-- Mark Inspected -->
+                                        <button onclick="submitStatusAction('{% url 'inspect_return' %}', '{{ return_request.id }}')" class="p-1.5 text-violet-400 hover:text-violet-600 transition-colors rounded-lg hover:bg-violet-50" title="Mark Inspected">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                                        </button>
+                                        {% elif return_request.status == 'INSPECTED' %}
+                                        <!-- Initiate Refund -->
+                                        <button onclick="submitStatusAction('{% url 'initiate_refund' %}', '{{ return_request.id }}')" class="p-1.5 text-blue-400 hover:text-blue-600 transition-colors rounded-lg hover:bg-blue-50" title="Initiate Refund">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                        </button>
+                                        {% elif return_request.status == 'REFUND_INITIATED' %}
+                                        <!-- Complete Refund -->
+                                        <button onclick="submitStatusAction('{% url 'complete_refund' %}', '{{ return_request.id }}')" class="p-1.5 text-teal-400 hover:text-teal-600 transition-colors rounded-lg hover:bg-teal-50" title="Mark Refunded">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                         </button>
                                         {% endif %}
                                     </div>
@@ -606,6 +631,14 @@
             }
         })();
 
+        // Generic action submission for immediate updates without modals
+        function submitStatusAction(url, requestId) {
+            const form = document.getElementById('genericActionForm');
+            form.action = url;
+            document.getElementById('genericRequestId').value = requestId;
+            form.submit();
+        }
+
         // Toast animation
         document.addEventListener('DOMContentLoaded', function () {
             const toasts = document.querySelectorAll('.toast-item');
@@ -656,10 +689,12 @@
             const statusContainer = document.getElementById('modalStatusContainer');
             let badgeHTML = '';
             const s = status.toUpperCase();
-            if (s === 'COMPLETED' || s === 'REFUND_COMPLETED') {
+            if (s === 'COMPLETED' || s === 'REFUND_COMPLETED' || s === 'REFUNDED') {
                 badgeHTML = `<span class="px-3 py-1 bg-teal-50 text-teal-700 border border-teal-100 rounded-full text-[10px] font-bold uppercase tracking-wider">${status.replace(/_/g, ' ')}</span>`;
             } else if (s === 'APPROVED' || s === 'PICKED_UP' || s === 'RECEIVED') {
-                badgeHTML = `<span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-bold uppercase tracking-wider">${status.replace(/_/g, ' ')}</span>`;
+                 badgeHTML = `<span class="px-3 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-[10px] font-bold uppercase tracking-wider">${status.replace(/_/g, ' ')}</span>`;
+            } else if (s === 'INSPECTED' || s === 'REFUND_INITIATED') {
+                badgeHTML = `<span class="px-3 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-full text-[10px] font-bold uppercase tracking-wider">${status.replace(/_/g, ' ')}</span>`;
             } else if (s === 'REJECTED') {
                 badgeHTML = '<span class="px-3 py-1 bg-rose-50 text-rose-700 border border-rose-100 rounded-full text-[10px] font-bold uppercase tracking-wider">Rejected</span>';
             } else {
@@ -721,5 +756,11 @@
             }
         });
     </script>
+
+    <!-- Generic Action Form (Hidden) -->
+    <form id="genericActionForm" method="POST" action="" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="return_request_id" id="genericRequestId">
+    </form>
 </body>
 </html>

@@ -127,6 +127,10 @@ class OrderItem(models.Model):
         ("RETURN_APPROVED", "Return Approved"),
         ("RETURN_PICKUP_SCHEDULED", "Return Pickup Scheduled"),
         ("RETURN_PICKED_UP", "Return Picked Up"),
+        ("RETURN_RECEIVED", "Return Received"),
+        ("RETURN_INSPECTED", "Return Inspected"),
+        ("RETURN_REFUND_INITIATED", "Return Refund Initiated"),
+        ("RETURN_REFUNDED", "Return Refunded"),
         ("RETURN_REJECTED", "Return Rejected"),
     )
 
@@ -198,6 +202,10 @@ class OrderStatusHistory(models.Model):
         ("RETURN_APPROVED", "Return Approved"),
         ("RETURN_PICKUP_SCHEDULED", "Return Pickup Scheduled"),
         ("RETURN_PICKED_UP", "Return Picked Up"),
+        ("RETURN_RECEIVED", "Return Received"),
+        ("RETURN_INSPECTED", "Return Inspected"),
+        ("RETURN_REFUND_INITIATED", "Return Refund Initiated"),
+        ("RETURN_REFUNDED", "Return Refunded"),
         ("RETURN_REJECTED", "Return Rejected"),
     )
 
@@ -223,6 +231,10 @@ class ReturnRequest(models.Model):
         ('PICKUP_SCHEDULED', 'Return Pickup Scheduled'),
         ('PICKED_UP', 'Return Picked Up'),
         ('REJECTED', 'Return Rejected'),
+        ('RECEIVED', 'Return Received'),
+        ('INSPECTED', 'Return Inspected'),
+        ('REFUND_INITIATED', 'Return Refund Initiated'),
+        ('REFUNDED', 'Return Refunded'),
     )
 
     REFUND_STATUS_CHOICES = (
