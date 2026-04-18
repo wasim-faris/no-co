@@ -75,7 +75,7 @@ def cart_view(request):
                     or 0
                 )
 
-                delivery_fee = 0 if order_total < 1999 else 149
+                delivery_fee = 149 if order_total < 999 else 0
                 full_total = delivery_fee + order_total
                 item_total = cart_obj.price * cart_obj.quantity
 
@@ -122,7 +122,7 @@ def cart_view(request):
         or 0
     )
 
-    if order_total <= 999:
+    if order_total < 999:
         delivery_fee = 149
     else:
         delivery_fee = 0
@@ -265,7 +265,7 @@ def delete_cart_item(request):
                     or 0
                 )
 
-                delivery_fee = 0 if order_total < 1999 else 149
+                delivery_fee = 149 if order_total < 999 else 0
                 full_total = delivery_fee + order_total
                 cart_count = (
                     Cart.objects.filter(user=user).aggregate(total=Sum("quantity"))[

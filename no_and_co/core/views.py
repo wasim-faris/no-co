@@ -373,7 +373,7 @@ def checkout(request):
 
     discount = Decimal("0.00")
 
-    if sub_total <= Decimal("999.00"):
+    if sub_total < Decimal("999.00"):
         delivery_charge = Decimal("149.00")
     else:
         delivery_charge = Decimal("0.00")
@@ -432,7 +432,7 @@ def place_order(request):
         tax_amount = sub_total * tax_rate
 
         delivery_charge = (
-            Decimal("149.00") if sub_total <= Decimal("999.00") else Decimal("0.00")
+            Decimal("149.00") if sub_total < Decimal("999.00") else Decimal("0.00")
         )
         discount = Decimal("0.00")
         total_amount = sub_total + tax_amount - discount + delivery_charge

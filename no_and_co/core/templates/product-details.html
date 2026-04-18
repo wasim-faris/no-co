@@ -27,8 +27,8 @@
         width: 100%;
         height: 100%;
         overflow-y: auto;
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
         gap: 0;
         /* Hide scrollbars for ultra-premium look */
         -ms-overflow-style: none;
@@ -36,21 +36,32 @@
     }
     .pdp-image-column::-webkit-scrollbar { display: none; }
 
-    .image-sub-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 0;
-    }
-
-    .pdp-image-column img {
+    /* Default: flat images under container span full width */
+    .pdp-image-column > img {
         width: 100%;
         height: auto;
         display: block;
+        grid-column: span 2;
         object-fit: cover;
         margin: 0;
         padding: 0;
         opacity: 1;
         transition: opacity 0.2s ease-in-out;
+    }
+
+    /* For exactly two images: Show as two large full-width images stacked vertically */
+    .pdp-image-column[data-image-count="2"] > img {
+        grid-column: span 2;
+    }
+
+    /* Standard Grid Pattern (for > 2 images):
+       1st: Full, 2nd & 3rd: Half, 4th: Full, 5th & 6th: Half */
+    .pdp-image-column:not([data-image-count="2"]) > img:nth-child(3n+2),
+    .pdp-image-column:not([data-image-count="2"]) > img:nth-child(3n) {
+        grid-column: span 1;
+    }
+    .pdp-image-column:not([data-image-count="2"]) > img:nth-child(3n+1) {
+        grid-column: span 2;
     }
 
     .pdp-info-column {
@@ -286,6 +297,7 @@
             min-height: 0 !important;
             max-height: none !important;
             overflow-y: visible !important;
+            display: flex;
             flex-direction: row;
             overflow-x: auto;
             scroll-snap-type: x mandatory;
@@ -294,14 +306,10 @@
         }
         .pdp-image-column::-webkit-scrollbar { display: none; }
 
-        /* Flatten sub-grids on mobile so children flow in the horizontal row */
-        .image-sub-grid {
-            display: contents;
-        }
-
         .pdp-image-column img {
             flex: 0 0 100%;
-            width: 100%;
+            width: 100% !important;
+            grid-column: auto !important;
             height: auto;
             scroll-snap-align: start;
         }
@@ -962,57 +970,13 @@
             </svg>
         </button>
 
-        <div class="pdp-image-column" id="imageContainer">
+        <div class="pdp-image-column" id="imageContainer" data-image-count="{{ default_variant.images.all|length }}">
             {% with all_imgs=default_variant.images.all %}
-                {% if all_imgs|length == 1 %}
-                    <!-- Case 1: Single image takes full width -->
-                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="{{ product.product_name }}"
-                         style="width: 100%; aspect-ratio: 2/3; object-fit: cover; object-position: center;">
-
-                {% elif all_imgs|length == 2 %}
-                    <!-- Case 2: Vertical stack (Full Width each) per requirement -->
-                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                    <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-
-                {% elif all_imgs|length == 3 %}
-                    <!-- Case 3: 1st dominant large, then two small below -->
-                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                    <div class="image-sub-grid">
-                        <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                        <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                    </div>
-
-                {% elif all_imgs|length == 4 %}
-                    <!-- Case 4: 1st Large -> 2nd/3rd Grid -> 4th Large per requirement -->
-                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                    <div class="image-sub-grid">
-                        <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                        <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                    </div>
-                    <img id="image4" src="{{ all_imgs.3.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-
-                {% elif all_imgs|length >= 5 %}
-                    <!-- Case 5: 1st Large -> 2nd/3rd Grid -> 4th/5th Grid per requirement -->
-                    <img id="mainImage" src="{{ all_imgs.0.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                    <div class="image-sub-grid">
-                        <img id="image2" src="{{ all_imgs.1.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                        <img id="image3" src="{{ all_imgs.2.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                    </div>
-                    <div class="image-sub-grid">
-                        <img id="image4" src="{{ all_imgs.3.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                        <img id="image5" src="{{ all_imgs.4.image.url }}" alt="" style="aspect-ratio: 2/3; object-fit: cover;">
-                    </div>
-
-                {% else %}
-                    <!-- Safety Fallback (Single image or Placeholder) -->
-                    {% if product_image %}
-                        <img id="mainImage" src="{{ product_image.image.url }}" alt="" style="width: 100%; aspect-ratio: 2/3; object-fit: cover;">
-                    {% else %}
-                        <div id="mainImagePlaceholder" class="w-full bg-gray-100 flex items-center justify-center" style="aspect-ratio: 2/3; min-height: 600px;">
-                            <span class="text-gray-300 text-[10px] uppercase font-bold tracking-widest">No Image Available</span>
-                        </div>
-                    {% endif %}
-                {% endif %}
+                <img id="mainImage" src="{{ all_imgs.0.image.url|default:product_image.image.url }}" alt="{{ product.product_name }}" style="aspect-ratio: 2/3;">
+                <img id="image2" src="{% if all_imgs|length >= 2 %}{{ all_imgs.1.image.url }}{% endif %}" alt="" style="aspect-ratio: 2/3; {% if all_imgs|length < 2 %}display:none;{% endif %}">
+                <img id="image3" src="{% if all_imgs|length >= 3 %}{{ all_imgs.2.image.url }}{% endif %}" alt="" style="aspect-ratio: 2/3; {% if all_imgs|length < 3 %}display:none;{% endif %}">
+                <img id="image4" src="{% if all_imgs|length >= 4 %}{{ all_imgs.3.image.url }}{% endif %}" alt="" style="aspect-ratio: 2/3; {% if all_imgs|length < 4 %}display:none;{% endif %}">
+                <img id="image5" src="{% if all_imgs|length >= 5 %}{{ all_imgs.4.image.url }}{% endif %}" alt="" style="aspect-ratio: 2/3; {% if all_imgs|length < 5 %}display:none;{% endif %}">
             {% endwith %}
         </div>
 
@@ -1422,6 +1386,7 @@
         Promise.all(loadPromises).then(() => {
             setTimeout(() => {
                 if (imageContainer) {
+                    imageContainer.dataset.imageCount = allNewSources.length;
                     imageContainer.classList.remove('gallery-swapping');
                 }
             }, 50); // Small buffer for DOM to catch up
