@@ -26,12 +26,12 @@
             font-family: 'Inter', sans-serif;
             font-weight: 700;
             letter-spacing: -0.01em;
-            text-transform: uppercase;
             line-height: 1.2;
-            font-size: 2rem; /* Initial size for Inter headings */
+            font-size: 32px; 
         }
 
-        /* Scoped Basteleur Style for Premium Pages - High Visual Impact */
+        /* ─── Premium Brand Typography (Basteleur) ─── */
+        /* These pages share the high-end, high-fashion heading font */
         .cart-page .page-title,
         .checkout-page .page-title,
         .wishlist-page .page-title,
@@ -39,17 +39,17 @@
         .wallet-page .page-title {
             font-family: 'Basteleur', serif !important;
             font-weight: 700;
-            font-size: 44px; /* Prominent desktop size */
-            letter-spacing: 0.1em; /* Increased letter-spacing for refined impact */
-            line-height: 1.25;
+            font-size: 44px; /* Matches Cart heading size */
+            letter-spacing: -0.01em;
+            line-height: 1.1;
             text-transform: uppercase;
             
-            /* Enhanced Thickness Simulation */
+            /* Enhanced Thickness for that specific "Tone" */
             -webkit-text-stroke: 0.4px currentColor;
             text-shadow: 0.6px 0 currentColor, -0.2px 0 currentColor;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
+
 
         /* Minimal Basteleur for Order Management Pages */
         .orders-page .page-title,
@@ -67,20 +67,7 @@
 
         @media (max-width: 768px) {
             .page-title {
-                font-size: 1.8rem;
-            }
-            .cart-page .page-title,
-            .checkout-page .page-title,
-            .wishlist-page .page-title,
-            .payment-page .page-title {
-                font-size: 28px; /* Prominent mobile size */
-                letter-spacing: 0.05em;
-            }
-            .orders-page .page-title,
-            .order-details-page .page-title,
-            .address-page .page-title {
-                font-size: 24px; /* Minimal mobile size */
-                letter-spacing: 0.03em;
+                font-size: 28px;
             }
         }
 

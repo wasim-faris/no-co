@@ -1,177 +1,280 @@
 {% extends 'user_base/base.html' %}
 {% load static %}
 
+{% block title %}My Wallet – NO&CO{% endblock %}
+
 {% block extra_head %}
+<!-- Razorpay Checkout JS -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <style>
-    /* Scope within shell to match user-profile.html design system */
-    .shell {
-        --ink: #0A0A0A;
-        --ink-mid: #4A4444;
-        --ink-soft: #9A9494;
-        --ink-faint: #E4E0DC;
-        --ink-ghost: #F5F3F0;
-        --warm-white: #FDFCFA;
-        --pure-white: #FFFFFF;
-        --accent: #0A0A0A;
-        --border: 1px solid var(--ink-faint);
-        --radius-sm: 2px;
-        --radius-md: 4px;
-        --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    /* ─── H&M Sharp Design System ────────────────────────────────── */
+    :root {
+        --hm-black: #000000;
+        --hm-gray-dark: #767676;
+        --hm-gray-light: #e5e5e5;
+        --hm-gray-faint: #f2f2f2;
+        --hm-white: #ffffff;
+        --hm-green: #108910;
+        --hm-red: #d11b1b;
+        --hm-border-thin: 1px solid var(--hm-gray-light);
+        --hm-border-thick: 2px solid var(--hm-black);
     }
 
-    .shell .wallet-card {
-        background: var(--pure-white);
-        border: var(--border);
-        border-radius: 12px;
-        padding: 32px;
+    /* ─── Layout ─────────────────────────────────────────────────── */
+    .wallet-page-wrapper {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 3rem 1.25rem 5rem;
+    }
+    @media (min-width: 1024px) {
+        .wallet-page-wrapper {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+    }
+
+    .page-heading {
+        margin-bottom: 2.5rem;
+        border-bottom: 1px solid var(--hm-gray-faint);
+        padding-bottom: 1.5rem;
+    }
+
+    .page-heading p {
+        font-size: 0.65rem;
+        font-weight: 500;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--hm-gray-dark);
+        margin-top: 0.75rem;
+    }
+
+    /* ─── Wallet Balance ────────────────────────────────────────── */
+    .wallet-balance-container {
         display: flex;
+        flex-direction: row;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 4px 16px rgba(0,0,0,0.02);
-        margin-bottom: 48px;
+        border: var(--hm-border-thin);
+        padding: 2.5rem;
+        margin-bottom: 4rem;
+        background: var(--hm-white);
     }
 
-    .shell .balance-label {
-        font-size: 11px;
-        letter-spacing: 0.15em;
+    .balance-info .label {
+        font-size: 0.7rem;
         text-transform: uppercase;
-        font-weight: 500;
-        color: var(--ink-soft);
-        margin-bottom: 8px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        color: var(--hm-gray-dark);
+        margin-bottom: 0.5rem;
         display: block;
     }
 
-    .shell .balance-amount {
-        font-size: 42px;
+    .balance-info .amount {
+        font-size: 2.5rem;
         font-weight: 700;
         line-height: 1;
-        letter-spacing: -0.02em;
-        color: var(--ink);
+        color: var(--hm-black);
     }
 
-    .shell .processing-note {
-        font-size: 11px;
-        color: var(--ink-soft);
-        margin-top: 12px;
+    .btn-add-money {
+        background: var(--hm-black);
+        color: var(--hm-white);
+        border: none;
+        padding: 1.1rem 2.8rem;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border-radius: 0;
+    }
+    .btn-add-money:hover {
+        background-color: #333;
     }
 
-    .shell .btn-add-money {
-        background: var(--ink);
-        color: var(--pure-white);
-        padding: 14px 32px;
-        border-radius: 100px;
+    /* ─── Transaction Table ────────────────────────────────────────── */
+    .section-header {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        color: var(--hm-black);
+    }
+
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .txn-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 800px;
+    }
+
+    .txn-table th {
+        text-align: left;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        font-weight: 800;
+        letter-spacing: 0.15em;
+        color: var(--hm-black);
+        padding: 1.25rem 1rem;
+        border-bottom: var(--hm-border-thick);
+    }
+
+    .txn-table td {
+        padding: 1.75rem 1rem;
+        font-size: 0.75rem;
+        color: var(--hm-black);
+        border-bottom: 1px solid var(--hm-gray-faint);
+        vertical-align: middle;
+    }
+
+    .col-id { color: var(--hm-gray-dark); font-size: 0.65rem; }
+    .col-order { font-weight: 700; text-decoration: underline; }
+    .status-success { color: var(--hm-green); font-weight: 700; text-transform: uppercase; font-size: 10px; }
+    .status-refund { color: var(--hm-gray-dark); font-weight: 700; text-transform: uppercase; font-size: 10px; }
+    .col-amount { text-align: right; font-weight: 600; font-size: 13px; }
+    .amount-credit { color: var(--hm-green); }
+
+    /* ─── Modals (Sharp H&M Style) ─────────────────────────────────── */
+    .hm-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.5);
+        backdrop-blur: 2px;
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hm-modal {
+        background: var(--hm-white);
+        width: 100%;
+        max-width: 480px;
+        padding: 48px;
+        position: relative;
+        border-radius: 0 !important;
+    }
+
+    .hm-modal-close {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+    .hm-modal-close:hover { opacity: 1; }
+
+    .hm-modal-title {
+        font-family: 'Basteleur', serif !important;
+        font-size: 24px;
+        font-weight: 700;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    .hm-modal-subtitle {
+        font-size: 10px;
+        text-transform: uppercase;
+        color: var(--hm-gray-dark);
+        letter-spacing: 0.05em;
+        margin-bottom: 32px;
+    }
+
+    .hm-input-group {
+        margin-bottom: 24px;
+    }
+
+    .hm-input-label {
+        display: block;
+        font-size: 9px;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .hm-input {
+        width: 100%;
+        border: var(--hm-border-thin);
+        padding: 16px;
+        font-size: 14px;
+        font-weight: 500;
+        border-radius: 0;
+        outline: none;
+    }
+    .hm-input:focus { border-color: var(--hm-black); }
+
+    .quick-select {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 32px;
+    }
+
+    .quick-btn {
+        flex: 1;
+        background: transparent;
+        border: var(--hm-border-thin);
+        padding: 12px;
+        font-size: 10px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .quick-btn:hover { border-color: var(--hm-black); background: var(--hm-gray-faint); }
+
+    .btn-primary-hm {
+        width: 100%;
+        background: var(--hm-black);
+        color: var(--hm-white);
+        border: none;
+        padding: 18px;
         font-size: 11px;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.15em;
-        transition: var(--transition);
-        border: 1px solid var(--ink);
+        cursor: pointer;
+        border-radius: 0;
     }
+    .btn-primary-hm:disabled { opacity: 0.6; cursor: not-allowed; }
 
-    .shell .btn-add-money:hover {
-        background: transparent;
-        color: var(--ink);
-    }
-
-    .shell .transaction-table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-    }
-
-    .shell .transaction-table th {
-        text-align: left;
+    .inline-error {
         font-size: 10px;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
+        color: var(--hm-red);
         font-weight: 600;
-        color: var(--ink-soft);
-        padding: 20px 24px;
-        border-bottom: 1px solid var(--ink-faint);
-    }
-
-    .shell .transaction-table td {
-        padding: 24px;
-        font-size: 12px;
-        color: var(--ink-mid);
-        border-bottom: 1px solid var(--ink-ghost);
-        transition: var(--transition);
-    }
-
-    .shell .transaction-row:hover td {
-        background: var(--warm-white);
-    }
-
-    .shell .status-badge {
-        font-size: 9px;
-        letter-spacing: 0.1em;
+        margin-top: 8px;
         text-transform: uppercase;
-        font-weight: 700;
-        padding: 4px 10px;
-        border-radius: 4px;
+        display: none;
     }
 
-    .shell .status-success {
-        color: #10B981;
-        background: #ECFDF5;
-    }
-
-    .shell .status-refund {
-        color: var(--ink);
-        background: var(--ink-ghost);
-    }
-
-    .shell .amount-cell {
-        font-weight: 600;
-    }
-
-    /* Custom Pagination Styling */
-    .shell .pagination {
+    /* ─── Pagination ─────────────────────────────────────────────── */
+    .pagination-wrapper {
         display: flex;
         justify-content: center;
-        gap: 8px;
-        margin-top: 48px;
+        margin-top: 5rem;
     }
-
-    .shell .page-btn {
-        width: 40px;
-        height: 40px;
+    .page-box {
+        width: 3.5rem;
+        height: 3.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 50%;
-        font-size: 12px;
-        font-weight: 600;
-        border: 1px solid var(--ink-faint);
-        transition: var(--transition);
-        color: var(--ink-mid);
+        border: 1px solid var(--hm-gray-light);
+        background: var(--hm-white);
+        color: var(--hm-black);
+        font-size: 0.8rem;
+        font-weight: 700;
         text-decoration: none;
     }
-
-    .shell .page-btn.active {
-        background: var(--ink);
-        color: var(--pure-white);
-        border-color: var(--ink);
-    }
-
-    .shell .page-btn:hover:not(.active) {
-        border-color: var(--ink);
-        color: var(--ink);
-    }
+    .page-box.active { background: var(--hm-black); color: var(--hm-white); border-color: var(--hm-black); }
 
     @media (max-width: 768px) {
-        .shell .wallet-card {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 24px;
-        }
-        .shell .table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-        .shell {
-            padding: 24px 20px !important;
-        }
+        .hm-modal { padding: 32px; width: 90%; }
     }
 </style>
 {% endblock %}
@@ -179,31 +282,26 @@
 {% block body_class %}wallet-page{% endblock %}
 
 {% block content %}
-<div class="shell" style="display: block; max-width: 1200px; margin: 0 auto; padding: 56px 64px 80px;">
-    <!-- Page Header -->
-    <div class="section-head" style="border-bottom: 1px solid var(--ink-faint); padding-bottom: 24px; margin-bottom: 48px;">
+<div class="wallet-page-wrapper">
+    
+    <header class="page-heading">
         <h1 class="page-title">My Wallet</h1>
-        <p style="font-size: 12px; color: var(--ink-soft); margin-top: 8px; font-weight: 400; letter-spacing: 0.02em;">
-            Manage your balance and track your transactions
-        </p>
-    </div>
+        <p>Manage your balance and track your transactions</p>
+    </header>
 
-    <!-- Wallet Balance Card -->
-    <div class="wallet-card">
-        <div>
-            <span class="balance-label">Available Balance</span>
-            <h2 class="balance-amount">₹{{ balance }}</h2>
-            <p class="processing-note">Updates reflect within 24-48h for manual recharges.</p>
+    <div class="wallet-balance-container">
+        <div class="balance-info">
+            <span class="label">Available Balance</span>
+            <div class="amount">₹{{ wallet.balance }}</div>
         </div>
-        <button class="btn-add-money">Add Money</button>
+        <button class="btn-add-money" onclick="openAddMoneyModal()">Add Money</button>
     </div>
 
-    <!-- Transaction History -->
-    <div class="history-section">
-        <h3 class="page-title" style="font-size: 24px; margin-bottom: 32px; letter-spacing: 0.05em;">Transaction History</h3>
+    <section>
+        <h2 class="page-title" style="font-size: 24px; margin-bottom: 32px; border-bottom: 1px solid var(--hm-gray-faint); padding-bottom: 16px;">Transaction History</h2>
         
         <div class="table-container">
-            <table class="transaction-table">
+            <table class="txn-table">
                 <thead>
                     <tr>
                         <th>Date & Time</th>
@@ -215,39 +313,223 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for txn in transactions %}
-                    <tr class="transaction-row">
-                        <td>{{ txn.date_time }}</td>
-                        <td style="font-family: monospace; color: var(--ink-soft);">{{ txn.transaction_id }}</td>
-                        <td>
-                            {% if txn.order_id %}
-                                <span style="font-weight: 500;">{{ txn.order_id }}</span>
-                            {% else %}
-                                <span style="color: var(--ink-soft);">—</span>
-                            {% endif %}
+                    {% for txn in wallet_transaction %}
+                    <tr class="txn-row">
+                        <td style="font-weight: 500;">{{ txn.created_at|date:"d M Y, h:i A" }}</td>
+                        <td class="col-id">TXN{{ txn.id }}</td>
+                        <td class="col-order">
+                            {% if txn.order_id %}ORD-{{ txn.order_id }}{% else %}—{% endif %}
                         </td>
                         <td>{{ txn.description }}</td>
                         <td>
-                            <span class="status-badge {% if txn.status == 'SUCCESS' %}status-success{% else %}status-refund{% endif %}">
-                                {{ txn.status }}
-                            </span>
+                            {% if txn.payment_status == 'SUCCESS' %}
+                                <span class="status-success">Success</span>
+                            {% else %}
+                                <span class="status-refund">{{ txn.payment_status }}</span>
+                            {% endif %}
                         </td>
-                        <td class="amount-cell" style="text-align: right; color: {% if '-' in txn.amount %}var(--ink){% else %}#10B981{% endif %};">
-                            {{ txn.amount }}
+                        <td class="col-amount">
+                            {% if txn.amount > 0 %}
+                                <span class="amount-credit">+ ₹{{ txn.amount|stringformat:".2f" }}</span>
+                            {% else %}
+                                <span class="amount-debit">- ₹{{ txn.amount|stringformat:".2f" }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" style="text-align: center; padding: 100px 0; color: var(--hm-gray-dark); text-transform: uppercase; font-size: 11px;">
+                            No transactions found
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
-    </div>
+    </section>
+</div>
 
-    <!-- Pagination -->
-    <div class="pagination">
-        <a href="#" class="page-btn active">1</a>
-        <a href="#" class="page-btn">2</a>
-        <a href="#" class="page-btn">3</a>
-        <a href="#" class="page-btn">4</a>
+<!-- Add Money Modal -->
+<div id="addMoneyModal" class="hm-modal-overlay">
+    <div class="hm-modal">
+        <div class="hm-modal-close" onclick="closeAddMoneyModal()">
+            <i class="ri-close-line text-2xl"></i>
+        </div>
+        
+        <h3 class="hm-modal-title">Add Money to Wallet</h3>
+        <p class="hm-modal-subtitle">Funds will be available instantly after payment</p>
+        
+        <div class="hm-input-group">
+            <label class="hm-input-label">Enter Amount (₹)</label>
+            <input type="number" id="chargeAmount" class="hm-input" placeholder="0.00" min="1">
+            <div id="amountError" class="inline-error">Please enter an amount of at least ₹1</div>
+        </div>
+        
+        <div class="quick-select">
+            <button class="quick-btn" onclick="setAmount(500)">₹500</button>
+            <button class="quick-btn" onclick="setAmount(1000)">₹1000</button>
+            <button class="quick-btn" onclick="setAmount(2000)">₹2000</button>
+        </div>
+        
+        <button id="payBtn" class="btn-primary-hm" onclick="startPayment()">Proceed to Pay</button>
+        <div id="paymentError" class="inline-error" style="text-align: center; margin-top: 16px;"></div>
     </div>
 </div>
+
+<!-- CSRF Token -->
+{% csrf_token %}
+
+<script>
+    const modal = document.getElementById('addMoneyModal');
+    const amountInput = document.getElementById('chargeAmount');
+    const payBtn = document.getElementById('payBtn');
+    const amountError = document.getElementById('amountError');
+    const paymentError = document.getElementById('paymentError');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    function openAddMoneyModal() {
+        modal.style.display = 'flex';
+        amountInput.value = '';
+        resetErrors();
+    }
+
+    function closeAddMoneyModal() {
+        modal.style.display = 'none';
+        resetErrors();
+    }
+
+    function setAmount(val) {
+        amountInput.value = val;
+        resetErrors();
+    }
+
+    function resetErrors() {
+        amountError.style.display = 'none';
+        paymentError.style.display = 'none';
+        payBtn.disabled = false;
+        payBtn.innerText = 'Proceed to Pay';
+    }
+
+    function startPayment() {
+        const amount = parseFloat(amountInput.value);
+        
+        if (!amount || amount < 1) {
+            amountError.style.display = 'block';
+            return;
+        }
+
+        payBtn.disabled = true;
+        payBtn.innerText = 'Initializing...';
+        resetErrors();
+
+        // 1. Create Order
+        fetch('/wallet/create-order/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ amount: amount })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.order_id) {
+                // 2. Trigger Razorpay with options matching working payment app
+                const options = {
+                    key: data.key,
+                    amount: data.amount,
+                    currency: "INR",
+                    name: "NO\u0026CO",
+                    description: "Wallet Top-up",
+                    order_id: data.order_id,
+                    remember_customer: false,
+                    redirect: false,
+                    prefill: {
+                        name: "{{ user.username }}",
+                        email: "{{ user.email }}",
+                    },
+                    theme: {
+                        color: "#000000"
+                    },
+                    handler: function (response) {
+                        verifyPayment(response, amount);
+                    },
+                    modal: {
+                        ondismiss: function() {
+                            payBtn.disabled = false;
+                            payBtn.innerText = 'Proceed to Pay';
+                        }
+                    }
+                };
+                
+                const rzp = new Razorpay(options);
+                
+                rzp.on('payment.failed', function (response) {
+                    paymentError.innerText = response.error.description || 'Payment failed. Please try again.';
+                    paymentError.style.display = 'block';
+                    payBtn.disabled = false;
+                    payBtn.innerText = 'Proceed to Pay';
+                });
+                
+                rzp.open();
+                payBtn.innerText = 'Proceed to Pay'; // Reset after opening
+            } else {
+                throw new Error("Failed to create order");
+            }
+        })
+        .catch(err => {
+            paymentError.innerText = 'Could not initialize payment. Please try again.';
+            paymentError.style.display = 'block';
+            payBtn.disabled = false;
+            payBtn.innerText = 'Proceed to Pay';
+        });
+    }
+
+    function verifyPayment(rzpResponse, amount) {
+        payBtn.disabled = true;
+        payBtn.innerText = 'Verifying...';
+
+        // 3. Verify Payment
+        fetch('/wallet/verify-payment/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                razorpay_order_id: rzpResponse.razorpay_order_id,
+                razorpay_payment_id: rzpResponse.razorpay_payment_id,
+                razorpay_signature: rzpResponse.razorpay_signature,
+                amount: amount
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                payBtn.innerText = 'Success!';
+                setTimeout(() => {
+                    location.reload();
+                }, 800);
+            } else {
+                paymentError.innerText = data.message || 'Verification failed. Please try again.';
+                paymentError.style.display = 'block';
+                payBtn.disabled = false;
+                payBtn.innerText = 'Proceed to Pay';
+            }
+        })
+        .catch(err => {
+            paymentError.innerText = 'Something went wrong during verification.';
+            paymentError.style.display = 'block';
+            payBtn.disabled = false;
+            payBtn.innerText = 'Proceed to Pay';
+        });
+    }
+
+    // Close on overlay click
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeAddMoneyModal();
+        }
+    }
+</script>
 {% endblock %}
