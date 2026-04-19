@@ -538,12 +538,12 @@ def order_success(request):
     order_id = request.session.get('last_order_id')
     if not order_id:
         return redirect('home')
-        
+
     order = get_object_or_404(Order, id=order_id, user=request.user)
-    
+
     # Optional: Clear it after one view to prevent refresh access
     del request.session['last_order_id']
-    
+
     return render(request, "order_success.html", {"order": order})
 
 
@@ -654,7 +654,9 @@ def cancel_order(request, order_id):
             item_status = "CANCELLED"
         ):
             variant = item.variant
+            print(variant.stock)
             variant.stock += item.quantity
+            print(variant.stock)
             variant.save()
 
         order.items.update(item_status = "CANCELLED")
@@ -668,7 +670,7 @@ def cancel_order(request, order_id):
         order.cancelled_at = timezone.now()
 
         if order.payment_method == "ONLINE":
-            wallet , create = Wallet.objects.get_or_create(
+            wallet , created = Wallet.objects.get_or_create(
                 user = order.user
             )
             amount = Decimal(order.total_amount)
@@ -677,7 +679,7 @@ def cancel_order(request, order_id):
 
             WalletTransaction.objects.create(
                 wallet = wallet,
-                order_id = order_id,
+                order_id = order.id,
                 amount = amount,
                 payment_status = "SUCCESS",
                 description = "order cancellation refund"
