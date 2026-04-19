@@ -1,11 +1,13 @@
 from ctypes import addressof
 from decimal import Decimal
+from venv import create
 from winreg import REG_QWORD
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.cache import never_cache
 from django.contrib import messages
 from django.contrib.auth import login, logout
+from razorpay import Payment
 from requests import delete
 from users.decorators import block_check
 from products.models import Variant, VariantImage, Product
@@ -27,6 +29,7 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from xhtml2pdf import pisa
 from django.http import JsonResponse
+from wallet.models import Wallet, WalletTransaction
 # Create your views here.
 
 
@@ -618,6 +621,22 @@ def cancel_order(request, order_id):
         )
 
         order.cancelled_at = timezone.now()
+
+        if order.payment_method == "ONLINE":
+            wallet , create = Wallet.objects.get_or_create(
+                user = order.user
+            )
+            amount = Decimal(order.total_amount)
+            wallet.balance = Decimal(amount) + Decimal(wallet.balance)
+            wallet.save()
+
+            WalletTransaction.objects.create(
+                wallet = wallet,
+                order_id = order_id,
+                amount = amount,
+                payment_status = "SUCCESS",
+                description = "order cancellation refund"
+            )
 
         if order.payment_method == "ONLINE" and order.payment_status == "PAID":
             order.payment_status = "REFUNDED"
