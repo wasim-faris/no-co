@@ -350,11 +350,7 @@
                             {% endif %}
                         </td>
                         <td>
-                            {% if txn.order_id %}
-                                Payment for Order #ORD-{{ txn.order_id }}
-                            {% else %}
-                                {{ txn.description }}
-                            {% endif %}
+                            {{ txn.description }}
                         </td>
                         <td>
                             {% if txn.payment_status == 'SUCCESS' %}
@@ -364,7 +360,7 @@
                             {% endif %}
                         </td>
                         <td class="col-amount">
-                            {% if txn.order_id or "purchase" in txn.description|lower %}
+                            {% if txn.transaction_type == 'DEBIT' %}
                                 <span class="amount-debit">- ₹{{ txn.amount|stringformat:".2f" }}</span>
                             {% else %}
                                 <span class="amount-credit">+ ₹{{ txn.amount|stringformat:".2f" }}</span>

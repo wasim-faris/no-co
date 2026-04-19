@@ -237,11 +237,12 @@ def complete_refund(request):
             wallet.save()
 
             WalletTransaction.objects.create(
-                wallet = wallet,
-                order_id = return_request.order.id,
-                amount = amount,
-                payment_status = "SUCCESS",
-                description="Refund for returned item"
+                wallet=wallet,
+                order_id=return_request.order.id,
+                amount=amount,
+                payment_status="SUCCESS",
+                transaction_type="CREDIT",
+                description=f"Refund for returned item in Order #{return_request.order.id}"
             )
 
 
