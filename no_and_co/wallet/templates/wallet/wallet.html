@@ -139,6 +139,7 @@
     .status-refund { color: var(--hm-gray-dark); font-weight: 700; text-transform: uppercase; font-size: 10px; }
     .col-amount { text-align: right; font-weight: 600; font-size: 13px; }
     .amount-credit { color: var(--hm-green); }
+    .amount-debit { color: var(--hm-red); }
 
     /* ─── Modals (Sharp H&M Style) ─────────────────────────────────── */
     .hm-modal-overlay {
@@ -256,22 +257,46 @@
     .pagination-wrapper {
         display: flex;
         justify-content: center;
-        margin-top: 5rem;
+        gap: 12px;
+        margin-top: 4rem;
+        padding-bottom: 2rem;
     }
     .page-box {
-        width: 3.5rem;
-        height: 3.5rem;
+        width: 40px;
+        height: 40px;
         display: flex;
         align-items: center;
         justify-content: center;
-        border: 1px solid var(--hm-gray-light);
+        border: 1px solid var(--hm-black);
         background: var(--hm-white);
         color: var(--hm-black);
-        font-size: 0.8rem;
+        font-size: 0.75rem;
         font-weight: 700;
         text-decoration: none;
+        border-radius: 50%;
+        transition: all 0.2s ease;
     }
-    .page-box.active { background: var(--hm-black); color: var(--hm-white); border-color: var(--hm-black); }
+    .page-box:hover {
+        background: var(--hm-black);
+        color: var(--hm-white);
+    }
+    .page-box.active {
+        background: var(--hm-black);
+        color: var(--hm-white);
+        border-color: var(--hm-black);
+    }
+
+    @media (max-width: 768px) {
+        .page-box {
+            width: 32px;
+            height: 32px;
+            font-size: 0.65rem;
+        }
+        .pagination-wrapper {
+            gap: 8px;
+            margin-top: 3rem;
+        }
+    }
 
     @media (max-width: 768px) {
         .hm-modal { padding: 32px; width: 90%; }
@@ -313,14 +338,24 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for txn in wallet_transaction %}
+                    {% for txn in page_obj %}
                     <tr class="txn-row">
                         <td style="font-weight: 500;">{{ txn.created_at|date:"d M Y, h:i A" }}</td>
                         <td class="col-id">TXN{{ txn.id }}</td>
                         <td class="col-order">
-                            {% if txn.order_id %}ORD-{{ txn.order_id }}{% else %}—{% endif %}
+                            {% if txn.order_id %}
+                                <span style="font-weight: 700;">ORD-{{ txn.order_id }}</span>
+                            {% else %}
+                                —
+                            {% endif %}
                         </td>
-                        <td>{{ txn.description }}</td>
+                        <td>
+                            {% if txn.order_id %}
+                                Payment for Order #ORD-{{ txn.order_id }}
+                            {% else %}
+                                {{ txn.description }}
+                            {% endif %}
+                        </td>
                         <td>
                             {% if txn.payment_status == 'SUCCESS' %}
                                 <span class="status-success">Success</span>
@@ -329,10 +364,10 @@
                             {% endif %}
                         </td>
                         <td class="col-amount">
-                            {% if txn.amount > 0 %}
-                                <span class="amount-credit">+ ₹{{ txn.amount|stringformat:".2f" }}</span>
-                            {% else %}
+                            {% if txn.order_id or "purchase" in txn.description|lower %}
                                 <span class="amount-debit">- ₹{{ txn.amount|stringformat:".2f" }}</span>
+                            {% else %}
+                                <span class="amount-credit">+ ₹{{ txn.amount|stringformat:".2f" }}</span>
                             {% endif %}
                         </td>
                     </tr>
@@ -346,6 +381,18 @@
                 </tbody>
             </table>
         </div>
+
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pagination-wrapper">
+            {% for i in page_obj.paginator.page_range %}
+                {% if page_obj.number == i %}
+                    <span class="page-box active">{{ i }}</span>
+                {% else %}
+                    <a href="?page={{ i }}{% if request.GET.amount %}&amount={{ request.GET.amount }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="page-box">{{ i }}</a>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
     </section>
 </div>
 
