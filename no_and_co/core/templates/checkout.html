@@ -480,6 +480,21 @@
                             </div>
                         </div>
 
+                        <!-- Wallet Option -->
+                        <div class="payment-option" onclick="updatePaymentMethod('wallet', this)">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <input type="radio" name="payment_method" value="wallet" class="accent-black w-4 h-4">
+                                    <div>
+                                        <p class="text-[13px] font-bold uppercase tracking-tight">Wallet (Available Balance: ₹{{ wallet_balance|default:0|floatformat:2 }})</p>
+                                        <p id="wallet-insufficient-msg" class="text-[10px] text-red-500 uppercase mt-0.5 hidden">Insufficient wallet balance</p>
+                                        <p id="wallet-helper-text" class="text-[10px] text-gray-500 uppercase mt-0.5">Pay using your NØ&Co Wallet</p>
+                                    </div>
+                                </div>
+                                <i class="ri-wallet-3-line text-2xl opacity-40"></i>
+                            </div>
+                        </div>
+
                         <!-- Online Option -->
                         <div class="payment-option" onclick="updatePaymentMethod('ONLINE', this)">
                             <div class="flex items-center justify-between">
@@ -757,6 +772,19 @@
             return;
         }
         
+        if (selectedMethod === 'wallet') {
+            const balance = parseFloat("{{ wallet_balance|default:0 }}");
+            const total = parseFloat("{{ total_cost|default:0 }}");
+            if (balance < total) {
+                if (typeof showToast === 'function') {
+                    showToast("Insufficient wallet balance", 'error');
+                } else {
+                    alert("Insufficient wallet balance");
+                }
+                return;
+            }
+        }
+        
         const processingText = button.querySelector('.processing-text');
         
         if (selectedMethod === 'ONLINE') {
@@ -789,14 +817,32 @@
         
         // Handle helper text visibility and button text
         const helperText = document.getElementById('razorpay-helper-text');
+        const walletError = document.getElementById('wallet-insufficient-msg');
+        const walletInfo = document.getElementById('wallet-helper-text');
         
         const defaultTexts = document.querySelectorAll('.default-text');
         
         if (method === 'ONLINE') {
             if (helperText) helperText.classList.remove('hidden');
+            if (walletError) walletError.classList.add('hidden');
+            if (walletInfo) walletInfo.classList.remove('hidden');
             defaultTexts.forEach(t => t.textContent = "Proceed to Payment");
+        } else if (method === 'wallet') {
+            if (helperText) helperText.classList.add('hidden');
+            const balance = parseFloat("{{ wallet_balance|default:0 }}");
+            const total = parseFloat("{{ total_cost|default:0 }}");
+            if (balance < total) {
+                if (walletError) walletError.classList.remove('hidden');
+                if (walletInfo) walletInfo.classList.add('hidden');
+            } else {
+                if (walletError) walletError.classList.add('hidden');
+                if (walletInfo) walletInfo.classList.remove('hidden');
+            }
+            defaultTexts.forEach(t => t.textContent = "Place Order");
         } else {
             if (helperText) helperText.classList.add('hidden');
+            if (walletError) walletError.classList.add('hidden');
+            if (walletInfo) walletInfo.classList.remove('hidden');
             defaultTexts.forEach(t => t.textContent = "Place Order");
         }
     }

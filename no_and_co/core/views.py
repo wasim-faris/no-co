@@ -393,6 +393,9 @@ def checkout(request):
 
     addresses = Addresses.objects.filter(user=request.user)
 
+    wallet = Wallet.objects.filter(user=request.user).first()
+    wallet_balance = wallet.balance if wallet else Decimal("0.00")
+
     return render(
         request,
         "checkout.html",
@@ -405,6 +408,7 @@ def checkout(request):
             "sub_total": sub_total,
             "default_address": default_address,
             "discount": discount,
+            "wallet_balance": wallet_balance
         },
     )
 
@@ -412,6 +416,7 @@ def checkout(request):
 @login_required(login_url="login")
 def place_order(request):
     if request.method == "POST":
+        print(dict(request.POST))
         user = request.user
         payment_method = request.POST.get("payment_method")
         address_id = request.POST.get("address_id")
@@ -465,7 +470,6 @@ def place_order(request):
                     updated_at = timezone.now()
                 )
 
-                # Record OrderItems immediately so they are captured at checkout time
                 for item in cart_items:
                     OrderItem.objects.create(
                         order=order,
@@ -475,7 +479,6 @@ def place_order(request):
                     )
 
                 if payment_method == "COD":
-                    # For COD, we process stock and clear cart immediately
                     for item in cart_items:
                         updated = Variant.objects.filter(
                             id=item.variant.id, stock__gte=item.quantity
@@ -488,9 +491,41 @@ def place_order(request):
                     cart_items.delete()
                     return redirect("order-success")
 
-                # For ONLINE, we redirect to payment without clearing cart or updating stock
-                # These will be handled in verify_payment or callback upon success
+                if payment_method == "wallet":
+
+                    wallet = Wallet.objects.filter(user=request.user).first()
+
+                    if wallet.balance >= total_amount:
+                        wallet.balance = wallet.balance - total_amount
+                        wallet.save()
+
+
+                        WalletTransaction.objects.create(
+                            wallet = wallet,
+                            order_id = order.id,
+                            amount = total_amount,
+                            payment_status = "SUCCESS",
+                            description = "product purchases"
+                        )
+
+                        for item in cart_items:
+                            updated = Variant.objects.filter(
+                                id = item.variant.id, stock__gte=item.quantity
+                            ).update(stock=F("stock") - item.quantity)
+
+                            if not updated:
+                                raise ValueError(
+                                f"Insufficient stock for {item.variant.product.name}."
+                                )
+                            cart_items.delete()
+                            return redirect("order-success")
+
+                    else:
+                        messages.error(request, "insufficent money in wallet")
+                        return redirect("checkout")
+
                 return redirect("payment-page", order_id=order.id)
+
 
         finally:
             request.session.pop("order_processing", None)
