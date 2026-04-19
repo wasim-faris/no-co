@@ -216,6 +216,13 @@ def complete_refund(request):
             order_item.item_status = "RETURN_REFUNDED"
             order_item.save()
 
+            variant = order_item.variant
+            print(variant.stock)
+            variant.stock += order_item.quantity
+            print(variant.stock)
+            variant.save()
+
+
             OrderStatusHistory.objects.create(
                 order=return_request.order,
                 status="RETURN_REFUNDED"

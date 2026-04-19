@@ -489,6 +489,7 @@ def place_order(request):
                                 f"Insufficient stock for {item.variant.product.name}."
                             )
                     cart_items.delete()
+                    request.session['last_order_id'] = order.id
                     return redirect("order-success")
 
                 if payment_method == "wallet":
@@ -518,6 +519,7 @@ def place_order(request):
                                 f"Insufficient stock for {item.variant.product.name}."
                                 )
                             cart_items.delete()
+                            request.session['last_order_id'] = order.id
                             return redirect("order-success")
 
                     else:
@@ -533,7 +535,15 @@ def place_order(request):
 
 @login_required(login_url="login")
 def order_success(request):
-    order = Order.objects.filter(user=request.user).order_by("-created_at").first()
+    order_id = request.session.get('last_order_id')
+    if not order_id:
+        return redirect('home')
+        
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    
+    # Optional: Clear it after one view to prevent refresh access
+    del request.session['last_order_id']
+    
     return render(request, "order_success.html", {"order": order})
 
 

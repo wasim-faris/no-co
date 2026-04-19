@@ -97,6 +97,7 @@ def verify_payment(request):
 
             # Clear user's cart
             Cart.objects.filter(user=order.user).delete()
+            request.session['last_order_id'] = order.id
 
         return JsonResponse({"status": "success"})
 
@@ -145,6 +146,7 @@ def razorpay_callback(request):
                 
                 # Clear user's cart
                 Cart.objects.filter(user=order.user).delete()
+                request.session['last_order_id'] = order.id
 
             return redirect('order-success')
         except Exception as e:
