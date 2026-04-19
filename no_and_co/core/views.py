@@ -686,7 +686,7 @@ def cancel_order(request, order_id):
                 amount=amount,
                 payment_status="SUCCESS",
                 transaction_type="CREDIT",
-                description=f"Refund for cancelled Order #{order.order_id}"
+                description=f"Refund for cancelled Order #{order.id}"
             )
 
     if order.payment_method == "ONLINE" and order.payment_status == "PAID":
