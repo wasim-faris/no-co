@@ -1,16 +1,47 @@
 {% if page_obj.has_other_pages %}
-<div class="flex items-center justify-center gap-2.5 my-8">
+<div class="flex items-center justify-center gap-2 my-8">
+    
+    {# Previous Button #}
+    {% if page_obj.has_previous %}
+        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"
+           class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 hover:bg-gray-50 hover:text-black transition-all duration-300">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </a>
+    {% else %}
+        <span class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-100 text-gray-200 cursor-not-allowed">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </span>
+    {% endif %}
+
+    {# Page Numbers with Elided Logic #}
     {% for num in page_obj.paginator.page_range %}
-        {% if page_obj.number == num %}
-            <span class="w-8 h-8 flex items-center justify-center rounded-full bg-black text-white text-[11px] font-bold shadow-md cursor-default">
-                {{ num }}
-            </span>
-        {% else %}
-            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}"
-               class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black hover:-translate-y-[1px] hover:shadow-sm transition-all duration-300">
-                {{ num }}
-            </a>
+        {% if num == 1 or num == page_obj.paginator.num_pages or num >= page_obj.number|add:-2 and num <= page_obj.number|add:2 %}
+            {% if page_obj.number == num %}
+                <span class="w-8 h-8 flex items-center justify-center rounded-full bg-black text-white text-[11px] font-bold shadow-md cursor-default">
+                    {{ num }}
+                </span>
+            {% else %}
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}"
+                   class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black transition-all duration-300">
+                    {{ num }}
+                </a>
+            {% endif %}
+        {% elif num == page_obj.number|add:-3 or num == page_obj.number|add:3 %}
+            <span class="w-8 h-8 flex items-center justify-center text-gray-300 text-[11px] font-bold">...</span>
         {% endif %}
     {% endfor %}
+
+    {# Next Button #}
+    {% if page_obj.has_next %}
+        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"
+           class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 hover:bg-gray-50 hover:text-black transition-all duration-300">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </a>
+    {% else %}
+        <span class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-100 text-gray-200 cursor-not-allowed">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </span>
+    {% endif %}
+
 </div>
 {% endif %}
