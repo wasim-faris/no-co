@@ -78,6 +78,7 @@ def verify_wallet_payment(request):
                 wallet=wallet_obj,
                 amount=amount,
                 payment_status="SUCCESS",
+                transaction_type="CREDIT",
                 description="Wallet Top-up via Razorpay",
                 order_id=None
             )

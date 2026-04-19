@@ -25,6 +25,7 @@ class WalletTransaction(models.Model):
     payment_status = models.CharField(max_length=50)
     payment_date = models.DateField(null=True, blank=True)
     payment_time = models.DateTimeField(null=True, blank=True)
+    transaction_type = models.CharField(max_length=20, choices=[('CREDIT', 'Credit'), ('DEBIT', 'Debit')], default='CREDIT')
     description = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
