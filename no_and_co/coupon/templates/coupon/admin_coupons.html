@@ -207,7 +207,7 @@
                                 </tr>
                             </thead>
                             <tbody class="text-sm font-medium">
-                                {% for coupon in coupons %}
+                                {% for coupon in page_obj %}
                                 <tr class="border-b border-gray-50 hover:bg-[#F8F6F1]/50 transition-colors">
                                     <td class="px-6 py-5">
                                         <div class="flex items-center gap-3">
@@ -248,7 +248,7 @@
                                     </td>
                                     <td class="px-6 py-5">
                                         <div class="flex items-center justify-end gap-3 text-gray-400">
-                                            <button onclick="openModal('editCouponModal', this)" class="hover:text-black transition-colors" title="Edit" data-code="{{ coupon.code }}" data-discount_type="{{ coupon.discount_type }}" data-discount_value="{{ coupon.discount_value }}" data-min_purchase="{{ coupon.min_purchase }}" data-max_discount="{{ coupon.max_discount|default:'' }}" data-usage_limit_per_user="{{ coupon.usage_limit_per_user|default:'' }}" data-total_usage_limit="{{ coupon.total_usage_limit|default:'' }}" data-start_date="{{ coupon.start_date|date:'Y-m-d' }}" data-end_date="{{ coupon.end_date|date:'Y-m-d' }}" data-is_active="{{ coupon.is_active|lower }}">
+                                            <button onclick="openModal('editCouponModal', this)" class="hover:text-black transition-colors" title="Edit" data-id="{{ coupon.id }}" data-code="{{ coupon.code }}" data-discount_type="{{ coupon.discount_type }}" data-discount_value="{{ coupon.discount_value }}" data-min_purchase="{{ coupon.min_purchase }}" data-max_discount="{{ coupon.max_discount|default:'' }}" data-usage_limit_per_user="{{ coupon.usage_limit_per_user|default:'' }}" data-total_usage_limit="{{ coupon.total_usage_limit|default:'' }}" data-start_date="{{ coupon.start_date|date:'Y-m-d' }}" data-end_date="{{ coupon.end_date|date:'Y-m-d' }}" data-is_active="{{ coupon.is_active|lower }}">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                             </button>
                                             <button data-id="{{ coupon.id }}" class="hover:text-red-500 transition-colors" title="Delete">
@@ -267,19 +267,37 @@
                     </div>
 
                     <!-- Pagination -->
+                    {% if page_obj.has_other_pages %}
                     <div class="flex items-center justify-center gap-2 my-8 pb-4">
-                        <button data-page="previous" class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-100 text-gray-200 cursor-not-allowed">
+                        {% if page_obj.has_previous %}
+                        <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 hover:bg-gray-50 hover:text-black transition-all duration-300">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
-                        </button>
-                        <span data-page="1" class="w-8 h-8 flex items-center justify-center rounded-full bg-black text-white text-[11px] font-bold shadow-md cursor-default">1</span>
-                        <button data-page="2" class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black transition-all duration-300">2</button>
-                        <button data-page="3" class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black transition-all duration-300">3</button>
-                        <span class="w-8 h-8 flex items-center justify-center text-gray-300 text-[11px] font-bold">...</span>
-                        <button data-page="5" class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black transition-all duration-300">5</button>
-                        <button data-page="next" class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 hover:bg-gray-50 hover:text-black transition-all duration-300">
+                        </a>
+                        {% else %}
+                        <span class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-100 text-gray-200 cursor-not-allowed">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        </span>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full bg-black text-white text-[11px] font-bold shadow-md cursor-default">{{ num }}</span>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <a href="?page={{ num }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black transition-all duration-300">{{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 hover:bg-gray-50 hover:text-black transition-all duration-300">
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
-                        </button>
+                        </a>
+                        {% else %}
+                        <span class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-100 text-gray-200 cursor-not-allowed">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        </span>
+                        {% endif %}
                     </div>
+                    {% endif %}
                 </div>
             </main>
         </main>
@@ -385,7 +403,7 @@
                 </button>
             </div>
             <div class="p-8 overflow-y-auto custom-scrollbar flex-1 bg-white">
-                <form id="editCouponForm" method="POST" class="grid grid-cols-2 gap-8">
+                <form id="editCouponForm" method="POST" class="grid grid-cols-2 gap-8" action = "{% url "edit-coupon" %}">
                     {% csrf_token %}
                     <input type="hidden" name="coupon_id" id="edit_coupon_id">
                     <div class="space-y-6">
@@ -526,9 +544,7 @@
                     toggleActiveStatus(toggleBtn);
                 }
             } else if (modalId === 'editCouponModal' && btn) {
-                const row = btn.closest('tr');
-                const deleteBtn = row ? row.querySelector('button[title="Delete"]') : null;
-                const dataId = deleteBtn ? deleteBtn.getAttribute('data-id') : '';
+                const dataId = btn.getAttribute('data-id') || '';
 
                 document.getElementById('edit_coupon_id').value = dataId;
                 document.getElementById('edit_code').value = btn.getAttribute('data-code') || '';
