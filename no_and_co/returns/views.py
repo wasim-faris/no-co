@@ -229,7 +229,7 @@ def complete_refund(request):
             )
 
             user = return_request.order.user
-            amount = order_item.price
+            amount = order_item.order.total_amount
             wallet , created = Wallet.objects.get_or_create(user=user)
 
             wallet.balance = Decimal(wallet.balance) + Decimal(amount)
