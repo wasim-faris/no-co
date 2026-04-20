@@ -7,14 +7,19 @@ from django.shortcuts import render,redirect
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
 from .models import Coupon
+from django.core.paginator import Paginator
 @admin_required
 @never_cache
 
 def admin_coupons(request):
-    coupons = Coupon.objects.filter(is_deleted = False , is_active = True)
+    coupons = Coupon.objects.filter(is_deleted=False, is_active = True).order_by('-created_at')
 
+    paginator = Paginator(coupons, 4)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, "coupon/admin_coupons.html", {
-        "coupons": coupons
+        "page_obj": page_obj
     })
 
 def add_coupons(request):
