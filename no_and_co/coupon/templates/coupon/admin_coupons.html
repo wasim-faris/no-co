@@ -39,21 +39,6 @@
         }
         .icon-bubble svg { transform: rotate(45deg); }
 
-        /* Toast animation handled via inline styles + this transition */
-        .toast-item {
-            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-            opacity: 0;
-            transform: translateY(-8px);
-        }
-        .toast-item.toast-show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .toast-item.toast-hide {
-            opacity: 0;
-            transform: translateY(-8px);
-        }
-
         input:-webkit-autofill {
             -webkit-box-shadow: 0 0 0px 1000px #F5F1EB inset !important;
             -webkit-text-fill-color: #3E3A37 !important;
@@ -66,10 +51,10 @@
 </head>
 <body class="bg-[#F8F6F1] text-[#1a1a1a]">
 
-    <div id="toast-container" class="fixed top-8 right-8 z-[9999] flex flex-col gap-4 pointer-events-none">
+    <div id="toast-container" class="fixed top-8 right-8 z-50 flex flex-col gap-4">
         {% if messages %}
             {% for message in messages %}
-                <div class="toast-item pointer-events-auto flex items-center justify-between min-w-[320px] max-w-[400px] p-3 rounded-full shadow-2xl
+                <div class="toast-item flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl transition-all duration-500 transform translate-x-full
                     {% if message.tags == 'error' %}bg-[#3E3A37]{% else %}bg-[#5C554F]{% endif %} text-white"
                 >
                     <div class="flex items-center gap-4">
@@ -529,18 +514,20 @@
         const trigger = document.getElementById('profileTrigger');
         const dropdown = document.getElementById('profileDropdown');
 
-        trigger.addEventListener('click', (e) => {
-            e.stopPropagation();
-            dropdown.classList.toggle('hidden');
-            dropdown.classList.toggle('show');
-        });
+        if (trigger && dropdown) {
+            trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('hidden');
+                dropdown.classList.toggle('show');
+            });
 
-        window.addEventListener('click', () => {
-            if (dropdown.classList.contains('show')) {
-                dropdown.classList.remove('show');
-                dropdown.classList.add('hidden');
-            }
-        });
+            window.addEventListener('click', () => {
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                    dropdown.classList.add('hidden');
+                }
+            });
+        }
 
         if (window.history.replaceState) {
             window.history.replaceState(null, null, window.location.href);
@@ -552,19 +539,15 @@
             }
         });
 
-        // TOAST FIX: use plain CSS classes defined in <style> — no dynamic Tailwind classes
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const toasts = document.querySelectorAll('.toast-item');
             toasts.forEach((toast, index) => {
-                // Slide in
                 setTimeout(() => {
-                    toast.classList.add('toast-show');
+                    toast.classList.remove('translate-x-full');
                 }, 100 * (index + 1));
 
-                // Slide out then remove
                 setTimeout(() => {
-                    toast.classList.remove('toast-show');
-                    toast.classList.add('toast-hide');
+                    toast.classList.add('opacity-0');
                     setTimeout(() => toast.remove(), 500);
                 }, 5000);
             });

@@ -13,9 +13,17 @@ from cart.models import Cart
 from products.models import Variant
 from django.db.models import F
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.cache import never_cache, cache_control
+from django.contrib import messages
 
+@never_cache
+@cache_control(no_cache=True, must_revalidate=True, no_store=True)
 def payment(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    if order.payment_status == "PAID":
+        messages.info(request, "Payment has already been completed.")
+        return redirect('order_details', id=order.id)
 
     client = razorpay.Client(
         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
@@ -54,6 +62,21 @@ def verify_payment(request):
         return JsonResponse({"status": "failed"})
 
     data = json.loads(request.body or "{}")
+
+    if data.get("action") == "payment_failed":
+        try:
+            with transaction.atomic():
+                payment = Payment.objects.get(razorpay_order_id=data.get("razorpay_order_id"))
+                payment.status = "failed"
+                payment.save()
+
+                order = Order.objects.get(payment=payment)
+                if order.payment_status != "PAID":
+                    order.payment_status = "FAILED"
+                    order.save()
+            return JsonResponse({"status": "success"})
+        except Exception as e:
+            return JsonResponse({"status": "failed", "message": str(e)})
 
     client = razorpay.Client(
         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
