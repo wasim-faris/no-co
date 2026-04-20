@@ -35,6 +35,7 @@ urlpatterns = [
     path("", include("returns.urls")),
     path("", include("payment.urls")),
     path("", include("wallet.urls")),
+    path("", include("coupon.urls")),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

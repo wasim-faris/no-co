@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupons - NO & CO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+       body { font-family: 'Inter', sans-serif; }
+        .serif-font { font-family: 'Playfair Display', serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+
+        /* Dropdown Animation */
+        #profileDropdown {
+            transition: all 0.2s ease-out;
+            transform-origin: top right;
+        }
+        #profileDropdown.hidden {
+            display: none;
+            opacity: 0;
+            transform: scale(0.95);
+        }
+        #profileDropdown.show {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+         /* Toast */
+        .icon-bubble {
+            position: relative;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-bubble svg { transform: rotate(45deg); }
+
+        input:-webkit-autofill {
+            -webkit-box-shadow: 0 0 0px 1000px #F5F1EB inset !important;
+            -webkit-text-fill-color: #3E3A37 !important;
+        }
+
+        @media (max-width: 768px) {
+            .image-section { display: none; }
+        }
+    </style>
+</head>
+<body class="bg-[#F8F6F1] text-[#1a1a1a]">
+
+       <div id="toast-container" class="fixed top-8 right-8 z-50 flex flex-col gap-4">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast-item flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl transition-all duration-500 transform translate-x-full
+                    {% if message.tags == 'error' %}bg-[#3E3A37]{% else %}bg-[#5C554F]{% endif %} text-white"
+                >
+                    <div class="flex items-center gap-4">
+                        <div class="ml-1 w-10 h-10 bg-[#F5F1EB] icon-bubble">
+                             {% if message.tags == 'error' %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                             {% else %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                             {% endif %}
+                        </div>
+                        <div class="flex flex-col text-left">
+                            <span class="text-[11px] font-bold tracking-wider uppercase">
+                                {% if message.tags == 'error' %}Error{% else %}Notice{% endif %}
+                            </span>
+                            <span class="text-[10px] opacity-70">{{ message }}</span>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div class="flex h-screen overflow-hidden">
+
+       <aside class="w-[280px] h-screen bg-white border-r border-gray-100 flex-shrink-0 flex flex-col justify-between sticky top-0">
+    <div class="p-8">
+        <div class="mb-12">
+            <h1 class="text-2xl tracking-[0.2em] font-light uppercase text-[#1a1a1a]" style="font-family: 'Optima', 'Didot', 'Playfair Display', serif;">
+                NØ <span class="italic lowercase font-serif text-xl">&</span> CO
+            </h1>
+        </div>
+
+        <nav class="space-y-3">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-1 mb-4">Management</p>
+
+            <a href="{% url 'admin-dashboard' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                <span class="font-medium text-sm">Dashboard</span>
+            </a>
+
+            <a href="{% url 'admin-orders-list' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                <span class="font-medium text-sm">Orders</span>
+            </a>
+
+          <a href="{% url 'admin-returns' %}" class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-gray-700 hover:bg-gray-100 font-semibold transition-all duration-300">
+            <svg class="w-5 h-5 text-current" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                <path d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+            </svg>
+            <span class="font-medium text-sm">Returns</span>
+        </a>
+
+            <a href="{% url 'admin-inventory-list' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <span class="font-medium text-sm">Inventory</span>
+            </a>
+
+            <a href="{% url 'admin-products' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <span class="font-medium text-sm">Products</span>
+            </a>
+
+             <a href="{% url 'admin-category' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                <span class="text-sm">Categories</span>
+            </a>
+
+            <a href="{% url 'admin-subcategory' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M9 17V7m0 10l-4-4m4 4l4-4M3 12h18"></path></svg>
+                <span class="text-sm">Subcategories</span>
+            </a>
+
+            <a href="{% url 'admin-coupons' %}" class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-white bg-[#1a1a1a] shadow-lg shadow-gray-200/50 font-semibold transition-all duration-300">
+                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                <span class="text-sm">Coupons</span>
+            </a>
+
+            <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+                <span class="font-medium text-sm">Offers</span>
+            </a>
+
+            <a href="#" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
+                <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <span class="font-medium text-sm">Customers</span>
+            </a>
+        </nav>
+    </div>
+
+    <div class="p-6 border-t border-gray-100 flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+            <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="Julian Thorne" class="w-10 h-10 rounded-full object-cover border border-gray-100">
+            <div>
+                <p class="font-bold text-sm text-[#1a1a1a]">Julian Thorne</p>
+                <p class="text-[11px] text-gray-400 font-medium">julian@noandco.com</p>
+            </div>
+        </div>
+        <button class="p-2 rounded-full text-gray-400 hover:text-black hover:bg-gray-100 transition-colors">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"></path></svg>
+        </button>
+    </div>
+</aside>
+
+        <main class="flex-1 flex flex-col">
+            <!-- Header Area (matches category layout) -->
+            <div class="px-8 pt-6 pb-4 bg-[#f5f1eb]">
+                <nav class="text-xs uppercase tracking-widest text-gray-400 flex gap-3 items-center mb-4">
+                    <span>MANAGEMENT</span>
+                    <span>&gt;</span>
+                    <span class="text-gray-900 font-semibold">COUPONS</span>
+                </nav>
+
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-4xl font-serif text-gray-900">Coupons</h1>
+                        <p class="text-[12px] text-gray-500 font-medium mt-1">Manage and organize your discount codes and promotions</p>
+                        <div class="w-12 h-[2px] bg-gray-900 mt-2"></div>
+                    </div>
+                    <button onclick="openModal('addCouponModal')" class="px-6 py-3 bg-black text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                        Add Coupon
+                    </button>
+                </div>
+            </div>
+
+            <main class="max-w-6xl mx-auto px-8 py-8 w-full space-y-6 overflow-y-auto hide-scrollbar" style="max-height: calc(100vh - 120px);">
+                <!-- Search + Filter Bar -->
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <form class="flex-1 max-w-[360px] relative" onsubmit="event.preventDefault();">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                        </div>
+                        <input type="text" placeholder="Search coupons by code..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition-all placeholder:text-gray-300 font-medium text-gray-700">
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-[24px] shadow-sm overflow-hidden border border-white">
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-gray-50/50 text-[#1a1a1a] text-[10px] uppercase tracking-widest font-bold">
+                                    <th class="px-6 py-4 border-b border-gray-100/80">Code</th>
+                                    <th class="px-6 py-4 border-b border-gray-100/80">Discount</th>
+                                    <th class="px-6 py-4 border-b border-gray-100/80">Min Purchase / Max Discount</th>
+                                    <th class="px-6 py-4 border-b border-gray-100/80 min-w-[150px]">Usage</th>
+                                    <th class="px-6 py-4 border-b border-gray-100/80">Expiry Date</th>
+                                    <th class="px-6 py-4 border-b border-gray-100/80">Status</th>
+                                    <th class="px-6 py-4 border-b border-gray-100/80 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm font-medium">
+                                <tr class="border-b border-gray-50 hover:bg-[#F8F6F1]/50 transition-colors">
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-[#F8F6F1] flex items-center justify-center border border-gray-200 text-gray-600">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+                                            </div>
+                                            <div>
+                                                <span class="font-bold text-[#1a1a1a] tracking-tight text-[13px]">SUMMER20</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="text-[#1a1a1a] font-bold text-[13px]">20% OFF</span>
+                                    </td>
+                                    <td class="px-6 py-5 text-gray-500">
+                                        <div class="flex flex-col gap-1 text-[10px] font-bold uppercase tracking-wider">
+                                            <div><span class="text-gray-400">Min:</span> ₹2000</div>
+                                            <div><span class="text-gray-400">Max:</span> ₹500</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider"><span class="text-[#1a1a1a]">45/100</span><span class="text-gray-400">45%</span></div>
+                                            <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-[#1a1a1a] h-full w-[45%] rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5 text-gray-500 text-[12px] font-medium">Oct 15, 2026</td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-[#1a1a1a] text-white text-[9px] font-bold px-2 py-1 roundeduppercase tracking-widest">ACTIVE</span>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center justify-end gap-3 text-gray-400">
+                                            <button onclick="openModal('editCouponModal')" class="hover:text-black transition-colors" title="Edit">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                            </button>
+                                            <button class="hover:text-red-500 transition-colors" title="Delete">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr class="border-b border-gray-50 hover:bg-[#F8F6F1]/50 transition-colors">
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-[#F8F6F1] flex items-center justify-center border border-gray-200 text-gray-400">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                                            </div>
+                                            <div>
+                                                <span class="font-bold text-[#1a1a1a] tracking-tight text-[13px]">WELCOME50</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="text-[#1a1a1a] font-bold text-[13px]">₹800 OFF</span>
+                                    </td>
+                                    <td class="px-6 py-5 text-gray-500">
+                                        <div class="flex flex-col gap-1 text-[10px] font-bold uppercase tracking-wider">
+                                            <div><span class="text-gray-400">Min:</span> ₹4000</div>
+                                            <div class="text-gray-300">-</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider"><span class="text-gray-500">100/100</span><span class="text-gray-400">100%</span></div>
+                                            <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-gray-300 h-full w-[100%] rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5 text-gray-500 text-[12px] font-medium">May 10, 2026</td>
+                                    <td class="px-6 py-5">
+                                        <span class="border border-gray-200 text-gray-500 bg-gray-50 text-[9px] font-bold px-2 py-1 rounded uppercase tracking-widest">INACTIVE</span>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center justify-end gap-3 text-gray-400">
+                                            <button onclick="openModal('editCouponModal')" class="hover:text-black transition-colors" title="Edit">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                            </button>
+                                            <button class="hover:text-red-500 transition-colors" title="Delete">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <tr class="hover:bg-[#F8F6F1]/50 transition-colors">
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded-lg bg-[#F8F6F1] flex items-center justify-center border border-gray-200 text-gray-600">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+                                            </div>
+                                            <div>
+                                                <span class="font-bold text-[#1a1a1a] tracking-tight text-[13px]">FLASH15</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <span class="text-[#1a1a1a] font-bold text-[13px]">15% OFF</span>
+                                    </td>
+                                    <td class="px-6 py-5 text-gray-500">
+                                        <div class="flex flex-col gap-1 text-[10px] font-bold uppercase tracking-wider">
+                                            <div><span class="text-gray-400">Min:</span> ₹1500</div>
+                                            <div><span class="text-gray-400">Max:</span> ₹300</div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex flex-col gap-2">
+                                            <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider"><span class="text-[#1a1a1a]">12/50</span><span class="text-gray-400">24%</span></div>
+                                            <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-[#1a1a1a] h-full w-[24%] rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-5 text-gray-500 text-[12px] font-medium">Nov 01, 2026</td>
+                                    <td class="px-6 py-5">
+                                        <span class="bg-[#1a1a1a] text-white text-[9px] font-bold px-2 py-1 rounded uppercase tracking-widest">ACTIVE</span>
+                                    </td>
+                                    <td class="px-6 py-5">
+                                        <div class="flex items-center justify-end gap-3 text-gray-400">
+                                            <button onclick="openModal('editCouponModal')" class="hover:text-black transition-colors" title="Edit">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                            </button>
+                                            <button class="hover:text-red-500 transition-colors" title="Delete">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div class="flex items-center justify-center gap-2 my-8 pb-4">
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-100 text-gray-200 cursor-not-allowed">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+                        </button>
+                        <span class="w-8 h-8 flex items-center justify-center rounded-full bg-black text-white text-[11px] font-bold shadow-md cursor-default">
+                            1
+                        </span>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black transition-all duration-300">
+                            2
+                        </button>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black transition-all duration-300">
+                            3
+                        </button>
+                        <span class="w-8 h-8 flex items-center justify-center text-gray-300 text-[11px] font-bold">...</span>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 text-[11px] font-bold hover:bg-gray-50 hover:text-black transition-all duration-300">
+                            5
+                        </button>
+                        <button class="w-8 h-8 flex items-center justify-center rounded-full bg-transparent border border-gray-200 border-opacity-60 text-gray-500 hover:bg-gray-50 hover:text-black transition-all duration-300">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </main>
+    </div>
+
+    <!-- Add Coupon Modal -->
+    <div id="addCouponModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeModal('addCouponModal')"></div>
+        <div class="relative bg-white w-full max-w-4xl rounded-[32px] overflow-hidden shadow-2xl z-10 flex flex-col max-h-[90vh] scale-95 opacity-0 transition-all duration-300 transform" id="addCouponModalContent">
+            <div class="p-8 pb-6 border-b border-gray-50 flex justify-between items-center sticky top-0 z-20 bg-white">
+                <div>
+                    <h3 class="text-2xl font-serif text-gray-900 mb-1">Add Coupon</h3>
+                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Create a new discount code</p>
+                </div>
+                <button onclick="closeModal('addCouponModal')" class="p-2 text-gray-400 hover:bg-gray-50 hover:text-black rounded-full transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-8 overflow-y-auto custom-scrollbar flex-1 bg-white">
+                <form id="addCouponForm" class="grid grid-cols-2 gap-8" onsubmit="event.preventDefault(); closeModal('addCouponModal');">
+                    <!-- Left Section -->
+                    <div class="space-y-6">
+                        <h4 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">General Information</h4>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Coupon Code</label>
+                            <input type="text" placeholder="e.g. FLASH20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Discount Value (%)</label>
+                                <input type="number" placeholder="Enter value" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Discount Type</label>
+                                <select class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors appearance-none">
+                                    <option>Percentage</option>
+                                    <option>Fixed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Minimum Purchase</label>
+                                <input type="number" placeholder="Optional" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Maximum Discount</label>
+                                <input type="number" placeholder="Optional" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Usage Limit Per User</label>
+                                <input type="number" placeholder="e.g. 1" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Total Usage Limit</label>
+                                <input type="number" placeholder="e.g. 100" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Section -->
+                    <div class="space-y-6">
+                        <h4 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Scheduling & Status</h4>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Start Date</label>
+                            <input type="date" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">End Date</label>
+                            <input type="date" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100 mt-6">
+                            <div>
+                                <p class="text-xs font-bold text-gray-900">Active Status</p>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Enable or disable this coupon</p>
+                            </div>
+                            <button type="button" class="relative w-12 h-6 bg-black rounded-full transition-colors duration-200 ease-in-out" onclick="toggleActiveButton(this)">
+                                <span class="dot absolute top-1 w-4 h-4 bg-white rounded-full translate-x-6 transition-transform duration-200 ease-in-out shadow-sm"></span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="p-6 border-t border-gray-50 bg-gray-50/30 flex justify-end gap-3 sticky bottom-0 z-20">
+                <button type="button" onclick="closeModal('addCouponModal')" class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold border border-gray-200 rounded-xl hover:bg-white transition-all text-black">
+                    Cancel
+                </button>
+                <button type="button" onclick="document.getElementById('addCouponForm').dispatchEvent(new Event('submit'))" class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold bg-black text-white rounded-xl shadow-lg hover:bg-gray-800 transition-all">
+                    Save Coupon
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Coupon Modal -->
+    <div id="editCouponModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeModal('editCouponModal')"></div>
+        <div class="relative bg-white w-full max-w-4xl rounded-[32px] overflow-hidden shadow-2xl z-10 flex flex-col max-h-[90vh] scale-95 opacity-0 transition-all duration-300 transform" id="editCouponModalContent">
+            <div class="p-8 pb-6 border-b border-gray-50 flex justify-between items-center sticky top-0 z-20 bg-white">
+                <div>
+                    <h3 class="text-2xl font-serif text-gray-900 mb-1">Edit Coupon</h3>
+                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Update existing discount code</p>
+                </div>
+                <button onclick="closeModal('editCouponModal')" class="p-2 text-gray-400 hover:bg-gray-50 hover:text-black rounded-full transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <div class="p-8 overflow-y-auto custom-scrollbar flex-1 bg-white">
+                <form id="editCouponForm" class="grid grid-cols-2 gap-8" onsubmit="event.preventDefault(); closeModal('editCouponModal');">
+                    <!-- Left Section -->
+                    <div class="space-y-6">
+                        <h4 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">General Information</h4>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Coupon Code</label>
+                            <input type="text" value="SUMMER20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Discount Value (%)</label>
+                                <input type="number" value="20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Discount Type</label>
+                                <select class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors appearance-none" id="editDiscountType">
+                                    <option selected>Percentage</option>
+                                    <option>Fixed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Minimum Purchase</label>
+                                <input type="number" value="2000" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Maximum Discount</label>
+                                <input type="number" value="500" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Usage Limit Per User</label>
+                                <input type="number" value="1" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Total Usage Limit</label>
+                                <input type="number" value="100" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Section -->
+                    <div class="space-y-6">
+                        <h4 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Scheduling & Status</h4>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Start Date</label>
+                            <input type="date" value="2026-09-01" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">End Date</label>
+                            <input type="date" value="2026-10-15" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100 mt-6">
+                            <div>
+                                <p class="text-xs font-bold text-gray-900">Active Status</p>
+                                <p class="text-[10px] text-gray-400 mt-0.5">Enable or disable this coupon</p>
+                            </div>
+                            <button type="button" class="relative w-12 h-6 bg-black rounded-full transition-colors duration-200 ease-in-out" onclick="toggleActiveButton(this)">
+                                <span class="dot absolute top-1 w-4 h-4 bg-white rounded-full translate-x-6 transition-transform duration-200 ease-in-out shadow-sm"></span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="p-6 border-t border-gray-50 bg-gray-50/30 flex justify-end gap-3 sticky bottom-0 z-20">
+                <button type="button" onclick="closeModal('editCouponModal')" class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold border border-gray-200 rounded-xl hover:bg-white transition-all text-black">
+                    Cancel
+                </button>
+                <button type="button" onclick="document.getElementById('editCouponForm').dispatchEvent(new Event('submit'))" class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold bg-black text-white rounded-xl shadow-lg hover:bg-gray-800 transition-all">
+                    Update Coupon
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const trigger = document.getElementById('profileTrigger');
+        const dropdown = document.getElementById('profileDropdown');
+
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dropdown.classList.toggle('hidden');
+            dropdown.classList.toggle('show');
+        });
+
+        window.addEventListener('click', () => {
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+
+        window.addEventListener("pageshow", function (event) {
+            if (event.persisted || window.performance.navigation.type === 2) {
+                window.location.reload();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const toasts = document.querySelectorAll('.toast-item');
+            toasts.forEach((toast, index) => {
+                setTimeout(() => {
+                    toast.classList.remove('translate-x-full');
+                }, 100 * (index + 1));
+
+                setTimeout(() => {
+                    toast.classList.add('opacity-0');
+                    setTimeout(() => toast.remove(), 500);
+                }, 5000);
+            });
+        });
+
+        function toggleActiveButton(btn) {
+            btn.classList.toggle('bg-black');
+            btn.classList.toggle('bg-gray-300');
+            const dot = btn.querySelector('.dot');
+            dot.classList.toggle('translate-x-6');
+            dot.classList.toggle('translate-x-1');
+        }
+
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(modalId + 'Content');
+            modal.classList.remove('hidden');
+            // Trigger animation
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            const content = document.getElementById(modalId + 'Content');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            // Wait for animation to finish
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                document.body.style.overflow = '';
+            }, 300);
+        }
+    </script>
+</body>
+</html>
