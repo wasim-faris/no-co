@@ -251,7 +251,7 @@
                                             <button onclick="openModal('editCouponModal', this)" class="hover:text-black transition-colors" title="Edit" data-id="{{ coupon.id }}" data-code="{{ coupon.code }}" data-discount_type="{{ coupon.discount_type }}" data-discount_value="{{ coupon.discount_value }}" data-min_purchase="{{ coupon.min_purchase }}" data-max_discount="{{ coupon.max_discount|default:'' }}" data-usage_limit_per_user="{{ coupon.usage_limit_per_user|default:'' }}" data-total_usage_limit="{{ coupon.total_usage_limit|default:'' }}" data-start_date="{{ coupon.start_date|date:'Y-m-d' }}" data-end_date="{{ coupon.end_date|date:'Y-m-d' }}" data-is_active="{{ coupon.is_active|lower }}">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                             </button>
-                                            <button data-id="{{ coupon.id }}" class="hover:text-red-500 transition-colors" title="Delete">
+                                            <button onclick="openModal('deactivateCouponModal', this)" data-id="{{ coupon.id }}" class="hover:text-red-500 transition-colors" title="Delete">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                                             </button>
                                         </div>
@@ -323,19 +323,23 @@
                         <h4 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">General Information</h4>
                         <div>
                             <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Coupon Code</label>
-                            <input type="text" name="code" placeholder="e.g. FLASH20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors" required>
+                            <input type="text" name="code" id="add_code" placeholder="e.g. FLASH20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            <div id="error_add_code" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                         </div>
                         <div class="flex gap-4">
                             <div class="flex-1">
-                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Discount Value (%)</label>
-                                <input type="number" name="discount_value" placeholder="Enter value" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors" required>
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Discount Value</label>
+                                <input type="number" name="discount_value" id="add_discount_value" placeholder="Enter value" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <div id="error_add_discount_value" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                             <div class="flex-1">
                                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Discount Type</label>
-                                <select name="discount_type" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors appearance-none">
+                                <select name="discount_type" id="add_discount_type" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors appearance-none">
+                                    <option value="" disabled selected>Select Type</option>
                                     <option value="percentage">Percentage</option>
                                     <option value="fixed">Fixed</option>
                                 </select>
+                                <div id="error_add_discount_type" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                         </div>
                         <div class="flex gap-4">
@@ -363,11 +367,13 @@
                         <h4 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">Scheduling & Status</h4>
                         <div>
                             <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Start Date</label>
-                            <input type="date" name="start_date" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            <input type="date" name="start_date" id="add_start_date" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            <div id="error_add_start_date" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                         </div>
                         <div>
                             <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">End Date</label>
-                            <input type="date" name="end_date" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            <input type="date" name="end_date" id="add_end_date" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            <div id="error_add_end_date" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                         </div>
                         <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100 mt-6">
                             <div>
@@ -410,19 +416,23 @@
                         <h4 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">General Information</h4>
                         <div>
                             <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Coupon Code</label>
-                            <input type="text" name="code" id="edit_code" value="SUMMER20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors" required>
+                            <input type="text" name="code" id="edit_code" value="SUMMER20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            <div id="error_edit_code" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                         </div>
                         <div class="flex gap-4">
                             <div class="flex-1">
-                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Discount Value (%)</label>
-                                <input type="number" name="discount_value" id="edit_discount_value" value="20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors" required>
+                                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Discount Value</label>
+                                <input type="number" name="discount_value" id="edit_discount_value" value="20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <div id="error_edit_discount_value" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                             <div class="flex-1">
                                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Discount Type</label>
                                 <select name="discount_type" id="edit_discount_type" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors appearance-none">
+                                    <option value="" disabled>Select Type</option>
                                     <option value="percentage" selected>Percentage</option>
                                     <option value="fixed">Fixed</option>
                                 </select>
+                                <div id="error_edit_discount_type" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                         </div>
                         <div class="flex gap-4">
@@ -451,10 +461,12 @@
                         <div>
                             <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Start Date</label>
                             <input type="date" name="start_date" id="edit_start_date" value="2026-09-01" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            <div id="error_edit_start_date" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                         </div>
                         <div>
                             <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">End Date</label>
                             <input type="date" name="end_date" id="edit_end_date" value="2026-10-15" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            <div id="error_edit_end_date" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                         </div>
                         <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100 mt-6">
                             <div>
@@ -472,6 +484,33 @@
             <div class="p-6 border-t border-gray-50 bg-gray-50/30 flex justify-end gap-3 sticky bottom-0 z-20">
                 <button type="button" onclick="closeModal('editCouponModal')" class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold border border-gray-200 rounded-xl hover:bg-white transition-all text-black">Cancel</button>
                 <button type="submit" form="editCouponForm" class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold bg-black text-white rounded-xl shadow-lg hover:bg-gray-800 transition-all">Update Coupon</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Deactivate Coupon Modal -->
+    <div id="deactivateCouponModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 hidden">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeModal('deactivateCouponModal')"></div>
+        <div class="relative bg-white w-full max-w-md rounded-[32px] overflow-hidden shadow-2xl z-10 flex flex-col scale-95 opacity-0 transition-all duration-300 transform" id="deactivateCouponModalContent">
+            <div class="p-8 pb-6 border-b border-gray-50 flex justify-between items-center bg-white">
+                <div>
+                    <h3 class="text-2xl font-serif text-gray-900 mb-1">Deactivate Coupon</h3>
+                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Confirm deactivation</p>
+                </div>
+                <button onclick="closeModal('deactivateCouponModal')" class="p-2 text-gray-400 hover:bg-gray-50 hover:text-black rounded-full transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="p-8 bg-white">
+                <p class="text-gray-600 text-sm font-medium mb-6">Are you sure you want to deactivate this coupon?</p>
+                <form id="deactivateCouponForm" method="POST" action="{% url "coupon-soft-delete" %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="coupon_id" id="deactivate_coupon_id">
+                </form>
+            </div>
+            <div class="p-6 border-t border-gray-50 bg-gray-50/30 flex justify-end gap-3 rounded-b-[32px]">
+                <button type="button" onclick="closeModal('deactivateCouponModal')" class="px-6 py-3 text-[10px] uppercase tracking-widest font-bold border border-gray-200 rounded-xl hover:bg-white transition-all text-black">Cancel</button>
+                <button type="submit" form="deactivateCouponForm" class="px-6 py-3 text-[10px] uppercase tracking-widest font-bold bg-red-600 text-white rounded-xl shadow-lg hover:bg-red-700 transition-all">Confirm</button>
             </div>
         </div>
     </div>
@@ -517,6 +556,110 @@
                     setTimeout(() => toast.remove(), 500);
                 }, 5000);
             });
+
+            function setupFormValidation(formId, prefix) {
+                const form = document.getElementById(formId);
+                if (!form) return;
+
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const errorDivs = form.querySelectorAll('div[id^="error_' + prefix + '"]');
+                    errorDivs.forEach(div => {
+                        div.textContent = '';
+                        div.classList.add('hidden');
+                    });
+
+                    let hasError = false;
+                    const code = form.querySelector('[name="code"]').value.trim();
+                    const discountValue = form.querySelector('[name="discount_value"]').value;
+                    const discountType = form.querySelector('[name="discount_type"]').value;
+                    const startDate = form.querySelector('[name="start_date"]').value;
+                    const endDate = form.querySelector('[name="end_date"]').value;
+
+                    function showError(field, message) {
+                        const div = document.getElementById('error_' + prefix + field);
+                        if (div) {
+                            div.textContent = message;
+                            div.classList.remove('hidden');
+                        }
+                        hasError = true;
+                    }
+
+                    if (!code) showError('code', 'Coupon code is required.');
+                    if (!discountValue) showError('discount_value', 'Discount value is required.');
+                    if (!discountType) showError('discount_type', 'Discount type is required.');
+
+                    if (discountType === 'percentage' && discountValue) {
+                        const val = parseFloat(discountValue);
+                        if (val < 1 || val > 100) {
+                            showError('discount_value', 'Discount percentage must be between 1% and 100%.');
+                        }
+                    }
+
+                    if (startDate && endDate) {
+                        const start = new Date(startDate);
+                        const end = new Date(endDate);
+                        const today = new Date();
+                        today.setHours(0,0,0,0);
+
+                        // For Edit, if start_date is the same as it was, we might allow it.
+                        // But for simplicity in JS, let's just check against today.
+                        // Actually, let's check if it's new.
+                        const originalStartDate = form.querySelector('[name="start_date"]').getAttribute('data-original');
+
+                        if (startDate !== originalStartDate && start < today) {
+                            showError('start_date', 'Start date cannot be in the past.');
+                        }
+
+                        if (end < today) {
+                            showError('end_date', 'End date cannot be in the past.');
+                        } else if (end < start) {
+                            showError('end_date', 'End date must be later than start date.');
+                        }
+                    } else {
+                        if (!startDate) showError('start_date', 'Start date is required.');
+                        if (!endDate) showError('end_date', 'End date is required.');
+                    }
+
+                    if (hasError) return;
+
+                    const formData = new FormData(form);
+                    try {
+                        const response = await fetch(form.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+
+                        const result = await response.json();
+                        if (response.ok) {
+                            if (result.success) {
+                                window.location.reload();
+                            } else if (result.errors) {
+                                for (const [field, msg] of Object.entries(result.errors)) {
+                                    showError(field, msg);
+                                }
+                            }
+                        } else {
+                            if (result.errors) {
+                                for (const [field, msg] of Object.entries(result.errors)) {
+                                    showError(field, msg);
+                                }
+                            } else {
+                                console.error('Error submitting form');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Submission failed', error);
+                    }
+                });
+            }
+
+            setupFormValidation('addCouponForm', 'add_');
+            setupFormValidation('editCouponForm', 'edit_');
         });
 
         function toggleActiveStatus(btn) {
@@ -539,10 +682,20 @@
             if (modalId === 'addCouponModal') {
                 const addForm = document.getElementById('addCouponForm');
                 addForm.reset();
+                const startInput = addForm.querySelector('[name="start_date"]');
+                if (startInput) startInput.removeAttribute('data-original');
+
                 const toggleBtn = addForm.querySelector('button[onclick="toggleActiveStatus(this)"]');
                 if (toggleBtn && !toggleBtn.classList.contains('bg-black')) {
                     toggleActiveStatus(toggleBtn);
                 }
+
+                // Clear previous errors
+                addForm.querySelectorAll('div[id^="error_add_"]').forEach(div => {
+                    div.textContent = '';
+                    div.classList.add('hidden');
+                });
+
             } else if (modalId === 'editCouponModal' && btn) {
                 const dataId = btn.getAttribute('data-id') || '';
 
@@ -554,8 +707,15 @@
                 document.getElementById('edit_max_discount').value = btn.getAttribute('data-max_discount') || '';
                 document.getElementById('edit_usage_limit_per_user').value = btn.getAttribute('data-usage_limit_per_user') || '';
                 document.getElementById('edit_total_usage_limit').value = btn.getAttribute('data-total_usage_limit') || '';
-                document.getElementById('edit_start_date').value = btn.getAttribute('data-start_date') || '';
-                document.getElementById('edit_end_date').value = btn.getAttribute('data-end_date') || '';
+
+                const startVal = btn.getAttribute('data-start_date') || '';
+                const endVal = btn.getAttribute('data-end_date') || '';
+
+                const startInput = document.getElementById('edit_start_date');
+                startInput.value = startVal;
+                startInput.setAttribute('data-original', startVal);
+
+                document.getElementById('edit_end_date').value = endVal;
 
                 const isActive = btn.getAttribute('data-is_active') === 'true';
                 const toggleBtn = document.getElementById('edit_active_toggle');
@@ -565,6 +725,15 @@
                         toggleActiveStatus(toggleBtn);
                     }
                 }
+
+                // Clear previous errors
+                document.getElementById('editCouponForm').querySelectorAll('div[id^="error_edit_"]').forEach(div => {
+                    div.textContent = '';
+                    div.classList.add('hidden');
+                });
+            } else if (modalId === 'deactivateCouponModal' && btn) {
+                const dataId = btn.getAttribute('data-id') || '';
+                document.getElementById('deactivate_coupon_id').value = dataId;
             }
 
             modal.classList.remove('hidden');
