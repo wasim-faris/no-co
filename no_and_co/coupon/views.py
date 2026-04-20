@@ -200,3 +200,31 @@ def coupon_soft_delete(request):
         except Coupon.DoesNotExist:
             messages.error(request, "coupon not found")
             return redirect("admin-coupons")
+
+def coupon_restore(request):
+    if request.method == "POST":
+        coupon_id = request.POST.get("coupon_id")
+
+        try:
+            coupon_obj = Coupon.objects.get(id=coupon_id)
+            coupon_obj.is_deleted = False
+            coupon_obj.is_active = True
+            coupon_obj.save()
+            messages.success(request, "Coupon restored successfully")
+            return redirect("admin-coupons")
+
+        except Coupon.DoesNotExist:
+            messages.error(request, "Coupon not found")
+            return redirect("admin-coupons")
+def delete_coupon(request):
+    if request.method == "POST":
+        coupon_id = request.POST.get("coupon_id")
+
+        try:
+            coupon_obj = Coupon.objects.get(id=coupon_id)
+            coupon_obj.delete()
+            messages.success(request, "coupons deleted permanently")
+            return redirect("admin-coupons")
+        except Coupon.DoesNotExist:
+            messages.success(request, "coupons not found")
+            return redirect("admin-coupons")
