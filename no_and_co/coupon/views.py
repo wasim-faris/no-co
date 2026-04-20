@@ -10,7 +10,12 @@ from django.core.paginator import Paginator
 @never_cache
 
 def admin_coupons(request):
-    coupons = Coupon.objects.filter(is_deleted=False, is_active = True).order_by('-created_at')
+    coupons = Coupon.objects.all().order_by('-created_at')
+    status = request.GET.get("status")
+    if status == "archived":
+        coupons = coupons.filter(is_deleted = True)
+    else:
+        coupons = coupons.filter(is_active = True , is_deleted = False)
 
     paginator = Paginator(coupons, 4)
     page_number = request.GET.get("page")
@@ -187,6 +192,7 @@ def coupon_soft_delete(request):
         try:
             coupon_obj = Coupon.objects.get(id=coupon_id)
             coupon_obj.is_deleted = True
+            coupon_obj.is_active = False
             coupon_obj.save()
             messages.success(request, "coupon deleted succesfully")
             return redirect("admin-coupons")
