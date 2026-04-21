@@ -16,7 +16,7 @@ def admin_coupons(request):
     if status == "archived":
         coupons = coupons.filter(is_deleted = True)
     else:
-        coupons = coupons.filter(is_active = True , is_deleted = False)
+        coupons = coupons.filter(is_deleted = False)
 
     paginator = Paginator(coupons, 4)
     page_number = request.GET.get("page")
@@ -24,7 +24,6 @@ def admin_coupons(request):
 
     for coupon in page_obj:
         coupon.used_count = CouponUsage.objects.filter(coupon=coupon).count()
-        # Find the highest usage count by any single user
         usage_stats = CouponUsage.objects.filter(coupon=coupon).values('user').annotate(user_usage=Count('id')).aggregate(max_user_usage=Max('user_usage'))
         coupon.max_user_usage = usage_stats['max_user_usage'] or 0
 
@@ -246,22 +245,22 @@ def delete_coupon(request):
 def admin_coupon_search(request):
     query = request.GET.get("q", "")
     status = request.GET.get("status", "live")
-    
+
     coupons = Coupon.objects.all()
     if query:
         coupons = coupons.filter(code__icontains=query)
-    
+
     if status == 'archived':
         coupons = coupons.filter(is_active=False)
     else:
         coupons = coupons.filter(is_active=True)
-    
+
     data = []
     for c in coupons:
         used_count = CouponUsage.objects.filter(coupon=c).count()
         usage_stats = CouponUsage.objects.filter(coupon=c).values('user').annotate(user_usage=Count('id')).aggregate(max_user_usage=Max('user_usage'))
         max_user_usage = usage_stats['max_user_usage'] or 0
-        
+
         usage_percent = 0
         if c.total_usage_limit:
             usage_percent = (used_count / c.total_usage_limit) * 100
