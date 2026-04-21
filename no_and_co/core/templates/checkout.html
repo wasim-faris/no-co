@@ -615,6 +615,16 @@
                         {% endif %}
                     </div>
 
+                    <div class="mb-4 pt-2">
+                        <button type="button" onclick="openModal()" class="w-full bg-white border border-gray-200 text-black px-4 py-3 text-[11px] font-bold tracking-[0.1em] hover:border-black transition duration-200 uppercase flex justify-between items-center group shadow-sm">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                <span>Apply Coupon</span>
+                            </div>
+                            <svg class="w-4 h-4 text-gray-400 group-hover:text-black transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </button>
+                    </div>
+
                     <!-- Price Breakdown -->
                     <div class="space-y-4 pt-6 border-t border-gray-100">
                         <div class="flex justify-between text-[11px] text-gray-600 uppercase tracking-wider">
@@ -731,9 +741,121 @@
             <a href="{% url 'home' %}" class="px-10 py-4 border border-black text-black text-[11px] font-bold uppercase tracking-widest hover:bg-black hover:text-white transition-all">Continue Shopping</a>
         </div>
     </div>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 ease-out flex items-center justify-center p-4 sm:p-6" onclick="closeModal(event)">
+        
+        <!-- Modal Content -->
+        <div id="modalContent" class="bg-white w-full max-w-[500px] rounded-none shadow-md border border-[#e5e5e5] relative transform scale-95 opacity-0 transition-all duration-300 ease-out flex flex-col max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+            
+            <!-- Header -->
+            <div class="p-[20px] border-b border-[#eee] flex justify-between items-center bg-white z-10 w-full shrink-0">
+                <h2 class="text-[16px] font-medium text-gray-900 tracking-wide">Apply Coupon</h2>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-black transition-colors focus:outline-none" aria-label="Close">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="px-[20px] pb-[20px] overflow-y-auto custom-scrollbar">
+                <!-- Input Section -->
+                <div class="flex flex-col sm:flex-row gap-[8px] mt-[20px] mb-[20px]">
+                    <input type="text" placeholder="Enter coupon code" class="flex-1 w-full h-[46px] border border-[#dcdcdc] rounded-none px-4 text-[13px] focus:outline-none focus:border-black transition-colors uppercase placeholder:normal-case placeholder:text-gray-400">
+                    <button class="h-[46px] bg-black text-white px-8 text-[13px] font-medium rounded-none hover:opacity-90 transition-opacity uppercase tracking-widest whitespace-nowrap w-full sm:w-auto">
+                        Apply
+                    </button>
+                </div>
+
+                <div class="border-t border-[#eee] my-[20px]"></div>
+
+                <div class="mb-[12px]">
+                    <h3 class="text-[#888] text-[11px] font-medium uppercase tracking-[0.15em]">Available Coupons</h3>
+                </div>
+
+                <!-- Coupons List -->
+                <div class="space-y-[16px]">
+                    <!-- Coupon 1 -->
+                    <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
+                        <div class="flex-1 pr-2">
+                            <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">WELCOME10</span>
+                            <p class="text-[#888] text-[12px] leading-relaxed">10% off on your first order. No minimum spend required.</p>
+                        </div>
+                        <button class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0">
+                            Apply
+                        </button>
+                    </div>
+
+                    <!-- Coupon 2 -->
+                    <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
+                        <div class="flex-1 pr-2">
+                            <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">FREESHIP</span>
+                            <p class="text-[#888] text-[12px] leading-relaxed">Free shipping on all orders above ₹999.</p>
+                        </div>
+                        <button class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0">
+                            Apply
+                        </button>
+                    </div>
+
+                    <!-- Coupon 3 -->
+                    <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
+                        <div class="flex-1 pr-2">
+                            <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">FESTIVE20</span>
+                            <p class="text-[#888] text-[12px] leading-relaxed">Flat 20% off on all festive collections.</p>
+                        </div>
+                        <button class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0">
+                            Apply
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
+    // Modal functions
+    function toggleBodyScroll(disable) {
+        if (disable) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    }
+
+    function openModal() {
+        const overlay = document.getElementById('modalOverlay');
+        const content = document.getElementById('modalContent');
+        overlay.classList.remove('hidden');
+        toggleBodyScroll(true);
+        void overlay.offsetWidth;
+        overlay.classList.remove('opacity-0');
+        content.classList.remove('opacity-0', 'scale-95');
+        content.classList.add('opacity-100', 'scale-100');
+    }
+
+    function closeModal(event) {
+        const overlay = document.getElementById('modalOverlay');
+        const content = document.getElementById('modalContent');
+        if (event === undefined || event.target === overlay) {
+            overlay.classList.add('opacity-0');
+            content.classList.remove('opacity-100', 'scale-100');
+            content.classList.add('opacity-0', 'scale-95');
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+                toggleBodyScroll(false);
+            }, 300);
+        }
+    }
+    
+    document.addEventListener('keydown', function(event) {
+        const overlay = document.getElementById('modalOverlay');
+        if (event.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) {
+            closeModal();
+        }
+    });
+
     function selectAddress(element) {
         // Remove active class from all
         document.querySelectorAll('.address-card').forEach(card => card.classList.remove('active'));

@@ -1,6 +1,6 @@
 from django.db import models
-
-
+from django.conf import settings
+from core.models import Order
 class Coupon(models.Model):
 
     DISCOUNT_TYPE_CHOICES = (
@@ -56,3 +56,21 @@ class Coupon(models.Model):
 
     def __str__(self):
         return self.code
+from django.db import models
+from django.conf import settings
+
+User = settings.AUTH_USER_MODEL
+
+
+class CouponUsage(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+    )
+    coupon = models.ForeignKey(Coupon, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+
+    used_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user} used {self.coupon.code}"
