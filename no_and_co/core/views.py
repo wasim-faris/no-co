@@ -31,7 +31,7 @@ from xhtml2pdf import pisa
 from django.http import JsonResponse
 from wallet.models import Wallet, WalletTransaction
 from coupon.models import Coupon
-from .utils import coupon_validation, get_cart_total
+from .utils import coupon_validation, get_cart_total,get_available_coupons
 # Create your views here.
 
 
@@ -376,7 +376,7 @@ def checkout(request):
 
     tax_amount = (sub_total * GST_RATE).quantize(Decimal("0.01"))
 
-    discount = request.session.get("discount",0)
+    discount = Decimal(request.session.get("discount",0))
 
     if sub_total < Decimal("999.00"):
         delivery_charge = Decimal("149.00")
@@ -397,7 +397,8 @@ def checkout(request):
 
     wallet = Wallet.objects.filter(user=request.user).first()
     wallet_balance = wallet.balance if wallet else Decimal("0.00")
-
+    cart_total = get_cart_total(request.user)
+    coupons = get_available_coupons(request.user , cart_total)
     return render(
         request,
         "checkout.html",
@@ -410,7 +411,8 @@ def checkout(request):
             "sub_total": sub_total,
             "default_address": default_address,
             "discount": discount,
-            "wallet_balance": wallet_balance
+            "wallet_balance": wallet_balance,
+            "coupons":coupons
         },
     )
 

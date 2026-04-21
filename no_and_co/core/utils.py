@@ -1,5 +1,5 @@
 from django.utils import timezone
-from coupon.models import CouponUsage
+from coupon.models import Coupon, CouponUsage
 from cart.models import Cart
 from decimal import Decimal
 from django.db.models import Sum,F
@@ -35,7 +35,7 @@ def coupon_validation(coupon, user, cart_total):
         if total_used >= coupon.total_usage_limit:
             return False, "Coupon usage limit reached"
 
-    if coupon.discount_type == "PERCENT":
+    if coupon.discount_type == "Percentage":
         discount = (cart_total * coupon.discount_value) / 100
 
         if coupon.max_discount:
@@ -53,3 +53,30 @@ def get_cart_total(user):
 
     return total or 0
 
+def get_available_coupons(user, cart_total):
+    today = timezone.now().date()
+
+    coupons = Coupon.objects.filter(
+        is_active = True,
+        is_deleted = False,
+        start_date__lte=today,
+        end_date__gte = today
+    )
+
+    valid_coupons = []
+
+    for coupon in coupons:
+        if coupon.min_purchase and cart_total < coupon.min_purchase:
+            continue
+
+        if coupon.usage_limit_per_user:
+            used = CouponUsage.objects.filter(
+                user=user, coupon = coupon
+            ).count()
+
+
+            if used >= coupon.usage_limit_per_user:
+                continue
+        valid_coupons.append(coupon)
+        
+    return valid_coupons
