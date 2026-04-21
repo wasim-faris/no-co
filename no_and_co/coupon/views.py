@@ -4,7 +4,7 @@ from django.http import JsonResponse
 import datetime
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
-from .models import Coupon
+from .models import Coupon, CouponUsage
 from django.core.paginator import Paginator
 @admin_required
 @never_cache
@@ -20,6 +20,15 @@ def admin_coupons(request):
     paginator = Paginator(coupons, 4)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
+
+    for coupon in page_obj:
+        coupon.used_count = CouponUsage.objects.filter(coupon=coupon).count()
+        if coupon.total_usage_limit:
+            coupon.usage_display = f"{coupon.used_count}/{coupon.total_usage_limit}"
+            coupon.usage_percent = (coupon.used_count / coupon.total_usage_limit) * 100
+        else:
+            coupon.usage_display = f"{coupon.used_count}/∞"
+            coupon.usage_percent = 0
 
     return render(request, "coupon/admin_coupons.html", {
         "page_obj": page_obj

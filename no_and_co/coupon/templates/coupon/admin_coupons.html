@@ -290,8 +290,13 @@
                                     </td>
                                     <td class="px-6 py-5">
                                         <div class="flex flex-col gap-2">
-                                            <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider"><span class="text-gray-500">0/{{ coupon.total_usage_limit|default:"&infin;" }}</span><span class="text-gray-400">0%</span></div>
-                                            <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden"><div class="bg-[#1a1a1a] h-full w-[0%] rounded-full"></div></div>
+                                            <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                                                <span class="text-gray-500">{{ coupon.usage_display }}</span>
+                                                <span class="text-gray-400">{{ coupon.usage_percent|floatformat:0 }}%</span>
+                                            </div>
+                                            <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-[#1a1a1a] h-full transition-all duration-500" style="width: {{ coupon.usage_percent }}%"></div>
+                                            </div>
                                         </div>
                                     </td>
                                     <td class="px-6 py-5 text-gray-500 text-[12px] font-medium">{{ coupon.end_date|date:"M d, Y" }}</td>
