@@ -309,7 +309,20 @@
                                     </td>
                                     <td class="px-6 py-5">
                                         <div class="flex items-center justify-end gap-3 text-gray-400">
-                                            <button onclick="openModal('editCouponModal', this)" class="hover:text-black transition-colors" title="Edit" data-id="{{ coupon.id }}" data-code="{{ coupon.code }}" data-discount_type="{{ coupon.discount_type }}" data-discount_value="{{ coupon.discount_value }}" data-min_purchase="{{ coupon.min_purchase }}" data-max_discount="{{ coupon.max_discount|default:'' }}" data-usage_limit_per_user="{{ coupon.usage_limit_per_user|default:'' }}" data-total_usage_limit="{{ coupon.total_usage_limit|default:'' }}" data-start_date="{{ coupon.start_date|date:'Y-m-d' }}" data-end_date="{{ coupon.end_date|date:'Y-m-d' }}" data-is_active="{{ coupon.is_active|lower }}">
+                                            <button onclick="openModal('editCouponModal', this)" class="hover:text-black transition-colors" title="Edit" 
+                                                data-id="{{ coupon.id }}" 
+                                                data-code="{{ coupon.code }}" 
+                                                data-discount_type="{{ coupon.discount_type }}" 
+                                                data-discount_value="{{ coupon.discount_value }}" 
+                                                data-min_purchase="{{ coupon.min_purchase }}" 
+                                                data-max_discount="{{ coupon.max_discount|default:'' }}" 
+                                                data-usage_limit_per_user="{{ coupon.usage_limit_per_user|default:'' }}" 
+                                                data-total_usage_limit="{{ coupon.total_usage_limit|default:'' }}" 
+                                                data-start_date="{{ coupon.start_date|date:'Y-m-d' }}" 
+                                                data-end_date="{{ coupon.end_date|date:'Y-m-d' }}" 
+                                                data-is_active="{{ coupon.is_active|lower }}"
+                                                data-used_count="{{ coupon.used_count }}"
+                                                data-max_user_usage="{{ coupon.max_user_usage }}">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                                             </button>
                                             {% if coupon.is_active %}
@@ -415,21 +428,25 @@
                         <div class="flex gap-4">
                             <div class="flex-1">
                                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Minimum Purchase</label>
-                                <input type="number" name="min_purchase" placeholder="Optional" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <input type="number" name="min_purchase" id="add_min_purchase" placeholder="Required" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <div id="error_add_min_purchase" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                             <div class="flex-1">
                                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Maximum Discount</label>
-                                <input type="number" name="max_discount" placeholder="Optional" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <input type="number" name="max_discount" id="add_max_discount" placeholder="Optional" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <div id="error_add_max_discount" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                         </div>
                         <div class="flex gap-4">
                             <div class="flex-1">
                                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Usage Limit Per User</label>
-                                <input type="number" name="usage_limit_per_user" placeholder="e.g. 1" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <input type="number" name="usage_limit_per_user" id="add_usage_limit_per_user" placeholder="e.g. 1" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <div id="error_add_usage_limit_per_user" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                             <div class="flex-1">
                                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Total Usage Limit</label>
-                                <input type="number" name="total_usage_limit" placeholder="e.g. 100" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <input type="number" name="total_usage_limit" id="add_total_usage_limit" placeholder="e.g. 100" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <div id="error_add_total_usage_limit" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                         </div>
                     </div>
@@ -460,7 +477,7 @@
             </div>
             <div class="p-6 border-t border-gray-50 bg-gray-50/30 flex justify-end gap-3 sticky bottom-0 z-20">
                 <button type="button" onclick="closeModal('addCouponModal')" class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold border border-gray-200 rounded-xl hover:bg-white transition-all text-black">Cancel</button>
-                <button type="submit" form="addCouponForm" class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold bg-black text-white rounded-xl shadow-lg hover:bg-gray-800 transition-all">Save Coupon</button>
+                <button type="submit" form="addCouponForm" id="addCouponSubmitBtn" disabled class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold bg-black text-white rounded-xl shadow-lg hover:bg-gray-800 transition-all opacity-50 cursor-not-allowed">Save Coupon</button>
             </div>
         </div>
     </div>
@@ -509,20 +526,24 @@
                             <div class="flex-1">
                                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Minimum Purchase</label>
                                 <input type="number" name="min_purchase" id="edit_min_purchase" value="2000" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <div id="error_edit_min_purchase" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                             <div class="flex-1">
                                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Maximum Discount</label>
                                 <input type="number" name="max_discount" id="edit_max_discount" value="500" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <div id="error_edit_max_discount" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                         </div>
                         <div class="flex gap-4">
                             <div class="flex-1">
                                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Usage Limit Per User</label>
                                 <input type="number" name="usage_limit_per_user" id="edit_usage_limit_per_user" value="1" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <div id="error_edit_usage_limit_per_user" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                             <div class="flex-1">
                                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Total Usage Limit</label>
                                 <input type="number" name="total_usage_limit" id="edit_total_usage_limit" value="100" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                                <div id="error_edit_total_usage_limit" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
                             </div>
                         </div>
                     </div>
@@ -553,7 +574,7 @@
             </div>
             <div class="p-6 border-t border-gray-50 bg-gray-50/30 flex justify-end gap-3 sticky bottom-0 z-20">
                 <button type="button" onclick="closeModal('editCouponModal')" class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold border border-gray-200 rounded-xl hover:bg-white transition-all text-black">Cancel</button>
-                <button type="submit" form="editCouponForm" class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold bg-black text-white rounded-xl shadow-lg hover:bg-gray-800 transition-all">Update Coupon</button>
+                <button type="submit" form="editCouponForm" id="editCouponSubmitBtn" disabled class="px-8 py-3 text-[10px] uppercase tracking-widest font-bold bg-black text-white rounded-xl shadow-lg hover:bg-gray-800 transition-all opacity-50 cursor-not-allowed">Update Coupon</button>
             </div>
         </div>
     </div>
@@ -632,102 +653,134 @@
             function setupFormValidation(formId, prefix) {
                 const form = document.getElementById(formId);
                 if (!form) return;
+                const submitBtn = document.getElementById(formId === 'addCouponForm' ? 'addCouponSubmitBtn' : 'editCouponSubmitBtn');
+                const inputs = form.querySelectorAll('input, select');
 
-                form.addEventListener('submit', async function(e) {
-                    e.preventDefault();
+                const validate = () => {
+                    let isFormValid = true;
 
-                    const errorDivs = form.querySelectorAll('div[id^="error_' + prefix + '"]');
-                    errorDivs.forEach(div => {
-                        div.textContent = '';
-                        div.classList.add('hidden');
+                    // Clear previous states
+                    inputs.forEach(input => {
+                        input.classList.remove('border-red-500', 'border-green-500');
+                        const errorDiv = document.getElementById(`error_${prefix}${input.name}`);
+                        if (errorDiv) {
+                            errorDiv.textContent = '';
+                            errorDiv.classList.add('hidden');
+                        }
                     });
 
-                    let hasError = false;
-                    const code = form.querySelector('[name="code"]').value.trim();
-                    const discountValue = form.querySelector('[name="discount_value"]').value;
-                    const discountType = form.querySelector('[name="discount_type"]').value;
-                    const startDate = form.querySelector('[name="start_date"]').value;
-                    const endDate = form.querySelector('[name="end_date"]').value;
+                    const getVal = (name) => {
+                        const el = form.querySelector(`[name="${name}"]`);
+                        return el ? el.value : '';
+                    };
 
-                    function showError(field, message) {
-                        const div = document.getElementById('error_' + prefix + field);
-                        if (div) {
-                            div.textContent = message;
-                            div.classList.remove('hidden');
+                    const setError = (name, msg) => {
+                        isFormValid = false;
+                        const input = form.querySelector(`[name="${name}"]`);
+                        if (input) input.classList.add('border-red-500');
+                        const errorDiv = document.getElementById(`error_${prefix}${name}`);
+                        if (errorDiv) {
+                            errorDiv.textContent = msg;
+                            errorDiv.classList.remove('hidden');
                         }
-                        hasError = true;
+                    };
+
+                    // 1. Mandatory & Basic Validation
+                    const code = getVal('code').trim();
+                    if (!code) setError('code', 'Coupon code is required');
+
+                    const dType = getVal('discount_type');
+                    if (!dType) setError('discount_type', 'Discount type is required');
+
+                    const dVal = parseFloat(getVal('discount_value'));
+                    if (isNaN(dVal) || dVal <= 0) {
+                        setError('discount_value', 'Enter valid discount value');
+                    } else if (dType === 'percentage' && dVal > 100) {
+                        setError('discount_value', 'Percentage cannot exceed 100%');
                     }
 
-                    if (!code) showError('code', 'Coupon code is required.');
-                    if (!discountValue) showError('discount_value', 'Discount value is required.');
-                    if (!discountType) showError('discount_type', 'Discount type is required.');
+                    const minP = parseFloat(getVal('min_purchase'));
+                    if (isNaN(minP) || minP < 0) setError('min_purchase', 'Minimum purchase must be valid');
 
-                    if (discountType === 'percentage' && discountValue) {
-                        const val = parseFloat(discountValue);
-                        if (val < 1 || val > 100) {
-                            showError('discount_value', 'Discount percentage must be between 1% and 100%.');
-                        }
+                    const userLimit = parseInt(getVal('usage_limit_per_user'));
+                    if (isNaN(userLimit) || userLimit < 1) {
+                        setError('usage_limit_per_user', 'User limit must be at least 1');
                     }
+
+                    const totalLimit = parseInt(getVal('total_usage_limit'));
+                    if (isNaN(totalLimit) || totalLimit < (userLimit || 1)) {
+                        setError('total_usage_limit', 'Total limit must be greater than user limit');
+                    }
+
+                    const startDate = getVal('start_date');
+                    const endDate = getVal('end_date');
+                    if (!startDate) setError('start_date', 'Start date is required');
+                    if (!endDate) setError('end_date', 'End date is required');
 
                     if (startDate && endDate) {
-                        const start = new Date(startDate);
-                        const end = new Date(endDate);
-                        const today = new Date();
-                        today.setHours(0,0,0,0);
-
-                        // For Edit, if start_date is the same as it was, we might allow it.
-                        // But for simplicity in JS, let's just check against today.
-                        // Actually, let's check if it's new.
-                        const originalStartDate = form.querySelector('[name="start_date"]').getAttribute('data-original');
-
-                        if (startDate !== originalStartDate && start < today) {
-                            showError('start_date', 'Start date cannot be in the past.');
+                        if (new Date(endDate) <= new Date(startDate)) {
+                            setError('end_date', 'End date must be after start date');
                         }
-
-                        if (end < today) {
-                            showError('end_date', 'End date cannot be in the past.');
-                        } else if (end < start) {
-                            showError('end_date', 'End date must be later than start date.');
-                        }
-                    } else {
-                        if (!startDate) showError('start_date', 'Start date is required.');
-                        if (!endDate) showError('end_date', 'End date is required.');
                     }
 
-                    if (hasError) return;
+                    // 3. Business Validation (Editing)
+                    if (formId === 'editCouponForm') {
+                        const usedCount = parseInt(form.getAttribute('data-used-count') || '0');
+                        const maxUserUsed = parseInt(form.getAttribute('data-max-user-usage') || '0');
+
+                        if (!isNaN(totalLimit) && totalLimit < usedCount) {
+                            setError('total_usage_limit', `Already used ${usedCount} times. Total limit must be ≥ ${usedCount}`);
+                        }
+                        if (!isNaN(userLimit) && userLimit < maxUserUsed) {
+                            setError('usage_limit_per_user', `One user has already used this coupon ${maxUserUsed} times. Per-user limit must be ≥ ${maxUserUsed}`);
+                        }
+                    }
+
+                    // Submit Button State
+                    if (isFormValid) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        inputs.forEach(input => {
+                            if (input.value.trim() !== '') input.classList.add('border-green-500');
+                        });
+                    } else {
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+                };
+
+                inputs.forEach(input => {
+                    input.addEventListener('input', validate);
+                    input.addEventListener('change', validate);
+                });
+
+                // Re-enable actual submit via AJAX but check validity first
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    if (submitBtn.disabled) return;
 
                     const formData = new FormData(form);
                     try {
                         const response = await fetch(form.action, {
                             method: 'POST',
                             body: formData,
-                            headers: {
-                                'X-Requested-With': 'XMLHttpRequest'
-                            }
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
                         });
-
                         const result = await response.json();
-                        if (response.ok) {
-                            if (result.success) {
-                                window.location.reload();
-                            } else if (result.errors) {
-                                for (const [field, msg] of Object.entries(result.errors)) {
-                                    showError(field, msg);
-                                }
-                            }
-                        } else {
-                            if (result.errors) {
-                                for (const [field, msg] of Object.entries(result.errors)) {
-                                    showError(field, msg);
-                                }
-                            } else {
-                                console.error('Error submitting form');
+                        if (result.success) {
+                            window.location.reload();
+                        } else if (result.errors) {
+                            for (const [field, msg] of Object.entries(result.errors)) {
+                                setError(field, msg);
                             }
                         }
                     } catch (error) {
                         console.error('Submission failed', error);
                     }
                 });
+
+                // Initial validation
+                validate();
             }
 
             setupFormValidation('addCouponForm', 'add_');
@@ -771,6 +824,10 @@
             } else if (modalId === 'editCouponModal' && btn) {
                 const dataId = btn.getAttribute('data-id') || '';
 
+                const editForm = document.getElementById('editCouponForm');
+                editForm.setAttribute('data-used-count', btn.getAttribute('data-used_count') || '0');
+                editForm.setAttribute('data-max-user-usage', btn.getAttribute('data-max_user_usage') || '0');
+
                 document.getElementById('edit_coupon_id').value = dataId;
                 document.getElementById('edit_code').value = btn.getAttribute('data-code') || '';
                 document.getElementById('edit_discount_value').value = btn.getAttribute('data-discount_value') || '';
@@ -799,10 +856,13 @@
                 }
 
                 // Clear previous errors
-                document.getElementById('editCouponForm').querySelectorAll('div[id^="error_edit_"]').forEach(div => {
+                editForm.querySelectorAll('div[id^="error_edit_"]').forEach(div => {
                     div.textContent = '';
                     div.classList.add('hidden');
                 });
+
+                // Trigger validation manually once form is filled
+                editForm.dispatchEvent(new Event('input', { bubbles: true }));
             }
 
             modal.classList.remove('hidden');

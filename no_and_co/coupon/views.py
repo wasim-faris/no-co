@@ -5,6 +5,7 @@ import datetime
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
 from .models import Coupon, CouponUsage
+from django.db.models import Count, Max
 from django.core.paginator import Paginator
 @admin_required
 @never_cache
@@ -23,6 +24,10 @@ def admin_coupons(request):
 
     for coupon in page_obj:
         coupon.used_count = CouponUsage.objects.filter(coupon=coupon).count()
+        # Find the highest usage count by any single user
+        usage_stats = CouponUsage.objects.filter(coupon=coupon).values('user').annotate(user_usage=Count('id')).aggregate(max_user_usage=Max('user_usage'))
+        coupon.max_user_usage = usage_stats['max_user_usage'] or 0
+
         if coupon.total_usage_limit:
             coupon.usage_display = f"{coupon.used_count}/{coupon.total_usage_limit}"
             coupon.usage_percent = (coupon.used_count / coupon.total_usage_limit) * 100
