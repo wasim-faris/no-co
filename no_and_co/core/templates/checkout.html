@@ -552,15 +552,20 @@
                                         <circle cx="44" cy="24" r="4.5" fill="#000" stroke="#FFF"></circle>
                                     </svg>
                                 </div>
-
-                                <!-- Online Payment Animation -->
-                                <div class="online-animation-layer hidden absolute inset-0 items-center justify-center pointer-events-none z-10 opacity-40">
-                                    <svg class="spinner-icon w-6 h-6 mr-2 text-white" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </div>
                             </button>
+
+                        <!-- Slide to Pay (ONLINE only) -->
+                        <div class="slide-to-pay-wrapper" id="slideToPay-mobile">
+                            <div class="slide-to-pay-container" id="slideContainer-mobile">
+                                <div class="slide-to-pay-track" id="slideTrack-mobile"></div>
+                                <span class="slide-to-pay-label" id="slideLabel-mobile">Slide to Pay Securely</span>
+                                <div class="slide-to-pay-thumb" id="slideThumb-mobile">
+                                    <svg class="thumb-arrow w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                    <svg class="thumb-check w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                            </div>
+                            <p class="slide-to-pay-hint">🔒 Secured by Razorpay</p>
+                        </div>
                     </form>
                     {% else %}
                     <a href="{% url 'user-address' %}?next=checkout"
@@ -699,15 +704,20 @@
                                         <circle cx="44" cy="24" r="4.5" fill="#000" stroke="#FFF"></circle>
                                     </svg>
                                 </div>
-
-                                <!-- Online Payment Animation -->
-                                <div class="online-animation-layer hidden absolute inset-0 items-center justify-center pointer-events-none z-10 opacity-40">
-                                    <svg class="spinner-icon w-6 h-6 mr-2 text-white" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                </div>
                             </button>
+
+                            <!-- Slide to Pay (ONLINE only) -->
+                            <div class="slide-to-pay-wrapper" id="slideToPay-desktop">
+                                <div class="slide-to-pay-container" id="slideContainer-desktop">
+                                    <div class="slide-to-pay-track" id="slideTrack-desktop"></div>
+                                    <span class="slide-to-pay-label" id="slideLabel-desktop">Slide to Pay Securely</span>
+                                    <div class="slide-to-pay-thumb" id="slideThumb-desktop">
+                                        <svg class="thumb-arrow w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                                        <svg class="thumb-check w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                </div>
+                                <p class="slide-to-pay-hint">🔒 Secured by Razorpay</p>
+                            </div>
                         </form>
                         {% else %}
                         <a href="{% url 'user-address' %}?next=checkout"
@@ -998,7 +1008,109 @@
             if (walletInfo) walletInfo.classList.remove('hidden');
             defaultTexts.forEach(t => t.textContent = "Place Order");
         }
+
+        // ── Slide to Pay: toggle visibility based on method ──────────────
+        const slideWrappers = document.querySelectorAll('.slide-to-pay-wrapper');
+        const placeOrderBtns = document.querySelectorAll('.truck-btn');
+
+        if (method === 'ONLINE') {
+            slideWrappers.forEach(w => w.style.display = 'block');
+            placeOrderBtns.forEach(b => b.style.display = 'none');
+        } else {
+            slideWrappers.forEach(w => w.style.display = 'none');
+            placeOrderBtns.forEach(b => b.style.display = '');
+        }
     }
+</script>
+
+<script>
+    // ── Slide to Pay Engine ───────────────────────────────────────────────
+    (function () {
+        let triggered = false;
+
+        function initSlider(thumbId, containerId, trackId, labelId) {
+            const thumb = document.getElementById(thumbId);
+            const container = document.getElementById(containerId);
+            const track = document.getElementById(trackId);
+            const label = document.getElementById(labelId);
+
+            if (!thumb || !container) return;
+
+            let isDragging = false;
+            let startX = 0;
+            let currentX = 0;
+            const thumbSize = 48;
+            const padding = 4;
+
+            function getMaxX() {
+                return container.offsetWidth - thumbSize - padding * 2;
+            }
+
+            function moveTo(x) {
+                const maxX = getMaxX();
+                x = Math.max(0, Math.min(x, maxX));
+                thumb.style.left = (x + padding) + 'px';
+                const pct = (x / maxX) * 100;
+                if (track) track.style.width = pct + '%';
+                if (label) label.style.opacity = Math.max(0, 1 - pct / 40);
+            }
+
+            function onStart(clientX) {
+                if (triggered) return;
+                isDragging = true;
+                startX = clientX - parseFloat(thumb.style.left || padding);
+            }
+
+            function onMove(clientX) {
+                if (!isDragging || triggered) return;
+                moveTo(clientX - startX);
+            }
+
+            function onEnd() {
+                if (!isDragging) return;
+                isDragging = false;
+                const maxX = getMaxX();
+                const currentLeft = parseFloat(thumb.style.left || padding) - padding;
+
+                if (currentLeft >= maxX * 0.88) {
+                    // Success – lock in position
+                    triggered = true;
+                    moveTo(maxX);
+                    thumb.classList.add('success');
+                    if (label) label.textContent = 'Processing…';
+                    if (label) label.style.opacity = '1';
+
+                    setTimeout(() => {
+                        // Find the closest form and submit
+                        const form = container.closest('form');
+                        if (form) form.submit();
+                    }, 600);
+                } else {
+                    // Snap back
+                    thumb.style.transition = 'left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    moveTo(0);
+                    if (label) label.style.opacity = '1';
+                    if (track) track.style.width = '0%';
+                    setTimeout(() => { thumb.style.transition = ''; }, 380);
+                }
+            }
+
+            // Mouse
+            thumb.addEventListener('mousedown', e => { e.preventDefault(); onStart(e.clientX); });
+            document.addEventListener('mousemove', e => onMove(e.clientX));
+            document.addEventListener('mouseup', () => onEnd());
+
+            // Touch
+            thumb.addEventListener('touchstart', e => { e.preventDefault(); onStart(e.touches[0].clientX); }, { passive: false });
+            document.addEventListener('touchmove', e => { if (isDragging) { e.preventDefault(); onMove(e.touches[0].clientX); } }, { passive: false });
+            document.addEventListener('touchend', () => onEnd());
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initSlider('slideThumb-mobile', 'slideContainer-mobile', 'slideTrack-mobile', 'slideLabel-mobile');
+            initSlider('slideThumb-desktop', 'slideContainer-desktop', 'slideTrack-desktop', 'slideLabel-desktop');
+        });
+    })();
 </script>
 
 <style>
@@ -1025,6 +1137,78 @@
         .page-heading {
             font-size: 24px;
         }
+    }
+
+    /* ── Slide to Pay ────────────────────────────────────────────── */
+    .slide-to-pay-wrapper {
+        width: 100%;
+        display: none; /* shown by JS */
+    }
+    .slide-to-pay-container {
+        position: relative;
+        width: 100%;
+        height: 56px;
+        background: #f0f0f0;
+        border-radius: 56px;
+        overflow: hidden;
+        user-select: none;
+        -webkit-user-select: none;
+        box-shadow: inset 0 2px 6px rgba(0,0,0,0.08);
+    }
+    .slide-to-pay-track {
+        position: absolute;
+        inset: 0;
+        border-radius: 56px;
+        background: linear-gradient(90deg, #e0ffe4 0%, #f0f0f0 100%);
+        width: 0%;
+        transition: width 0.1s linear;
+        pointer-events: none;
+    }
+    .slide-to-pay-label {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: #888;
+        pointer-events: none;
+        transition: opacity 0.2s;
+        padding-left: 56px;
+    }
+    .slide-to-pay-thumb {
+        position: absolute;
+        top: 4px;
+        left: 4px;
+        width: 48px;
+        height: 48px;
+        background: #111;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: grab;
+        touch-action: none;
+        transition: background 0.35s, transform 0.15s;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+        z-index: 2;
+    }
+    .slide-to-pay-thumb:active { cursor: grabbing; transform: scale(1.08); }
+    .slide-to-pay-thumb svg { pointer-events: none; }
+    .slide-to-pay-thumb.success { background: #16a34a; transform: scale(1.05); }
+    .slide-to-pay-thumb.success .thumb-arrow { display: none; }
+    .slide-to-pay-thumb.success .thumb-check { display: block; }
+    .thumb-check { display: none; }
+    .slide-to-pay-hint {
+        margin-top: 8px;
+        text-align: center;
+        font-size: 10px;
+        color: #aaa;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
     }
 </style>
     <div id="toast-container"></div>
