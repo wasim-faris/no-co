@@ -376,7 +376,12 @@ def checkout(request):
 
     tax_amount = (sub_total * GST_RATE).quantize(Decimal("0.01"))
 
-    discount = Decimal(request.session.get("discount",0))
+    discount = Decimal(str(request.session.get("discount", 0)))
+
+    applied_coupon = None
+    coupon_id = request.session.get("coupon_id")
+    if coupon_id:
+        applied_coupon = Coupon.objects.filter(id=coupon_id).first()
 
     if sub_total < Decimal("999.00"):
         delivery_charge = Decimal("149.00")
@@ -412,7 +417,8 @@ def checkout(request):
             "default_address": default_address,
             "discount": discount,
             "wallet_balance": wallet_balance,
-            "coupons":coupons
+            "coupons": coupons,
+            "applied_coupon": applied_coupon,
         },
     )
 
@@ -760,11 +766,22 @@ def apply_coupon(request):
             return JsonResponse({
                 "success": False , "message": result
             })
+
+        request.session.pop("coupon_id", None)
+        request.session.pop("discount", None)
+
         request.session["coupon_id"] = coupon.id
         request.session["discount"] = float(result)
 
         return JsonResponse({
             "success": True,
             "discount": float(result),
-            "messages": "Coupon applied successfully"
+            "message": "Coupon applied successfully"
         })
+
+def remove_coupon(request):
+    if request.method == "POST":
+        request.session.pop("coupon_id", None)
+        request.session.pop("discount", None)
+        return JsonResponse({"success": True})
+    return JsonResponse({"success": False})

@@ -760,6 +760,7 @@
 
             <!-- Body -->
             <div class="px-[20px] pb-[20px] overflow-y-auto custom-scrollbar">
+                {% if not applied_coupon %}
                 <form id="coupon-form" method="POST" action="{% url "apply-coupon" %}">
                     {% csrf_token %}
                     <input type="hidden" name="source" value="modal">
@@ -783,40 +784,43 @@
 
                     <!-- Coupons List -->
                     <div class="space-y-[16px]">
-                        <!-- Coupon 1 -->
+                        {% for coupon in coupons %}
                         <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
                             <div class="flex-1 pr-2">
-                                <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">WELCOME10</span>
-                                <p class="text-[#888] text-[12px] leading-relaxed">10% off on your first order. No minimum spend required.</p>
+                                <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">{{ coupon.code }}</span>
+                                <p class="text-[#888] text-[12px] leading-relaxed">
+                                    {% if coupon.discount_type == "PERCENT" %}
+                                        {{ coupon.discount_value }}% off
+                                    {% else %}
+                                        ₹{{ coupon.discount_value }} off
+                                    {% endif %}
+                                </p>
+                                {% if coupon.min_purchase %}
+                                <p class="text-[#a0a0a0] text-[11px] mt-1">
+                                    Min order ₹{{ coupon.min_purchase }}
+                                </p>
+                                {% endif %}
                             </div>
-                            <button type="submit" name="code" value="WELCOME10" class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0 cursor-pointer">
+                            <button type="button" class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0 cursor-pointer" onclick="applyCoupon('{{ coupon.code }}')">
                                 Apply
                             </button>
                         </div>
-
-                        <!-- Coupon 2 -->
-                        <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
-                            <div class="flex-1 pr-2">
-                                <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">FREESHIP</span>
-                                <p class="text-[#888] text-[12px] leading-relaxed">Free shipping on all orders above ₹999.</p>
-                            </div>
-                            <button type="submit" name="code" value="FREESHIP" class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0 cursor-pointer">
-                                Apply
-                            </button>
-                        </div>
-
-                        <!-- Coupon 3 -->
-                        <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
-                            <div class="flex-1 pr-2">
-                                <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">FESTIVE20</span>
-                                <p class="text-[#888] text-[12px] leading-relaxed">Flat 20% off on all festive collections.</p>
-                            </div>
-                            <button type="submit" name="code" value="FESTIVE20" class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0 cursor-pointer">
-                                Apply
-                            </button>
-                        </div>
+                        {% endfor %}
                     </div>
                 </form>
+                {% else %}
+                <div class="mt-[20px]">
+                    <div class="border border-black p-4 flex justify-between items-center rounded-none bg-white">
+                        <div>
+                            <p class="font-medium text-[13px] uppercase tracking-wide text-black">Coupon Applied</p>
+                            <p class="text-[12px] text-gray-500 mt-1 font-bold tracking-[0.05em]" id="applied-coupon-code">{{ applied_coupon.code }}</p>
+                        </div>
+                        <button onclick="removeCoupon()" class="text-[12px] font-medium underline underline-offset-4 text-red-600 hover:text-red-800 transition-colors whitespace-nowrap bg-transparent px-0 border-0 cursor-pointer">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -1072,92 +1076,83 @@ window.addEventListener("pageshow", function (event) {
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById("coupon-form");
     const input = document.getElementById("coupon-code");
-    const errorBox = document.getElementById("coupon-error");
-    const successBox = document.getElementById("coupon-success");
 
     if (form) {
-        let submittedValue = null;
-        let submittedBtn = null;
-
-        const presetButtons = form.querySelectorAll("button[name='code']");
-        presetButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                if(btn.value) {
-                    submittedValue = btn.value;
-                    submittedBtn = btn;
-                }
-            });
-        });
-        
-        const mainBtn = form.querySelector("button[type='submit']:not([name='code'])");
-        if (mainBtn) {
-            mainBtn.addEventListener('click', () => {
-                submittedValue = null;
-                submittedBtn = mainBtn;
-            });
-        }
-
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
-            
-            let code = input.value.trim();
-            if (submittedValue) {
-                code = submittedValue;
-                input.value = code;
-            }
-            
-            errorBox.classList.add("hidden");
-            successBox.classList.add("hidden");
-            
-            const activeBtn = submittedBtn || mainBtn;
-            let originalText = "";
-            if (activeBtn) {
-                originalText = activeBtn.innerText;
-                activeBtn.disabled = true;
-                activeBtn.innerHTML = 'WAIT...';
-            }
+
+            const code = input.value;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerText;
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = "APPLYING...";
+            submitBtn.classList.add("opacity-50", "cursor-not-allowed");
 
             try {
-                const response = await fetch("/apply-coupon/", {
+                const response = await fetch(form.action, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/x-www-form-urlencoded",
                         "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
                     },
-                    body: new URLSearchParams({
-                        code: code,
-                        source: 'modal'
-                    })
+                    body: new URLSearchParams({ code })
                 });
 
-                const contentType = response.headers.get("content-type");
-                if (contentType && contentType.includes("application/json")) {
-                    const data = await response.json();
-                    if (!data.success && !data.valid) {
-                        errorBox.textContent = data.message || data.error || "Invalid coupon code.";
-                        errorBox.classList.remove("hidden");
-                    } else {
-                        successBox.textContent = data.message || "Coupon applied successfully.";
-                        successBox.classList.remove("hidden");
-                        setTimeout(() => window.location.reload(), 1000);
-                    }
-                } else if (response.ok) {
-                    window.location.reload();
+                const data = await response.json();
+
+                if (!data.success) {
+                    showToast(data.message || data.messages || "Error applying coupon", "error");
+                    submitBtn.disabled = false;
+                    submitBtn.innerText = originalBtnText;
+                    submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
                 } else {
-                    throw new Error("Server Error");
+                    showToast(data.message || data.messages || "Coupon applied successfully", "success");
+                    closeModal();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 600);
                 }
             } catch (err) {
-                errorBox.textContent = "An error occurred. Please try again.";
-                errorBox.classList.remove("hidden");
-            } finally {
-                if (activeBtn) {
-                    activeBtn.disabled = false;
-                    activeBtn.innerText = originalText;
-                }
-                submittedValue = null;
+                showToast("An error occurred. Please try again.", "error");
+                submitBtn.disabled = false;
+                submitBtn.innerText = originalBtnText;
+                submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
             }
         });
     }
 });
+
+function applyCoupon(code) {
+    const form = document.getElementById("coupon-form");
+    const input = document.getElementById("coupon-code");
+    if (input && form) {
+        input.value = code;
+        form.dispatchEvent(new Event("submit", { cancelable: true, bubbles: true }));
+    }
+}
+
+function removeCoupon() {
+    fetch("{% url 'remove-coupon' %}", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            showToast("Coupon removed successfully", "success");
+            setTimeout(() => {
+                window.location.reload();
+            }, 600);
+        } else {
+            showToast("Error removing coupon", "error");
+        }
+    })
+    .catch(err => {
+        showToast("An error occurred.", "error");
+    });
+}
 </script>
 {% endblock %}
