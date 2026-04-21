@@ -602,7 +602,6 @@ def orders(request):
 def order_details(request, id):
 
     order = get_object_or_404(Order, user=request.user ,id=id)
-
     return render(request, 'order_details.html',{
         "order":order
     })

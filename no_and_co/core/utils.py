@@ -35,7 +35,7 @@ def coupon_validation(coupon, user, cart_total):
         if total_used >= coupon.total_usage_limit:
             return False, "Coupon usage limit reached"
 
-    if coupon.discount_type == "Percentage":
+    if coupon.discount_type == "percentage":
         discount = (cart_total * coupon.discount_value) / 100
 
         if coupon.max_discount:
@@ -61,7 +61,7 @@ def get_available_coupons(user, cart_total):
         is_deleted = False,
         start_date__lte=today,
         end_date__gte = today
-    )
+    ).order_by("-created_at")
 
     valid_coupons = []
 
@@ -78,5 +78,5 @@ def get_available_coupons(user, cart_total):
             if used >= coupon.usage_limit_per_user:
                 continue
         valid_coupons.append(coupon)
-        
+
     return valid_coupons

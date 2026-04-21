@@ -807,7 +807,7 @@
                             <div class="flex-1 pr-2">
                                 <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">{{ coupon.code }}</span>
                                 <p class="text-[#888] text-[12px] leading-relaxed">
-                                    {% if coupon.discount_type == "PERCENT" %}
+                                    {% if coupon.discount_type == "percentage" %}
                                         {{ coupon.discount_value }}% off
                                     {% else %}
                                         ₹{{ coupon.discount_value }} off

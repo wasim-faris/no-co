@@ -47,6 +47,48 @@
         @media (max-width: 768px) {
             .image-section { display: none; }
         }
+
+        /* Responsive Layout Adjustments */
+        .admin-content-inner {
+            width: 100%;
+            margin: 0;
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+
+        .aside-nav {
+            width: 250px;
+            flex-shrink: 0;
+        }
+
+        /* Modern Scrollbar & Table Fixes */
+        .custom-scrollbar::-webkit-scrollbar { 
+            width: 6px; 
+            height: 6px; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-track { 
+            background: transparent; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb { 
+            background: #e2e8f0; 
+            border-radius: 10px; 
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { 
+            background: #cbd5e1; 
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #F9FAFB !important;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 1200px) {
+            .admin-content-inner { padding-left: 1.5rem; padding-right: 1.5rem; }
+            .aside-nav { width: 240px; }
+        }
     </style>
 </head>
 <body class="bg-[#F8F6F1] text-[#1a1a1a]">
@@ -80,9 +122,9 @@
         {% endif %}
     </div>
 
-    <div class="flex h-screen overflow-hidden">
+    <div class="flex h-screen overflow-hidden flex-col md:flex-row">
 
-       <aside class="w-[280px] h-screen bg-white border-r border-gray-100 flex-shrink-0 flex flex-col justify-between sticky top-0">
+       <aside class="aside-nav hidden md:flex h-screen bg-white border-r border-gray-100 flex-shrink-0 flex-col justify-between sticky top-0">
     <div class="p-8">
         <div class="mb-12">
             <h1 class="text-2xl tracking-[0.2em] font-light uppercase text-[#1a1a1a]" style="font-family: 'Optima', 'Didot', 'Playfair Display', serif;">
@@ -161,28 +203,28 @@
     </div>
 </aside>
 
-        <main class="flex-1 flex flex-col">
-            <div class="px-8 pt-6 pb-4 bg-[#f5f1eb]">
-                <nav class="text-xs uppercase tracking-widest text-gray-400 flex gap-3 items-center mb-4">
+        <main class="flex-1 flex flex-col min-w-0">
+            <div class="admin-content-inner pt-6 pb-4 bg-[#f5f1eb]">
+                <nav class="text-[10px] uppercase tracking-widest text-gray-400 flex gap-2 items-center mb-3">
                     <span>MANAGEMENT</span>
                     <span>&gt;</span>
                     <span class="text-gray-900 font-semibold">COUPONS</span>
                 </nav>
 
-                <div class="flex items-center justify-between">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h1 class="text-4xl font-serif text-gray-900">Coupons</h1>
-                        <p class="text-[12px] text-gray-500 font-medium mt-1">Manage and organize your discount codes and promotions</p>
+                        <h1 class="text-3xl md:text-4xl font-serif text-gray-900 line-clamp-1">Coupons</h1>
+                        <p class="text-[11px] text-gray-500 font-medium mt-1">Manage and organize your discount codes and promotions</p>
                         <div class="w-12 h-[2px] bg-gray-900 mt-2"></div>
                     </div>
-                    <button onclick="openModal('addCouponModal')" class="px-6 py-3 bg-black text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm flex items-center gap-2">
+                    <button onclick="openModal('addCouponModal')" class="w-full sm:w-auto px-5 py-2.5 bg-black text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm flex items-center justify-center gap-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"></path></svg>
-                        Add Coupon
+                        <span class="whitespace-nowrap">Add Coupon</span>
                     </button>
                 </div>
             </div>
 
-            <main class="max-w-6xl mx-auto px-8 py-8 w-full space-y-6 overflow-y-auto hide-scrollbar" style="max-height: calc(100vh - 120px);">
+            <main class="admin-content-inner py-6 space-y-6 overflow-y-auto custom-scrollbar" style="max-height: calc(100vh - 120px);">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <form method="GET" class="flex-1 max-w-[360px] relative">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -206,18 +248,18 @@
                     </a>
                 </div>
 
-                <div class="bg-white rounded-[24px] shadow-sm overflow-hidden border border-white">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse whitespace-nowrap">
+                <div class="bg-white rounded-[20px] shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse whitespace-nowrap min-w-[1000px]">
                             <thead>
                                 <tr class="bg-gray-50/50 text-[#1a1a1a] text-[10px] uppercase tracking-widest font-bold">
-                                    <th class="px-6 py-4 border-b border-gray-100/80">Code</th>
-                                    <th class="px-6 py-4 border-b border-gray-100/80">Discount</th>
-                                    <th class="px-6 py-4 border-b border-gray-100/80">Min Purchase / Max Discount</th>
-                                    <th class="px-6 py-4 border-b border-gray-100/80 min-w-[150px]">Usage</th>
-                                    <th class="px-6 py-4 border-b border-gray-100/80">Expiry Date</th>
-                                    <th class="px-6 py-4 border-b border-gray-100/80">Status</th>
-                                    <th class="px-6 py-4 border-b border-gray-100/80 text-right">Actions</th>
+                                    <th class="sticky-header px-6 py-4 border-b border-gray-100/80">Code</th>
+                                    <th class="sticky-header px-6 py-4 border-b border-gray-100/80">Discount</th>
+                                    <th class="sticky-header px-6 py-4 border-b border-gray-100/80">Min Purchase / Max Discount</th>
+                                    <th class="sticky-header px-6 py-4 border-b border-gray-100/80 min-w-[150px]">Usage</th>
+                                    <th class="sticky-header px-6 py-4 border-b border-gray-100/80">Expiry Date</th>
+                                    <th class="sticky-header px-6 py-4 border-b border-gray-100/80">Status</th>
+                                    <th class="sticky-header px-6 py-4 border-b border-gray-100/80 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="text-sm font-medium">
