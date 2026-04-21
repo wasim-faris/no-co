@@ -103,24 +103,8 @@ def verify_payment(request):
             payment.save()
 
             order = Order.objects.get(payment=payment)
-            order.payment_status = "PAID"
-            order.save()
-
-            # Update stock based on FINAL OrderItems (not current cart)
-            # and delete the cart now that payment is confirmed
-            order_items = OrderItem.objects.filter(order=order)
-            for item in order_items:
-                updated = Variant.objects.filter(
-                    id=item.variant.id,
-                    stock__gte=item.quantity
-                ).update(stock=F("stock") - item.quantity)
-
-                if not updated:
-                    raise ValueError(f"Stock not available for {item.variant.product.product_name}")
-
-            # Clear user's cart
-            Cart.objects.filter(user=order.user).delete()
-            request.session['last_order_id'] = order.id
+            # We don't mark as PAID or reduce stock here anymore.
+            # We will do it in payment_success view.
 
         return JsonResponse({"status": "success"})
 
@@ -154,24 +138,8 @@ def razorpay_callback(request):
                 payment.save()
                 
                 order = Order.objects.get(payment=payment)
-                order.payment_status = "PAID"
-                order.save()
-                
-                # Update stock based on FINAL OrderItems
-                order_items = OrderItem.objects.filter(order=order)
-                for item in order_items:
-                    updated = Variant.objects.filter(
-                        id=item.variant.id,
-                        stock__gte=item.quantity
-                    ).update(stock=F("stock") - item.quantity)
-                    if not updated:
-                        raise ValueError(f"Stock not available for {item.variant.product.product_name}")
-                
-                # Clear user's cart
-                Cart.objects.filter(user=order.user).delete()
-                request.session['last_order_id'] = order.id
 
-            return redirect('order-success')
+            return redirect('payment-success', order_id=order.id)
         except Exception as e:
             print("CALLBACK VERIFY ERROR:", e)
     return redirect('home')

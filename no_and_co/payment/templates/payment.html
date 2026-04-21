@@ -472,7 +472,7 @@
             if (data.status === 'success' || data.status === 'already_processed') {
                 showPaymentToast('Payment successful! Redirecting…', 'success');
                 setTimeout(function () {
-                    window.location.href = "{% url 'order-success' %}";
+                    window.location.href = "/payment-success/{{ order.id }}/";
                 }, 800);
             } else {
                 showPaymentToast(

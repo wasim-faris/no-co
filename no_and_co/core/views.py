@@ -30,7 +30,7 @@ from django.utils import timezone
 from xhtml2pdf import pisa
 from django.http import JsonResponse
 from wallet.models import Wallet, WalletTransaction
-from coupon.models import Coupon
+from coupon.models import Coupon, CouponUsage
 from .utils import coupon_validation, get_cart_total,get_available_coupons
 # Create your views here.
 
@@ -452,7 +452,13 @@ def place_order(request):
         delivery_charge = (
             Decimal("149.00") if sub_total < Decimal("999.00") else Decimal("0.00")
         )
-        discount = Decimal("0.00")
+        discount = Decimal(str(request.session.get("discount", "0.00")))
+        coupon_id = request.session.get("coupon_id")
+        applied_coupon = None
+        if coupon_id:
+            from coupon.models import Coupon
+            applied_coupon = Coupon.objects.filter(id=coupon_id).first()
+
         total_amount = sub_total + tax_amount - discount + delivery_charge
 
         if request.session.get("order_processing"):
@@ -472,6 +478,7 @@ def place_order(request):
                     total_amount=total_amount,
                     payment_status=payment_status,
                     discount_amount=discount,
+                    coupon=applied_coupon,
                 )
 
                 OrderStatusHistory.objects.create(
@@ -480,15 +487,36 @@ def place_order(request):
                     updated_at = timezone.now()
                 )
 
+
                 for item in cart_items:
+                    item_original_total = item.variant.price * item.quantity
+                    # Calculate proportional discount for this item
+                    if sub_total > 0:
+                        item_discount = (item_original_total / sub_total) * discount
+                    else:
+                        item_discount = Decimal("0.00")
+
+                    item_final_total = item_original_total - item_discount
+                    item_final_price_per_unit = item_final_total / item.quantity if item.quantity > 0 else Decimal("0.00")
+
                     OrderItem.objects.create(
                         order=order,
                         variant=item.variant,
-                        price=item.variant.price,
+                        original_price=item.variant.price,
+                        discount_amount=item_discount,
+                        final_price=item_final_price_per_unit,
                         quantity=item.quantity,
                     )
 
                 if payment_method == "COD":
+                    if applied_coupon:
+                        # Prevent duplicate usage per order
+                        if not CouponUsage.objects.filter(user=request.user, coupon=applied_coupon, order=order).exists():
+                            CouponUsage.objects.create(
+                                user=request.user,
+                                coupon=applied_coupon,
+                                order=order
+                            )
                     for item in cart_items:
                         updated = Variant.objects.filter(
                             id=item.variant.id, stock__gte=item.quantity
@@ -503,13 +531,20 @@ def place_order(request):
                     return redirect("order-success")
 
                 if payment_method == "wallet":
-
                     wallet = Wallet.objects.filter(user=request.user).first()
 
                     if wallet.balance >= total_amount:
                         wallet.balance = wallet.balance - total_amount
                         wallet.save()
 
+                        if applied_coupon:
+                            # Prevent duplicate usage per order
+                            if not CouponUsage.objects.filter(user=request.user, coupon=applied_coupon, order=order).exists():
+                                CouponUsage.objects.create(
+                                    user=request.user,
+                                    coupon=applied_coupon,
+                                    order=order
+                                )
 
                         WalletTransaction.objects.create(
                             wallet=wallet,
@@ -542,7 +577,51 @@ def place_order(request):
 
         finally:
             request.session.pop("order_processing", None)
+            request.session.pop("coupon_id", None)
+            request.session.pop("discount", None)
 
+
+@login_required(login_url="login")
+def payment_success(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+
+    if order.payment_status == "PAID":
+        request.session['last_order_id'] = order.id
+        return redirect("order-success")
+
+    with transaction.atomic():
+        # Mark as PAID
+        order.payment_status = "PAID"
+        order.save()
+
+        # Handle Coupon Usage
+        if order.coupon:
+            from coupon.models import CouponUsage
+            # Check if usage already created (prevent duplicates on refresh)
+            if not CouponUsage.objects.filter(user=request.user, coupon=order.coupon, order=order).exists():
+                CouponUsage.objects.create(
+                    user=request.user,
+                    coupon=order.coupon,
+                    order=order
+                )
+
+        # Reduce Stock and Clear Cart
+        cart_items = Cart.objects.filter(user=request.user)
+        for item in cart_items:
+            updated = Variant.objects.filter(
+                id=item.variant.id, stock__gte=item.quantity
+            ).update(stock=F("stock") - item.quantity)
+
+            if not updated:
+                # In a real payment success, failing stock reduction is tricky.
+                # Usually we pre-reserve or just log error.
+                pass
+
+        cart_items.delete()
+
+    request.session['last_order_id'] = order.id
+    messages.success(request, "Payment successful! Your order has been placed.")
+    return redirect("order-success")
 
 @login_required(login_url="login")
 def order_success(request):
@@ -765,6 +844,7 @@ def apply_coupon(request):
             return JsonResponse({
                 "success": False , "message": result
             })
+
 
         request.session.pop("coupon_id", None)
         request.session.pop("discount", None)

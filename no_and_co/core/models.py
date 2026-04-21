@@ -21,14 +21,7 @@ def generate_order_number():
     )
     return f"ORD-{date_part}-{random_part}"
 
-class Coupon(models.Model):
-    code = models.CharField(max_length=50, unique=True)
 
-    class Meta:
-        db_table = "coupon"
-
-    def __str__(self):
-        return self.code
 
 
 class Order(models.Model):
@@ -58,7 +51,7 @@ class Order(models.Model):
     )
 
     coupon = models.ForeignKey(
-       Coupon,
+       "coupon.Coupon",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -146,10 +139,22 @@ class OrderItem(models.Model):
         related_name="order_items"
     )
 
-    price = models.DecimalField(
+    original_price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        help_text="Price at the time of purchase"
+        help_text="Original price at the time of purchase"
+    )
+
+    discount_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00
+    )
+
+    final_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Price after applying proportional discount"
     )
 
     quantity = models.PositiveIntegerField()
