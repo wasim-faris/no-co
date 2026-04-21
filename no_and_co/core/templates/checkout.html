@@ -742,11 +742,22 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-white/70 flex items-center justify-center z-[100] hidden opacity-0 transition-opacity duration-200 ease-out">
+        <span class="text-sm tracking-widest uppercase font-medium text-black flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Updating...
+        </span>
+    </div>
+
     <!-- Modal Overlay -->
-    <div id="modalOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 ease-out flex items-center justify-center p-4 sm:p-6" onclick="closeModal(event)">
+    <div id="modalOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-200 ease-out flex items-center justify-center p-4 sm:p-6" onclick="closeModal(event)">
 
         <!-- Modal Content -->
-        <div id="modalContent" class="bg-white w-full max-w-[500px] rounded-none shadow-md border border-[#e5e5e5] relative transform scale-95 opacity-0 transition-all duration-300 ease-out flex flex-col max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+        <div id="modalContent" class="bg-white w-full max-w-[500px] rounded-none shadow-md border border-[#e5e5e5] relative transform scale-[0.98] opacity-0 transition-[transform,opacity] duration-200 ease-out will-change-[transform,opacity] flex flex-col max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
 
             <!-- Header -->
             <div class="p-[20px] border-b border-[#eee] flex justify-between items-center bg-white z-10 w-full shrink-0">
@@ -759,7 +770,7 @@
             </div>
 
             <!-- Body -->
-            <div class="px-[20px] pb-[20px] overflow-y-auto custom-scrollbar">
+            <div class="px-[20px] pb-[20px] overflow-y-auto custom-scrollbar min-h-[350px]">
                 {% if not applied_coupon %}
                 <form id="coupon-form" method="POST" action="{% url "apply-coupon" %}">
                     {% csrf_token %}
@@ -768,13 +779,20 @@
                     <!-- Input Section -->
                     <div class="flex flex-col sm:flex-row gap-[8px] mt-[20px] mb-[12px]">
                         <input type="text" id="coupon-code" name="code" placeholder="Enter coupon code" required class="flex-1 w-full h-[46px] border border-[#dcdcdc] rounded-none px-4 text-[13px] focus:outline-none focus:border-black transition-colors uppercase placeholder:normal-case placeholder:text-gray-400">
-                        <button type="submit" class="h-[46px] bg-black text-white px-8 text-[13px] font-medium rounded-none hover:opacity-90 transition-opacity uppercase tracking-widest whitespace-nowrap w-full sm:w-auto">
-                            Apply
+                        <button type="submit" class="h-[46px] bg-black text-white px-8 text-[13px] font-medium rounded-none hover:opacity-90 transition-opacity uppercase tracking-widest whitespace-nowrap w-full sm:w-auto flex items-center justify-center gap-2">
+                            <span id="btn-text">APPLY</span>
+                            <svg id="btn-spinner" class="animate-spin h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
                         </button>
                     </div>
                     
-                    <p id="coupon-error" class="text-red-600 text-[12px] mt-[6px] hidden"></p>
-                    <p id="coupon-success" class="text-green-600 text-[12px] mt-[6px] hidden"></p>
+                    <!-- Reserved Message Space to prevent layout shift -->
+                    <div class="h-[20px] mt-[6px] overflow-hidden">
+                        <p id="coupon-error" class="text-red-600 text-[12px] hidden m-0"></p>
+                        <p id="coupon-success" class="text-green-600 text-[12px] hidden m-0"></p>
+                    </div>
 
                     <div class="border-t border-[#eee] my-[20px]"></div>
 
@@ -839,11 +857,11 @@
     function openModal() {
         const overlay = document.getElementById('modalOverlay');
         const content = document.getElementById('modalContent');
-        overlay.classList.remove('hidden');
+        overlay.classList.remove('hidden', 'pointer-events-none');
         toggleBodyScroll(true);
         void overlay.offsetWidth;
         overlay.classList.remove('opacity-0');
-        content.classList.remove('opacity-0', 'scale-95');
+        content.classList.remove('opacity-0', 'scale-[0.98]');
         content.classList.add('opacity-100', 'scale-100');
     }
 
@@ -851,13 +869,14 @@
         const overlay = document.getElementById('modalOverlay');
         const content = document.getElementById('modalContent');
         if (event === undefined || event.target === overlay) {
-            overlay.classList.add('opacity-0');
+            overlay.classList.add('pointer-events-none', 'opacity-0');
             content.classList.remove('opacity-100', 'scale-100');
-            content.classList.add('opacity-0', 'scale-95');
+            content.classList.add('opacity-0', 'scale-[0.98]');
             setTimeout(() => {
                 overlay.classList.add('hidden');
+                overlay.classList.remove('pointer-events-none');
                 toggleBodyScroll(false);
-            }, 300);
+            }, 200);
         }
     }
 
@@ -1077,16 +1096,40 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById("coupon-form");
     const input = document.getElementById("coupon-code");
 
+    function triggerFullReload() {
+        const loading = document.getElementById("loading-overlay");
+        if (!loading) return;
+        loading.classList.remove("hidden");
+        // Force reflow
+        void loading.offsetWidth;
+        loading.classList.remove("opacity-0");
+        loading.classList.add("opacity-100");
+        
+        setTimeout(() => {
+            window.location.reload();
+        }, 150);
+    }
+
     if (form) {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
 
-            const code = input.value;
-            const submitBtn = form.querySelector('button[type="submit"]');
-            const originalBtnText = submitBtn.innerText;
+            const code = input.value.trim();
+            if (!code) return;
 
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector("#btn-text");
+            const btnSpinner = submitBtn.querySelector("#btn-spinner");
+            const errorBox = document.getElementById("coupon-error");
+            const successBox = document.getElementById("coupon-success");
+
+            // UI Reset & Loading State
+            if (errorBox) errorBox.classList.add("hidden");
+            if (successBox) successBox.classList.add("hidden");
+            
             submitBtn.disabled = true;
-            submitBtn.innerText = "APPLYING...";
+            if (btnText) btnText.innerText = "Applying...";
+            if (btnSpinner) btnSpinner.classList.remove("hidden");
             submitBtn.classList.add("opacity-50", "cursor-not-allowed");
 
             try {
@@ -1102,25 +1145,42 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 if (!data.success) {
-                    showToast(data.message || data.messages || "Error applying coupon", "error");
+                    showToast(data.message || "Invalid coupon", "error");
+                    if (errorBox) {
+                        errorBox.textContent = data.message || "Invalid coupon";
+                        errorBox.classList.remove("hidden");
+                    }
+                    // Re-enable button
                     submitBtn.disabled = false;
-                    submitBtn.innerText = originalBtnText;
+                    if (btnText) btnText.innerText = "APPLY";
+                    if (btnSpinner) btnSpinner.classList.add("hidden");
                     submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
                 } else {
-                    showToast(data.message || data.messages || "Coupon applied successfully", "success");
-                    closeModal();
+                    showToast(data.message || "Coupon applied", "success");
+                    if (successBox) {
+                        successBox.textContent = data.message || "Coupon applied";
+                        successBox.classList.remove("hidden");
+                    }
+                    
+                    // Smooth sequence: Modal close -> Overlay -> Reload
                     setTimeout(() => {
-                        window.location.reload();
-                    }, 600);
+                        closeModal();
+                        setTimeout(() => {
+                            triggerFullReload();
+                        }, 250); // wait for modal closing animation to finish
+                    }, 400); // brief pause to let user see success state before modal closes
                 }
             } catch (err) {
-                showToast("An error occurred. Please try again.", "error");
+                showToast("An error occurred.", "error");
                 submitBtn.disabled = false;
-                submitBtn.innerText = originalBtnText;
+                if (btnText) btnText.innerText = "APPLY";
+                if (btnSpinner) btnSpinner.classList.add("hidden");
                 submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
             }
         });
     }
+
+    window.triggerFullReloadGlobal = triggerFullReload;
 });
 
 function applyCoupon(code) {
@@ -1142,17 +1202,17 @@ function removeCoupon() {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            showToast("Coupon removed successfully", "success");
-            setTimeout(() => {
+            showToast("Coupon removed", "success");
+            if (window.triggerFullReloadGlobal) {
+                window.triggerFullReloadGlobal();
+            } else {
                 window.location.reload();
-            }, 600);
+            }
         } else {
             showToast("Error removing coupon", "error");
         }
     })
-    .catch(err => {
-        showToast("An error occurred.", "error");
-    });
+    .catch(() => showToast("An error occurred.", "error"));
 }
 </script>
 {% endblock %}
