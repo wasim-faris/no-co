@@ -52,3 +52,4 @@ def get_cart_total(user):
     )["total"]
 
     return total or 0
+

@@ -30,6 +30,8 @@ from django.utils import timezone
 from xhtml2pdf import pisa
 from django.http import JsonResponse
 from wallet.models import Wallet, WalletTransaction
+from coupon.models import Coupon
+from .utils import coupon_validation, get_cart_total
 # Create your views here.
 
 
@@ -374,7 +376,7 @@ def checkout(request):
 
     tax_amount = (sub_total * GST_RATE).quantize(Decimal("0.01"))
 
-    discount = Decimal("0.00")
+    discount = request.session.get("discount",0)
 
     if sub_total < Decimal("999.00"):
         delivery_charge = Decimal("149.00")
@@ -736,3 +738,31 @@ def return_order(request, order_id):
 
         messages.success(request, "Return request submitted successfully")
         return redirect("order_details", id=order.id)
+
+def apply_coupon(request):
+    if request.method == "POST":
+        code = request.POST.get("code")
+
+        try:
+            coupon = Coupon.objects.get(code__iexact = code , is_deleted = False , is_active = True)
+
+        except Coupon.DoesNotExist:
+            return JsonResponse({
+                "success": False , "message": "invalid coupon"
+            })
+        cart_total = get_cart_total(request.user)
+
+        is_valid, result = coupon_validation(coupon, request.user, cart_total)
+
+        if not is_valid:
+            return JsonResponse({
+                "success": False , "message": result
+            })
+        request.session["coupon_id"] = coupon.id
+        request.session["discount"] = float(result)
+
+        return JsonResponse({
+            "success": True,
+            "discount": float(result),
+            "messages": "Coupon applied successfully"
+        })

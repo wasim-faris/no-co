@@ -242,8 +242,8 @@
 
     @keyframes realisticTruckAnim {
         0% { right: -120px; }
-        33% { right: calc(100% - 90px); } 
-        50% { right: calc(100% - 90px); } 
+        33% { right: calc(100% - 90px); }
+        50% { right: calc(100% - 90px); }
         83% { right: -120px; }
         100% { right: -120px; }
     }
@@ -294,7 +294,7 @@
     .truck-btn.is-animating-online .default-text {
         opacity: 0;
     }
-    
+
     .truck-btn.is-animating-cod,
     .truck-btn.is-animating-online {
         pointer-events: none;
@@ -316,7 +316,7 @@
         .btn-place-order { padding: 16px; font-size: 12px; }
         .grid { gap: 16px !important; }
         .lg\:col-span-7 { padding: 0 16px; }
-        
+
         /* Strict Mobile Order Summary */
         .mobile-order-summary {
             padding: 16px !important;
@@ -523,7 +523,7 @@
                     <form method="POST" action="{% url 'place_order' %}">
                         {% csrf_token %}
                         <input type="hidden" name="payment_method" class="payment-method-field" value="">
-                        <input type="hidden" name="address_id" 
+                        <input type="hidden" name="address_id"
                                value="{% if default_address %}{{ default_address.id }}{% elif address %}{{ address.0.id }}{% endif %}">
                         <input type="hidden" name="total_amount" value="{{ total_cost }}">
 
@@ -533,7 +533,7 @@
 
                             <span class="default-text relative z-20 whitespace-nowrap">Place Order</span>
                                 <span class="processing-text text-mobile hidden absolute inset-0 items-center justify-center w-full h-full tracking-[0.2em] pointer-events-none text-gray-200 z-20 whitespace-nowrap">Placing Order...</span>
-                                
+
                                 <!-- COD Truck Animation -->
                                 <div class="truck-animation-layer hidden absolute inset-0 items-center pointer-events-none overflow-visible z-10">
                                     <svg class="package-icon absolute left-[36px] bottom-[14px]" width="26" height="26" viewBox="0 0 24 24" fill="#000000" stroke="#FFFFFF" stroke-width="1.2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
@@ -552,7 +552,7 @@
                                         <circle cx="44" cy="24" r="4.5" fill="#000" stroke="#FFF"></circle>
                                     </svg>
                                 </div>
-                                
+
                                 <!-- Online Payment Animation -->
                                 <div class="online-animation-layer hidden absolute inset-0 items-center justify-center pointer-events-none z-10 opacity-40">
                                     <svg class="spinner-icon w-6 h-6 mr-2 text-white" fill="none" viewBox="0 0 24 24">
@@ -670,7 +670,7 @@
                         <form method="POST" action="{% url 'place_order' %}">
                             {% csrf_token %}
                             <input type="hidden" name="payment_method" class="payment-method-field" value="">
-                            <input type="hidden" name="address_id" 
+                            <input type="hidden" name="address_id"
                                    value="{% if default_address %}{{ default_address.id }}{% elif address %}{{ address.0.id }}{% endif %}">
                             <input type="hidden" name="total_amount" value="{{ total_cost }}">
 
@@ -680,7 +680,7 @@
 
                                 <span class="default-text relative z-20 whitespace-nowrap">Place Order</span>
                                 <span class="processing-text text-desktop hidden absolute inset-0 items-center justify-center w-full h-full tracking-[0.25em] pointer-events-none text-gray-200 z-20 whitespace-nowrap">Placing Order...</span>
-                                
+
                                 <!-- COD Truck Animation -->
                                 <div class="truck-animation-layer hidden absolute inset-0 items-center pointer-events-none overflow-visible z-10">
                                     <svg class="package-icon absolute left-[36px] bottom-[14px]" width="28" height="28" viewBox="0 0 24 24" fill="#000000" stroke="#FFFFFF" stroke-width="1.2" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
@@ -699,7 +699,7 @@
                                         <circle cx="44" cy="24" r="4.5" fill="#000" stroke="#FFF"></circle>
                                     </svg>
                                 </div>
-                                
+
                                 <!-- Online Payment Animation -->
                                 <div class="online-animation-layer hidden absolute inset-0 items-center justify-center pointer-events-none z-10 opacity-40">
                                     <svg class="spinner-icon w-6 h-6 mr-2 text-white" fill="none" viewBox="0 0 24 24">
@@ -744,10 +744,10 @@
 
     <!-- Modal Overlay -->
     <div id="modalOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 ease-out flex items-center justify-center p-4 sm:p-6" onclick="closeModal(event)">
-        
+
         <!-- Modal Content -->
         <div id="modalContent" class="bg-white w-full max-w-[500px] rounded-none shadow-md border border-[#e5e5e5] relative transform scale-95 opacity-0 transition-all duration-300 ease-out flex flex-col max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
-            
+
             <!-- Header -->
             <div class="p-[20px] border-b border-[#eee] flex justify-between items-center bg-white z-10 w-full shrink-0">
                 <h2 class="text-[16px] font-medium text-gray-900 tracking-wide">Apply Coupon</h2>
@@ -760,55 +760,60 @@
 
             <!-- Body -->
             <div class="px-[20px] pb-[20px] overflow-y-auto custom-scrollbar">
-                <!-- Input Section -->
-                <div class="flex flex-col sm:flex-row gap-[8px] mt-[20px] mb-[20px]">
-                    <input type="text" placeholder="Enter coupon code" class="flex-1 w-full h-[46px] border border-[#dcdcdc] rounded-none px-4 text-[13px] focus:outline-none focus:border-black transition-colors uppercase placeholder:normal-case placeholder:text-gray-400">
-                    <button class="h-[46px] bg-black text-white px-8 text-[13px] font-medium rounded-none hover:opacity-90 transition-opacity uppercase tracking-widest whitespace-nowrap w-full sm:w-auto">
-                        Apply
-                    </button>
-                </div>
+                <form method="POST" action="{% url "apply-coupon" %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="source" value="modal">
 
-                <div class="border-t border-[#eee] my-[20px]"></div>
-
-                <div class="mb-[12px]">
-                    <h3 class="text-[#888] text-[11px] font-medium uppercase tracking-[0.15em]">Available Coupons</h3>
-                </div>
-
-                <!-- Coupons List -->
-                <div class="space-y-[16px]">
-                    <!-- Coupon 1 -->
-                    <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
-                        <div class="flex-1 pr-2">
-                            <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">WELCOME10</span>
-                            <p class="text-[#888] text-[12px] leading-relaxed">10% off on your first order. No minimum spend required.</p>
-                        </div>
-                        <button class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0">
+                    <!-- Input Section -->
+                    <div class="flex flex-col sm:flex-row gap-[8px] mt-[20px] mb-[20px]">
+                        <input type="text" name="code" placeholder="Enter coupon code" required class="flex-1 w-full h-[46px] border border-[#dcdcdc] rounded-none px-4 text-[13px] focus:outline-none focus:border-black transition-colors uppercase placeholder:normal-case placeholder:text-gray-400">
+                        <button type="submit" class="h-[46px] bg-black text-white px-8 text-[13px] font-medium rounded-none hover:opacity-90 transition-opacity uppercase tracking-widest whitespace-nowrap w-full sm:w-auto">
                             Apply
                         </button>
                     </div>
 
-                    <!-- Coupon 2 -->
-                    <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
-                        <div class="flex-1 pr-2">
-                            <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">FREESHIP</span>
-                            <p class="text-[#888] text-[12px] leading-relaxed">Free shipping on all orders above ₹999.</p>
-                        </div>
-                        <button class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0">
-                            Apply
-                        </button>
+                    <div class="border-t border-[#eee] my-[20px]"></div>
+
+                    <div class="mb-[12px]">
+                        <h3 class="text-[#888] text-[11px] font-medium uppercase tracking-[0.15em]">Available Coupons</h3>
                     </div>
 
-                    <!-- Coupon 3 -->
-                    <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
-                        <div class="flex-1 pr-2">
-                            <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">FESTIVE20</span>
-                            <p class="text-[#888] text-[12px] leading-relaxed">Flat 20% off on all festive collections.</p>
+                    <!-- Coupons List -->
+                    <div class="space-y-[16px]">
+                        <!-- Coupon 1 -->
+                        <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
+                            <div class="flex-1 pr-2">
+                                <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">WELCOME10</span>
+                                <p class="text-[#888] text-[12px] leading-relaxed">10% off on your first order. No minimum spend required.</p>
+                            </div>
+                            <button type="submit" name="code" value="WELCOME10" class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0 cursor-pointer">
+                                Apply
+                            </button>
                         </div>
-                        <button class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0">
-                            Apply
-                        </button>
+
+                        <!-- Coupon 2 -->
+                        <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
+                            <div class="flex-1 pr-2">
+                                <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">FREESHIP</span>
+                                <p class="text-[#888] text-[12px] leading-relaxed">Free shipping on all orders above ₹999.</p>
+                            </div>
+                            <button type="submit" name="code" value="FREESHIP" class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0 cursor-pointer">
+                                Apply
+                            </button>
+                        </div>
+
+                        <!-- Coupon 3 -->
+                        <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
+                            <div class="flex-1 pr-2">
+                                <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">FESTIVE20</span>
+                                <p class="text-[#888] text-[12px] leading-relaxed">Flat 20% off on all festive collections.</p>
+                            </div>
+                            <button type="submit" name="code" value="FESTIVE20" class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0 cursor-pointer">
+                                Apply
+                            </button>
+                        </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -848,7 +853,7 @@
             }, 300);
         }
     }
-    
+
     document.addEventListener('keydown', function(event) {
         const overlay = document.getElementById('modalOverlay');
         if (event.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) {
@@ -874,10 +879,10 @@
 
     function handlePlaceOrder(event, button) {
         event.preventDefault();
-        
-        
+
+
         if (button.classList.contains('is-animating-cod') || button.classList.contains('is-animating-online') || button.classList.contains('is-animating')) return;
-        
+
         const form = button.closest('form');
         let selectedMethod = "";
         const methodInput = form.querySelector('.payment-method-field');
@@ -893,7 +898,7 @@
             }
             return;
         }
-        
+
         if (selectedMethod === 'wallet') {
             const balance = parseFloat("{{ wallet_balance|default:0 }}");
             const total = parseFloat("{{ total_cost|default:0 }}");
@@ -906,9 +911,9 @@
                 return;
             }
         }
-        
+
         const processingText = button.querySelector('.processing-text');
-        
+
         if (selectedMethod === 'ONLINE') {
             button.classList.add('is-animating-online');
             if (processingText) processingText.textContent = "Processing...";
@@ -916,7 +921,7 @@
             button.classList.add('is-animating-cod');
             if (processingText) processingText.textContent = "Placing Order...";
         }
-        
+
         setTimeout(() => {
             if (form) form.submit();
         }, selectedMethod === 'ONLINE' ? 1000 : 3000); // Shorter delay for online payment redirect
@@ -928,22 +933,22 @@
             opt.classList.remove('active');
             opt.querySelector('input[type="radio"]').checked = false;
         });
-        
+
         element.classList.add('active');
         element.querySelector('input[type="radio"]').checked = true;
-        
+
         // Sync to hidden input fields in BOTH forms (mobile & desktop)
         document.querySelectorAll('.payment-method-field').forEach(input => {
             input.value = method;
         });
-        
+
         // Handle helper text visibility and button text
         const helperText = document.getElementById('razorpay-helper-text');
         const walletError = document.getElementById('wallet-insufficient-msg');
         const walletInfo = document.getElementById('wallet-helper-text');
-        
+
         const defaultTexts = document.querySelectorAll('.default-text');
-        
+
         if (method === 'ONLINE') {
             if (helperText) helperText.classList.remove('hidden');
             if (walletError) walletError.classList.add('hidden');
