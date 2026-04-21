@@ -1156,9 +1156,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (btnSpinner) btnSpinner.classList.add("hidden");
                     submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
                 } else {
-                    showToast(data.message || "Coupon applied", "success");
+                    if (data.was_capped) {
+                        showToast("Discount exceeds cart value. Adjusted automatically.", "success");
+                    } else {
+                        showToast(data.message || "Coupon applied", "success");
+                    }
+                    
                     if (successBox) {
-                        successBox.textContent = data.message || "Coupon applied";
+                        successBox.textContent = data.was_capped 
+                            ? "Discount adjusted to cart value." 
+                            : (data.message || "Coupon applied");
                         successBox.classList.remove("hidden");
                     }
                     

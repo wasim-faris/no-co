@@ -230,7 +230,7 @@
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         </div>
-                        <input type="text" name="search" placeholder="Search coupons by code..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition-all placeholder:text-gray-300 font-medium text-gray-700">
+                        <input type="text" id="couponSearch" name="search" placeholder="Search coupons by code..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition-all placeholder:text-gray-300 font-medium text-gray-700">
                     </form>
                 </div>
 
@@ -262,7 +262,7 @@
                                     <th class="sticky-header px-6 py-4 border-b border-gray-100/80 text-right">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-sm font-medium">
+                            <tbody id="couponTableBody" class="text-sm font-medium">
                                 {% for coupon in page_obj %}
                                 <tr class="border-b border-gray-50 hover:bg-[#F8F6F1]/50 transition-colors coupon-row" data-active="{{ coupon.is_active|lower }}">
                                     <td class="px-6 py-5">
@@ -922,10 +922,116 @@
             }, 5000);
         }
 
-        document.querySelectorAll('.archive-toggle-btn').forEach(btn => {
-            btn.addEventListener('click', async function() {
-                const couponId = this.getAttribute('data-id');
-                const isActive = this.getAttribute('data-active') === 'true';
+        // Real-time Search Logic
+        let searchTimeout = null;
+        const couponSearch = document.getElementById('couponSearch');
+        const couponTableBody = document.getElementById('couponTableBody');
+
+        couponSearch.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            const query = this.value;
+            const status = new URLSearchParams(window.location.search).get('status') || 'live';
+
+            searchTimeout = setTimeout(() => {
+                fetch(`{% url 'admin-coupon-search' %}?q=${query}&status=${status}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        updateCouponTable(data);
+                    })
+                    .catch(err => console.error('Search error:', err));
+            }, 300);
+        });
+
+        function updateCouponTable(data) {
+            couponTableBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                couponTableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-5 text-center text-gray-500 text-sm">No coupons found.</td></tr>';
+                return;
+            }
+
+            data.forEach(coupon => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-50 hover:bg-[#F8F6F1]/50 transition-colors coupon-row';
+                tr.setAttribute('data-active', coupon.is_active.toString().toLowerCase());
+
+                tr.innerHTML = `
+                    <td class="px-6 py-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-[#F8F6F1] flex items-center justify-center border border-gray-200 text-gray-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                            <span class="font-bold text-[#1a1a1a] tracking-tight text-[13px]">${coupon.code}</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <span class="text-[#1a1a1a] font-bold text-[13px]">
+                            ${coupon.discount_type === 'percentage' ? parseInt(coupon.discount_value) + '% OFF' : '₹' + parseInt(coupon.discount_value) + ' OFF'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-5 text-gray-500">
+                        <div class="flex flex-col gap-1 text-[10px] font-bold uppercase tracking-wider">
+                            <div><span class="text-gray-400">Min:</span> ₹${parseInt(coupon.min_purchase)}</div>
+                            ${coupon.max_discount ? `<div><span class="text-gray-400">Max:</span> ₹${parseInt(coupon.max_discount)}</div>` : '<div class="text-gray-300">-</div>'}
+                        </div>
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex flex-col gap-2">
+                            <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider">
+                                <span class="text-gray-500">${coupon.usage_display}</span>
+                                <span class="text-gray-400">${Math.round(coupon.usage_percent)}%</span>
+                            </div>
+                            <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-[#1a1a1a] h-full transition-all duration-500" style="width: ${coupon.usage_percent}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-5 text-gray-500 text-[12px] font-medium">${coupon.expiry_display}</td>
+                    <td class="px-6 py-5">
+                        ${coupon.is_active 
+                            ? '<span class="bg-[#1a1a1a] text-white text-[9px] font-bold px-2 py-1 rounded uppercase tracking-widest">ACTIVE</span>'
+                            : '<span class="border border-gray-200 text-gray-500 bg-gray-50 text-[9px] font-bold px-2 py-1 rounded uppercase tracking-widest">INACTIVE</span>'}
+                    </td>
+                    <td class="px-6 py-5">
+                        <div class="flex items-center justify-end gap-3 text-gray-400">
+                            <button onclick="openModal('editCouponModal', this)" class="hover:text-black transition-colors" title="Edit" 
+                                data-id="${coupon.id}" 
+                                data-code="${coupon.code}" 
+                                data-discount_type="${coupon.discount_type}" 
+                                data-discount_value="${coupon.discount_value}" 
+                                data-min_purchase="${coupon.min_purchase}" 
+                                data-max_discount="${coupon.max_discount || ''}" 
+                                data-usage_limit_per_user="${coupon.usage_limit_per_user || ''}" 
+                                data-total_usage_limit="${coupon.total_usage_limit || ''}" 
+                                data-start_date="${coupon.start_date}" 
+                                data-end_date="${coupon.end_date}" 
+                                data-is_active="${coupon.is_active}"
+                                data-used_count="${coupon.used_count}"
+                                data-max_user_usage="${coupon.max_user_usage}">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            </button>
+                            ${coupon.is_active 
+                                ? `<button type="button" class="archive-toggle-btn text-red-500 hover:text-red-700 transition-colors text-[10px] font-bold uppercase tracking-tight hover:underline underline-offset-2 ml-2" data-id="${coupon.id}" data-active="true">Archive</button>`
+                                : `
+                                <button type="button" class="archive-toggle-btn text-gray-400 hover:text-black transition-colors text-[10px] font-bold uppercase tracking-tight hover:underline underline-offset-2 ml-2" data-id="${coupon.id}" data-active="false">Restore</button>
+                                <button type="button" class="perm-delete-btn text-red-400 hover:text-red-600 transition-colors ml-1" title="Delete Permanently" data-id="${coupon.id}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                </button>
+                                `}
+                        </div>
+                    </td>
+                `;
+                couponTableBody.appendChild(tr);
+            });
+        }
+
+        // Use Event Delegation for dynamic buttons
+        document.addEventListener('click', async function(e) {
+            // Archive/Restore Toggle
+            if (e.target.classList.contains('archive-toggle-btn')) {
+                const btn = e.target;
+                const couponId = btn.getAttribute('data-id');
+                const isActive = btn.getAttribute('data-active') === 'true';
                 const url = isActive ? "{% url 'coupon-soft-delete' %}" : "{% url 'coupon-restore' %}";
 
                 const formData = new FormData();
@@ -934,62 +1040,54 @@
                     || document.querySelector('input[name=csrfmiddlewaretoken]').value;
                 formData.append('csrfmiddlewaretoken', csrfToken);
 
-                const row = this.closest('tr');
+                const row = btn.closest('tr');
                 const statusCell = row.querySelector('td:nth-child(6)');
 
                 try {
                     const response = await fetch(url, {
                         method: 'POST',
                         body: formData,
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     });
 
                     if (response.ok) {
-                        if (isActive) {
-                            this.setAttribute('data-active', 'false');
-                            this.textContent = 'Restore';
-                            this.classList.replace('text-red-500', 'text-gray-400');
-                            this.classList.replace('hover:text-red-700', 'hover:text-black');
-
-                            row.classList.add('opacity-50', 'bg-gray-50/50');
-                            if (statusCell) {
-                                statusCell.innerHTML = '<span class="border border-gray-200 text-gray-500 bg-gray-50 text-[9px] font-bold px-2 py-1 rounded uppercase tracking-widest">INACTIVE</span>';
-                            }
-
-                            showLiveToast('Coupon archived successfully', 'success');
+                        const status = new URLSearchParams(window.location.search).get('status') || 'live';
+                        // If we are in 'live' tab and archive, or 'archived' tab and restore, remove row
+                        if ((status === 'live' && isActive) || (status === 'archived' && !isActive)) {
+                            row.style.opacity = '0';
+                            setTimeout(() => row.remove(), 300);
                         } else {
-                            this.setAttribute('data-active', 'true');
-                            this.textContent = 'Archive';
-                            this.classList.replace('text-gray-400', 'text-red-500');
-                            this.classList.replace('hover:text-black', 'hover:text-red-700');
-
-                            row.classList.remove('opacity-50', 'bg-gray-50/50');
-                            if (statusCell) {
-                                statusCell.innerHTML = '<span class="bg-[#1a1a1a] text-white text-[9px] font-bold px-2 py-1 rounded uppercase tracking-widest">ACTIVE</span>';
+                            // Just update UI in place
+                            if (isActive) {
+                                btn.setAttribute('data-active', 'false');
+                                btn.textContent = 'Restore';
+                                btn.classList.replace('text-red-500', 'text-gray-400');
+                                btn.classList.replace('hover:text-red-700', 'hover:text-black');
+                                row.classList.add('opacity-50', 'bg-gray-50/50');
+                                if (statusCell) statusCell.innerHTML = '<span class="border border-gray-200 text-gray-500 bg-gray-50 text-[9px] font-bold px-2 py-1 rounded uppercase tracking-widest">INACTIVE</span>';
+                            } else {
+                                btn.setAttribute('data-active', 'true');
+                                btn.textContent = 'Archive';
+                                btn.classList.replace('text-gray-400', 'text-red-500');
+                                btn.classList.replace('hover:text-black', 'hover:text-red-700');
+                                row.classList.remove('opacity-50', 'bg-gray-50/50');
+                                if (statusCell) statusCell.innerHTML = '<span class="bg-[#1a1a1a] text-white text-[9px] font-bold px-2 py-1 rounded uppercase tracking-widest">ACTIVE</span>';
                             }
-
-                            showLiveToast('Coupon restored successfully', 'success');
                         }
-                    } else {
-                        showLiveToast('Action failed', 'error');
+                        showLiveToast(`Coupon ${isActive ? 'archived' : 'restored'} successfully`, 'success');
                     }
                 } catch (error) {
-                    console.error("Archive toggle error:", error);
-                    showLiveToast('Network error occurred', 'error');
+                    console.error("Action error:", error);
                 }
-            });
-        });
-        // (Tab filtering is now URL-based — handled by Django via ?status= param)
+            }
 
-        // Permanent Delete modal wiring
-        document.querySelectorAll('.perm-delete-btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                const couponId = this.getAttribute('data-id');
+            // Permanent Delete
+            if (e.target.closest('.perm-delete-btn')) {
+                const btn = e.target.closest('.perm-delete-btn');
+                const couponId = btn.getAttribute('data-id');
                 document.getElementById('perm_delete_coupon_id').value = couponId;
                 openModal('permDeleteCouponModal');
-            });
+            }
         });
     </script>
 </body>

@@ -460,6 +460,9 @@ def place_order(request):
             applied_coupon = Coupon.objects.filter(id=coupon_id).first()
 
         total_amount = sub_total + tax_amount - discount + delivery_charge
+        
+        if total_amount < 0:
+            total_amount = Decimal("0.00")
 
         if request.session.get("order_processing"):
             messages.warning(request, "order is already processed")
@@ -852,9 +855,12 @@ def apply_coupon(request):
         request.session["coupon_id"] = coupon.id
         request.session["discount"] = float(result)
 
+        was_capped = float(result) >= float(cart_total)
+
         return JsonResponse({
             "success": True,
             "discount": float(result),
+            "was_capped": was_capped,
             "message": "Coupon applied successfully"
         })
 

@@ -41,6 +41,10 @@ def coupon_validation(coupon, user, cart_total):
     if used_count >= coupon.usage_limit_per_user:
         return False, "You have already used this coupon"
 
+    # ✅ EXTRA SAFETY
+    if cart_total <= 0:
+        return False, "Invalid cart total"
+
     # ✅ TOTAL LIMIT (CORRECT)
     if coupon.total_usage_limit:
         total_used = CouponUsage.objects.filter(coupon=coupon).count()
@@ -56,6 +60,9 @@ def coupon_validation(coupon, user, cart_total):
             discount = min(discount, coupon.max_discount)
     else:
         discount = coupon.discount_value
+
+    # 🔥 CRITICAL FIX: Discount cannot exceed cart total
+    discount = min(discount, cart_total)
 
     return True, discount
 

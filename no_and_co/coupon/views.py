@@ -242,3 +242,50 @@ def delete_coupon(request):
         except Coupon.DoesNotExist:
             messages.success(request, "coupons not found")
             return redirect("admin-coupons")
+
+def admin_coupon_search(request):
+    query = request.GET.get("q", "")
+    status = request.GET.get("status", "live")
+    
+    coupons = Coupon.objects.all()
+    if query:
+        coupons = coupons.filter(code__icontains=query)
+    
+    if status == 'archived':
+        coupons = coupons.filter(is_active=False)
+    else:
+        coupons = coupons.filter(is_active=True)
+    
+    data = []
+    for c in coupons:
+        used_count = CouponUsage.objects.filter(coupon=c).count()
+        usage_stats = CouponUsage.objects.filter(coupon=c).values('user').annotate(user_usage=Count('id')).aggregate(max_user_usage=Max('user_usage'))
+        max_user_usage = usage_stats['max_user_usage'] or 0
+        
+        usage_percent = 0
+        if c.total_usage_limit:
+            usage_percent = (used_count / c.total_usage_limit) * 100
+            usage_display = f"{used_count}/{c.total_usage_limit}"
+        else:
+            usage_display = f"{used_count}/∞"
+
+        data.append({
+            "id": c.id,
+            "code": c.code,
+            "discount_value": float(c.discount_value),
+            "discount_type": c.discount_type,
+            "min_purchase": float(c.min_purchase),
+            "max_discount": float(c.max_discount) if c.max_discount else None,
+            "usage_limit_per_user": c.usage_limit_per_user,
+            "total_usage_limit": c.total_usage_limit,
+            "used_count": used_count,
+            "max_user_usage": max_user_usage,
+            "usage_display": usage_display,
+            "usage_percent": usage_percent,
+            "start_date": c.start_date.strftime("%Y-%m-%d") if c.start_date else "",
+            "end_date": c.end_date.strftime("%Y-%m-%d") if c.end_date else "",
+            "expiry_display": c.end_date.strftime("%b %d, %Y") if c.end_date else "",
+            "is_active": c.is_active
+        })
+
+    return JsonResponse(data, safe=False)
