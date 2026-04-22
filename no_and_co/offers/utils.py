@@ -21,38 +21,54 @@ def calculate_final_price(product, price):
     """
     today = timezone.now().date()
     best_discount = Decimal('0.00')
+    winning_offer = None
     
     # Priority 1: Product Offers
     product_offers = Offer.objects.filter(
         apply_to='product',
         is_active=True,
-        min_purchase=0,
         start_date__lte=today,
         end_date__gte=today,
         offerproduct__product=product
     )
     
-    if product_offers.exists():
-        best_discount = max(calculate_discount_amount(o, price) for o in product_offers)
-    else:
-        # Priority 2: Category Offers (Only check if no product offer exists)
+    found_pd = False
+    for o in product_offers:
+        if o.min_purchase <= price:
+            disc = calculate_discount_amount(o, price)
+            if disc > best_discount:
+                best_discount = disc
+                winning_offer = o
+                found_pd = True
+    
+    if not found_pd:
+        # Priority 2: Category Offers
         category_offers = Offer.objects.filter(
             apply_to='category',
             is_active=True,
-            min_purchase=0,
             start_date__lte=today,
             end_date__gte=today,
             offercategory__category=product.category
         )
-        if category_offers.exists():
-            best_discount = max(calculate_discount_amount(o, price) for o in category_offers)
+        for o in category_offers:
+            if o.min_purchase <= price:
+                disc = calculate_discount_amount(o, price)
+                if disc > best_discount:
+                    best_discount = disc
+                    winning_offer = o
 
     final_price = (price - best_discount).quantize(Decimal('0.01'))
     if final_price < 0: final_price = Decimal('0.00')
     
     discount_percent = 0
-    if best_discount > 0 and price > 0:
-        discount_percent = int((best_discount / price) * 100)
+    if winning_offer:
+        if winning_offer.discount_type == 'percentage':
+            # Use EXACT stored value to avoid 19.98% floating point issues
+            discount_percent = int(winning_offer.discount_value)
+        else:
+            # For flat discounts, we still calculate BUT round to zero/clean
+            if price > 0:
+                discount_percent = int((best_discount / price) * 100)
     
     return (
         final_price,
@@ -104,27 +120,38 @@ def apply_offers_to_variants(variants):
         
         # Priority 1: Product Offers
         pd_offers = product_offer_map.get(product.id, [])
-        # Filter by min_purchase locally
-        pd_offers = [o for o in pd_offers if o.min_purchase <= original_price]
+        winning_offer = None
         
-        if pd_offers:
-            best_discount = max(calculate_discount_amount(o, original_price) for o in pd_offers)
-        else:
-            # Priority 2: Category Offers (Only if no product offers)
+        for o in pd_offers:
+            if o.min_purchase <= original_price:
+                disc = calculate_discount_amount(o, original_price)
+                if disc > best_discount:
+                    best_discount = disc
+                    winning_offer = o
+        
+        if not winning_offer:
+            # Priority 2: Category Offers
             category_id = getattr(product, 'category_id', None)
             cat_offers = category_offer_map.get(category_id, []) if category_id else []
-            # Filter by min_purchase locally
-            cat_offers = [o for o in cat_offers if o.min_purchase <= original_price]
-            
-            if cat_offers:
-                best_discount = max(calculate_discount_amount(o, original_price) for o in cat_offers)
+            for o in cat_offers:
+                if o.min_purchase <= original_price:
+                    disc = calculate_discount_amount(o, original_price)
+                    if disc > best_discount:
+                        best_discount = disc
+                        winning_offer = o
         
         final_price = (original_price - best_discount).quantize(Decimal('0.01'))
         if final_price < 0: final_price = Decimal('0.00')
         
         discount_percent = 0
-        if best_discount > 0 and original_price > 0:
-            discount_percent = int((best_discount / original_price) * 100)
+        if winning_offer:
+            if winning_offer.discount_type == 'percentage':
+                # FIX: Use original stored percentage value directly
+                discount_percent = int(winning_offer.discount_value)
+            else:
+                # Fallback for flat discounts
+                if original_price > 0:
+                    discount_percent = int((best_discount / original_price) * 100)
             
         variant.original_price = original_price
         variant.final_price = final_price
