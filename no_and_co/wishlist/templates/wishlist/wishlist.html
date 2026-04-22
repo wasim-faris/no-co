@@ -604,7 +604,7 @@
 
             <!-- Info + button -->
             <div class="fav-details">
-                <p class="fav-category">{{ item.variant.product.category.category_name }}</p>
+                <p class="fav-category">{% if item.variant.product.is_new %}NEW ARRIVAL{% else %}{{ item.variant.product.category.category_name }}{% endif %}</p>
                 <h4 class="fav-name">{{ item.variant.product.product_name }}</h4>
                 <div style="display: flex; align-items: baseline; gap: 6px; margin: 4px 0 10px;">
                     {% if item.variant.has_discount %}

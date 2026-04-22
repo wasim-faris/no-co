@@ -658,8 +658,8 @@
         </div> <!-- end plp-img-wrap -->
 
         <div style="padding: 8px 13px 14px; display: flex; flex-direction: column; gap: 2px;">
-          <!-- Category label (H&M MOVE style) -->
-          <p style="font-size: 10px; font-weight: 500; color: #767676; text-transform: uppercase; letter-spacing: 0.08em; margin: 0;">{{ variant.product.category.category_name }}</p>
+          <!-- Category / New Arrival label -->
+          <p style="font-size: 10px; font-weight: 500; color: #767676; text-transform: uppercase; letter-spacing: 0.08em; margin: 0;">{% if variant.product.is_new %}NEW ARRIVAL{% else %}{{ variant.product.category.category_name }}{% endif %}</p>
           <!-- Product name: truncated with ellipsis -->
           <p style="font-size: 15px; font-weight: 600; color: #111; text-transform: uppercase; letter-spacing: 0.03em; margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ variant.product.product_name }}</p>
           <!-- Price row -->
