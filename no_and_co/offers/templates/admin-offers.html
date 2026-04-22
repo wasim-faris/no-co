@@ -360,6 +360,31 @@
     </div>
 </div>
 
+<!-- Premium Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 z-[150] hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onclick="closeModal('deleteModal')"></div>
+    <div class="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-[400px] rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div class="p-8 text-center">
+            <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-serif text-gray-900 mb-2">Delete Offer</h3>
+            <p class="text-sm text-gray-500 mb-8">Are you sure you want to delete this offer? This action cannot be undone.</p>
+            
+            <div class="flex gap-3">
+                <button onclick="closeModal('deleteModal')" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold uppercase text-[11px] tracking-widest hover:bg-gray-200 transition-all">
+                    Cancel
+                </button>
+                <button id="confirmDeleteBtn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold uppercase text-[11px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-200">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     const modal = document.getElementById('offerModal');
     const form = document.getElementById('offerForm');
@@ -550,24 +575,45 @@
     };
 
     // Delete Logic
+    let offerToDelete = null;
     window.deleteOffer = function(offerId) {
-        if (confirm("Are you sure you want to delete this offer?")) {
-            fetch('/delete-offer/' + offerId + '/', {
-                method: 'POST',
-                headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
-            }).then(res => res.json()).then(data => {
-                if (data.success) {
-                    showToast('Offer deleted successfully');
-                    document.getElementById('searchInput').dispatchEvent(new Event('input')); // trigger updateOffers
-                } else {
-                    showToast(data.message || 'Error deleting offer', 'error');
-                }
-            }).catch(err => {
-                console.error(err);
-                showToast('Error deleting offer', 'error');
-            });
+        offerToDelete = offerId;
+        const dModal = document.getElementById('deleteModal');
+        if (dModal) {
+            dModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
         }
     };
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+        if (!offerToDelete) return;
+        
+        const btn = document.getElementById('confirmDeleteBtn');
+        const originalText = btn.innerText;
+        btn.innerText = 'Deleting...';
+        btn.disabled = true;
+
+        fetch('/delete-offer/' + offerToDelete + '/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        }).then(res => res.json()).then(data => {
+            closeModal('deleteModal');
+            if (data.success) {
+                showToast('Offer deleted successfully');
+                document.getElementById('searchInput').dispatchEvent(new Event('input'));
+            } else {
+                showToast(data.message || 'Error deleting offer', 'error');
+            }
+        }).catch(err => {
+            console.error(err);
+            showToast('Error deleting offer', 'error');
+            closeModal('deleteModal');
+        }).finally(() => {
+            btn.innerText = originalText;
+            btn.disabled = false;
+            offerToDelete = null;
+        });
+    });
 
     // Toggle Active Status
     window.toggleStatus = function(offerId, element) {
