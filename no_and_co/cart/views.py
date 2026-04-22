@@ -194,6 +194,10 @@ def add_to_cart(request, variant_id):
 
     variant = get_object_or_404(Variant, id=variant_id)
 
+    from offers.utils import get_best_offer
+    _, discount_amount = get_best_offer(variant.product, variant.price)
+    final_price = variant.price - discount_amount
+
     cart_item = Cart.objects.filter(
         user=user, session_key=session, variant=variant
     ).first()
@@ -206,6 +210,7 @@ def add_to_cart(request, variant_id):
 
         if cart_item.quantity < variant.stock:
             cart_item.quantity += 1
+            cart_item.price = final_price # Ensure price is updated if offer changed
             cart_item.save()
         else:
             return JsonResponse(
@@ -218,7 +223,7 @@ def add_to_cart(request, variant_id):
                 user=user,
                 session_key=session,
                 quantity=1,
-                price=variant.price,
+                price=final_price,
             )
         else:
             return JsonResponse({"error": "Out of stock"}, status=400)

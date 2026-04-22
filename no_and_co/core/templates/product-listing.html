@@ -651,48 +651,16 @@
           <button class="plp-heart like-btn {% if variant.id in whishlist_variant_ids %}liked{% endif %}" 
                   data-variant-id="{{ variant.id }}" 
                   aria-label="Add to Wishlist">
-            <i class="ri-heart-line unfilled-heart"></i>
-            <i class="ri-heart-fill filled-heart"></i>
+                <i class="ri-heart-line unfilled-heart"></i>
+                <i class="ri-heart-fill filled-heart"></i>
           </button>
 
-        </div>
-
-        <p class="plp-brand">
-          {% if variant.product.is_premium %}
-            H&M Premium Selection
-          {% else %}
-            &nbsp;
-          {% endif %}
-        </p>
-
-        <p class="plp-name">{{ variant.product.product_name }}</p>
-        <p class="plp-price">Rs.{{ variant.price }}</p>
-
-        <!-- COLOR SWATCHES -->
-        <div class="plp-swatches">
-          {% regroup variant.product.variants.all by color as color_list %}
-          {% for color_item in color_list|slice:":3" %}
-            {% with first_v=color_item.list.0 %}
-              <span class="plp-swatch"
-                    style="background-color: {{ first_v.color_hex|default:'#ccc' }};">
-              </span>
-            {% endwith %}
-          {% endfor %}
-
-          {% if color_list|length > 3 %}
-            <span class="plp-swatch-more">
-              +{{ color_list|length|add:"-3" }}
-            </span>
-          {% endif %}
-        </div>
-
-      </div>
-    </div>
-
-  </a>
-
+        </div> <!-- end plp-img-wrap -->
+      </div> <!-- end plp-card -->
+    </div> <!-- end plp-card-wrap -->
+  </a> <!-- end clickable wrapper -->
   {% endfor %}
-    </div>
+</div> <!-- end plp-grid -->
     
     <!-- ══ PAGINATION ══ -->
     <div id="paginationSection">

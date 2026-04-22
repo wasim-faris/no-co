@@ -31,6 +31,7 @@ from xhtml2pdf import pisa
 from django.http import JsonResponse
 from wallet.models import Wallet, WalletTransaction
 from coupon.models import Coupon, CouponUsage
+from offers.utils import apply_offers_to_variants
 from .utils import coupon_validation, get_cart_total,get_available_coupons
 # Create your views here.
 
@@ -58,6 +59,8 @@ def home(request):
 
     search_history = request.session.get("search_history", [])
 
+    variants = apply_offers_to_variants(variants)
+
     return render(
         request, "index.html", {"variants": variants, "search_history": search_history}
     )
@@ -66,17 +69,22 @@ def home(request):
 def ladies(request):
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect("admin-dashboard")
-    variants = ( Variant.objects.filter(
-        is_default = True, is_deleted = False, product__is_deleted =False , product__category__category_name = "LADIES"
-    ).prefetch_related(
-         Prefetch(
+    variants = (
+        Variant.objects.filter(
+            is_default=True,
+            is_deleted=False,
+            product__is_deleted=False,
+            product__category__category_name="LADIES",
+        ).prefetch_related(
+            Prefetch(
                 "images",
                 queryset=VariantImage.objects.filter(is_primary=True),
                 to_attr="primary_images",
             )
-    ).order_by("-created_at")[:6]
+        )
     )
     search_history = request.session.get("search_history", [])
+    variants = apply_offers_to_variants(variants)
     return render(request, "ladies.html", {"search_history": search_history, "variants": variants})
 
 def kids(request):
@@ -131,10 +139,23 @@ def product_details(request, id):
     if not default_variant:
         default_variant = variants.first()
 
+    variants_list = list(variants)
+    apply_offers_to_variants(variants_list)
+
+    if default_variant:
+        # Match the default_variant with the one in the list that has offers applied
+        for v in variants_list:
+            if v.id == default_variant.id:
+                default_variant = v
+                break
+        else:
+            # Fallback if not found in list for some reason
+            apply_offers_to_variants([default_variant])
+
     unique_variants = []
     seen_colors = set()
 
-    for i in variants:
+    for i in variants_list:
         if i.color not in seen_colors:
             unique_variants.append(i)
             seen_colors.add(i.color)
@@ -180,6 +201,7 @@ def product_details(request, id):
                 product_image = v_fallback.images.first()
 
     search_history = request.session.get("search_history", [])
+    similar_items = apply_offers_to_variants(similar_items)
 
     return render(
         request,
@@ -287,6 +309,8 @@ def product_listing(request):
     paginator = Paginator(variants, 2)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
+    apply_offers_to_variants(page_obj.object_list)
 
     return render(
         request,

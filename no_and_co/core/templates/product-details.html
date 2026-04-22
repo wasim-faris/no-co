@@ -999,8 +999,25 @@
             </button>
         </div>
 
-        <p class="prod-price" id="displayPrice">Rs. {{ default_variant.price }}</p>
-        <p class="prod-tax">MRP inclusive of all taxes</p>
+        <div id="priceWrapper" style="margin-bottom: 28px;">
+            {% if default_variant.has_discount %}
+                <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 2px;">
+                    <span class="prod-price" id="displayPrice" style="color: #000; margin: 0;">Rs. {{ default_variant.final_price }}</span>
+                    <span id="originalPriceDisplay" style="font-size: 14px; color: #999; text-decoration: line-through;">Rs. {{ default_variant.original_price }}</span>
+                    <span id="discountBadge" style="font-size: 12px; font-weight: 600; color: #d32f2f;">({{ default_variant.discount_percent }}% OFF)</span>
+                </div>
+                <p id="savingsDisplay" style="font-size: 13px; color: #2e7d32; font-weight: 600; margin: 0;">You save Rs. {{ default_variant.savings }}</p>
+            {% else %}
+                <p class="prod-price" id="displayPrice" style="margin: 0;">Rs. {{ default_variant.price }}</p>
+                <div style="display: none; align-items: baseline; gap: 10px; margin-bottom: 2px;" id="discountedPriceRow">
+                    <span class="prod-price" id="finalPriceDisplay" style="color: #000; margin: 0;"></span>
+                    <span id="originalPriceDisplayStatic" style="font-size: 14px; color: #999; text-decoration: line-through;"></span>
+                    <span id="discountBadgeStatic" style="font-size: 12px; font-weight: 600; color: #d32f2f;"></span>
+                </div>
+                <p id="savingsDisplayStatic" style="font-size: 13px; color: #2e7d32; font-weight: 600; margin: 0; display: none;"></p>
+            {% endif %}
+        </div>
+        <p class="prod-tax" style="margin-top: -20px; margin-bottom: 28px;">MRP inclusive of all taxes</p>
 
         <span class="section-label" id="colorLabel">COLOUR: {{ default_variant.color }}</span>
 
@@ -1010,6 +1027,11 @@
                 <div class="swatch-item {% if variant.id == default_variant.id %}active{% endif %}"
                      data-color="{{ variant.color }}"
                      data-price="{{ variant.price }}"
+                     data-original-price="{{ variant.original_price }}"
+                     data-final-price="{{ variant.final_price }}"
+                     data-discount-percent="{{ variant.discount_percent }}"
+                     data-has-discount="{{ variant.has_discount|yesno:'true,false' }}"
+                     data-savings="{{ variant.savings }}"
                      data-sizes="{% for v in variants %}{% if v.color == variant.color %}{{ v.size.name }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}"
                      data-img1="{% if variant.primary_images %}{{ variant.primary_images.0.image.url }}{% elif variant.images.all %}{{ variant.images.all.0.image.url }}{% endif %}"
                      {% for img in variant.images.all %}
@@ -1179,7 +1201,15 @@
                 </div>
                 <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}New Arrival{% endif %}</p>
                 <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
-                <p class="similar-price">Rs. {{ item.price }}</p>
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 0 13px; margin-bottom: 10px;">
+                  {% if item.has_discount %}
+                    <span style="font-size: 14px; font-weight: 700; color: #000;">Rs.{{ item.final_price }}</span>
+                    <span style="font-size: 12px; color: #999; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
+                    <span style="font-size: 10px; font-weight: 500; color: #d32f2f; letter-spacing: 0.02em;">({{ item.discount_percent }}% OFF)</span>
+                  {% else %}
+                    <span class="similar-price" style="margin: 0; padding: 0; font-weight: 600;">Rs.{{ item.original_price|default:item.price }}</span>
+                  {% endif %}
+                </div>
                 <div class="similar-swatches">
                     {% regroup item.product.variants.all by color as color_list %}
                     {% for col_item in color_list|slice:":3" %}
@@ -1219,7 +1249,15 @@
                 </div>
                 <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}Trending Now{% endif %}</p>
                 <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
-                <p class="similar-price">Rs. {{ item.price }}</p>
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 0 13px; margin-bottom: 10px;">
+                  {% if item.has_discount %}
+                    <span style="font-size: 14px; font-weight: 700; color: #000;">Rs.{{ item.final_price }}</span>
+                    <span style="font-size: 12px; color: #999; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
+                    <span style="font-size: 10px; font-weight: 500; color: #d32f2f; letter-spacing: 0.02em;">({{ item.discount_percent }}% OFF)</span>
+                  {% else %}
+                    <span class="similar-price" style="margin: 0; padding: 0; font-weight: 600;">Rs.{{ item.original_price|default:item.price }}</span>
+                  {% endif %}
+                </div>
                 <div class="similar-swatches">
                     {% regroup item.product.variants.all by color as color_list %}
                     {% for col_item in color_list|slice:":3" %}
@@ -1335,7 +1373,30 @@
         element.classList.add('active');
 
         // Update Text and price
-        priceDisplay.innerText = `Rs. ${element.getAttribute('data-price')}`;
+        const hasDiscount = element.getAttribute('data-has-discount') === 'true';
+        const priceWrapper = document.getElementById('priceWrapper');
+        
+        if (hasDiscount) {
+            const finalPrice = element.getAttribute('data-final-price');
+            const originalPrice = element.getAttribute('data-original-price');
+            const discountPercent = element.getAttribute('data-discount-percent');
+            const savings = element.getAttribute('data-savings');
+
+            priceWrapper.innerHTML = `
+                <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 2px;">
+                    <span class="prod-price" id="displayPrice" style="color: #000; margin: 0;">Rs. ${finalPrice}</span>
+                    <span style="font-size: 14px; color: #999; text-decoration: line-through;">Rs. ${originalPrice}</span>
+                    <span style="font-size: 12px; font-weight: 600; color: #d32f2f;">(${discountPercent}% OFF)</span>
+                </div>
+                <p style="font-size: 13px; color: #2e7d32; font-weight: 600; margin: 0;">You save Rs. ${savings}</p>
+            `;
+        } else {
+            const price = element.getAttribute('data-price');
+            priceWrapper.innerHTML = `
+                <p class="prod-price" id="displayPrice" style="margin: 0;">Rs. ${price}</p>
+            `;
+        }
+        
         colorLabel.innerText = `COLOUR: ${element.getAttribute('data-color')}`;
 
         // Premium Animation: Fade out gallery first
