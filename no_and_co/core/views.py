@@ -75,7 +75,8 @@ def ladies(request):
             is_deleted=False,
             product__is_deleted=False,
             product__category__category_name="LADIES",
-        ).prefetch_related(
+        ).select_related('product__category')
+        .prefetch_related(
             Prefetch(
                 "images",
                 queryset=VariantImage.objects.filter(is_primary=True),
@@ -88,12 +89,30 @@ def ladies(request):
     return render(request, "ladies.html", {"search_history": search_history, "variants": variants})
 
 def kids(request):
+    if request.user.is_authenticated and request.user.is_superuser:
+        return redirect("admin-dashboard")
+    variants = (
+        Variant.objects.filter(
+            is_default=True,
+            is_deleted=False,
+            product__is_deleted=False,
+            product__category__category_name="KIDS",
+        ).select_related('product__category')
+        .prefetch_related(
+            Prefetch(
+                "images",
+                queryset=VariantImage.objects.filter(is_primary=True),
+                to_attr="primary_images",
+            )
+        )
+    )
     search_history = request.session.get("search_history", [])
-    return render(request, "kids.html", {"search_history": search_history})
+    variants = apply_offers_to_variants(variants)
+    return render(request, "kids.html", {"search_history": search_history, "variants": variants})
 
 
 def product_details(request, id):
-    product = get_object_or_404(Product, id=id)
+    product = get_object_or_404(Product.objects.select_related('category'), id=id)
 
     if not request.session.session_key:
         request.session.create()
@@ -107,7 +126,7 @@ def product_details(request, id):
 
     wishlist_items = (
         Wishlist.objects.filter(user=user, session_key=session_key)
-        .select_related("variant")
+        .select_related("variant__product__category")
         .prefetch_related(
             Prefetch(
                 "variant__images",
@@ -260,7 +279,7 @@ def product_listing(request):
 
     variants = Variant.objects.filter(
         product__is_active=True, product__is_deleted=False, is_default=True
-    )
+    ).select_related('product__category')
 
     if query:
         history = request.session.get("search_history", [])
@@ -358,10 +377,13 @@ def get_variant_sizes(request, variant_id):
         if first_img:
             image_url = request.build_absolute_uri(first_img.image.url)
 
+    from offers.utils import calculate_final_price
+    final_price, _, _, _, _ = calculate_final_price(variant.product, variant.price)
+
     return JsonResponse(
         {
             "product_name": variant.product.product_name,
-            "price": str(variant.price),
+            "price": str(final_price),
             "color": variant.color,
             "image_url": image_url,
             "product_id": variant.product.id,
@@ -398,9 +420,18 @@ def checkout(request):
     )
 
     cart_items = Cart.objects.filter(user=request.user).select_related("variant")
+    
+    # Sync latest offer-based price to cart items before calculation
+    from offers.utils import get_best_offer
+    for item in cart_items:
+        _, disc = get_best_offer(item.variant.product, item.variant.price)
+        item.final_price = item.variant.price - disc
+        if item.price != item.final_price:
+            item.price = item.final_price
+            item.save()
 
     GST_RATE = Decimal("0.12")
-    sub_total = sum(item.variant.price * item.quantity for item in cart_items)
+    sub_total = sum(item.price * item.quantity for item in cart_items)
 
     tax_amount = (sub_total * GST_RATE).quantize(Decimal("0.01"))
 
@@ -472,7 +503,7 @@ def place_order(request):
             messages.error(request, "no products in the cart")
             return redirect("cart")
 
-        sub_total = sum(item.variant.price * item.quantity for item in cart_items)
+        sub_total = sum(item.price * item.quantity for item in cart_items)
 
         tax_rate = Decimal("0.12")
         tax_amount = sub_total * tax_rate
@@ -520,21 +551,23 @@ def place_order(request):
 
 
                 for item in cart_items:
-                    item_original_total = item.variant.price * item.quantity
-                    # Calculate proportional discount for this item
+                    # 'item.price' is the final discounted price (Base - Product/Category Offer) synced in the cart view
+                    item_discounted_total = item.price * item.quantity 
+                    
+                    # Calculate proportional coupon discount for this item based on the ALREADY DISCOUNTED price
                     if sub_total > 0:
-                        item_discount = (item_original_total / sub_total) * discount
+                        item_coupon_discount = (item_discounted_total / sub_total) * discount
                     else:
-                        item_discount = Decimal("0.00")
+                        item_coupon_discount = Decimal("0.00")
 
-                    item_final_total = item_original_total - item_discount
+                    item_final_total = item_discounted_total - item_coupon_discount
                     item_final_price_per_unit = item_final_total / item.quantity if item.quantity > 0 else Decimal("0.00")
 
                     OrderItem.objects.create(
                         order=order,
                         variant=item.variant,
-                        original_price=item.variant.price,
-                        discount_amount=item_discount,
+                        original_price=item.variant.price, # Base MSRP
+                        discount_amount=item_coupon_discount,
                         final_price=item_final_price_per_unit,
                         quantity=item.quantity,
                     )
