@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.db.models import F, Q
 from django.contrib import messages
 from django.core.paginator import Paginator
+from datetime import datetime
 
 from products.models import Product
 from category.models import Category
@@ -66,6 +67,24 @@ def create_offer(request):
         end_date = request.POST.get("end_date")
         is_active = request.POST.get("is_active") == "on"
 
+        if not start_date or not end_date:
+            messages.error(request, "Please select valid start and end dates")
+            return redirect("admin-offers")
+            
+        try:
+            start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
+            end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
+            today = datetime.now().date()
+            if start_dt < today:
+                messages.error(request, "Start date cannot be in the past")
+                return redirect("admin-offers")
+            if end_dt <= start_dt:
+                messages.error(request, "End date must be after start date")
+                return redirect("admin-offers")
+        except ValueError:
+            messages.error(request, "Invalid date selection")
+            return redirect("admin-offers")
+
         offer = Offer.objects.create(
             name=name, apply_to=apply_to, discount_type=discount_type,
             discount_value=discount_value, min_purchase=min_purchase,
@@ -104,6 +123,24 @@ def update_offer(request, offer_id):
         offer.start_date = request.POST.get("start_date")
         offer.end_date = request.POST.get("end_date")
         offer.is_active = request.POST.get("is_active") == "on"
+
+        if not offer.start_date or not offer.end_date:
+            messages.error(request, "Please select valid start and end dates")
+            return redirect("admin-offers")
+            
+        try:
+            start_dt = datetime.strptime(offer.start_date, "%Y-%m-%d").date()
+            end_dt = datetime.strptime(offer.end_date, "%Y-%m-%d").date()
+            today = datetime.now().date()
+            if start_dt < today:
+                messages.error(request, "Start date cannot be in the past")
+                return redirect("admin-offers")
+            if end_dt <= start_dt:
+                messages.error(request, "End date must be after start date")
+                return redirect("admin-offers")
+        except ValueError:
+            messages.error(request, "Invalid date selection")
+            return redirect("admin-offers")
 
         # Relational Cleanup
         OfferProduct.objects.filter(offer=offer).delete()

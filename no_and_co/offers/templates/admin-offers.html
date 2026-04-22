@@ -2,6 +2,36 @@
 {% load static %}
 
 {% block content %}
+<!-- Toast Container -->
+     <div id="toast-container" class="fixed top-8 right-8 z-50 flex flex-col gap-4 pointer-events-none">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast-item pointer-events-auto flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl transition-all duration-500 transform translate-x-full
+                    {% if message.tags == 'error' %}bg-[#3E3A37]{% else %}bg-[#5C554F]{% endif %} text-white"
+                >
+                    <div class="flex items-center gap-4">
+                        <div class="ml-1 w-10 h-10 bg-[#F5F1EB] icon-bubble">
+                             {% if message.tags == 'error' %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                             {% else %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                             {% endif %}
+                        </div>
+                        <div class="flex flex-col text-left">
+                            <span class="text-[11px] font-bold tracking-wider uppercase">
+                                {% if message.tags == 'error' %}Error{% else %}Notice{% endif %}
+                            </span>
+                            <span class="text-[10px] opacity-70">{{ message }}</span>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
 <!-- Header Section -->
 <div class="px-8 pt-8 pb-6">
         <nav class="text-[10px] uppercase tracking-[0.2em] text-gray-400 flex gap-3 items-center mb-4 font-bold">
@@ -129,22 +159,10 @@
             </div>
 
             <!-- Pagination -->
-            <div id="paginationSection" class="px-6 py-6 border-t border-gray-50 flex items-center justify-between bg-white">
-                {% if offers.paginator.count > 0 %}
-                <span class="text-[12px] font-medium text-gray-400">Showing {{ offers.start_index }} to {{ offers.end_index }} of {{ offers.paginator.count }} offers</span>
-                <div class="flex items-center gap-2">
-                    {% if offers.has_previous %}
-                    <a href="?page={{ offers.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="p-1.5 text-gray-300 hover:text-black transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></a>
-                    {% endif %}
-                    
-                    <button class="w-8 h-8 rounded-lg bg-black text-white text-[11px] font-bold shadow-lg">{{ offers.number }}</button>
-                    <span class="text-gray-400 px-1 text-[11px]">of {{ offers.paginator.num_pages }}</span>
-                    
-                    {% if offers.has_next %}
-                    <a href="?page={{ offers.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.type %}&type={{ request.GET.type }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}" class="p-1.5 text-gray-300 hover:text-black transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></a>
-                    {% endif %}
-                </div>
-                {% endif %}
+            <div id="paginationSection">
+                {% with page_obj=offers %}
+                    {% include 'admin_base/components/pagination.html' %}
+                {% endwith %}
             </div>
         </div>
     </main>
@@ -160,13 +178,13 @@
 <!-- Premium Modal for Add/Edit Offer -->
 <div id="offerModal" class="fixed inset-0 z-[100] hidden">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onclick="closeModal('offerModal')"></div>
-    <div class="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#f9f8f3] w-full max-w-xl rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+    <div class="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#f9f8f3] w-full max-w-[550px] rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
         <!-- Decoration -->
-        <div class="absolute top-0 right-0 p-8 opacity-20 pointer-events-none">
+        <div class="absolute top-0 right-0 p-6 opacity-20 pointer-events-none">
             <h3 class="text-4xl font-serif tracking-widest text-gray-300">NØ&CO</h3>
         </div>
 
-        <form id="offerForm" method="POST" action="" class="relative bg-white m-4 rounded-[24px] p-8 overflow-y-auto max-h-[85vh] hide-scrollbar">
+        <form id="offerForm" method="POST" action="" class="relative bg-white m-3 rounded-[24px] p-6 overflow-y-auto max-h-[85vh] hide-scrollbar" novalidate>
             {% csrf_token %}
             <input type="hidden" id="offerId" name="offer_id">
             
@@ -198,12 +216,13 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
                 <!-- Offer Name -->
-                <div class="sm:col-span-2 space-y-2">
+                <div class="sm:col-span-2 space-y-1.5">
                     <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
                         Offer Name <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="name" required placeholder="e.g. Summer Special"
-                           class="w-full px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium text-gray-800">
+                    <input type="text" name="name" id="offerName" required placeholder="e.g. Summer Special"
+                           class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_offerName"></p>
                 </div>
 
                 <!-- Discount Type -->
@@ -232,12 +251,12 @@
                 </div>
 
                 <!-- Select Product/Category -->
-                <div class="space-y-2">
+                <div class="space-y-1.5">
                     <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
                         Select Target <span class="text-red-500">*</span>
                     </label>
                     <div id="product_field" class="relative transition-all duration-300" style="display:none;">
-                        <select name="product_id" id="product_select" class="w-full appearance-none px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-black/5 cursor-pointer">
+                        <select name="product_id" id="product_select" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors appearance-none">
                             <option value="">Select Product...</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
@@ -245,68 +264,74 @@
                         </div>
                     </div>
                     <div id="category_field" class="relative transition-all duration-300" style="display:none;">
-                        <select name="category_id" id="category_select" class="w-full appearance-none px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-black/5 cursor-pointer">
+                        <select name="category_id" id="category_select" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors appearance-none">
                             <option value="">Select Category...</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
                         </div>
                     </div>
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_target"></p>
                 </div>
 
                 <!-- Discount Value -->
-                <div class="sm:col-span-2 space-y-2">
+                <div class="sm:col-span-2 space-y-1.5">
                     <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
                         Discount Value (%/₹) <span class="text-red-500">*</span>
                     </label>
-                    <input type="text" name="discount_value" required placeholder="0.00"
-                           class="w-full px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium text-gray-800">
+                    <input type="number" name="discount_value" id="discountValue" required placeholder="0.00" step="0.01"
+                           class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_discountValue"></p>
                 </div>
 
                 <!-- Minimum Purchase (Conditional) -->
-                <div id="minPurchaseWrapper" class="space-y-2 transition-opacity duration-300">
+                <div id="minPurchaseWrapper" class="space-y-1.5 transition-opacity duration-300">
                     <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
                         Min Purchase (₹)
                     </label>
-                    <input type="text" id="min_purchase" name="min_purchase" placeholder="0.00"
-                           class="w-full px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium text-gray-800">
+                    <input type="number" id="min_purchase" name="min_purchase" placeholder="0.00" step="0.01"
+                           class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_minPurchase"></p>
                 </div>
 
                 <!-- Maximum Discount (Conditional) -->
-                <div id="maxDiscountWrapper" class="space-y-2 transition-opacity duration-300">
+                <div id="maxDiscountWrapper" class="space-y-1.5 transition-opacity duration-300">
                     <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
                         Max Discount (₹)
                     </label>
-                    <input type="text" id="max_discount" name="max_discount" placeholder="0.00"
-                           class="w-full px-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium text-gray-800">
+                    <input type="number" id="max_discount" name="max_discount" placeholder="0.00" step="0.01"
+                           class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_maxDiscount"></p>
                 </div>
 
                 <!-- Start Date -->
-                <div class="space-y-2">
+                <div class="space-y-1.5">
                     <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
                         Start Date <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
-                        <input type="date" name="start_date" required
-                               class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium text-gray-800">
+                        <input type="date" name="start_date" id="startDate" required
+                               class="w-full pl-10 pr-4 py-3 bg-[#f9fafb] border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-black transition-colors font-medium">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                     </div>
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_startDate"></p>
                 </div>
 
                 <!-- End Date -->
-                <div class="space-y-2">
+                <div class="space-y-1.5">
                     <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
                         End Date <span class="text-red-500">*</span>
                     </label>
                     <div class="relative">
-                        <input type="date" name="end_date" required
-                               class="w-full pl-10 pr-4 py-3 bg-gray-50/50 border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-black/5 transition-all font-medium text-gray-800">
+                        <input type="date" name="end_date" id="endDate" required
+                               class="w-full pl-10 pr-4 py-3 bg-[#f9fafb] border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-black transition-colors font-medium">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         </div>
                     </div>
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_endDate"></p>
                 </div>
 
                 <!-- Active Toggle Card -->
@@ -531,8 +556,16 @@
                 method: 'POST',
                 headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
             }).then(res => res.json()).then(data => {
-                if (data.success) location.reload();
-            }).catch(err => console.error(err));
+                if (data.success) {
+                    showToast('Offer deleted successfully');
+                    document.getElementById('searchInput').dispatchEvent(new Event('input')); // trigger updateOffers
+                } else {
+                    showToast(data.message || 'Error deleting offer', 'error');
+                }
+            }).catch(err => {
+                console.error(err);
+                showToast('Error deleting offer', 'error');
+            });
         }
     };
 
@@ -595,11 +628,241 @@
         if (typeFilter) typeFilter.addEventListener('change', updateOffers);
         if (statusFilter) statusFilter.addEventListener('change', updateOffers);
     })();
+
+    // Initialize Toast Animations
+    document.addEventListener('DOMContentLoaded', function() {
+        const toasts = document.querySelectorAll('.toast-item');
+        toasts.forEach((toast, index) => {
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100 * (index + 1));
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        });
+    });
+
+    function showToast(message, status = 'success') {
+        const wrapper = document.getElementById('toast-container');
+        if (!wrapper) return;
+        
+        const toast = document.createElement('div');
+        const bgClass = status === 'error' ? 'bg-[#3E3A37]' : 'bg-[#5C554F]';
+        const titleText = status === 'error' ? 'Error' : 'Notice';
+        const iconSvg = status === 'error' 
+            ? '<svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>'
+            : '<svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>';
+
+        toast.className = `toast-item pointer-events-auto flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl transition-all duration-500 transform translate-x-full ${bgClass} text-white`;
+        toast.innerHTML = `
+            <div class="flex items-center gap-4">
+                <div class="ml-1 w-10 h-10 bg-[#F5F1EB] icon-bubble">
+                     ${iconSvg}
+                </div>
+                <div class="flex flex-col text-left">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">${titleText}</span>
+                    <span class="text-[10px] opacity-70">${message}</span>
+                </div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        `;
+        wrapper.appendChild(toast);
+        
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full');
+            });
+        });
+
+        setTimeout(() => {
+            toast.classList.add('opacity-0');
+            setTimeout(() => toast.remove(), 500);
+        }, 5000);
+    }
+
+    // Form Client-Side Validation
+    const validateForm = () => {
+        let isValid = true;
+        
+        const offerName = document.getElementById('offerName');
+        const errName = document.getElementById('err_offerName');
+        if (!offerName.value.trim() || offerName.value.trim().length < 3) {
+            errName.textContent = "Name must be at least 3 characters.";
+            errName.classList.remove('hidden');
+            offerName.classList.add('border-red-500');
+            isValid = false;
+        } else {
+            errName.classList.add('hidden');
+            offerName.classList.remove('border-red-500');
+        }
+
+        const discountValue = document.getElementById('discountValue');
+        const errDiscount = document.getElementById('err_discountValue');
+        const type = document.querySelector('input[name="discount_type"]:checked').value;
+        let v = parseFloat(discountValue.value);
+        if (isNaN(v)) {
+            errDiscount.textContent = "Discount value is required.";
+            errDiscount.classList.remove('hidden');
+            discountValue.classList.add('border-red-500');
+            isValid = false;
+        } else if (type === 'percentage' && (v < 1 || v > 100)) {
+            errDiscount.textContent = "Percentage must be between 1 and 100.";
+            errDiscount.classList.remove('hidden');
+            discountValue.classList.add('border-red-500');
+            isValid = false;
+        } else if (type === 'flat' && v <= 0) {
+            errDiscount.textContent = "Flat discount must be > 0.";
+            errDiscount.classList.remove('hidden');
+            discountValue.classList.add('border-red-500');
+            isValid = false;
+        } else {
+            errDiscount.classList.add('hidden');
+            discountValue.classList.remove('border-red-500');
+        }
+
+        const applyTo = document.querySelector('input[name="apply_to"]:checked').value;
+        const targetErr = document.getElementById('err_target');
+        const prodField = document.getElementById('product_select');
+        const catField = document.getElementById('category_select');
+        
+        if (applyTo === 'product' && !prodField.value) {
+            targetErr.textContent = "Please select a product.";
+            targetErr.classList.remove('hidden');
+            prodField.classList.add('border-red-500');
+            isValid = false;
+        } else if (applyTo === 'category' && !catField.value) {
+            targetErr.textContent = "Please select a category.";
+            targetErr.classList.remove('hidden');
+            catField.classList.add('border-red-500');
+            isValid = false;
+        } else {
+            targetErr.classList.add('hidden');
+            prodField.classList.remove('border-red-500');
+            catField.classList.remove('border-red-500');
+        }
+
+        if (applyTo === 'category') {
+            const minPurchase = document.getElementById('min_purchase');
+            const errMin = document.getElementById('err_minPurchase');
+            let m = parseFloat(minPurchase.value) || 0;
+            if (m < 0) {
+                errMin.textContent = "Minimum purchase cannot be negative.";
+                errMin.classList.remove('hidden');
+                minPurchase.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                errMin.classList.add('hidden');
+                minPurchase.classList.remove('border-red-500');
+            }
+        }
+
+        if (type === 'percentage') {
+            const maxDiscount = document.getElementById('max_discount');
+            const errMax = document.getElementById('err_maxDiscount');
+            if (maxDiscount.value) {
+                let m = parseFloat(maxDiscount.value);
+                if (m < 0) {
+                    errMax.textContent = "Max discount cannot be negative.";
+                    errMax.classList.remove('hidden');
+                    maxDiscount.classList.add('border-red-500');
+                    isValid = false;
+                } else {
+                    errMax.classList.add('hidden');
+                    maxDiscount.classList.remove('border-red-500');
+                }
+            } else {
+                errMax.classList.add('hidden');
+                maxDiscount.classList.remove('border-red-500');
+            }
+        }
+
+        const start = document.getElementById('startDate');
+        const end = document.getElementById('endDate');
+        const errStart = document.getElementById('err_startDate');
+        const errEnd = document.getElementById('err_endDate');
+        
+        let datesValid = true;
+
+        if (!start.value) {
+            errStart.textContent = "Start date is required.";
+            errStart.classList.remove('hidden');
+            start.classList.add('border-red-500');
+            isValid = false;
+            datesValid = false;
+        } else {
+            errStart.classList.add('hidden');
+            start.classList.remove('border-red-500');
+        }
+
+        if (!end.value) {
+            errEnd.textContent = "End date is required.";
+            errEnd.classList.remove('hidden');
+            end.classList.add('border-red-500');
+            isValid = false;
+            datesValid = false;
+        } else {
+            errEnd.classList.add('hidden');
+            end.classList.remove('border-red-500');
+        }
+
+        if (datesValid) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const startObj = new Date(start.value);
+            const endObj = new Date(end.value);
+
+            if (startObj < today) {
+                errStart.textContent = "Start date cannot be in the past.";
+                errStart.classList.remove('hidden');
+                start.classList.add('border-red-500');
+                isValid = false;
+                datesValid = false;
+            }
+
+            if (endObj <= startObj) {
+                errEnd.textContent = "End date must be after start date.";
+                errEnd.classList.remove('hidden');
+                end.classList.add('border-red-500');
+                isValid = false;
+            } else if (datesValid) {
+                errEnd.classList.add('hidden');
+                end.classList.remove('border-red-500');
+            }
+        }
+
+        saveButton.disabled = !isValid;
+        if (!isValid) saveButton.classList.add('opacity-50', 'pointer-events-none');
+        else saveButton.classList.remove('opacity-50', 'pointer-events-none');
+        
+        return isValid;
+    };
+
+    form.addEventListener('input', validateForm);
+    form.addEventListener('change', validateForm);
+    form.addEventListener('submit', (e) => {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
+
 </script>
 {% endblock %}
 
 {% block extra_head %}
 <style>
     .font-serif { font-family: 'Playfair Display', serif; }
+    .icon-bubble {
+        position: relative;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .icon-bubble svg { transform: rotate(45deg); }
 </style>
 {% endblock %}
