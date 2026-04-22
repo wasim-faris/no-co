@@ -1,0 +1,914 @@
+{% extends 'admin_base/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Toast Container -->
+     <div id="toast-container" class="fixed top-8 right-8 z-50 flex flex-col gap-4 pointer-events-none">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="toast-item pointer-events-auto flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl transition-all duration-500 transform translate-x-full
+                    {% if message.tags == 'error' %}bg-[#3E3A37]{% else %}bg-[#5C554F]{% endif %} text-white"
+                >
+                    <div class="flex items-center gap-4">
+                        <div class="ml-1 w-10 h-10 bg-[#F5F1EB] icon-bubble">
+                             {% if message.tags == 'error' %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                             {% else %}
+                                <svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>
+                             {% endif %}
+                        </div>
+                        <div class="flex flex-col text-left">
+                            <span class="text-[11px] font-bold tracking-wider uppercase">
+                                {% if message.tags == 'error' %}Error{% else %}Notice{% endif %}
+                            </span>
+                            <span class="text-[10px] opacity-70">{{ message }}</span>
+                        </div>
+                    </div>
+                    <button onclick="this.parentElement.remove()" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                        <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+<!-- Header Section -->
+<div class="px-8 pt-8 pb-6">
+        <nav class="text-[10px] uppercase tracking-[0.2em] text-gray-400 flex gap-3 items-center mb-4 font-bold">
+            <span>OFFER MANAGEMENT</span>
+            <span class="text-xs">&gt;</span>
+            <span class="text-gray-900">OFFERS</span>
+        </nav>
+        
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-4xl font-serif text-gray-900 tracking-tight">Offers</h1>
+                <p class="text-sm text-gray-500 mt-1">Manage discounts, coupons, and product offers</p>
+                <div class="w-12 h-[2px] bg-gray-900 mt-3"></div>
+            </div>
+            <button onclick="openModal('add')" class="px-6 py-3.5 bg-black text-white rounded-xl text-sm font-semibold hover:opacity-90 transition-all shadow-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 4.5v15m7.5-7.5h-15"></path></svg>
+                Add Offer
+            </button>
+        </div>
+    </div>
+
+    <main class="flex-1 px-8 py-4 space-y-6">
+        <!-- Search + Filter Bar -->
+        <div class="flex flex-wrap items-center gap-4 bg-white/40 p-4 rounded-[16px] border border-white/60 shadow-sm backdrop-blur-sm">
+            <div class="flex-1 relative min-w-[300px]">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                </div>
+                <input id="searchInput" type="text" placeholder="Search offers..." 
+                       class="w-full pl-11 pr-4 py-2.5 bg-white/80 border border-gray-100 rounded-[12px] text-sm focus:outline-none focus:ring-2 focus:ring-black/5 transition-all placeholder:text-gray-300 font-medium text-gray-700">
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <select id="typeFilter" class="appearance-none px-4 py-2.5 bg-white/80 border border-gray-100 rounded-[12px] text-sm font-semibold text-gray-600 focus:outline-none focus:ring-2 focus:ring-black/5 min-w-[140px] cursor-pointer">
+                        <option value="">All Types</option>
+                        <option value="product">Product</option>
+                        <option value="category">Category</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <select id="statusFilter" class="appearance-none px-4 py-2.5 bg-white/80 border border-gray-100 rounded-[12px] text-sm font-semibold text-gray-600 focus:outline-none focus:ring-2 focus:ring-black/5 min-w-[140px] cursor-pointer">
+                        <option value="">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-gray-400">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="bg-white rounded-[16px] shadow-sm border border-white overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50/50 border-b border-gray-50">
+                            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Offer Name</th>
+                            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Apply To</th>
+                            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Discount</th>
+                            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 text-center">Min / Max</th>
+                            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Date Range</th>
+                            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400">Status</th>
+                            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-[0.15em] text-gray-400 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="offerTableBody" class="divide-y divide-gray-50">
+                        {% for offer in offers %}
+                        <tr class="hover:bg-gray-50/50 transition-colors group">
+                            <td class="px-6 py-5">
+                                <div class="flex flex-col">
+                                    <span class="text-[13px] font-bold text-gray-900 tracking-tight">{{ offer.name }}</span>
+                                    <span class="text-[11px] text-gray-400">Applies to: 
+                                    {% if offer.apply_to == 'product' %}{{ offer.offerproduct_set.first.product.product_name }}{% else %}{{ offer.offercategory_set.first.category.category_name }}{% endif %}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="inline-flex items-center px-4 py-1 rounded-full text-[10px] font-bold {% if offer.apply_to == 'product' %}bg-orange-50 text-orange-500{% else %}bg-blue-50 text-blue-500{% endif %} uppercase tracking-widest">{{ offer.apply_to }}</span>
+                            </td>
+                            <td class="px-6 py-5">
+                                <span class="text-[13px] font-bold text-gray-900">{% if offer.discount_type == 'percentage' %}{{ offer.discount_value|floatformat:0 }}% Off{% else %}₹{{ offer.discount_value|floatformat:0 }} Flat{% endif %}</span>
+                                <p class="text-[10px] text-gray-400 uppercase font-medium">{{ offer.discount_type }}</p>
+                            </td>
+                            <td class="px-6 py-5 text-center">
+                                <div class="text-[12px] text-gray-600 font-medium">{% if offer.apply_to == 'category' %}Min: ₹{{ offer.min_purchase|floatformat:0 }}{% if offer.max_discount %} | Max: ₹{{ offer.max_discount|floatformat:0 }}{% endif %}{% else %}-{% endif %}</div>
+                            </td>
+                            <td class="px-6 py-5">
+                                <div class="text-[11px] font-bold text-gray-900">{{ offer.start_date|date:"M d, Y" }}</div>
+                                <div class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">TO {{ offer.end_date|date:"M d, Y" }}</div>
+                            </td>
+                            <td class="px-6 py-5">
+                                {% if offer.is_active %}
+                                <span class="text-[11px] font-bold text-green-500">Active</span>
+                                {% else %}
+                                <span class="text-[11px] font-bold text-gray-400">Inactive</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-5 text-right">
+                                <div class="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button title="Edit" onclick="handleEdit('{{ offer.id }}', '{{ offer.name|escapejs }}', '{{ offer.discount_type }}', '{{ offer.apply_to }}', '{% if offer.apply_to == 'product' %}{{ offer.offerproduct_set.first.product_id|default:'' }}{% else %}{{ offer.offercategory_set.first.category_id|default:'' }}{% endif %}', '{{ offer.discount_value|floatformat:2 }}', '{{ offer.min_purchase|floatformat:2 }}', '{{ offer.max_discount|default_if_none:''|floatformat:2 }}', '{{ offer.start_date|date:'Y-m-d' }}', '{{ offer.end_date|date:'Y-m-d' }}', '{{ offer.is_active }}')" class="p-1.5 text-gray-400 hover:text-black hover:bg-gray-50 rounded-lg transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
+                                    </button>
+                                    <button title="Delete" onclick="deleteOffer('{{ offer.id }}')" class="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path></svg>
+                                    </button>
+                                    <label class="relative inline-flex items-center cursor-pointer m-0">
+                                        <input type="checkbox" onchange="toggleStatus('{{ offer.id }}', this)" {% if offer.is_active %}checked{% endif %} class="sr-only peer">
+                                        <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black shadow-inner"></div>
+                                    </label>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center py-10 text-gray-400 font-medium tracking-wide text-sm">No offers found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div id="paginationSection">
+                {% with page_obj=offers %}
+                    {% include 'admin_base/components/pagination.html' %}
+                {% endwith %}
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    body { font-family: 'Inter', sans-serif; background-color: #f5f1eb; }
+    .font-serif { font-family: 'Playfair Display', serif; }
+    .rounded-custom { border-radius: 16px; }
+    #searchInput:focus { ring: 2px solid rgba(0,0,0,0.05); }
+</style>
+
+<!-- Premium Modal for Add/Edit Offer -->
+<div id="offerModal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onclick="closeModal('offerModal')"></div>
+    <div class="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#f9f8f3] w-full max-w-[550px] rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+        <!-- Decoration -->
+        <div class="absolute top-0 right-0 p-6 opacity-20 pointer-events-none">
+            <h3 class="text-4xl font-serif tracking-widest text-gray-300">NØ&CO</h3>
+        </div>
+
+        <form id="offerForm" method="POST" action="" class="relative bg-white m-3 rounded-[24px] p-6 overflow-y-auto max-h-[85vh] hide-scrollbar" novalidate>
+            {% csrf_token %}
+            <input type="hidden" id="offerId" name="offer_id">
+            
+            <div class="text-center mb-8">
+                <h2 id="modalTitle" class="text-3xl font-serif text-gray-900 tracking-tight">Add Offer</h2>
+                <p id="modalSubtitle" class="text-xs text-gray-400 mt-2 uppercase tracking-[0.2em]">Craft a new promotion for your customers</p>
+            </div>
+
+            <!-- Offer Type Selector (Top Level Logic) -->
+            <div class="mb-8">
+                <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1 mb-3">
+                    Offer Type <span class="text-red-500">*</span>
+                </label>
+                <div class="flex p-1 bg-gray-50/80 rounded-xl border border-gray-100">
+                    <label class="flex-1 text-center cursor-pointer relative group">
+                        <input type="radio" name="apply_to" value="product" class="sr-only peer">
+                        <div class="py-2.5 rounded-lg peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-black text-gray-500 font-bold text-xs uppercase tracking-wider transition-all">Product Offer</div>
+                    </label>
+                    <label class="flex-1 text-center cursor-pointer relative group">
+                        <input type="radio" name="apply_to" value="category" checked class="sr-only peer">
+                        <div class="py-2.5 rounded-lg peer-checked:bg-white peer-checked:shadow-sm peer-checked:text-black text-gray-500 font-bold text-xs uppercase tracking-wider transition-all">Category Offer</div>
+                    </label>
+                </div>
+                <!-- Helper Text -->
+                <p id="offerTypeHelperText" class="text-[10px] text-gray-400 mt-2 italic font-medium bg-gray-50 p-2 rounded-lg text-center">
+                    Applies only if cart meets minimum purchase condition.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-6">
+                <!-- Offer Name -->
+                <div class="sm:col-span-2 space-y-1.5">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                        Offer Name <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="name" id="offerName" required placeholder="e.g. Summer Special"
+                           class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_offerName"></p>
+                </div>
+
+                <!-- Discount Type -->
+                <div class="space-y-2">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                        Discount Type <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-center gap-4 pt-1.5">
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center justify-center">
+                                <input type="radio" name="discount_type" value="percentage" checked class="sr-only peer">
+                                <div class="w-4 h-4 border-2 border-gray-200 rounded-full peer-checked:border-black transition-all"></div>
+                                <div class="absolute w-2 h-2 bg-black rounded-full scale-0 peer-checked:scale-100 transition-transform"></div>
+                            </div>
+                            <span class="text-[13px] font-medium text-gray-600 group-hover:text-black">%</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="relative flex items-center justify-center">
+                                <input type="radio" name="discount_type" value="flat" class="sr-only peer">
+                                <div class="w-4 h-4 border-2 border-gray-200 rounded-full peer-checked:border-black transition-all"></div>
+                                <div class="absolute w-2 h-2 bg-black rounded-full scale-0 peer-checked:scale-100 transition-transform"></div>
+                            </div>
+                            <span class="text-[13px] font-medium text-gray-600 group-hover:text-black">Flat (₹)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Select Product/Category -->
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                        Select Target <span class="text-red-500">*</span>
+                    </label>
+                    <div id="product_field" class="relative transition-all duration-300" style="display:none;">
+                        <select name="product_id" id="product_select" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors appearance-none">
+                            <option value="">Select Product...</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+                    <div id="category_field" class="relative transition-all duration-300" style="display:none;">
+                        <select name="category_id" id="category_select" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors appearance-none">
+                            <option value="">Select Category...</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_target"></p>
+                </div>
+
+                <!-- Discount Value -->
+                <div class="sm:col-span-2 space-y-1.5">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                        Discount Value (%/₹) <span class="text-red-500">*</span>
+                    </label>
+                    <input type="number" name="discount_value" id="discountValue" required placeholder="0.00" step="0.01"
+                           class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_discountValue"></p>
+                </div>
+
+                <!-- Minimum Purchase (Conditional) -->
+                <div id="minPurchaseWrapper" class="space-y-1.5 transition-opacity duration-300">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                        Min Purchase (₹)
+                    </label>
+                    <input type="number" id="min_purchase" name="min_purchase" placeholder="0.00" step="0.01"
+                           class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_minPurchase"></p>
+                </div>
+
+                <!-- Maximum Discount (Conditional) -->
+                <div id="maxDiscountWrapper" class="space-y-1.5 transition-opacity duration-300">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                        Max Discount (₹)
+                    </label>
+                    <input type="number" id="max_discount" name="max_discount" placeholder="0.00" step="0.01"
+                           class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_maxDiscount"></p>
+                </div>
+
+                <!-- Start Date -->
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                        Start Date <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="date" name="start_date" id="startDate" required
+                               class="w-full pl-10 pr-4 py-3 bg-[#f9fafb] border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-black transition-colors font-medium">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_startDate"></p>
+                </div>
+
+                <!-- End Date -->
+                <div class="space-y-1.5">
+                    <label class="text-[11px] font-bold uppercase tracking-widest text-gray-500 flex items-center gap-1">
+                        End Date <span class="text-red-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input type="date" name="end_date" id="endDate" required
+                               class="w-full pl-10 pr-4 py-3 bg-[#f9fafb] border border-gray-100 rounded-xl text-sm focus:outline-none focus:border-black transition-colors font-medium">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_endDate"></p>
+                </div>
+
+                <!-- Active Toggle Card -->
+                <div class="sm:col-span-2 mt-2 p-5 bg-gray-50/50 rounded-xl border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <h4 class="text-[13px] font-bold text-gray-900">Active</h4>
+                        <p class="text-[11px] text-gray-400 mt-0.5">Enable this offer immediately after saving</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer scale-100">
+                        <input type="checkbox" name="is_active" checked class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-black shadow-inner"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Modal Actions -->
+            <div class="mt-8 flex gap-3">
+                <button type="button" onclick="closeModal('offerModal')" class="flex-1 py-3.5 bg-gray-100 text-gray-600 rounded-xl font-bold uppercase text-[11px] tracking-[0.1em] hover:bg-gray-200 transition-all active:scale-[0.98]">
+                    Cancel
+                </button>
+                <button type="submit" id="saveButton" class="flex-1 py-3.5 bg-[#1a1a1a] text-white rounded-xl font-bold uppercase text-[11px] tracking-[0.1em] shadow-xl hover:bg-black transition-all active:scale-[0.98]">
+                    Save Offer
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Premium Delete Confirmation Modal -->
+<div id="deleteModal" class="fixed inset-0 z-[150] hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-[2px]" onclick="closeModal('deleteModal')"></div>
+    <div class="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white w-full max-w-[400px] rounded-[32px] overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+        <div class="p-8 text-center">
+            <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path>
+                </svg>
+            </div>
+            <h3 class="text-2xl font-serif text-gray-900 mb-2">Delete Offer</h3>
+            <p class="text-sm text-gray-500 mb-8">Are you sure you want to delete this offer? This action cannot be undone.</p>
+            
+            <div class="flex gap-3">
+                <button onclick="closeModal('deleteModal')" class="flex-1 py-3 bg-gray-100 text-gray-600 rounded-xl font-bold uppercase text-[11px] tracking-widest hover:bg-gray-200 transition-all">
+                    Cancel
+                </button>
+                <button id="confirmDeleteBtn" class="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold uppercase text-[11px] tracking-widest hover:bg-red-700 transition-all shadow-lg shadow-red-200">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const modal = document.getElementById('offerModal');
+    const form = document.getElementById('offerForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalSubtitle = document.getElementById('modalSubtitle');
+    const saveButton = document.getElementById('saveButton');
+
+    function openModal(mode, data = null) {
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            if (mode === 'edit' && data) {
+                modalTitle.innerText = 'Edit Offer';
+                modalSubtitle.innerText = 'Refine and update your promotion details';
+                saveButton.innerText = 'Save Changes';
+                form.action = '/update-offer/' + data.id + '/';
+                
+                // Populate data
+                form.elements['offer_id'].value = data.id || '';
+                form.elements['name'].value = data.name || '';
+                form.elements['discount_value'].value = data.value || '';
+                form.elements['min_purchase'].value = data.min || '';
+                form.elements['max_discount'].value = data.max || '';
+                form.elements['start_date'].value = data.start || '';
+                form.elements['end_date'].value = data.end || '';
+                form.elements['is_active'].checked = data.active !== false;
+                
+                // Handle radios and dynamic dropdowns
+                if (data.type) {
+                    const typeRadio = form.querySelector(`input[name="discount_type"][value="${data.type}"]`);
+                    if (typeRadio) typeRadio.checked = true;
+                }
+                if (data.apply) {
+                    const applyRadio = form.querySelector(`input[name="apply_to"][value="${data.apply}"]`);
+                    if (applyRadio) {
+                        applyRadio.checked = true;
+                        // Fire change event to load correct dropdown
+                        applyRadio.dispatchEvent(new Event('change'));
+                    }
+                }
+                
+                // Set the value after data loads
+                setTimeout(() => {
+                    if (data.apply === 'product') {
+                        document.getElementById('product_select').value = data.target;
+                    } else if (data.apply === 'category') {
+                        document.getElementById('category_select').value = data.target;
+                    }
+                }, 500);
+
+            } else if (mode === 'add' || mode === 'offerModal') { // Support both 'add' and direct ID call
+                modalTitle.innerText = 'Add Offer';
+                modalSubtitle.innerText = 'Craft a new promotion for your customers';
+                saveButton.innerText = 'Save Offer';
+                form.action = '/create-offer/';
+                form.reset();
+                form.elements['offer_id'].value = '';
+                // Set defaults for radios if needed
+                form.querySelector('input[name="discount_type"][value="percentage"]').checked = true;
+                const catRadio = form.querySelector('input[name="apply_to"][value="category"]');
+                catRadio.checked = true;
+                catRadio.dispatchEvent(new Event('change'));
+            }
+        }
+    }
+    
+    function closeModal(id) {
+        const m = document.getElementById(id);
+        if (m) {
+            m.classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Dynamic field behavior
+    function loadProducts() {
+        const select = document.getElementById("product_select");
+        if (select.options.length > 1) return; // Prevent multiple fetches
+        fetch('/api/products/')
+            .then(res => res.json())
+            .then(data => {
+                select.innerHTML = '<option value="">Select Product</option>';
+                data.forEach(item => {
+                    select.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+                });
+            })
+            .catch(err => console.error("Error loading products:", err));
+    }
+
+    function loadCategories() {
+        const select = document.getElementById("category_select");
+        if (select.options.length > 1) return; // Prevent multiple fetches
+        fetch('/api/categories/')
+            .then(res => res.json())
+            .then(data => {
+                select.innerHTML = '<option value="">Select Category</option>';
+                data.forEach(item => {
+                    select.innerHTML += `<option value="${item.id}">${item.name}</option>`;
+                });
+            })
+            .catch(err => console.error("Error loading categories:", err));
+    }
+
+    const minPurchaseWrapper = document.getElementById("minPurchaseWrapper");
+    const maxDiscountWrapper = document.getElementById("maxDiscountWrapper");
+    const helperText = document.getElementById("offerTypeHelperText");
+
+    const applyRadios = document.querySelectorAll('input[name="apply_to"]');
+    applyRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const value = this.value;
+            const productField = document.getElementById("product_field");
+            const categoryField = document.getElementById("category_field");
+            const productSelect = document.getElementById("product_select");
+            const categorySelect = document.getElementById("category_select");
+
+            if (value === "product") {
+                productField.style.display = "block";
+                categoryField.style.display = "none";
+                productSelect.required = true;
+                categorySelect.required = false;
+                
+                // Hide Min/Max logic for product
+                minPurchaseWrapper.style.display = "none";
+                maxDiscountWrapper.style.display = "none";
+                document.getElementById("min_purchase").value = "";
+                document.getElementById("max_discount").value = "";
+                
+                // Update helper
+                helperText.innerText = "Applies instantly to selected product (strike price).";
+                helperText.classList.remove("bg-gray-50", "text-gray-400");
+                helperText.classList.add("bg-blue-50/50", "text-blue-500");
+                
+                loadProducts();
+            } else if (value === "category") {
+                categoryField.style.display = "block";
+                productField.style.display = "none";
+                categorySelect.required = true;
+                productSelect.required = false;
+                
+                // Show Min/Max logic for category
+                minPurchaseWrapper.style.display = "block";
+                maxDiscountWrapper.style.display = "block";
+                
+                // Update helper
+                helperText.innerText = "Applies only if cart meets minimum purchase condition.";
+                helperText.classList.remove("bg-blue-50/50", "text-blue-500");
+                helperText.classList.add("bg-gray-50", "text-gray-400");
+                
+                // Retrigger discount_type logic to handle max_discount visibility
+                const activeType = document.querySelector('input[name="discount_type"]:checked');
+                if(activeType) activeType.dispatchEvent(new Event('change'));
+                
+                loadCategories();
+            }
+        });
+    });
+
+    // Discount type logic (flat vs percentage max discount hiding)
+    const typeRadios = document.querySelectorAll('input[name="discount_type"]');
+    typeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            const isCat = document.querySelector('input[name="apply_to"]:checked').value === 'category';
+            if(isCat) {
+                if(this.value === 'flat') {
+                    maxDiscountWrapper.style.display = "none";
+                    document.getElementById("max_discount").value = "";
+                } else {
+                    maxDiscountWrapper.style.display = "block";
+                }
+            }
+        });
+    });
+
+    // Initialize dropdowns on load
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkedRadio = document.querySelector('input[name="apply_to"]:checked');
+        if(checkedRadio) checkedRadio.dispatchEvent(new Event('change'));
+        
+        const typeRadio = document.querySelector('input[name="discount_type"]:checked');
+        if(typeRadio) typeRadio.dispatchEvent(new Event('change'));
+    });
+
+    // Connect Edit buttons
+    window.handleEdit = function(id, name, type, apply, target, value, min, max, start, end, active) {
+        openModal('edit', { id, name, type, apply, target, value, min, max, start, end, active: active === 'True' });
+    };
+
+    // Delete Logic
+    let offerToDelete = null;
+    window.deleteOffer = function(offerId) {
+        offerToDelete = offerId;
+        const dModal = document.getElementById('deleteModal');
+        if (dModal) {
+            dModal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    };
+
+    document.getElementById('confirmDeleteBtn').addEventListener('click', () => {
+        if (!offerToDelete) return;
+        
+        const btn = document.getElementById('confirmDeleteBtn');
+        const originalText = btn.innerText;
+        btn.innerText = 'Deleting...';
+        btn.disabled = true;
+
+        fetch('/delete-offer/' + offerToDelete + '/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        }).then(res => res.json()).then(data => {
+            closeModal('deleteModal');
+            if (data.success) {
+                showToast('Offer deleted successfully');
+                document.getElementById('searchInput').dispatchEvent(new Event('input'));
+            } else {
+                showToast(data.message || 'Error deleting offer', 'error');
+            }
+        }).catch(err => {
+            console.error(err);
+            showToast('Error deleting offer', 'error');
+            closeModal('deleteModal');
+        }).finally(() => {
+            btn.innerText = originalText;
+            btn.disabled = false;
+            offerToDelete = null;
+        });
+    });
+
+    // Toggle Active Status
+    window.toggleStatus = function(offerId, element) {
+        fetch('/toggle-status/' + offerId + '/', {
+            method: 'POST',
+            headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
+        }).then(res => res.json()).then(data => {
+            if (!data.success) element.checked = !element.checked; // Revert visually on fail
+        }).catch(err => {
+            console.error(err);
+            element.checked = !element.checked; // Revert visually
+        });
+    };
+
+    // Live filtering logic
+    (function() {
+        const searchInput = document.getElementById('searchInput');
+        const typeFilter = document.getElementById('typeFilter');
+        const statusFilter = document.getElementById('statusFilter');
+        const tableBody = document.getElementById('offerTableBody');
+        const pagination = document.getElementById('paginationSection');
+        let debounceTimer = null;
+
+        function updateOffers() {
+            if (!searchInput || !tableBody) return;
+            
+            const query = searchInput.value;
+            const type = typeFilter ? typeFilter.value : '';
+            const status = statusFilter ? statusFilter.value : '';
+            
+            const params = new URLSearchParams(window.location.search);
+            if (query) params.set('q', query); else params.delete('q');
+            if (type) params.set('type', type); else params.delete('type');
+            if (status) params.set('status', status); else params.delete('status');
+            params.delete('page');
+
+            const url = window.location.pathname + '?' + params.toString();
+            window.history.replaceState(null, '', url);
+
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.text())
+                .then(html => {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const newBody = doc.getElementById('offerTableBody');
+                    const newPagination = doc.getElementById('paginationSection');
+                    if (newBody) tableBody.innerHTML = newBody.innerHTML;
+                    if (newPagination && pagination) pagination.innerHTML = newPagination.innerHTML;
+                }).catch(err => console.error('Filter error:', err));
+        }
+
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(updateOffers, 300);
+            });
+        }
+
+        if (typeFilter) typeFilter.addEventListener('change', updateOffers);
+        if (statusFilter) statusFilter.addEventListener('change', updateOffers);
+    })();
+
+    // Initialize Toast Animations
+    document.addEventListener('DOMContentLoaded', function() {
+        const toasts = document.querySelectorAll('.toast-item');
+        toasts.forEach((toast, index) => {
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100 * (index + 1));
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 500);
+            }, 5000);
+        });
+    });
+
+    function showToast(message, status = 'success') {
+        const wrapper = document.getElementById('toast-container');
+        if (!wrapper) return;
+        
+        const toast = document.createElement('div');
+        const bgClass = status === 'error' ? 'bg-[#3E3A37]' : 'bg-[#5C554F]';
+        const titleText = status === 'error' ? 'Error' : 'Notice';
+        const iconSvg = status === 'error' 
+            ? '<svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>'
+            : '<svg class="w-4 h-4 text-[#3E3A37]" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"></path></svg>';
+
+        toast.className = `toast-item pointer-events-auto flex items-center justify-between min-w-[320px] p-3 rounded-full shadow-xl transition-all duration-500 transform translate-x-full ${bgClass} text-white`;
+        toast.innerHTML = `
+            <div class="flex items-center gap-4">
+                <div class="ml-1 w-10 h-10 bg-[#F5F1EB] icon-bubble">
+                     ${iconSvg}
+                </div>
+                <div class="flex flex-col text-left">
+                    <span class="text-[11px] font-bold tracking-wider uppercase">${titleText}</span>
+                    <span class="text-[10px] opacity-70">${message}</span>
+                </div>
+            </div>
+            <button onclick="this.parentElement.remove()" class="mr-2 w-7 h-7 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">
+                <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        `;
+        wrapper.appendChild(toast);
+        
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                toast.classList.remove('translate-x-full');
+            });
+        });
+
+        setTimeout(() => {
+            toast.classList.add('opacity-0');
+            setTimeout(() => toast.remove(), 500);
+        }, 5000);
+    }
+
+    // Form Client-Side Validation
+    const validateForm = () => {
+        let isValid = true;
+        
+        const offerName = document.getElementById('offerName');
+        const errName = document.getElementById('err_offerName');
+        if (!offerName.value.trim() || offerName.value.trim().length < 3) {
+            errName.textContent = "Name must be at least 3 characters.";
+            errName.classList.remove('hidden');
+            offerName.classList.add('border-red-500');
+            isValid = false;
+        } else {
+            errName.classList.add('hidden');
+            offerName.classList.remove('border-red-500');
+        }
+
+        const discountValue = document.getElementById('discountValue');
+        const errDiscount = document.getElementById('err_discountValue');
+        const type = document.querySelector('input[name="discount_type"]:checked').value;
+        let v = parseFloat(discountValue.value);
+        if (isNaN(v)) {
+            errDiscount.textContent = "Discount value is required.";
+            errDiscount.classList.remove('hidden');
+            discountValue.classList.add('border-red-500');
+            isValid = false;
+        } else if (type === 'percentage' && (v < 1 || v > 100)) {
+            errDiscount.textContent = "Percentage must be between 1 and 100.";
+            errDiscount.classList.remove('hidden');
+            discountValue.classList.add('border-red-500');
+            isValid = false;
+        } else if (type === 'flat' && v <= 0) {
+            errDiscount.textContent = "Flat discount must be > 0.";
+            errDiscount.classList.remove('hidden');
+            discountValue.classList.add('border-red-500');
+            isValid = false;
+        } else {
+            errDiscount.classList.add('hidden');
+            discountValue.classList.remove('border-red-500');
+        }
+
+        const applyTo = document.querySelector('input[name="apply_to"]:checked').value;
+        const targetErr = document.getElementById('err_target');
+        const prodField = document.getElementById('product_select');
+        const catField = document.getElementById('category_select');
+        
+        if (applyTo === 'product' && !prodField.value) {
+            targetErr.textContent = "Please select a product.";
+            targetErr.classList.remove('hidden');
+            prodField.classList.add('border-red-500');
+            isValid = false;
+        } else if (applyTo === 'category' && !catField.value) {
+            targetErr.textContent = "Please select a category.";
+            targetErr.classList.remove('hidden');
+            catField.classList.add('border-red-500');
+            isValid = false;
+        } else {
+            targetErr.classList.add('hidden');
+            prodField.classList.remove('border-red-500');
+            catField.classList.remove('border-red-500');
+        }
+
+        if (applyTo === 'category') {
+            const minPurchase = document.getElementById('min_purchase');
+            const errMin = document.getElementById('err_minPurchase');
+            let m = parseFloat(minPurchase.value) || 0;
+            if (m < 0) {
+                errMin.textContent = "Minimum purchase cannot be negative.";
+                errMin.classList.remove('hidden');
+                minPurchase.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                errMin.classList.add('hidden');
+                minPurchase.classList.remove('border-red-500');
+            }
+        }
+
+        if (type === 'percentage') {
+            const maxDiscount = document.getElementById('max_discount');
+            const errMax = document.getElementById('err_maxDiscount');
+            if (maxDiscount.value) {
+                let m = parseFloat(maxDiscount.value);
+                if (m < 0) {
+                    errMax.textContent = "Max discount cannot be negative.";
+                    errMax.classList.remove('hidden');
+                    maxDiscount.classList.add('border-red-500');
+                    isValid = false;
+                } else {
+                    errMax.classList.add('hidden');
+                    maxDiscount.classList.remove('border-red-500');
+                }
+            } else {
+                errMax.classList.add('hidden');
+                maxDiscount.classList.remove('border-red-500');
+            }
+        }
+
+        const start = document.getElementById('startDate');
+        const end = document.getElementById('endDate');
+        const errStart = document.getElementById('err_startDate');
+        const errEnd = document.getElementById('err_endDate');
+        
+        let datesValid = true;
+
+        if (!start.value) {
+            errStart.textContent = "Start date is required.";
+            errStart.classList.remove('hidden');
+            start.classList.add('border-red-500');
+            isValid = false;
+            datesValid = false;
+        } else {
+            errStart.classList.add('hidden');
+            start.classList.remove('border-red-500');
+        }
+
+        if (!end.value) {
+            errEnd.textContent = "End date is required.";
+            errEnd.classList.remove('hidden');
+            end.classList.add('border-red-500');
+            isValid = false;
+            datesValid = false;
+        } else {
+            errEnd.classList.add('hidden');
+            end.classList.remove('border-red-500');
+        }
+
+        if (datesValid) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const startObj = new Date(start.value);
+            const endObj = new Date(end.value);
+
+            if (startObj < today) {
+                errStart.textContent = "Start date cannot be in the past.";
+                errStart.classList.remove('hidden');
+                start.classList.add('border-red-500');
+                isValid = false;
+                datesValid = false;
+            }
+
+            if (endObj <= startObj) {
+                errEnd.textContent = "End date must be after start date.";
+                errEnd.classList.remove('hidden');
+                end.classList.add('border-red-500');
+                isValid = false;
+            } else if (datesValid) {
+                errEnd.classList.add('hidden');
+                end.classList.remove('border-red-500');
+            }
+        }
+
+        saveButton.disabled = !isValid;
+        if (!isValid) saveButton.classList.add('opacity-50', 'pointer-events-none');
+        else saveButton.classList.remove('opacity-50', 'pointer-events-none');
+        
+        return isValid;
+    };
+
+    form.addEventListener('input', validateForm);
+    form.addEventListener('change', validateForm);
+    form.addEventListener('submit', (e) => {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
+
+</script>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .font-serif { font-family: 'Playfair Display', serif; }
+    .icon-bubble {
+        position: relative;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .icon-bubble svg { transform: rotate(45deg); }
+</style>
+{% endblock %}

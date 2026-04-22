@@ -120,30 +120,38 @@
 
     /* ─── Card content: slight padding, tight spacing ─── */
     .fav-details {
-        padding: 8px 10px 10px;
+        padding: 6px 10px 8px;
         display: flex;
         flex-direction: column;
         flex-grow: 1;
+        overflow: hidden;
     }
     .fav-name {
-        font-size: 11px;
-        font-weight: 400;
+        font-size: 13px;
+        font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.03em;
-        color: #000;
-        margin: 0 0 3px;
-        line-height: 1.4;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
+        letter-spacing: 0.02em;
+        color: #111;
+        margin: 1px 0 2px;
+        line-height: 1.25;
+        white-space: nowrap;
         overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .fav-category {
+        font-size: 9px;
+        font-weight: 500;
+        color: #767676;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        margin: 0;
+        line-height: 1.2;
     }
     .fav-price {
         font-size: 13px;
-        font-weight: 400;
-        color: #000;
-        margin: 0 0 10px;
+        font-weight: 500;
+        color: #111;
+        margin: 0 0 6px;
     }
 
     /* ─── ADD button: full-width, thin border, no background ─── */
@@ -597,8 +605,33 @@
 
             <!-- Info + button -->
             <div class="fav-details">
+                <p class="fav-category">{% if item.variant.product.is_new %}NEW ARRIVAL{% else %}{{ item.variant.product.category.category_name }}{% endif %}</p>
                 <h4 class="fav-name">{{ item.variant.product.product_name }}</h4>
-                <p class="fav-price">Rs. {{ item.variant.price }}</p>
+                <div style="display: flex; align-items: baseline; gap: 5px; margin: 0 0 5px;">
+                    {% if item.variant.has_discount %}
+                        <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.variant.final_price }}</span>
+                        <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.variant.original_price }}</span>
+                        <span style="font-size: 9px; font-weight: 500; color: #767676;">-{{ item.variant.discount_percent }}%</span>
+                    {% else %}
+                        <span class="fav-price">Rs.{{ item.variant.price }}</span>
+                    {% endif %}
+                </div>
+                <!-- Color swatches -->
+                {% with all_variants=item.variant.product.variants.all %}
+                {% regroup all_variants by color as color_groups %}
+                {% if color_groups|length > 1 %}
+                <div style="display: flex; align-items: center; gap: 3px; margin-bottom: 6px; flex-wrap: wrap;">
+                  {% for group in color_groups|slice:":4" %}
+                    {% with v=group.list.0 %}
+                    <span style="width: 10px; height: 10px; background-color: {{ v.color_hex|default:'#ccc' }}; border: 1px solid #e5e5e5; display: inline-block;"></span>
+                    {% endwith %}
+                  {% endfor %}
+                  {% if color_groups|length > 4 %}
+                    <span style="font-size: 9px; color: #767676; font-weight: 500;">+{{ color_groups|length|add:"-4" }}</span>
+                  {% endif %}
+                </div>
+                {% endif %}
+                {% endwith %}
                 <button class="btn-add-fav btn-drawer-trigger" data-variant-id="{{ item.variant.id }}" data-wishlist-id="{{ item.id }}">ADD</button>
             </div>
 

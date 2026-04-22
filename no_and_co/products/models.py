@@ -30,6 +30,13 @@ class Product(models.Model):
     def name(self):
         return self.product_name
 
+    @property
+    def is_new(self):
+        """Returns True if the product was created within the last 7 days."""
+        from django.utils import timezone
+        from datetime import timedelta
+        return self.created_at >= timezone.now() - timedelta(days=7)
+
     def __str__(self):
         return self.product_name
 

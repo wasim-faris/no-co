@@ -313,7 +313,18 @@
     <!-- Announcement Bar -->
     <div class="w-full bg-white py-3 px-6 flex items-center justify-between border-b border-black">
         <span class="text-[#e03b2a] text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em]">
-            FLAT 20% OFF ALL MENSWEAR
+            FLAT 20% OFF ALL 
+            {% with url_name=request.resolver_match.url_name cat_param=request.GET.category|upper %}
+                {% if url_name == 'mens' or cat_param == 'MENS' or product.category.category_name == 'MENS' %}
+                    MENSWEAR
+                {% elif url_name == 'ladies' or url_name == 'home' or cat_param == 'LADIES' or product.category.category_name == 'LADIES' %}
+                    LADIESWEAR
+                {% elif url_name == 'kids' or cat_param == 'KIDS' or product.category.category_name == 'KIDS' %}
+                    KIDSWEAR
+                {% else %}
+                    MENSWEAR
+                {% endif %}
+            {% endwith %}
         </span>
         <span class="text-[#e03b2a] text-sm leading-none font-light cursor-pointer">+</span>
     </div>

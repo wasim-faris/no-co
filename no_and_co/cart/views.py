@@ -107,7 +107,27 @@ def cart_view(request):
     cart_items = Cart.objects.filter(user=user, session_key=session).prefetch_related(
         "variant__images"
     )
+    from offers.utils import get_best_offer, apply_offers_to_variants
     for item in cart_items:
+        # We need to know the current original price and the best offer 
+        # to show the H&M style discount in the cart.
+        original_price = item.variant.price
+        _, discount_amount = get_best_offer(item.variant.product, original_price)
+        
+        item.original_price = original_price
+        item.final_price = original_price - discount_amount
+        item.discount_amount = discount_amount
+        item.has_discount = discount_amount > 0
+        if original_price > 0:
+            item.discount_percent = int((discount_amount / original_price) * 100)
+        else:
+            item.discount_percent = 0
+
+        # Sync the cart price with the current best price if it changed
+        if item.price != item.final_price:
+            item.price = item.final_price
+            item.save()
+
         item.total_price = item.price * item.quantity
         images = list(item.variant.images.all())
         primary_img = next((img for img in images if img.is_primary), None)
@@ -147,6 +167,7 @@ def cart_view(request):
             if rep_variant:
                 similar_items.append(rep_variant)
 
+    similar_items = apply_offers_to_variants(similar_items)
     if not similar_items:
         fallback_products = Product.objects.filter(
             is_active=True, is_deleted=False
@@ -159,6 +180,7 @@ def cart_view(request):
             )
             if rep_variant:
                 similar_items.append(rep_variant)
+        similar_items = apply_offers_to_variants(similar_items)
 
     search_history = request.session.get("search_history", [])
 
@@ -194,6 +216,10 @@ def add_to_cart(request, variant_id):
 
     variant = get_object_or_404(Variant, id=variant_id)
 
+    from offers.utils import get_best_offer
+    _, discount_amount = get_best_offer(variant.product, variant.price)
+    final_price = variant.price - discount_amount
+
     cart_item = Cart.objects.filter(
         user=user, session_key=session, variant=variant
     ).first()
@@ -206,6 +232,7 @@ def add_to_cart(request, variant_id):
 
         if cart_item.quantity < variant.stock:
             cart_item.quantity += 1
+            cart_item.price = final_price # Ensure price is updated if offer changed
             cart_item.save()
         else:
             return JsonResponse(
@@ -218,7 +245,7 @@ def add_to_cart(request, variant_id):
                 user=user,
                 session_key=session,
                 quantity=1,
-                price=variant.price,
+                price=final_price,
             )
         else:
             return JsonResponse({"error": "Out of stock"}, status=400)
