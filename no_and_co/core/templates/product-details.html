@@ -94,12 +94,17 @@
        TYPOGRAPHY
     ════════════════════════════════════════ */
     .prod-name {
-        font-size: 15px;
-        font-weight: 400;
+        font-size: 18px;
+        font-weight: 600;
         text-transform: uppercase;
         letter-spacing: .06em;
         margin: 0 0 4px;
-        line-height: 1.4;
+        line-height: 1.2;
+        color: #111;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
     .prod-price {
         font-size: 18px;
@@ -1007,7 +1012,7 @@
                     <span id="originalPriceDisplay" class="text-xs text-gray-400 line-through">Rs. {{ default_variant.original_price }}</span>
                 </div>
             {% else %}
-                <p class="text-base font-semibold text-black" id="displayPrice">Rs. {{ default_variant.price }}</p>
+                <p class="text-base font-medium text-black" id="displayPrice">Rs. {{ default_variant.price }}</p>
             {% endif %}
         </div>
         <p class="prod-tax" style="margin-top: -20px; margin-bottom: 28px;">MRP inclusive of all taxes</p>
@@ -1193,15 +1198,17 @@
                     </button>
                 </div>
                 <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}New Arrival{% endif %}</p>
-                <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
-                <div class="flex items-baseline gap-2 mt-1 px-[13px] mb-[10px]">
-                  {% if item.has_discount %}
-                    <span class="text-[9px] text-gray-500 font-medium">-{{ item.discount_percent }}%</span>
-                    <span class="text-[12px] font-semibold text-red-700">Rs. {{ item.final_price }}</span>
-                    <span class="text-[10px] text-gray-400 line-through">Rs. {{ item.original_price }}</span>
-                  {% else %}
-                    <span class="similar-price" style="margin: 0; padding: 0; font-size: 12px; font-weight: 500;">Rs.{{ item.original_price|default:item.price }}</span>
-                  {% endif %}
+                <div style="padding: 0 13px; overflow: hidden;">
+                  <p style="font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #111; margin: 2px 0 0; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.product.product_name }}</p>
+                  <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 4px; margin-bottom: 6px;">
+                    {% if item.has_discount %}
+                      <span style="font-size: 15px; font-weight: 600; color: #b91c1c;">Rs. {{ item.final_price }}</span>
+                      <span style="font-size: 13px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs. {{ item.original_price }}</span>
+                      <span style="font-size: 10px; font-weight: 500; color: #767676;">-{{ item.discount_percent }}%</span>
+                    {% else %}
+                      <span style="font-size: 15px; font-weight: 500; color: #111;">Rs.{{ item.original_price|default:item.price }}</span>
+                    {% endif %}
+                  </div>
                 </div>
                 <div class="similar-swatches">
                     {% regroup item.product.variants.all by color as color_list %}
@@ -1241,15 +1248,17 @@
                     </button>
                 </div>
                 <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}Trending Now{% endif %}</p>
-                <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
-                <div class="flex items-baseline gap-2 mt-1 px-[13px] mb-[10px]">
-                  {% if item.has_discount %}
-                    <span class="text-[9px] text-gray-500 font-medium">-{{ item.discount_percent }}%</span>
-                    <span class="text-[12px] font-semibold text-red-700">Rs. {{ item.final_price }}</span>
-                    <span class="text-[10px] text-gray-400 line-through">Rs. {{ item.original_price }}</span>
-                  {% else %}
-                    <span class="similar-price" style="margin: 0; padding: 0; font-size: 12px; font-weight: 500;">Rs.{{ item.original_price|default:item.price }}</span>
-                  {% endif %}
+                <div style="padding: 0 13px; overflow: hidden;">
+                  <p style="font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: #111; margin: 2px 0 0; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ item.product.product_name }}</p>
+                  <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 4px; margin-bottom: 6px;">
+                    {% if item.has_discount %}
+                      <span style="font-size: 15px; font-weight: 600; color: #b91c1c;">Rs. {{ item.final_price }}</span>
+                      <span style="font-size: 13px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs. {{ item.original_price }}</span>
+                      <span style="font-size: 10px; font-weight: 500; color: #767676;">-{{ item.discount_percent }}%</span>
+                    {% else %}
+                      <span style="font-size: 15px; font-weight: 500; color: #111;">Rs.{{ item.original_price|default:item.price }}</span>
+                    {% endif %}
+                  </div>
                 </div>
                 <div class="similar-swatches">
                     {% regroup item.product.variants.all by color as color_list %}
@@ -1384,7 +1393,7 @@
         } else {
             const price = element.getAttribute('data-price');
             priceWrapper.innerHTML = `
-                <p class="text-base font-semibold text-black" id="displayPrice">Rs. ${price}</p>
+                <p class="text-base font-medium text-black" id="displayPrice">Rs. ${price}</p>
             `;
         }
         
