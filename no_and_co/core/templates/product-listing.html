@@ -656,6 +656,18 @@
           </button>
 
         </div> <!-- end plp-img-wrap -->
+
+        <p class="plp-name" style="margin-top: 12px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #111; padding: 0 13px;">{{ variant.product.product_name }}</p>
+        
+        <div class="flex items-baseline gap-2 mt-1 px-[13px] mb-4">
+          {% if variant.has_discount %}
+            <span class="text-[9px] text-gray-500 font-medium">-{{ variant.discount_percent }}%</span>
+            <span class="text-[12px] font-semibold text-red-700">Rs. {{ variant.final_price }}</span>
+            <span class="text-[10px] text-gray-400 line-through">Rs. {{ variant.original_price }}</span>
+          {% else %}
+            <span class="text-[12px] font-medium text-black">Rs. {{ variant.price }}</span>
+          {% endif %}
+        </div>
       </div> <!-- end plp-card -->
     </div> <!-- end plp-card-wrap -->
   </a> <!-- end clickable wrapper -->

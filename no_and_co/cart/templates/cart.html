@@ -523,7 +523,16 @@
                             <a href="{% url 'product-details' item.variant.product.id %}" style="text-decoration: none; color: inherit;">
                                 <h3 class="text-sm font-medium uppercase leading-tight line-clamp-2 text-black cursor-pointer hover:opacity-80 transition-opacity">{{ item.variant.product.product_name }}</h3>
                             </a>
-                            <p class="text-sm font-semibold text-black">Rs. {{ item.price }}</p>
+                            
+                            <div class="flex items-baseline gap-2 mt-1">
+                                {% if item.has_discount %}
+                                    <span class="text-[9px] text-gray-500 font-medium">-{{ item.discount_percent }}%</span>
+                                    <span class="text-[13px] font-semibold text-red-700">Rs. {{ item.final_price }}</span>
+                                    <span class="text-[11px] text-gray-400 line-through">Rs. {{ item.original_price }}</span>
+                                {% else %}
+                                    <p class="text-[13px] font-medium text-black">Rs. {{ item.price }}</p>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <!-- Meta -->
@@ -675,7 +684,15 @@
                 </div>
                 <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}New Arrival{% endif %}</p>
                 <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
-                <p class="similar-price">Rs. {{ item.price }}</p>
+                <div class="flex items-baseline gap-2 mt-1 px-[13px] mb-[10px]">
+                  {% if item.has_discount %}
+                    <span class="text-[9px] text-gray-500 font-medium">-{{ item.discount_percent }}%</span>
+                    <span class="text-[12px] font-semibold text-red-700">Rs. {{ item.final_price }}</span>
+                    <span class="text-[10px] text-gray-400 line-through">Rs. {{ item.original_price }}</span>
+                  {% else %}
+                    <p class="similar-price" style="margin: 0; padding: 0; font-size: 12px; font-weight: 500;">Rs. {{ item.price }}</p>
+                  {% endif %}
+                </div>
                 <div class="similar-swatches">
                     {% regroup item.product.variants.all by color as color_list %}
                     {% for col_item in color_list|slice:":3" %}
@@ -718,7 +735,15 @@
                 </div>
                 <p class="similar-label">{% if item.product.is_premium %}H&M Premium Selection{% else %}Trending Now{% endif %}</p>
                 <p class="similar-name">{{ item.product.product_name }} - {{ item.color }}</p>
-                <p class="similar-price">Rs. {{ item.price }}</p>
+                <div class="flex items-baseline gap-2 mt-1 px-[13px] mb-[10px]">
+                  {% if item.has_discount %}
+                    <span class="text-[9px] text-gray-500 font-medium">-{{ item.discount_percent }}%</span>
+                    <span class="text-[12px] font-semibold text-red-700">Rs. {{ item.final_price }}</span>
+                    <span class="text-[10px] text-gray-400 line-through">Rs. {{ item.original_price }}</span>
+                  {% else %}
+                    <p class="similar-price" style="margin: 0; padding: 0; font-size: 12px; font-weight: 500;">Rs. {{ item.price }}</p>
+                  {% endif %}
+                </div>
                 <div class="similar-swatches">
                     {% regroup item.product.variants.all by color as color_list %}
                     {% for col_item in color_list|slice:":3" %}
