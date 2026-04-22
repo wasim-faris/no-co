@@ -171,9 +171,13 @@ def product_details(request, id):
             seen_sizes.add(size_name)
 
     similar_products = (
-        Product.objects.filter(is_active=True, is_deleted=False)
+        Product.objects.filter(
+            category=product.category,
+            is_active=True,
+            is_deleted=False
+        )
         .exclude(id=product.id)
-        .order_by("-created_at")[:6]
+        .order_by("-created_at")[:12]
     )
     similar_items = []
 
