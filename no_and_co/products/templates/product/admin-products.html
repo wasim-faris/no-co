@@ -88,7 +88,16 @@
     </div>
   </div>
 
-  <main class="max-w-6xl mx-auto px-8 py-8 w-full space-y-6 overflow-y-auto hide-scrollbar" style="max-height: calc(100vh - 120px);">
+  <main x-data="{ 
+          currentStatus: '{{ request.GET.status|default:'live' }}', 
+          deleteModal: false, 
+          deleteProductId: null, 
+          deleteProductName: '', 
+          permanentDeleteModal: false, 
+          permanentDeleteProductId: null, 
+          permanentDeleteProductName: '' 
+      }"
+      class="max-w-6xl mx-auto px-8 py-8 w-full space-y-6 overflow-y-auto hide-scrollbar" style="max-height: calc(100vh - 120px);">
 
   <!-- Stats row -->
   <section class="grid grid-cols-4 gap-4">
@@ -233,7 +242,7 @@
             <!-- Actions -->
             <td class="px-5 py-3 text-right align-middle">
 
-              <div class="flex justify-end items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+              <div class="flex justify-end items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300">
 
                 <!-- ARCHIVED MODE -->
                 <template x-if="currentStatus === 'archived'">
