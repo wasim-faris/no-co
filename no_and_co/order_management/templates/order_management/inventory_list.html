@@ -1,49 +1,20 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inventory Management - NØ & CO</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
+{% extends 'admin_base/base.html' %}
+
+{% block title %}Inventory Management - NØ & CO{% endblock %}
+
+{% block extra_head %}
+<style>
         body { font-family: 'Inter', sans-serif; background-color: #f5f1eb; -webkit-font-smoothing: antialiased; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
         .rounded-custom { border-radius: 24px; }
         .table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         @media (max-width: 1023px) { table { min-width: 1000px; } }
     </style>
-</head>
-<body class="antialiased min-h-screen flex">
+{% endblock %}
 
-    <!-- Sidebar (Consistent with others) -->
-    <aside class="w-[280px] h-screen bg-white border-r border-gray-100 flex-shrink-0 flex flex-col justify-between sticky top-0">
-        <div class="p-8">
-            <div class="mb-12">
-                <h1 class="text-2xl tracking-[0.2em] font-light uppercase text-[#1a1a1a]" style="font-family: 'Optima', 'Didot', 'Playfair Display', serif;">
-                    NØ <span class="italic lowercase font-serif text-xl">&</span> CO
-                </h1>
-            </div>
-            <nav class="space-y-3">
-                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.15em] ml-1 mb-4">Management</p>
-                <a href="{% url 'admin-dashboard' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-                    <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
-                    <span class="font-medium text-sm">Dashboard</span>
-                </a>
-                <a href="{% url 'admin-orders-list' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg text-gray-600 hover:bg-gray-50 group transition-all duration-200">
-                    <svg class="w-5 h-5 text-gray-400 group-hover:text-black" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                    <span class="font-medium text-sm">Orders</span>
-                </a>
-                <a href="{% url 'admin-inventory-list' %}" class="flex items-center gap-3.5 px-4 py-3 rounded-xl text-white bg-[#1a1a1a] shadow-lg shadow-gray-200/50 font-semibold transition-all duration-300">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
-                    <span class="font-medium text-sm">Inventory</span>
-                </a>
-            </nav>
-        </div>
-    </aside>
+{% block content %}
 
-    <div class="flex-1 flex flex-col">
-        <!-- Header -->
+<!-- Header -->
         <div class="px-8 pt-6 pb-4 bg-[#f5f1eb]">
             <nav class="text-xs uppercase tracking-widest text-gray-400 flex gap-3 items-center mb-4">
                 <span>ADMIN</span>
@@ -222,5 +193,8 @@
             </div>
         </main>
     </div>
-</body>
-</html>
+{% endblock %}
+
+{% block extra_scripts %}
+
+{% endblock %}
