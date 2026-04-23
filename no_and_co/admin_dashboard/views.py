@@ -78,15 +78,15 @@ def admin_dashboard(request):
     download_format = request.GET.get('download')
 
     now = timezone.now()
-    
+
     # Use subquery to avoid JOIN duplication during aggregation
     valid_order_ids = Order.objects.filter(
-        Q(payment_status='PAID') | 
+        Q(payment_status='PAID') |
         Q(payment_method='COD', items__item_status='DELIVERED')
     ).values('id')
 
     valid_orders = Order.objects.filter(id__in=valid_order_ids)
-    
+
     orders = valid_orders
 
     metrics = orders.aggregate(
@@ -225,12 +225,12 @@ def export_dashboard_pdf(request):
     from reportlab.lib.pagesizes import letter
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
     from reportlab.lib.styles import getSampleStyleSheet
-    
+
     valid_order_ids = Order.objects.filter(
         Q(payment_status='PAID') | Q(payment_method='COD', items__item_status='DELIVERED')
     ).values('id')
     orders = Order.objects.filter(id__in=valid_order_ids)
-    
+
     metrics = orders.aggregate(
         total_orders=Count('id', distinct=True),
         net_revenue=Sum('total_amount'),
@@ -263,15 +263,15 @@ def export_dashboard_pdf(request):
 
     response = HttpResponse(content_type='application/pdf')
     response['Content-Disposition'] = 'attachment; filename="sales_report.pdf"'
-    
+
     doc = SimpleDocTemplate(response, pagesize=letter)
     elements = []
     styles = getSampleStyleSheet()
-    
+
     elements.append(Paragraph("Sales Report", styles['Title']))
     elements.append(Paragraph(f"Generated on: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
     elements.append(Spacer(1, 20))
-    
+
     elements.append(Paragraph("Summary", styles['Heading2']))
     summary_data = [
         ['Metric', 'Value'],
@@ -290,7 +290,7 @@ def export_dashboard_pdf(request):
     ]))
     elements.append(summary_table)
     elements.append(Spacer(1, 20))
-    
+
     elements.append(Paragraph("Top Products", styles['Heading2']))
     prod_data = [['Product', 'Sold', 'Revenue']]
     for p in top_products:
@@ -304,7 +304,7 @@ def export_dashboard_pdf(request):
         ('GRID', (0, 0), (-1, -1), 1, colors.black)
     ]))
     elements.append(prod_table)
-    
+
     doc.build(elements)
     return response
 
@@ -316,12 +316,12 @@ def export_dashboard_excel(request):
     from decimal import Decimal
     import openpyxl
     from openpyxl.styles import Font
-    
+
     valid_order_ids = Order.objects.filter(
         Q(payment_status='PAID') | Q(payment_method='COD', items__item_status='DELIVERED')
     ).values('id')
     orders = Order.objects.filter(id__in=valid_order_ids)
-    
+
     metrics = orders.aggregate(
         total_orders=Count('id', distinct=True),
         net_revenue=Sum('total_amount'),
@@ -354,9 +354,9 @@ def export_dashboard_excel(request):
 
     response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
     response['Content-Disposition'] = 'attachment; filename="sales_report.xlsx"'
-    
+
     wb = openpyxl.Workbook()
-    
+
     ws1 = wb.active
     ws1.title = "Summary"
     ws1.append(['Metric', 'Value'])
@@ -364,17 +364,17 @@ def export_dashboard_excel(request):
     ws1.append(['Net Revenue', float(net_revenue)])
     for cell in ws1['B']:
         if cell.row == 3: cell.number_format = '#,##0.00'
-        
+
     ws2 = wb.create_sheet("Top Products")
     ws2.append(['Product Name', 'Sold Count', 'Revenue'])
     for p in top_products:
         ws2.append([p['variant__product__product_name'], p['qty_sold'], float(p['revenue'] or 0)])
-    
+
     ws3 = wb.create_sheet("Categories")
     ws3.append(['Category Name', 'Sold Count', 'Revenue'])
     for c in top_categories:
         ws3.append([c['variant__product__category__category_name'], c['qty_sold'], float(c['revenue'] or 0)])
-        
+
     ws4 = wb.create_sheet("Subcategories")
     ws4.append(['Subcategory Name', 'Sold Count', 'Revenue'])
     for s in top_subcategories:
@@ -384,7 +384,7 @@ def export_dashboard_excel(request):
     for ws in [ws1, ws2, ws3, ws4]:
         for cell in ws[1]:
             cell.font = header_font
-            
+
     wb.save(response)
     return response
 def admin_forgot_password(request):
@@ -615,7 +615,11 @@ def admin_user_management(request):
         return redirect("home")
 
     if query:
-        users = users.filter(Q(username__icontains=query))
+        users = users.filter(
+            Q(username__icontains=query) |
+            Q(email__icontains=query) |
+            Q(phone_number__icontains=query)
+        )
 
     users = users.order_by("-created_at")
 
@@ -624,7 +628,7 @@ def admin_user_management(request):
 
     users_count = User.objects.exclude(is_superuser=True).count()
     if request.headers.get("HX-Request"):
-        return render(request, "user_table_rows.html", {"page_obj": page_obj})
+        return render(request, "user_management_partial.html", {"page_obj": page_obj})
 
     return render(
         request,
@@ -642,11 +646,15 @@ def admin_user_active_toggle(request, id):
                 user.is_blocked = False
                 user.save()
                 messages.success(request, "user update succesfully")
+                if request.GET.get('next') == 'details':
+                    return redirect("admin-user-details", id=id)
                 return redirect("admin-user-management")
             else:
                 user.is_blocked = True
                 user.save()
                 messages.success(request, "user update succesfully")
+                if request.GET.get('next') == 'details':
+                    return redirect("admin-user-details", id=id)
                 return redirect("admin-user-management")
         except User.DoesNotExist:
             messages.error(request, "user not found")
@@ -663,7 +671,7 @@ def admin_sales_report(request):
     # 1. Date Filtering
     today = timezone.now().date()
     period = request.GET.get('period', 'custom')
-    
+
     if period == 'daily':
         start_date = today
         end_date = today
@@ -678,7 +686,7 @@ def admin_sales_report(request):
         start_date_str = request.GET.get('start_date')
         end_date_str = request.GET.get('end_date')
         default_start = today - timedelta(days=30)
-        
+
         if start_date_str and end_date_str:
             try:
                 start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
@@ -694,7 +702,7 @@ def admin_sales_report(request):
 
     # 2. Base Query for Valid Orders
     valid_orders = Order.objects.filter(
-        Q(payment_status='PAID') | 
+        Q(payment_status='PAID') |
         Q(payment_method='COD', items__item_status='DELIVERED')
     ).distinct()
 
@@ -708,7 +716,7 @@ def admin_sales_report(request):
             Q(user__username__icontains=query) |
             Q(user__email__icontains=query)
         )
-    
+
     status_filter = request.GET.get('status', 'All Status')
     if status_filter and status_filter != 'All Status':
         filtered_orders = filtered_orders.filter(payment_status=status_filter.upper())
@@ -719,7 +727,7 @@ def admin_sales_report(request):
         total_orders=Count('id', distinct=True),
         coupon_deduction=Sum('discount_amount')
     )
-    
+
     # Offer discounts from OrderItem
     total_offer_discounts = OrderItem.objects.filter(
         order__in=filtered_orders
@@ -749,7 +757,7 @@ def admin_sales_report(request):
     daily_values = []
     curr = start_date
     revenue_dict = {item['date']: float(item['revenue']) for item in daily_revenue}
-    
+
     while curr <= end_date:
         daily_labels.append(curr.strftime('%d %b'))
         daily_values.append(revenue_dict.get(curr, 0.0))
@@ -766,12 +774,12 @@ def admin_sales_report(request):
             next_month = first_day.replace(year=first_day.year + 1, month=1)
         else:
             next_month = first_day.replace(month=first_day.month + 1)
-        
+
         month_revenue = valid_orders.filter(
             created_at__date__gte=first_day,
             created_at__date__lt=next_month
         ).aggregate(total=Sum('total_amount'))['total'] or 0
-        
+
         monthly_data.append({
             'label': first_day.strftime('%b'),
             'value': float(month_revenue)
@@ -790,17 +798,17 @@ def admin_sales_report(request):
     if request.GET.get('export') == 'csv':
         # Generate clean filename
         filename = f"sales_report_{start_date.strftime('%Y_%m_%d')}_to_{end_date.strftime('%Y_%m_%d')}.csv"
-        
+
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        
+
         # Add UTF-8 BOM for Excel to recognize UTF-8 encoding immediately
         response.write('\ufeff'.encode('utf8'))
-        
+
         writer = csv.writer(response)
         # Professional Headers
         writer.writerow(['Order ID', 'Date', 'Customer Name', 'Status', 'Payment Method', 'Total Amount', 'Discount Applied', 'Final Amount'])
-        
+
         if not transactions_list.exists():
             writer.writerow(['No data available'] + ['-'] * 7)
         else:
@@ -834,11 +842,11 @@ def admin_sales_report(request):
         'status_filter': status_filter,
         'period': period,
         # Growth placeholders (as requested)
-        'rev_growth': 24.8, 
+        'rev_growth': 24.8,
         'ord_growth': 15.2,
         'prod_growth': 12.5,
     }
-    
+
     return render(request, "admin-sales-report.html", context)
 
 
@@ -853,22 +861,22 @@ def admin_user_details(request, id):
     from django.shortcuts import get_object_or_404
 
     target_user = get_object_or_404(User, id=id)
-    
+
     # User stats
     user_orders = Order.objects.filter(user=target_user).order_by('-created_at')
     total_orders = user_orders.count()
     total_spent = user_orders.aggregate(total=Sum('total_amount'))['total'] or 0
-    
+
     # Default address
     default_address = Addresses.objects.filter(user=target_user, is_default=True).first()
     if not default_address:
         default_address = Addresses.objects.filter(user=target_user).first()
-        
+
     # Pagination for orders
     paginator = Paginator(user_orders, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+
     context = {
         'target_user': target_user,
         'total_orders': total_orders,
@@ -876,6 +884,5 @@ def admin_user_details(request, id):
         'default_address': default_address,
         'page_obj': page_obj,
     }
-    
-    return render(request, "admin-user-details.html", context)
 
+    return render(request, "admin-user-details.html", context)

@@ -110,7 +110,7 @@
                            name="q"
                            hx-get="{% url 'admin-user-management' %}"
                            hx-trigger="keyup changed delay:300ms"
-                           hx-target="#userTable"
+                           hx-target="#userTableContainer"
                            hx-include="[name='sort']"
                            placeholder="Search users..."
                            class="w-full pl-11 pr-10 py-2.5 bg-white border border-gray-100 rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition-all placeholder:text-gray-300 font-medium text-gray-700">
@@ -126,108 +126,35 @@
             </div>
 
             <!-- Table Container -->
-            <div class="bg-white rounded-custom shadow-sm overflow-hidden border border-white">
+            <div id="userTableContainer" class="bg-white rounded-custom shadow-sm overflow-hidden border border-white">
 
-                <div class="table-container">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="text-[9px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 bg-white">
-                            <tr>
-                                <th class="px-5 py-3 w-16">Sl No</th>
-                                <th class="px-3 py-3">User</th>
-                                <th class="px-3 py-3 w-24">Status</th>
-                                <th class="px-3 py-3 w-40">Joined At</th>
-                                <th class="px-5 py-3 text-right w-24">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="userTable" class="divide-y divide-gray-50 text-sm">
-                            {% for i in page_obj %}
-                            <tr class="hover:bg-gray-50/50 transition-colors group">
-                                <td class="px-5 py-3 text-[13px] text-gray-400 align-middle">{{ forloop.counter0|add:page_obj.start_index }}</td>
-                                <td class="px-3 py-3 align-middle">
-                                    <div class="flex items-center gap-3.5">
-                                        <img src="{{i.profile_photo.url}}" class="w-9 h-9 rounded-full object-cover bg-gray-100 border border-gray-100">
-                                        <div class="min-w-0">
-                                            <p class="font-bold text-[13px] text-gray-900 truncate tracking-tight">{{i.username}}</p>
-                                            <p class="text-[11px] text-gray-400 truncate">{{i.email}}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td class="px-3 py-3 align-middle">
-                                    {% if i.is_blocked %}
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-500">Blocked</span>
-                                    {% else %}
-                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-green-50 text-green-600">Active</span>
-                                    {% endif %}
-                                </td>
-                                <td class="px-3 py-3 align-middle">
-                                    <div class="whitespace-nowrap text-[13px] text-gray-900">{{i.created_at|date:"M d, Y"}}</div>
-                                    <div class="text-[10px] text-gray-400 mt-0.5">{{i.created_at|time:"h:i A"}}</div>
-                                </td>
-                                <td class="px-5 py-3 text-right align-middle">
-                                    <div class="flex items-center justify-end gap-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                        <a href="{% url 'admin-user-details' i.id %}" class="text-gray-300 hover:text-black transition-colors p-1.5 rounded-lg hover:bg-gray-50">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        </a>
-
-                                        <button type="button"
-                                                onclick="openConfirmModal('{{ i.username }}', '{{ i.is_blocked|yesno:'unblock,block' }}', 'toggle-form-{{ i.id }}')"
-                                                class="text-red-200 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50"
-                                                title="{% if i.is_blocked %}Unblock User{% else %}Block User{% endif %}">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path></svg>
-                                        </button>
-
-                                        <form id="toggle-form-{{ i.id }}" action="{% url 'admin-user-active-toggle' i.id %}" method="POST" class="hidden">
-                                            {% csrf_token %}
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr>
-                                <td colspan="5" class="px-5 py-12 text-center">
-                                    <div class="flex flex-col items-center justify-center text-gray-300">
-                                        <svg class="w-12 h-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                        <p class="text-xs text-gray-400 italic">No users found matching your search.</p>
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Pagination -->
-                <div class="px-5 py-4 border-t border-gray-50">
-                    <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Showing {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} users</p>
-                        <div class="flex items-center gap-1">
-                            {% if page_obj.has_previous %}
-                            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-50 transition-colors">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
-                            </a>
-                            {% endif %}
-
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                <button class="w-8 h-8 flex items-center justify-center rounded-lg bg-black text-white text-[11px] font-bold">{{ num }}</button>
-                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                <a href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-50 text-[11px] font-medium transition-colors">{{ num }}</a>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}" class="w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-black hover:bg-gray-50 transition-colors">
-                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
-                            </a>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
+                {% include 'user_management_partial.html' %}
             </div>
 
         </main>
     </div>
 
+    <!-- Confirm Modal -->
+    <div id="confirm-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 hidden opacity-0 transition-opacity duration-300">
+        <div id="modal-card" class="bg-white rounded-custom w-full max-w-md p-8 shadow-2xl transform scale-95 opacity-0 transition-all duration-300">
+            <div class="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-6 mx-auto">
+                <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 15c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+            </div>
+            <h3 id="modal-title" class="text-2xl font-serif text-center text-gray-900 mb-2 tracking-tight">Block User?</h3>
+            <p id="modal-description" class="text-[11px] text-gray-400 text-center mb-8 uppercase tracking-widest font-bold leading-relaxed">Are you sure you want to block this user? This action will change their status immediately.</p>
+            
+            <div class="flex gap-3">
+                <button onclick="closeModal()" class="flex-1 px-6 py-3 rounded-xl border border-gray-100 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button id="confirm-btn" class="flex-1 px-6 py-3 rounded-xl bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-lg shadow-black/20">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
     
 {% endblock %}
 
@@ -321,19 +248,5 @@
             window.location.reload();
         }
     });
-
-     document.addEventListener('DOMContentLoaded', function() {
-            const toasts = document.querySelectorAll('.toast-item');
-            toasts.forEach((toast, index) => {
-                setTimeout(() => {
-                    toast.classList.remove('translate-x-full');
-                }, 100 * (index + 1));
-
-                setTimeout(() => {
-                    toast.classList.add('opacity-0');
-                    setTimeout(() => toast.remove(), 500);
-                }, 5000);
-            });
-        });
     </script>
 {% endblock %}
