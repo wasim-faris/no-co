@@ -14,8 +14,12 @@ password_pattern = (
     r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
 )
 from django.views.decorators.cache import never_cache
-from django.db.models import Q
+from django.db.models import Q, Sum, Count, F
 from django.core.paginator import Paginator
+from django.utils import timezone
+from datetime import timedelta, datetime
+import csv
+from django.http import HttpResponse
 
 # Create your views here.
 
@@ -466,3 +470,131 @@ def admin_user_active_toggle(request, id):
         except User.DoesNotExist:
             messages.error(request, "user not found")
             return redirect("admin-user-management")
+
+
+@admin_required
+@never_cache
+def admin_sales_report(request):
+    from core.models import Order, OrderItem
+    from django.db.models.functions import TruncDate, TruncMonth
+    from decimal import Decimal
+
+    # 1. Date Filtering
+    today = timezone.now().date()
+    default_start = today - timedelta(days=30)
+    
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
+    
+    if start_date_str and end_date_str:
+        try:
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+        except ValueError:
+            start_date = default_start
+            end_date = today
+    else:
+        start_date = default_start
+        end_date = today
+
+    # 2. Base Query for Valid Orders
+    # (PAID orders OR COD orders that are DELIVERED)
+    valid_orders = Order.objects.filter(
+        Q(payment_status='PAID') | 
+        Q(payment_method='COD', items__item_status='DELIVERED')
+    ).distinct()
+
+    filtered_orders = valid_orders.filter(created_at__date__range=[start_date, end_date])
+
+    # 3. Aggregations (Top Metric Cards)
+    metrics = filtered_orders.aggregate(
+        total_revenue=Sum('total_amount'),
+        total_orders=Count('id'),
+        discounts_given=Sum('discount_amount')
+    )
+    
+    products_sold = OrderItem.objects.filter(
+        order__in=filtered_orders
+    ).exclude(item_status__in=['CANCELLED', 'RETURN_REFUNDED']).aggregate(
+        total_qty=Sum('quantity')
+    )['total_qty'] or 0
+
+    total_revenue = metrics['total_revenue'] or Decimal('0.00')
+    total_orders_count = metrics['total_orders'] or 0
+    discounts_given = metrics['discounts_given'] or Decimal('0.00')
+
+    # 4. Chart Data: Revenue Overview (Daily)
+    daily_revenue = filtered_orders.annotate(
+        date=TruncDate('created_at')
+    ).values('date').annotate(
+        revenue=Sum('total_amount')
+    ).order_by('date')
+
+    # Prepare labels and data for JS
+    daily_labels = []
+    daily_values = []
+    curr = start_date
+    revenue_dict = {item['date']: float(item['revenue']) for item in daily_revenue}
+    
+    while curr <= end_date:
+        daily_labels.append(curr.strftime('%d %b'))
+        daily_values.append(revenue_dict.get(curr, 0.0))
+        curr += timedelta(days=1)
+
+    # 5. Chart Data: Monthly Growth (Last 12 Months)
+    monthly_start = today.replace(day=1) - timedelta(days=365)
+    monthly_revenue = valid_orders.filter(
+        created_at__date__gte=monthly_start
+    ).annotate(
+        month=TruncMonth('created_at')
+    ).values('month').annotate(
+        revenue=Sum('total_amount')
+    ).order_by('month')
+
+    monthly_labels = [m['month'].strftime('%b') for m in monthly_revenue]
+    monthly_values = [float(m['revenue']) for m in monthly_revenue]
+
+    # 6. Recent Transactions Table (Paginated)
+    transactions_list = filtered_orders.order_by('-created_at').select_related('user')
+    paginator = Paginator(transactions_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 7. Export Functionality
+    if request.GET.get('export') == 'csv':
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="sales_report_{start_date}_to_{end_date}.csv"'
+        
+        writer = csv.writer(response)
+        writer.writerow(['Order ID', 'Date', 'Customer', 'Status', 'Payment Method', 'Amount'])
+        
+        for order in transactions_list:
+            writer.writerow([
+                order.order_number,
+                order.created_at.strftime('%Y-%m-%d %H:%M'),
+                order.user.username,
+                order.payment_status,
+                order.payment_method,
+                order.total_amount
+            ])
+        return response
+
+    context = {
+        'total_revenue': total_revenue,
+        'total_orders': total_orders_count,
+        'products_sold': products_sold,
+        'discounts_given': discounts_given,
+        'daily_labels': daily_labels,
+        'daily_values': daily_values,
+        'monthly_labels': monthly_labels,
+        'monthly_values': monthly_values,
+        'page_obj': page_obj,
+        'start_date': start_date.strftime('%Y-%m-%d'),
+        'end_date': end_date.strftime('%Y-%m-%d'),
+        # Growth placeholders (as requested)
+        'rev_growth': 24.8, 
+        'ord_growth': 15.2,
+        'prod_growth': 12.5,
+    }
+    
+    return render(request, "admin-sales-report.html", context)

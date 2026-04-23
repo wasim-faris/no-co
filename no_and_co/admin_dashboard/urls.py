@@ -12,4 +12,5 @@ urlpatterns = [
     path("admin-cancel-reset-password/", views.admin_cancel_reset_password , name="admin-cancel-reset-password"),
     path("admin-user-management/", views.admin_user_management, name="admin-user-management"),
     path("admin-user-active-toggle/<int:id>/", views.admin_user_active_toggle , name="admin-user-active-toggle"),
+    path("admin-sales-report/", views.admin_sales_report, name="admin-sales-report"),
 ]
