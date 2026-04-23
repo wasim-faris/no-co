@@ -840,3 +840,42 @@ def admin_sales_report(request):
     }
     
     return render(request, "admin-sales-report.html", context)
+
+
+@admin_required
+@never_cache
+def admin_user_details(request, id):
+    from accounts.models import User
+    from core.models import Order
+    from users.models import Addresses
+    from django.db.models import Sum
+    from django.core.paginator import Paginator
+    from django.shortcuts import get_object_or_404
+
+    target_user = get_object_or_404(User, id=id)
+    
+    # User stats
+    user_orders = Order.objects.filter(user=target_user).order_by('-created_at')
+    total_orders = user_orders.count()
+    total_spent = user_orders.aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Default address
+    default_address = Addresses.objects.filter(user=target_user, is_default=True).first()
+    if not default_address:
+        default_address = Addresses.objects.filter(user=target_user).first()
+        
+    # Pagination for orders
+    paginator = Paginator(user_orders, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'target_user': target_user,
+        'total_orders': total_orders,
+        'total_spent': total_spent,
+        'default_address': default_address,
+        'page_obj': page_obj,
+    }
+    
+    return render(request, "admin-user-details.html", context)
+
