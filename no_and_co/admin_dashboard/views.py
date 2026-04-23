@@ -865,7 +865,7 @@ def admin_user_details(request, id):
         default_address = Addresses.objects.filter(user=target_user).first()
         
     # Pagination for orders
-    paginator = Paginator(user_orders, 10)
+    paginator = Paginator(user_orders, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
