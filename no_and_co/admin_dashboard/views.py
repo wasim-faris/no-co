@@ -490,6 +490,10 @@ def admin_sales_report(request):
         try:
             start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
             end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            
+            # Date Validation: Swap if start > end
+            if start_date > end_date:
+                start_date, end_date = end_date, start_date
         except ValueError:
             start_date = default_start
             end_date = today
@@ -509,7 +513,7 @@ def admin_sales_report(request):
     # 3. Aggregations (Top Metric Cards)
     metrics = filtered_orders.aggregate(
         total_revenue=Sum('total_amount'),
-        total_orders=Count('id'),
+        total_orders=Count('id', distinct=True),
         discounts_given=Sum('discount_amount')
     )
     
@@ -542,21 +546,33 @@ def admin_sales_report(request):
         curr += timedelta(days=1)
 
     # 5. Chart Data: Monthly Growth (Last 12 Months)
-    monthly_start = today.replace(day=1) - timedelta(days=365)
-    monthly_revenue = valid_orders.filter(
-        created_at__date__gte=monthly_start
-    ).annotate(
-        month=TruncMonth('created_at')
-    ).values('month').annotate(
-        revenue=Sum('total_amount')
-    ).order_by('month')
+    # Ensure we show all last 12 months even if revenue is 0
+    monthly_data = []
+    for i in range(11, -1, -1):
+        # Calculate start of month i months ago
+        first_day = (today.replace(day=1) - timedelta(days=i*31)).replace(day=1)
+        # Calculate end of that month
+        if first_day.month == 12:
+            next_month = first_day.replace(year=first_day.year + 1, month=1)
+        else:
+            next_month = first_day.replace(month=first_day.month + 1)
+        
+        month_revenue = valid_orders.filter(
+            created_at__date__gte=first_day,
+            created_at__date__lt=next_month
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+        
+        monthly_data.append({
+            'label': first_day.strftime('%b'),
+            'value': float(month_revenue)
+        })
 
-    monthly_labels = [m['month'].strftime('%b') for m in monthly_revenue]
-    monthly_values = [float(m['revenue']) for m in monthly_revenue]
+    monthly_labels = [m['label'] for m in monthly_data]
+    monthly_values = [m['value'] for m in monthly_data]
 
-    # 6. Recent Transactions Table (Paginated)
+    # 6. Recent Transactions Table (Paginated - Limit 5)
     transactions_list = filtered_orders.order_by('-created_at').select_related('user')
-    paginator = Paginator(transactions_list, 10)
+    paginator = Paginator(transactions_list, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
