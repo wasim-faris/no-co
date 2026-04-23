@@ -78,87 +78,56 @@ def admin_dashboard(request):
 
     now = timezone.now()
     
-    orders = Order.objects.filter(
+    # Use subquery to avoid JOIN duplication during aggregation
+    valid_order_ids = Order.objects.filter(
         Q(payment_status='PAID') | 
         Q(payment_method='COD', items__item_status='DELIVERED')
-    ).distinct()
+    ).values('id')
+
+    valid_orders = Order.objects.filter(id__in=valid_order_ids)
 
     if filter_type == 'daily':
         start = now - datetime.timedelta(days=7)
-        orders = orders.filter(created_at__gte=start)
+        orders = valid_orders.filter(created_at__gte=start)
     elif filter_type == 'weekly':
         start = now - datetime.timedelta(weeks=12)
-        orders = orders.filter(created_at__gte=start)
+        orders = valid_orders.filter(created_at__gte=start)
     elif filter_type == 'yearly':
         start = now.replace(year=now.year - 5)
-        orders = orders.filter(created_at__gte=start)
+        orders = valid_orders.filter(created_at__gte=start)
     elif filter_type == 'custom' and start_date and end_date:
         s_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
         e_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
-        orders = orders.filter(created_at__range=(s_date, e_date + datetime.timedelta(days=1)))
+        orders = valid_orders.filter(created_at__range=(s_date, e_date + datetime.timedelta(days=1)))
     else: 
         start = now - datetime.timedelta(days=30)
-        orders = orders.filter(created_at__gte=start)
+        orders = valid_orders.filter(created_at__gte=start)
 
     metrics = orders.aggregate(
         total_orders=Count('id', distinct=True),
         total_coupon=Sum('discount_amount'),
         net_revenue=Sum('total_amount'),
-    )
-    
-    order_items = OrderItem.objects.filter(order__in=orders)
-    item_metrics = order_items.aggregate(
-        total_sales=Sum(F('final_price') * F('quantity')),
-        total_discount=Sum((F('original_price') - F('final_price')) * F('quantity'))
+        total_sales=Sum('subtotal'),
     )
 
     total_orders = metrics['total_orders'] or 0
     total_coupon = metrics['total_coupon'] or Decimal('0.00')
     net_revenue = metrics['net_revenue'] or Decimal('0.00')
-    total_sales = item_metrics['total_sales'] or Decimal('0.00')
-    total_discount = item_metrics['total_discount'] or Decimal('0.00')
+    total_sales = metrics['total_sales'] or Decimal('0.00')
+    # Use simple deduction of subtotal to net_revenue if we need to show total_discount without item-level details
+    # Though tax might be included in total, we can approximate discount for dashboard UI keeping it revenue focused
+    total_discount = max(total_sales - net_revenue - total_coupon, Decimal('0.00'))
 
-    if download_format == 'excel':
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="sales_report.csv"'
-        writer = csv.writer(response)
-        writer.writerow(['Order Number', 'Date', 'Total Sales', 'Coupon Deduction', 'Net Revenue'])
-        for order in orders.order_by('-created_at'):
-            writer.writerow([order.order_number, order.created_at.strftime('%Y-%m-%d %H:%M'), order.subtotal, order.discount_amount, order.total_amount])
-        return response
-
-    if download_format == 'pdf':
-        try:
-            from xhtml2pdf import pisa
-            template = get_template("sales_report_pdf.html")
-            context_pdf = {
-                'orders': orders.order_by('-created_at'),
-                'total_orders': total_orders,
-                'total_sales': total_sales,
-                'total_discount': total_discount,
-                'total_coupon': total_coupon,
-                'net_revenue': net_revenue,
-                'filter_type': filter_type,
-            }
-            html_string = template.render(context_pdf)
-            buffer = BytesIO()
-            pdf_result = pisa.pisaDocument(BytesIO(html_string.encode("UTF-8")), buffer)
-            if not pdf_result.err:
-                response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
-                response['Content-Disposition'] = 'attachment; filename="sales_report.pdf"'
-                return response
-        except ImportError:
-            pass
-
-    chart_orders = Order.objects.filter(
-        Q(payment_status='PAID') | 
-        Q(payment_method='COD', items__item_status='DELIVERED')
-    ).distinct()
+    chart_orders = valid_orders
 
     if chart_filter == 'yearly':
         trunc_func = TruncYear('created_at')
         chart_orders = chart_orders.filter(created_at__gte=now.replace(year=now.year - 5))
+    elif chart_filter == 'daily':
+        trunc_func = TruncDate('created_at')
+        chart_orders = chart_orders.filter(created_at__gte=now - datetime.timedelta(days=30))
     else:
+        chart_filter = 'monthly'
         trunc_func = TruncMonth('created_at')
         chart_orders = chart_orders.filter(created_at__gte=now - datetime.timedelta(days=365))
 
@@ -166,20 +135,46 @@ def admin_dashboard(request):
         sales=Sum('total_amount')
     ).order_by('date')
 
-    labels = [item['date'].strftime('%Y-%m') if chart_filter == 'monthly' else item['date'].strftime('%Y') for item in graph_data] if graph_data else []
-    data = [float(item['sales']) for item in graph_data] if graph_data else []
+    # Fill in missing dates for smooth chart rendering
+    labels = []
+    data = []
+    if chart_filter == 'yearly':
+        sales_dict = {item['date'].strftime('%Y'): float(item['sales']) for item in graph_data if item['date']}
+        start_year = now.year - 5
+        for y in range(start_year, now.year + 1):
+            lbl = str(y)
+            labels.append(lbl)
+            data.append(sales_dict.get(lbl, 0.0))
+    elif chart_filter == 'daily':
+        sales_dict = {item['date'].strftime('%d %b'): float(item['sales']) for item in graph_data if item['date']}
+        start_date_chart = (now - datetime.timedelta(days=30)).date()
+        for i in range(31):
+            d = start_date_chart + datetime.timedelta(days=i)
+            lbl = d.strftime('%d %b')
+            labels.append(lbl)
+            data.append(sales_dict.get(lbl, 0.0))
+    else:
+        sales_dict = {item['date'].strftime('%b %Y'): float(item['sales']) for item in graph_data if item['date']}
+        for i in range(11, -1, -1):
+            m = now.month - i
+            y = now.year
+            while m <= 0:
+                m += 12
+                y -= 1
+            lbl = datetime.date(y, m, 1).strftime('%b %Y')
+            labels.append(lbl)
+            data.append(sales_dict.get(lbl, 0.0))
 
-    valid_order_items = OrderItem.objects.filter(
-        Q(order__payment_status='PAID') | 
-        Q(order__payment_method='COD', item_status='DELIVERED')
-    )
+    valid_revenue_items = OrderItem.objects.filter(
+        order__in=valid_orders
+    ).exclude(item_status__in=['CANCELLED', 'RETURN_REFUNDED'])
     
-    top_products = valid_order_items.values('variant__product__product_name').annotate(
+    top_products = valid_revenue_items.values('variant__product__product_name').annotate(
         qty_sold=Sum('quantity'),
         revenue=Sum(F('final_price') * F('quantity'))
     ).order_by('-qty_sold')[:10]
 
-    top_categories = valid_order_items.values('variant__product__category__category_name').annotate(
+    top_categories = valid_revenue_items.values('variant__product__category__category_name').annotate(
         qty_sold=Sum('quantity'),
         revenue=Sum(F('final_price') * F('quantity'))
     ).order_by('-revenue')[:10]
