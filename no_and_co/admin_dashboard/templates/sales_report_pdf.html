@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: sans-serif; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; font-weight: bold; }
+        h1, h2 { text-align: center; }
+        .summary { margin-bottom: 20px; }
+        .summary p { margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>Sales Report</h1>
+    <p style="text-align: center;">Filter: {{ filter_type|title }}</p>
+    
+    <div class="summary">
+        <h2>Summary</h2>
+        <p><strong>Total Orders:</strong> {{ total_orders }}</p>
+        <p><strong>Total Sales Amount:</strong> ₹ {{ total_sales }}</p>
+        <p><strong>Total Discounts Given:</strong> ₹ {{ total_discount }}</p>
+        <p><strong>Total Coupon Deduction:</strong> ₹ {{ total_coupon }}</p>
+        <p><strong>Net Revenue:</strong> ₹ {{ net_revenue }}</p>
+    </div>
+
+    <h2>Order Details</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Order ID</th>
+                <th>Date</th>
+                <th>Total Sales</th>
+                <th>Coupon Deduction</th>
+                <th>Net Revenue</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td>{{ order.order_number }}</td>
+                <td>{{ order.created_at|date:"Y-m-d H:i" }}</td>
+                <td>₹ {{ order.subtotal }}</td>
+                <td>₹ {{ order.discount_amount }}</td>
+                <td>₹ {{ order.total_amount }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center;">No sales data available</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

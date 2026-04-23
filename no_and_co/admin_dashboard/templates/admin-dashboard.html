@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - NO & CO</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
        body { font-family: 'Inter', sans-serif; }
@@ -210,219 +211,127 @@
 
             <div class="flex-grow overflow-y-auto px-10 pb-10 custom-scrollbar">
 
-                <div class="grid grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden group">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Revenue</p>
-                                <h3 class="text-2xl font-bold serif-font">$45,231.89</h3>
-                            </div>
-                            <span class="p-2 bg-gray-50 rounded-lg"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg></span>
+                <!-- Sales Report Section -->
+                <div class="mb-8">
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex justify-between items-center mb-6">
+                            <h4 class="serif-font font-bold text-lg">Sales Report</h4>
+                            
+                            <form id="salesReportForm" class="flex items-center gap-3" method="GET" action="{% url 'admin-dashboard' %}">
+                                <select name="filter" class="text-xs border border-gray-200 rounded-lg px-3 py-2" onchange="toggleCustomDates(this.value)">
+                                    <option value="daily" {% if filter_type == 'daily' %}selected{% endif %}>Daily</option>
+                                    <option value="weekly" {% if filter_type == 'weekly' %}selected{% endif %}>Weekly</option>
+                                    <option value="yearly" {% if filter_type == 'yearly' %}selected{% endif %}>Yearly</option>
+                                    <option value="custom" {% if filter_type == 'custom' %}selected{% endif %}>Custom</option>
+                                </select>
+                                
+                                <div id="customDates" class="{% if filter_type != 'custom' %}hidden{% endif %} flex items-center gap-2">
+                                    <input type="date" name="start_date" value="{{ start_date|default:'' }}" class="text-xs border border-gray-200 rounded-lg px-2 py-1">
+                                    <span class="text-gray-400">-</span>
+                                    <input type="date" name="end_date" value="{{ end_date|default:'' }}" class="text-xs border border-gray-200 rounded-lg px-2 py-1">
+                                </div>
+                                
+                                <button type="submit" class="bg-black text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider">Apply</button>
+                            </form>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">+12.5%</span>
-                        </div>
-                        <svg class="absolute bottom-0 left-0 w-full h-12 text-gray-100" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 20 Q 25 5 50 15 T 100 10 L 100 20 L 0 20" fill="currentColor"/></svg>
-                    </div>
 
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
+                        <div class="grid grid-cols-5 gap-4 mb-8">
+                            <div class="p-4 bg-gray-50 rounded-xl">
                                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Orders</p>
-                                <h3 class="text-2xl font-bold serif-font">2,350</h3>
+                                <h3 class="text-xl font-bold serif-font">{{ total_orders }}</h3>
                             </div>
-                            <span class="p-2 bg-gray-50 rounded-lg"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg></span>
+                            <div class="p-4 bg-gray-50 rounded-xl">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Sales</p>
+                                <h3 class="text-xl font-bold serif-font">₹ {{ total_sales }}</h3>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Discounts Given</p>
+                                <h3 class="text-xl font-bold serif-font">₹ {{ total_discount }}</h3>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Coupon Deduction</p>
+                                <h3 class="text-xl font-bold serif-font">₹ {{ total_coupon }}</h3>
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl">
+                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Net Revenue</p>
+                                <h3 class="text-xl font-bold serif-font">₹ {{ net_revenue }}</h3>
+                            </div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">+8.2%</span>
-                        </div>
-                        <svg class="absolute bottom-0 left-0 w-full h-12 text-gray-100" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 20 Q 20 15 40 18 T 100 5 L 100 20 L 0 20" fill="currentColor"/></svg>
-                    </div>
 
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Pending Outfits</p>
-                                <h3 class="text-2xl font-bold serif-font">48</h3>
-                            </div>
-                            <span class="p-2 bg-red-50 rounded-lg"><svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15.247 5.232l-7.446 9.88a.75.75 0 00.113 1.045l1.03 1.03a.75.75 0 001.045.113l9.88-7.446a.75.75 0 00.113-1.045l-1.03-1.03a.75.75 0 00-1.045-.113z"></path></svg></span>
+                        <div class="flex gap-4">
+                            <a href="?{% if filter_type != 'custom' %}filter={{ filter_type }}{% else %}filter=custom&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% endif %}&chart_filter={{ chart_filter }}&download=pdf" class="bg-black text-white px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider">Download PDF</a>
+                            <a href="?{% if filter_type != 'custom' %}filter={{ filter_type }}{% else %}filter=custom&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% endif %}&chart_filter={{ chart_filter }}&download=excel" class="bg-white text-black border border-gray-200 px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider">Download Excel</a>
                         </div>
-                        <span class="bg-red-100 text-red-600 text-[9px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Urgent</span>
-                        <svg class="absolute bottom-0 left-0 w-full h-12 text-red-50" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 10 Q 30 18 60 5 T 100 15 L 100 20 L 0 20" fill="currentColor"/></svg>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Active Stylists</p>
-                                <h3 class="text-2xl font-bold serif-font">12,234</h3>
-                            </div>
-                            <span class="p-2 bg-gray-50 rounded-lg"><svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg></span>
-                        </div>
-                        <span class="bg-green-100 text-green-700 text-[10px] font-bold px-1.5 py-0.5 rounded">+4.1%</span>
-                        <svg class="absolute bottom-0 left-0 w-full h-12 text-gray-100" viewBox="0 0 100 20" preserveAspectRatio="none"><path d="M0 20 C 20 20 40 5 100 15 L 100 20 L 0 20" fill="currentColor"/></svg>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-3 gap-8">
-
-                    <div class="col-span-2 space-y-8">
-
-                        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                            <div class="flex justify-between items-center mb-10">
-                                <div>
-                                    <h4 class="serif-font font-bold text-lg">Revenue Overview</h4>
-                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Ay 2024 Performance</p>
-                                </div>
-                                <div class="flex bg-gray-50 p-1 rounded-lg gap-1">
-                                    <button class="px-4 py-1.5 bg-white text-[10px] font-bold rounded-md shadow-sm">Weekly</button>
-                                    <button class="px-4 py-1.5 text-[10px] font-bold text-gray-400">Monthly</button>
-                                </div>
+                <div class="grid grid-cols-3 gap-8 mb-8">
+                    <!-- Chart Section -->
+                    <div class="col-span-2 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                        <div class="flex justify-between items-center mb-10">
+                            <div>
+                                <h4 class="serif-font font-bold text-lg">Sales Chart</h4>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Revenue Overview</p>
                             </div>
-
-                            <div class="relative h-64 w-full">
-                                <div class="absolute inset-0 flex flex-col justify-between text-[10px] text-gray-300 font-bold">
-                                    <div class="border-b border-gray-50 pb-8 italic">80k</div>
-                                    <div class="border-b border-gray-50 pb-8 italic">60k</div>
-                                    <div class="border-b border-gray-50 pb-8 italic">40k</div>
-                                    <div class="border-b border-gray-50 pb-8 italic">20k</div>
-                                    <div class="italic">0k</div>
-                                </div>
-                                <svg class="absolute inset-0 w-full h-full" viewBox="0 0 1000 200">
-                                    <path d="M0 160 Q 150 150 250 120 T 450 100 T 650 60 T 850 40 L 1000 20" fill="none" stroke="black" stroke-width="2.5" />
-                                    <circle cx="250" cy="120" r="4" fill="white" stroke="black" stroke-width="2"/>
-                                    <circle cx="450" cy="100" r="4" fill="white" stroke="black" stroke-width="2"/>
-                                    <circle cx="650" cy="60" r="4" fill="white" stroke="black" stroke-width="2"/>
-                                </svg>
-                                <div class="absolute bottom-[-30px] w-full flex justify-between text-[10px] text-gray-400 font-bold uppercase tracking-tighter">
-                                    <span>Jan</span><span>Mar</span><span>May</span><span>Jul</span><span>Sep</span><span>Nov</span>
-                                </div>
-                            </div>
+                            <form method="GET" action="{% url 'admin-dashboard' %}" class="flex bg-gray-50 p-1 rounded-lg gap-1">
+                                <!-- keep existing filters hidden -->
+                                <input type="hidden" name="filter" value="{{ filter_type }}">
+                                <input type="hidden" name="start_date" value="{{ start_date|default:'' }}">
+                                <input type="hidden" name="end_date" value="{{ end_date|default:'' }}">
+                                
+                                <button type="submit" name="chart_filter" value="monthly" class="px-4 py-1.5 {% if chart_filter == 'monthly' %}bg-white shadow-sm text-black{% else %}text-gray-400{% endif %} text-[10px] font-bold rounded-md">Monthly</button>
+                                <button type="submit" name="chart_filter" value="yearly" class="px-4 py-1.5 {% if chart_filter == 'yearly' %}bg-white shadow-sm text-black{% else %}text-gray-400{% endif %} text-[10px] font-bold rounded-md">Yearly</button>
+                            </form>
                         </div>
-
-                        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                            <h4 class="serif-font font-bold text-lg mb-1">Trending Outfits</h4>
-                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-8">Highest Conversion</p>
-
-                            <div class="space-y-6">
-                                <div class="flex items-center justify-between group cursor-pointer">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-black transition-all">
-                                            <span class="text-xs group-hover:text-white">👕</span>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm font-bold">Noir Essential Tee</p>
-                                            <p class="text-[10px] text-gray-400 uppercase tracking-tighter">ID: FLR-24-MIDI</p>
-                                        </div>
-                                    </div>
-                                    <div class="bg-gray-50 px-3 py-1 rounded text-[10px] font-bold text-gray-500 uppercase">Street Style</div>
-                                    <p class="text-sm font-bold">342 Sales</p>
-                                    <p class="text-sm font-bold serif-font">₹ 1,95,390</p>
+                        <div class="relative h-64 w-full">
+                            {% if labels %}
+                                <canvas id="salesChart"></canvas>
+                            {% else %}
+                                <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm font-bold uppercase tracking-widest">
+                                    No data available
                                 </div>
-
-                                <div class="flex items-center justify-between group cursor-pointer">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-black transition-all">
-                                            <span class="text-xs group-hover:text-white">👔</span>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm font-bold">Signature Silk Shirt</p>
-                                            <p class="text-[10px] text-gray-400 uppercase tracking-tighter">ID: LTH-JKT-01</p>
-                                        </div>
-                                    </div>
-                                    <div class="bg-gray-50 px-3 py-1 rounded text-[10px] font-bold text-gray-500 uppercase">Old Money</div>
-                                    <p class="text-sm font-bold">288 Sales</p>
-                                    <p class="text-sm font-bold serif-font">₹ 9,99,988</p>
-                                </div>
-
-                                <div class="flex items-center justify-between group cursor-pointer">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 group-hover:bg-black transition-all">
-                                            <span class="text-xs group-hover:text-white">⚽</span>
-                                        </div>
-                                        <div>
-                                            <p class="text-sm font-bold">Heritage Brazil Jersey</p>
-                                            <p class="text-[10px] text-gray-400 uppercase tracking-tighter">ID: DNM-SHT-BLU</p>
-                                        </div>
-                                    </div>
-                                    <div class="bg-gray-50 px-3 py-1 rounded text-[10px] font-bold text-gray-500 uppercase">Sport</div>
-                                    <p class="text-sm font-bold">245 Sales</p>
-                                    <p class="text-sm font-bold serif-font">₹ 2,90,999</p>
-                                </div>
-                            </div>
+                            {% endif %}
                         </div>
                     </div>
-
-                    <div class="space-y-8">
-
-                        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                            <div class="flex justify-between items-center mb-8">
-                                <h4 class="serif-font font-bold text-lg">Stylist Inbox</h4>
-                                <button class="text-red-500 text-[10px] font-bold uppercase tracking-widest">View All</button>
+                    
+                    <!-- Top Products -->
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm overflow-y-auto" style="max-height: 400px;">
+                        <h4 class="serif-font font-bold text-lg mb-1">Top Products</h4>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-6">Best Selling</p>
+                        <div class="space-y-4">
+                            {% for prod in top_products %}
+                            <div class="flex justify-between items-center text-sm border-b border-gray-50 pb-2">
+                                <div>
+                                    <p class="font-bold">{{ prod.variant__product__product_name }}</p>
+                                    <p class="text-[10px] text-gray-400">Sold: {{ prod.qty_sold }}</p>
+                                </div>
+                                <div class="font-bold">₹ {{ prod.revenue }}</div>
                             </div>
-                            <div class="space-y-6">
-                                <div class="flex items-center gap-4">
-                                    <img src="https://randomuser.me/api/portraits/women/44.jpg" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
-                                    <div class="flex-grow">
-                                        <div class="flex justify-between"><p class="text-sm font-bold">Olivia Martin</p><span class="text-[10px] text-gray-300">2m ago</span></div>
-                                        <p class="text-[11px] text-gray-400 truncate">I've sent the new concepts...</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <img src="https://randomuser.me/api/portraits/men/85.jpg" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
-                                    <div class="flex-grow">
-                                        <div class="flex justify-between"><p class="text-sm font-bold">Jackson Lee</p><span class="text-[10px] text-gray-300">15m ago</span></div>
-                                        <p class="text-[11px] text-gray-400 truncate">Did you review the silk shirt?</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <img src="https://randomuser.me/api/portraits/women/71.jpg" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
-                                    <div class="flex-grow">
-                                        <div class="flex justify-between"><p class="text-sm font-bold">Isabella Nguyen</p><span class="text-[10px] text-gray-300">1h ago</span></div>
-                                        <p class="text-[11px] text-gray-400 truncate">Client wants a velvet option.</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                    <img src="https://randomuser.me/api/portraits/men/42.jpg" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
-                                    <div class="flex-grow">
-                                        <div class="flex justify-between"><p class="text-sm font-bold">William Kim</p><span class="text-[10px] text-gray-300">4h ago</span></div>
-                                        <p class="text-[11px] text-gray-400 truncate">Project update for summer.</p>
-                                    </div>
-                                </div>
-                            </div>
+                            {% empty %}
+                            <div class="text-gray-400 text-sm font-bold text-center">No data available</div>
+                            {% endfor %}
                         </div>
-
-                        <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                            <h4 class="serif-font font-bold text-lg mb-1">Category Split</h4>
-                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-8">Revenue Share</p>
-
-                            <div class="space-y-6">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-8">
+                    <!-- Top Categories -->
+                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm overflow-y-auto" style="max-height: 400px;">
+                        <h4 class="serif-font font-bold text-lg mb-1">Top Categories</h4>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-6">Best Selling</p>
+                        <div class="space-y-4">
+                            {% for cat in top_categories %}
+                            <div class="flex justify-between items-center text-sm border-b border-gray-50 pb-2">
                                 <div>
-                                    <div class="flex justify-between text-[11px] font-bold mb-2"><span>💎 Old Money</span><span>45%</span></div>
-                                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-black h-full w-[45%]"></div>
-                                    </div>
+                                    <p class="font-bold">{{ cat.variant__product__category__category_name }}</p>
+                                    <p class="text-[10px] text-gray-400">Sold: {{ cat.qty_sold }}</p>
                                 </div>
-                                <div>
-                                    <div class="flex justify-between text-[11px] font-bold mb-2"><span>✨ Free Style</span><span>28%</span></div>
-                                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-black h-full w-[28%]"></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div class="flex justify-between text-[11px] font-bold mb-2"><span>⚽ Jersey</span><span>15%</span></div>
-                                    <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                                        <div class="bg-black h-full w-[15%]"></div>
-                                    </div>
-                                </div>
-
-                                <button class="w-full mt-4 flex items-center justify-between px-4 py-3 bg-[#F8F6F1] rounded-xl group hover:bg-black transition-all">
-                                    <span class="text-[10px] font-bold uppercase tracking-widest group-hover:text-white">Premium Insights</span>
-                                    <svg class="w-3 h-3 text-gray-400 group-hover:text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"></path></svg>
-                                </button>
+                                <div class="font-bold">₹ {{ cat.revenue }}</div>
                             </div>
+                            {% empty %}
+                            <div class="text-gray-400 text-sm font-bold text-center">No data available</div>
+                            {% endfor %}
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -468,7 +377,75 @@
                     setTimeout(() => toast.remove(), 500);
                 }, 5000);
             });
+            
+            // Render Chart
+            const labels = {{ labels|safe|default:"[]" }};
+            const data = {{ data|safe|default:"[]" }};
+            
+            if (labels.length > 0) {
+                const ctx = document.getElementById('salesChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Sales Revenue',
+                            data: data,
+                            borderColor: '#000000',
+                            backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                            borderWidth: 2,
+                            tension: 0.4,
+                            fill: true,
+                            pointBackgroundColor: '#ffffff',
+                            pointBorderColor: '#000000',
+                            pointBorderWidth: 2,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#f3f4f6',
+                                    drawBorder: false,
+                                },
+                                ticks: {
+                                    font: { size: 10, family: 'Inter' },
+                                    color: '#9ca3af'
+                                }
+                            },
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                ticks: {
+                                    font: { size: 10, family: 'Inter' },
+                                    color: '#9ca3af'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
         });
+
+        function toggleCustomDates(value) {
+            const customDates = document.getElementById('customDates');
+            if (value === 'custom') {
+                customDates.classList.remove('hidden');
+            } else {
+                customDates.classList.add('hidden');
+                document.getElementById('salesReportForm').submit();
+            }
+        }
     </script>
 
 </body>
