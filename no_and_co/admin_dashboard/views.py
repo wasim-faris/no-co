@@ -64,7 +64,7 @@ def admin_login(request):
 @never_cache
 def admin_dashboard(request):
     from core.models import Order, OrderItem
-    from django.db.models import Sum, Count, F, Q
+    from django.db.models import Sum, Count, F, Q, Case, When, DecimalField
     from django.db.models.functions import TruncDate, TruncWeek, TruncMonth, TruncYear
     from django.utils import timezone
     from decimal import Decimal
@@ -171,16 +171,38 @@ def admin_dashboard(request):
 
     valid_revenue_items = OrderItem.objects.filter(
         order__in=valid_orders
-    ).exclude(item_status__in=['CANCELLED', 'RETURN_REFUNDED'])
-    
-    top_products = valid_revenue_items.values('variant__product__product_name').annotate(
+    ).exclude(
+        item_status__in=['CANCELLED', 'RETURN_REFUNDED']
+    ).filter(
+        variant__product__isnull=False
+    )
+
+    # Three-level price waterfall — guarantees revenue is never ₹0.00:
+    #   1. final_price  → actual purchase price after discount (ideal)
+    #   2. original_price → pre-discount price stored at order time
+    #   3. variant__price → live variant price (last resort for orders
+    #      placed when a bug saved both stored prices as 0)
+    safe_unit_price = Case(
+        When(final_price__gt=0, then=F('final_price')),
+        When(original_price__gt=0, then=F('original_price')),
+        default=F('variant__price'),
+        output_field=DecimalField(max_digits=10, decimal_places=2)
+    )
+
+    # Group by product ID + name so same-named products are never merged
+    top_products = valid_revenue_items.values(
+        'variant__product__id',
+        'variant__product__product_name',
+    ).annotate(
         qty_sold=Sum('quantity'),
-        revenue=Sum(F('final_price') * F('quantity'))
+        revenue=Sum(safe_unit_price * F('quantity'))
     ).order_by('-qty_sold')[:10]
 
-    top_categories = valid_revenue_items.values('variant__product__category__category_name').annotate(
+    top_categories = valid_revenue_items.values(
+        'variant__product__category__category_name'
+    ).annotate(
         qty_sold=Sum('quantity'),
-        revenue=Sum(F('final_price') * F('quantity'))
+        revenue=Sum(safe_unit_price * F('quantity'))
     ).order_by('-revenue')[:10]
 
     context = {
