@@ -54,114 +54,176 @@
             <p class="text-sm text-gray-500 mt-1">Overview of revenue and analytics</p>
             <div class="w-12 h-[2px] bg-gray-900 mt-3"></div>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="{% url 'admin-sales-report' %}" class="bg-white text-black border border-gray-200 px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all hover:bg-gray-50">View Sales Report</a>
-            <a href="{% url 'admin-logout' %}" class="bg-black text-white px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all hover:bg-black/90">Logout</a>
+        <div class="flex items-center gap-4">
+            <a href="{% url 'admin-sales-report' %}" class="bg-white text-black border border-gray-200 px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-gray-50 shadow-sm">
+                <svg class="w-4 h-4 inline-block mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                View Sales Report
+            </a>
+            <a href="{% url 'admin-logout' %}" class="bg-black text-white px-6 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all hover:bg-black/90 shadow-lg shadow-black/10">
+                <svg class="w-4 h-4 inline-block mr-2 -mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                Logout
+            </a>
         </div>
     </div>
 </div>
 
-<div class="px-8 pb-10">
-
-                <!-- Revenue Overview Section -->
-                <div class="mb-8">
-                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
-                        <div class="flex justify-between items-center mb-6">
-                            <h4 class="serif-font font-bold text-lg">Revenue Overview</h4>
-                            
-                            <form id="salesReportForm" class="flex items-center gap-3" method="GET" action="{% url 'admin-dashboard' %}">
-                                <select name="filter" class="text-xs border border-gray-200 rounded-lg px-3 py-2" onchange="toggleCustomDates(this.value)">
-                                    <option value="daily" {% if filter_type == 'daily' %}selected{% endif %}>Daily</option>
-                                    <option value="weekly" {% if filter_type == 'weekly' %}selected{% endif %}>Weekly</option>
-                                    <option value="yearly" {% if filter_type == 'yearly' %}selected{% endif %}>Yearly</option>
-                                    <option value="custom" {% if filter_type == 'custom' %}selected{% endif %}>Custom</option>
-                                </select>
-                                
-                                <div id="customDates" class="{% if filter_type != 'custom' %}hidden{% endif %} flex items-center gap-2">
-                                    <input type="date" name="start_date" value="{{ start_date|default:'' }}" class="text-xs border border-gray-200 rounded-lg px-2 py-1">
-                                    <span class="text-gray-400">-</span>
-                                    <input type="date" name="end_date" value="{{ end_date|default:'' }}" class="text-xs border border-gray-200 rounded-lg px-2 py-1">
-                                </div>
-                                
-                                <button type="submit" class="bg-black text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider">Apply</button>
-                            </form>
-                        </div>
-
-                        <div class="grid grid-cols-5 gap-4 mb-8">
-                            <div class="p-4 bg-gray-50 rounded-xl">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Orders</p>
-                                <h3 class="text-xl font-bold serif-font">{{ total_orders }}</h3>
-                            </div>
-                            <div class="p-4 bg-gray-50 rounded-xl">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Total Revenue</p>
-                                <h3 class="text-xl font-bold serif-font">₹ {{ total_sales }}</h3>
-                            </div>
-                            <div class="p-4 bg-gray-50 rounded-xl">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Discounts Given</p>
-                                <h3 class="text-xl font-bold serif-font">₹ {{ total_discount }}</h3>
-                            </div>
-                            <div class="p-4 bg-gray-50 rounded-xl">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Coupon Deduction</p>
-                                <h3 class="text-xl font-bold serif-font">₹ {{ total_coupon }}</h3>
-                            </div>
-                            <div class="p-4 bg-gray-50 rounded-xl">
-                                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Net Revenue</p>
-                                <h3 class="text-xl font-bold serif-font">₹ {{ net_revenue }}</h3>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-4">
-                            <a href="?{% if filter_type != 'custom' %}filter={{ filter_type }}{% else %}filter=custom&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% endif %}&chart_filter={{ chart_filter }}&download=pdf" class="bg-black text-white px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider">Download PDF</a>
-                            <a href="?{% if filter_type != 'custom' %}filter={{ filter_type }}{% else %}filter=custom&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% endif %}&chart_filter={{ chart_filter }}&download=excel" class="bg-white text-black border border-gray-200 px-5 py-2 rounded-lg text-[10px] font-bold uppercase tracking-wider">Download Excel</a>
-                        </div>
-                    </div>
+<div class="px-8 pb-10 space-y-8">
+    <!-- Quick Metrics Row -->
+    <div class="grid grid-cols-5 gap-6">
+        <!-- Total Orders -->
+        <div class="bg-white p-6 rounded-[24px] border border-gray-100 card-shadow group hover:border-black transition-all duration-300">
+            <div class="flex justify-between items-start mb-4">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Orders</p>
+                <div class="p-2 bg-gray-50 rounded-lg group-hover:bg-black group-hover:text-white transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                 </div>
+            </div>
+            <h3 class="text-2xl font-bold serif-font mb-1">{{ total_orders }}</h3>
+            <p class="text-[10px] font-bold text-green-500 uppercase tracking-widest">Successful</p>
+        </div>
 
-                <div class="grid grid-cols-3 gap-8 mb-8">
+        <!-- Total Revenue -->
+        <div class="bg-white p-6 rounded-[24px] border border-gray-100 card-shadow group hover:border-black transition-all duration-300">
+            <div class="flex justify-between items-start mb-4">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Total Revenue</p>
+                <div class="p-2 bg-gray-50 rounded-lg group-hover:bg-black group-hover:text-white transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold serif-font mb-1">₹{{ total_sales }}</h3>
+            <p class="text-[10px] font-bold text-green-500 uppercase tracking-widest">Gross Sales</p>
+        </div>
+
+        <!-- Discounts Given -->
+        <div class="bg-white p-6 rounded-[24px] border border-gray-100 card-shadow group hover:border-black transition-all duration-300">
+            <div class="flex justify-between items-start mb-4">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Offers & Category</p>
+                <div class="p-2 bg-gray-50 rounded-lg group-hover:bg-black group-hover:text-white transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 11h.01M7 15h.01M13 7h.01M13 11h.01M13 15h.01M17 7h.01M17 11h.01M17 15h.01M19 19H5a2 2 0 01-2-2V5a2 2 0 012-2h14a2 2 0 012 2v12a2 2 0 01-2 2z"></path></svg>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold serif-font mb-1">₹{{ total_discount }}</h3>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Direct Discounts</p>
+        </div>
+
+        <!-- Coupon Deduction -->
+        <div class="bg-white p-6 rounded-[24px] border border-gray-100 card-shadow group hover:border-black transition-all duration-300">
+            <div class="flex justify-between items-start mb-4">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Coupon Vouchers</p>
+                <div class="p-2 bg-gray-50 rounded-lg group-hover:bg-black group-hover:text-white transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"></path></svg>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold serif-font mb-1">₹{{ total_coupon }}</h3>
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Deductions</p>
+        </div>
+
+        <!-- Net Revenue -->
+        <div class="bg-white p-6 rounded-[24px] border border-gray-100 card-shadow group hover:border-black transition-all duration-300">
+            <div class="flex justify-between items-start mb-4">
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Net Revenue</p>
+                <div class="p-2 bg-gray-50 rounded-lg group-hover:bg-black group-hover:text-white transition-colors text-black">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+            </div>
+            <h3 class="text-2xl font-bold serif-font mb-1">₹{{ net_revenue }}</h3>
+            <p class="text-[10px] font-bold text-gray-900 uppercase tracking-widest">Final Profit</p>
+        </div>
+    </div>
+
+    <!-- Analytics & Controls -->
+    <div class="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h4 class="serif-font font-bold text-xl">Performance Analytics</h4>
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Comprehensive business metrics</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <form id="salesReportForm" class="flex items-center gap-3" method="GET" action="{% url 'admin-dashboard' %}">
+                    <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2 border border-gray-100">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Period:</span>
+                        <select name="filter" class="bg-transparent text-[10px] font-bold uppercase tracking-widest outline-none cursor-pointer" onchange="toggleCustomDates(this.value)">
+                            <option value="daily" {% if filter_type == 'daily' %}selected{% endif %}>Daily</option>
+                            <option value="weekly" {% if filter_type == 'weekly' %}selected{% endif %}>Weekly</option>
+                            <option value="yearly" {% if filter_type == 'yearly' %}selected{% endif %}>Yearly</option>
+                            <option value="custom" {% if filter_type == 'custom' %}selected{% endif %}>Custom Range</option>
+                        </select>
+                    </div>
+                    
+                    <div id="customDates" class="{% if filter_type != 'custom' %}hidden{% endif %} flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2 border border-gray-100">
+                        <input type="date" name="start_date" value="{{ start_date|default:'' }}" class="bg-transparent text-[10px] font-bold uppercase outline-none">
+                        <span class="text-gray-400">-</span>
+                        <input type="date" name="end_date" value="{{ end_date|default:'' }}" class="bg-transparent text-[10px] font-bold uppercase outline-none">
+                    </div>
+                    
+                    <button type="submit" class="bg-black text-white px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black/90 transition-all shadow-md shadow-black/5">Apply</button>
+                </form>
+
+                <div class="h-8 w-[1px] bg-gray-100"></div>
+
+                <div class="flex gap-2">
+                    <a href="?{% if filter_type != 'custom' %}filter={{ filter_type }}{% else %}filter=custom&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% endif %}&chart_filter={{ chart_filter }}&download=pdf" class="p-2.5 bg-gray-50 rounded-xl hover:bg-black hover:text-white transition-all group" title="Download PDF">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    </a>
+                    <a href="?{% if filter_type != 'custom' %}filter={{ filter_type }}{% else %}filter=custom&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% endif %}&chart_filter={{ chart_filter }}&download=excel" class="p-2.5 bg-gray-50 rounded-xl hover:bg-black hover:text-white transition-all group" title="Download Excel">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+                <div class="grid grid-cols-3 gap-8">
                     <!-- Chart Section -->
-                    <div class="col-span-2 bg-white p-8 rounded-2xl border border-gray-100 shadow-sm">
+                    <div class="col-span-2 bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm">
                         <div class="flex justify-between items-center mb-10">
                             <div>
-                                <h4 class="serif-font font-bold text-lg">Revenue Overview</h4>
-                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Revenue Analytics</p>
+                                <h4 class="serif-font font-bold text-xl">Revenue Overview</h4>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Visual trend analysis</p>
                             </div>
-                            <form method="GET" action="{% url 'admin-dashboard' %}" class="flex bg-gray-50 p-1 rounded-lg gap-1">
-                                <!-- keep existing filters hidden -->
+                            <form method="GET" action="{% url 'admin-dashboard' %}" class="flex bg-gray-50 p-1.5 rounded-xl gap-1 border border-gray-100">
                                 <input type="hidden" name="filter" value="{{ filter_type }}">
                                 <input type="hidden" name="start_date" value="{{ start_date|default:'' }}">
                                 <input type="hidden" name="end_date" value="{{ end_date|default:'' }}">
                                 
-                                <button type="submit" name="chart_filter" value="daily" class="px-4 py-1.5 {% if chart_filter == 'daily' %}bg-white shadow-sm text-black{% else %}text-gray-400{% endif %} text-[10px] font-bold rounded-md">Daily</button>
-                                <button type="submit" name="chart_filter" value="monthly" class="px-4 py-1.5 {% if chart_filter == 'monthly' or not chart_filter %}bg-white shadow-sm text-black{% else %}text-gray-400{% endif %} text-[10px] font-bold rounded-md">Monthly</button>
-                                <button type="submit" name="chart_filter" value="yearly" class="px-4 py-1.5 {% if chart_filter == 'yearly' %}bg-white shadow-sm text-black{% else %}text-gray-400{% endif %} text-[10px] font-bold rounded-md">Yearly</button>
+                                <button type="submit" name="chart_filter" value="daily" class="px-4 py-1.5 {% if chart_filter == 'daily' %}bg-black text-white{% else %}text-gray-400 hover:text-black{% endif %} text-[10px] font-bold rounded-lg transition-all">Daily</button>
+                                <button type="submit" name="chart_filter" value="monthly" class="px-4 py-1.5 {% if chart_filter == 'monthly' or not chart_filter %}bg-black text-white{% else %}text-gray-400 hover:text-black{% endif %} text-[10px] font-bold rounded-lg transition-all">Monthly</button>
+                                <button type="submit" name="chart_filter" value="yearly" class="px-4 py-1.5 {% if chart_filter == 'yearly' %}bg-black text-white{% else %}text-gray-400 hover:text-black{% endif %} text-[10px] font-bold rounded-lg transition-all">Yearly</button>
                             </form>
                         </div>
-                        <div class="relative h-64 w-full">
+                        <div class="relative h-72 w-full">
                             {% if labels %}
                                 <canvas id="salesChart"></canvas>
                             {% else %}
                                 <div class="absolute inset-0 flex items-center justify-center text-gray-400 text-sm font-bold uppercase tracking-widest">
-                                    No data available
+                                    No data available for selected period
                                 </div>
                             {% endif %}
                         </div>
                     </div>
                     
                     <!-- Top Products -->
-                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm overflow-y-auto" style="max-height: 400px;">
-                        <h4 class="serif-font font-bold text-lg mb-1">Top Products</h4>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-6">Best Selling</p>
-                        <div class="space-y-4">
+                    <div class="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm custom-scrollbar overflow-y-auto" style="max-height: 440px;">
+                        <h4 class="serif-font font-bold text-xl mb-1">Top Products</h4>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-8">Best Selling Items</p>
+                        <div class="space-y-6">
                             {% for prod in top_products %}
-                            <div class="flex justify-between items-center text-sm border-b border-gray-50 pb-2">
-                                <div>
-                                    <p class="font-bold">{{ prod.variant__product__product_name }}</p>
-                                    <p class="text-[10px] text-gray-400">Sold: {{ prod.qty_sold }}</p>
+                            <div class="flex justify-between items-center group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-[10px] font-bold text-gray-400 group-hover:bg-black group-hover:text-white transition-all">
+                                        {{ forloop.counter }}
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-900">{{ prod.variant__product__product_name }}</p>
+                                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Sold: {{ prod.qty_sold }}</p>
+                                    </div>
                                 </div>
-                                <div class="font-bold">₹ {{ prod.revenue }}</div>
+                                <div class="text-xs font-bold text-gray-900">₹{{ prod.revenue }}</div>
                             </div>
                             {% empty %}
-                            <div class="text-gray-400 text-sm font-bold text-center">No data available</div>
+                            <div class="py-12 text-center">
+                                <p class="text-gray-400 text-xs font-bold uppercase tracking-widest">No data available</p>
+                            </div>
                             {% endfor %}
                         </div>
                     </div>
@@ -169,20 +231,27 @@
                 
                 <div class="grid grid-cols-2 gap-8">
                     <!-- Top Categories -->
-                    <div class="bg-white p-8 rounded-2xl border border-gray-100 shadow-sm overflow-y-auto" style="max-height: 400px;">
-                        <h4 class="serif-font font-bold text-lg mb-1">Top Categories</h4>
-                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-6">Best Selling</p>
-                        <div class="space-y-4">
+                    <div class="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm custom-scrollbar overflow-y-auto" style="max-height: 400px;">
+                        <h4 class="serif-font font-bold text-xl mb-1">Top Categories</h4>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-8">Best Performing Sectors</p>
+                        <div class="space-y-6">
                             {% for cat in top_categories %}
-                            <div class="flex justify-between items-center text-sm border-b border-gray-50 pb-2">
-                                <div>
-                                    <p class="font-bold">{{ cat.variant__product__category__category_name }}</p>
-                                    <p class="text-[10px] text-gray-400">Sold: {{ cat.qty_sold }}</p>
+                            <div class="flex justify-between items-center group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-[10px] font-bold text-gray-400 group-hover:bg-black group-hover:text-white transition-all">
+                                        {{ forloop.counter }}
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-900">{{ cat.variant__product__category__category_name }}</p>
+                                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Sold: {{ cat.qty_sold }}</p>
+                                    </div>
                                 </div>
-                                <div class="font-bold">₹ {{ cat.revenue }}</div>
+                                <div class="text-xs font-bold text-gray-900">₹{{ cat.revenue }}</div>
                             </div>
                             {% empty %}
-                            <div class="text-gray-400 text-sm font-bold text-center">No data available</div>
+                            <div class="py-12 text-center">
+                                <p class="text-gray-400 text-xs font-bold uppercase tracking-widest">No data available</p>
+                            </div>
                             {% endfor %}
                         </div>
                     </div>
