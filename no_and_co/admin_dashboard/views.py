@@ -214,7 +214,179 @@ def admin_dashboard(request):
     return render(request, "admin-dashboard.html", context)
 
 
+@admin_required
 @never_cache
+def export_dashboard_pdf(request):
+    from core.models import Order, OrderItem
+    from django.db.models import Sum, Count, F, Q, Case, When, DecimalField
+    from django.utils import timezone
+    from decimal import Decimal
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import letter
+    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+    from reportlab.lib.styles import getSampleStyleSheet
+    
+    valid_order_ids = Order.objects.filter(
+        Q(payment_status='PAID') | Q(payment_method='COD', items__item_status='DELIVERED')
+    ).values('id')
+    orders = Order.objects.filter(id__in=valid_order_ids)
+    
+    metrics = orders.aggregate(
+        total_orders=Count('id', distinct=True),
+        net_revenue=Sum('total_amount'),
+    )
+    total_orders = metrics['total_orders'] or 0
+    net_revenue = metrics['net_revenue'] or Decimal('0.00')
+
+    valid_revenue_items = OrderItem.objects.filter(order__in=orders).exclude(
+        item_status__in=['CANCELLED', 'RETURN_REFUNDED']
+    ).filter(variant__product__isnull=False)
+
+    safe_unit_price = Case(
+        When(final_price__gt=0, then=F('final_price')),
+        When(original_price__gt=0, then=F('original_price')),
+        default=F('variant__price'),
+        output_field=DecimalField(max_digits=10, decimal_places=2)
+    )
+
+    top_products = valid_revenue_items.values('variant__product__product_name').annotate(
+        qty_sold=Sum('quantity'), revenue=Sum(safe_unit_price * F('quantity'))
+    ).order_by('-qty_sold')[:10]
+
+    top_categories = valid_revenue_items.values('variant__product__category__category_name').annotate(
+        qty_sold=Sum('quantity'), revenue=Sum(safe_unit_price * F('quantity'))
+    ).order_by('-revenue')[:10]
+
+    top_subcategories = valid_revenue_items.values('variant__product__subcategory__subcategory_name').annotate(
+        qty_sold=Sum('quantity'), revenue=Sum(safe_unit_price * F('quantity'))
+    ).order_by('-revenue')[:10]
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="sales_report.pdf"'
+    
+    doc = SimpleDocTemplate(response, pagesize=letter)
+    elements = []
+    styles = getSampleStyleSheet()
+    
+    elements.append(Paragraph("Sales Report", styles['Title']))
+    elements.append(Paragraph(f"Generated on: {timezone.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
+    elements.append(Spacer(1, 20))
+    
+    elements.append(Paragraph("Summary", styles['Heading2']))
+    summary_data = [
+        ['Metric', 'Value'],
+        ['Total Orders', str(total_orders)],
+        ['Net Revenue', f"Rs. {net_revenue:,.2f}"]
+    ]
+    summary_table = Table(summary_data, colWidths=[200, 150])
+    summary_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    elements.append(summary_table)
+    elements.append(Spacer(1, 20))
+    
+    elements.append(Paragraph("Top Products", styles['Heading2']))
+    prod_data = [['Product', 'Sold', 'Revenue']]
+    for p in top_products:
+        prod_data.append([p['variant__product__product_name'][:40], str(p['qty_sold']), f"Rs. {p['revenue']:,.2f}"])
+    prod_table = Table(prod_data, colWidths=[250, 50, 100])
+    prod_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
+    elements.append(prod_table)
+    
+    doc.build(elements)
+    return response
+
+@admin_required
+@never_cache
+def export_dashboard_excel(request):
+    from core.models import Order, OrderItem
+    from django.db.models import Sum, Count, F, Q, Case, When, DecimalField
+    from decimal import Decimal
+    import openpyxl
+    from openpyxl.styles import Font
+    
+    valid_order_ids = Order.objects.filter(
+        Q(payment_status='PAID') | Q(payment_method='COD', items__item_status='DELIVERED')
+    ).values('id')
+    orders = Order.objects.filter(id__in=valid_order_ids)
+    
+    metrics = orders.aggregate(
+        total_orders=Count('id', distinct=True),
+        net_revenue=Sum('total_amount'),
+    )
+    total_orders = metrics['total_orders'] or 0
+    net_revenue = metrics['net_revenue'] or Decimal('0.00')
+
+    valid_revenue_items = OrderItem.objects.filter(order__in=orders).exclude(
+        item_status__in=['CANCELLED', 'RETURN_REFUNDED']
+    ).filter(variant__product__isnull=False)
+
+    safe_unit_price = Case(
+        When(final_price__gt=0, then=F('final_price')),
+        When(original_price__gt=0, then=F('original_price')),
+        default=F('variant__price'),
+        output_field=DecimalField(max_digits=10, decimal_places=2)
+    )
+
+    top_products = valid_revenue_items.values('variant__product__product_name').annotate(
+        qty_sold=Sum('quantity'), revenue=Sum(safe_unit_price * F('quantity'))
+    ).order_by('-qty_sold')[:10]
+
+    top_categories = valid_revenue_items.values('variant__product__category__category_name').annotate(
+        qty_sold=Sum('quantity'), revenue=Sum(safe_unit_price * F('quantity'))
+    ).order_by('-revenue')[:10]
+
+    top_subcategories = valid_revenue_items.values('variant__product__subcategory__subcategory_name').annotate(
+        qty_sold=Sum('quantity'), revenue=Sum(safe_unit_price * F('quantity'))
+    ).order_by('-revenue')[:10]
+
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    response['Content-Disposition'] = 'attachment; filename="sales_report.xlsx"'
+    
+    wb = openpyxl.Workbook()
+    
+    ws1 = wb.active
+    ws1.title = "Summary"
+    ws1.append(['Metric', 'Value'])
+    ws1.append(['Total Orders', total_orders])
+    ws1.append(['Net Revenue', float(net_revenue)])
+    for cell in ws1['B']:
+        if cell.row == 3: cell.number_format = '#,##0.00'
+        
+    ws2 = wb.create_sheet("Top Products")
+    ws2.append(['Product Name', 'Sold Count', 'Revenue'])
+    for p in top_products:
+        ws2.append([p['variant__product__product_name'], p['qty_sold'], float(p['revenue'] or 0)])
+    
+    ws3 = wb.create_sheet("Categories")
+    ws3.append(['Category Name', 'Sold Count', 'Revenue'])
+    for c in top_categories:
+        ws3.append([c['variant__product__category__category_name'], c['qty_sold'], float(c['revenue'] or 0)])
+        
+    ws4 = wb.create_sheet("Subcategories")
+    ws4.append(['Subcategory Name', 'Sold Count', 'Revenue'])
+    for s in top_subcategories:
+        ws4.append([s['variant__product__subcategory__subcategory_name'], s['qty_sold'], float(s['revenue'] or 0)])
+
+    header_font = Font(bold=True)
+    for ws in [ws1, ws2, ws3, ws4]:
+        for cell in ws[1]:
+            cell.font = header_font
+            
+    wb.save(response)
+    return response
 def admin_forgot_password(request):
     if request.user.is_authenticated and request.user.is_superuser:
         return redirect("admin-dashboard")

@@ -13,4 +13,6 @@ urlpatterns = [
     path("admin-user-management/", views.admin_user_management, name="admin-user-management"),
     path("admin-user-active-toggle/<int:id>/", views.admin_user_active_toggle , name="admin-user-active-toggle"),
     path("admin-sales-report/", views.admin_sales_report, name="admin-sales-report"),
+    path("admin-dashboard/export/pdf/", views.export_dashboard_pdf, name="export_dashboard_pdf"),
+    path("admin-dashboard/export/excel/", views.export_dashboard_excel, name="export_dashboard_excel"),
 ]
