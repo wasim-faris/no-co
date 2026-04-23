@@ -258,6 +258,32 @@
                             {% endfor %}
                         </div>
                     </div>
+
+                    <!-- Top Subcategories -->
+                    <div class="bg-white p-8 rounded-[32px] border border-gray-100 shadow-sm custom-scrollbar overflow-y-auto" style="max-height: 400px;">
+                        <h4 class="serif-font font-bold text-xl mb-1">Top Subcategories</h4>
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-8">Specific Performance</p>
+                        <div class="space-y-6">
+                            {% for sub in top_subcategories %}
+                            <div class="flex justify-between items-center group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-[10px] font-bold text-gray-400 group-hover:bg-black group-hover:text-white transition-all">
+                                        {{ forloop.counter }}
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-900">{{ sub.variant__product__subcategory__subcategory_name|default:"General" }}</p>
+                                        <p class="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Sold: {{ sub.qty_sold }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-xs font-bold text-gray-900">₹{{ sub.revenue|floatformat:2 }}</div>
+                            </div>
+                            {% empty %}
+                            <div class="py-12 text-center">
+                                <p class="text-gray-400 text-xs font-bold uppercase tracking-widest">No data available</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
                 </div>
 </div>
 {% endblock %}

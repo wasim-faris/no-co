@@ -205,6 +205,13 @@ def admin_dashboard(request):
         revenue=Sum(safe_unit_price * F('quantity'))
     ).order_by('-revenue')[:10]
 
+    top_subcategories = valid_revenue_items.values(
+        'variant__product__subcategory__subcategory_name'
+    ).annotate(
+        qty_sold=Sum('quantity'),
+        revenue=Sum(safe_unit_price * F('quantity'))
+    ).order_by('-revenue')[:10]
+
     context = {
         'total_orders': total_orders,
         'total_coupon': total_coupon,
@@ -219,6 +226,7 @@ def admin_dashboard(request):
         'end_date': end_date,
         'top_products': top_products,
         'top_categories': top_categories,
+        'top_subcategories': top_subcategories,
     }
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax'):
