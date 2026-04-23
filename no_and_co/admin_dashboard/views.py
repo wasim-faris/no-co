@@ -481,28 +481,37 @@ def admin_sales_report(request):
 
     # 1. Date Filtering
     today = timezone.now().date()
-    default_start = today - timedelta(days=30)
+    period = request.GET.get('period', 'custom')
     
-    start_date_str = request.GET.get('start_date')
-    end_date_str = request.GET.get('end_date')
-    
-    if start_date_str and end_date_str:
-        try:
-            start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-            end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-            
-            # Date Validation: Swap if start > end
-            if start_date > end_date:
-                start_date, end_date = end_date, start_date
-        except ValueError:
+    if period == 'daily':
+        start_date = today
+        end_date = today
+    elif period == 'weekly':
+        start_date = today - timedelta(days=7)
+        end_date = today
+    elif period == 'yearly':
+        start_date = today.replace(month=1, day=1)
+        end_date = today
+    else:
+        # Custom or Default
+        start_date_str = request.GET.get('start_date')
+        end_date_str = request.GET.get('end_date')
+        default_start = today - timedelta(days=30)
+        
+        if start_date_str and end_date_str:
+            try:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                if start_date > end_date:
+                    start_date, end_date = end_date, start_date
+            except ValueError:
+                start_date = default_start
+                end_date = today
+        else:
             start_date = default_start
             end_date = today
-    else:
-        start_date = default_start
-        end_date = today
 
     # 2. Base Query for Valid Orders
-    # (PAID orders OR COD orders that are DELIVERED)
     valid_orders = Order.objects.filter(
         Q(payment_status='PAID') | 
         Q(payment_method='COD', items__item_status='DELIVERED')
@@ -510,13 +519,33 @@ def admin_sales_report(request):
 
     filtered_orders = valid_orders.filter(created_at__date__range=[start_date, end_date])
 
+    # 2.1 Additional Search and Status Filters
+    query = request.GET.get('q', '')
+    if query:
+        filtered_orders = filtered_orders.filter(
+            Q(order_number__icontains=query) |
+            Q(user__username__icontains=query) |
+            Q(user__email__icontains=query)
+        )
+    
+    status_filter = request.GET.get('status', 'All Status')
+    if status_filter and status_filter != 'All Status':
+        filtered_orders = filtered_orders.filter(payment_status=status_filter.upper())
+
     # 3. Aggregations (Top Metric Cards)
     metrics = filtered_orders.aggregate(
         total_revenue=Sum('total_amount'),
         total_orders=Count('id', distinct=True),
-        discounts_given=Sum('discount_amount')
+        coupon_deduction=Sum('discount_amount')
     )
     
+    # Offer discounts from OrderItem
+    total_offer_discounts = OrderItem.objects.filter(
+        order__in=filtered_orders
+    ).exclude(item_status__in=['CANCELLED', 'RETURN_REFUNDED']).aggregate(
+        total=Sum(F('discount_amount') * F('quantity'))
+    )['total'] or Decimal('0.00')
+
     products_sold = OrderItem.objects.filter(
         order__in=filtered_orders
     ).exclude(item_status__in=['CANCELLED', 'RETURN_REFUNDED']).aggregate(
@@ -525,7 +554,7 @@ def admin_sales_report(request):
 
     total_revenue = metrics['total_revenue'] or Decimal('0.00')
     total_orders_count = metrics['total_orders'] or 0
-    discounts_given = metrics['discounts_given'] or Decimal('0.00')
+    coupon_deduction = metrics['coupon_deduction'] or Decimal('0.00')
 
     # 4. Chart Data: Revenue Overview (Daily)
     daily_revenue = filtered_orders.annotate(
@@ -578,28 +607,41 @@ def admin_sales_report(request):
 
     # 7. Export Functionality
     if request.GET.get('export') == 'csv':
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="sales_report_{start_date}_to_{end_date}.csv"'
+        # Generate clean filename
+        filename = f"sales_report_{start_date.strftime('%Y_%m_%d')}_to_{end_date.strftime('%Y_%m_%d')}.csv"
+        
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        # Add UTF-8 BOM for Excel to recognize UTF-8 encoding immediately
+        response.write('\ufeff'.encode('utf8'))
         
         writer = csv.writer(response)
-        writer.writerow(['Order ID', 'Date', 'Customer', 'Status', 'Payment Method', 'Amount'])
+        # Professional Headers
+        writer.writerow(['Order ID', 'Date', 'Customer Name', 'Status', 'Payment Method', 'Total Amount', 'Discount Applied', 'Final Amount'])
         
-        for order in transactions_list:
-            writer.writerow([
-                order.order_number,
-                order.created_at.strftime('%Y-%m-%d %H:%M'),
-                order.user.username,
-                order.payment_status,
-                order.payment_method,
-                order.total_amount
-            ])
+        if not transactions_list.exists():
+            writer.writerow(['No data available'] + ['-'] * 7)
+        else:
+            for order in transactions_list:
+                writer.writerow([
+                    order.order_number,
+                    order.created_at.strftime('%Y-%m-%d'),
+                    order.user.username,
+                    order.payment_status,
+                    order.payment_method,
+                    "{:.2f}".format(order.subtotal),
+                    "{:.2f}".format(order.discount_amount),
+                    "{:.2f}".format(order.total_amount)
+                ])
         return response
 
     context = {
         'total_revenue': total_revenue,
         'total_orders': total_orders_count,
         'products_sold': products_sold,
-        'discounts_given': discounts_given,
+        'total_offer_discounts': total_offer_discounts,
+        'coupon_deduction': coupon_deduction,
         'daily_labels': daily_labels,
         'daily_values': daily_values,
         'monthly_labels': monthly_labels,
@@ -607,6 +649,9 @@ def admin_sales_report(request):
         'page_obj': page_obj,
         'start_date': start_date.strftime('%Y-%m-%d'),
         'end_date': end_date.strftime('%Y-%m-%d'),
+        'query': query,
+        'status_filter': status_filter,
+        'period': period,
         # Growth placeholders (as requested)
         'rev_growth': 24.8, 
         'ord_growth': 15.2,
