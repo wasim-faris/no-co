@@ -140,33 +140,11 @@
             </div>
             
             <div class="flex items-center gap-4">
-                <form id="salesReportForm" class="flex items-center gap-3" method="GET" action="{% url 'admin-dashboard' %}">
-                    <div class="flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2 border border-gray-100">
-                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Period:</span>
-                        <select name="filter" class="bg-transparent text-[10px] font-bold uppercase tracking-widest outline-none cursor-pointer" onchange="toggleCustomDates(this.value)">
-                            <option value="daily" {% if filter_type == 'daily' %}selected{% endif %}>Daily</option>
-                            <option value="weekly" {% if filter_type == 'weekly' %}selected{% endif %}>Weekly</option>
-                            <option value="yearly" {% if filter_type == 'yearly' %}selected{% endif %}>Yearly</option>
-                            <option value="custom" {% if filter_type == 'custom' %}selected{% endif %}>Custom Range</option>
-                        </select>
-                    </div>
-                    
-                    <div id="customDates" class="{% if filter_type != 'custom' %}hidden{% endif %} flex items-center gap-2 bg-gray-50 rounded-xl px-4 py-2 border border-gray-100">
-                        <input type="date" name="start_date" value="{{ start_date|default:'' }}" class="bg-transparent text-[10px] font-bold uppercase outline-none">
-                        <span class="text-gray-400">-</span>
-                        <input type="date" name="end_date" value="{{ end_date|default:'' }}" class="bg-transparent text-[10px] font-bold uppercase outline-none">
-                    </div>
-                    
-                    <button type="submit" class="bg-black text-white px-6 py-2.5 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-black/90 transition-all shadow-md shadow-black/5">Apply</button>
-                </form>
-
-                <div class="h-8 w-[1px] bg-gray-100"></div>
-
                 <div class="flex gap-2">
-                    <a href="?{% if filter_type != 'custom' %}filter={{ filter_type }}{% else %}filter=custom&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% endif %}&chart_filter={{ chart_filter }}&download=pdf" class="p-2.5 bg-gray-50 rounded-xl hover:bg-black hover:text-white transition-all group" title="Download PDF">
+                    <a href="?chart_filter={{ chart_filter }}&download=pdf" class="p-2.5 bg-gray-50 rounded-xl hover:bg-black hover:text-white transition-all group" title="Download PDF">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
                     </a>
-                    <a href="?{% if filter_type != 'custom' %}filter={{ filter_type }}{% else %}filter=custom&start_date={{ start_date|default:'' }}&end_date={{ end_date|default:'' }}{% endif %}&chart_filter={{ chart_filter }}&download=excel" class="p-2.5 bg-gray-50 rounded-xl hover:bg-black hover:text-white transition-all group" title="Download Excel">
+                    <a href="?chart_filter={{ chart_filter }}&download=excel" class="p-2.5 bg-gray-50 rounded-xl hover:bg-black hover:text-white transition-all group" title="Download Excel">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     </a>
                 </div>
@@ -182,9 +160,6 @@
                                 <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Visual trend analysis</p>
                             </div>
                             <form method="GET" action="{% url 'admin-dashboard' %}" class="flex bg-gray-50 p-1.5 rounded-xl gap-1 border border-gray-100">
-                                <input type="hidden" name="filter" value="{{ filter_type }}">
-                                <input type="hidden" name="start_date" value="{{ start_date|default:'' }}">
-                                <input type="hidden" name="end_date" value="{{ end_date|default:'' }}">
                                 
                                 <button type="submit" name="chart_filter" value="daily" class="px-4 py-1.5 {% if chart_filter == 'daily' %}bg-black text-white{% else %}text-gray-400 hover:text-black{% endif %} text-[10px] font-bold rounded-lg transition-all">Daily</button>
                                 <button type="submit" name="chart_filter" value="monthly" class="px-4 py-1.5 {% if chart_filter == 'monthly' or not chart_filter %}bg-black text-white{% else %}text-gray-400 hover:text-black{% endif %} text-[10px] font-bold rounded-lg transition-all">Monthly</button>

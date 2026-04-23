@@ -74,9 +74,6 @@ def admin_dashboard(request):
     from django.template.loader import get_template
     from io import BytesIO
 
-    filter_type = request.GET.get('filter', 'daily')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
     chart_filter = request.GET.get('chart_filter', 'monthly')
     download_format = request.GET.get('download')
 
@@ -89,23 +86,8 @@ def admin_dashboard(request):
     ).values('id')
 
     valid_orders = Order.objects.filter(id__in=valid_order_ids)
-
-    if filter_type == 'daily':
-        start = now - datetime.timedelta(days=7)
-        orders = valid_orders.filter(created_at__gte=start)
-    elif filter_type == 'weekly':
-        start = now - datetime.timedelta(weeks=12)
-        orders = valid_orders.filter(created_at__gte=start)
-    elif filter_type == 'yearly':
-        start = now.replace(year=now.year - 5)
-        orders = valid_orders.filter(created_at__gte=start)
-    elif filter_type == 'custom' and start_date and end_date:
-        s_date = datetime.datetime.strptime(start_date, '%Y-%m-%d').date()
-        e_date = datetime.datetime.strptime(end_date, '%Y-%m-%d').date()
-        orders = valid_orders.filter(created_at__range=(s_date, e_date + datetime.timedelta(days=1)))
-    else: 
-        start = now - datetime.timedelta(days=30)
-        orders = valid_orders.filter(created_at__gte=start)
+    
+    orders = valid_orders
 
     metrics = orders.aggregate(
         total_orders=Count('id', distinct=True),
@@ -220,10 +202,7 @@ def admin_dashboard(request):
         'total_discount': total_discount,
         'labels': labels,
         'data': data,
-        'filter_type': filter_type,
         'chart_filter': chart_filter,
-        'start_date': start_date,
-        'end_date': end_date,
         'top_products': top_products,
         'top_categories': top_categories,
         'top_subcategories': top_subcategories,
