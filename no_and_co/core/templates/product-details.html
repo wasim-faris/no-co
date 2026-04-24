@@ -189,15 +189,17 @@
         letter-spacing: .04em;
     }
     .size-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        display: flex;
+        flex-wrap: wrap;
         border-top: 1px solid #dcdcdc;
         border-left: 1px solid #dcdcdc;
         margin-bottom: 16px;
-        width: 100%;
+        width: fit-content;
+        max-width: 100%;
     }
     .size-box {
         height: 56px;
+        width: 105px;
         border-right: 1px solid #dcdcdc;
         border-bottom: 1px solid #dcdcdc;
         display: flex;
