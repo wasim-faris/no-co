@@ -185,7 +185,7 @@
         </main>
     </div>
 
-    <div id="toast-wrapper" class="fixed top-8 right-8 z-[100] flex flex-col gap-3"></div>
+
 
 <div id="addCategoryModal" class="fixed inset-0 z-50 flex items-center justify-center p-6 hidden">
     <div class="absolute inset-0 bg-black/60 backdrop-blur-md" onclick="closeModal('addCategoryModal')"></div>
@@ -313,28 +313,7 @@
 
 {% block extra_scripts %}
 <script>
-    function showToast(message, status = 'success') {
-        const wrapper = document.getElementById('toast-wrapper');
-        const toast = document.createElement('div');
-        const statusColor = status === 'success' ? 'bg-noco-text' : 'bg-red-500';
-        toast.className = `toast-entry flex items-center justify-between bg-white border border-gray-100 shadow-[0_8px_20px_rgba(0,0,0,0.06)] rounded-lg min-w-[320px] overflow-hidden`;
-        toast.innerHTML = `
-            <div class="flex items-center gap-4 p-4 pr-6">
-                <div class="w-1 h-6 ${statusColor} rounded-full"></div>
-                <p class="text-noco-text text-[13px] font-medium tracking-tight">${message}</p>
-            </div>
-            <button onclick="this.parentElement.remove()" class="p-4 text-gray-300 hover:text-noco-text transition-colors">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"></path></svg>
-            </button>
-        `;
-        wrapper.appendChild(toast);
-        setTimeout(() => {
-            toast.style.opacity = '0';
-            toast.style.transform = 'translateX(20px)';
-            toast.style.transition = 'all 0.4s ease';
-            setTimeout(() => toast.remove(), 400);
-        }, 4000);
-    }
+
 
     function openModal(modalId) {
         document.getElementById(modalId).classList.remove('hidden');
@@ -435,19 +414,7 @@
             doSearch(searchInput.value.trim());
         });
     })();
-      document.addEventListener('DOMContentLoaded', function() {
-            const toasts = document.querySelectorAll('.toast-item');
-            toasts.forEach((toast, index) => {
-                setTimeout(() => {
-                    toast.classList.remove('translate-x-full');
-                }, 100 * (index + 1));
-
-                setTimeout(() => {
-                    toast.classList.add('opacity-0');
-                    setTimeout(() => toast.remove(), 500);
-                }, 5000);
-            });
-        });
+      // Toast animation - removed duplicate, handled by base.html
 
         const categoryPermanentDeleteModal = document.getElementById("categoryPermanentDeleteModal");
 

@@ -346,14 +346,7 @@
 
 
 
-            // Toast Auto-Dismiss
-            setTimeout(() => {
-                const toasts = document.querySelectorAll('.toast-item');
-                toasts.forEach(t => {
-                    t.classList.add('fade-out');
-                    setTimeout(() => t.remove(), 500);
-                });
-            }, 3000);
+            // Toast animation - removed duplicate, handled by base.html
         });
     </script>
 {% endblock %}

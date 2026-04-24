@@ -75,21 +75,50 @@ def admin_dashboard(request):
     from io import BytesIO
 
     chart_filter = request.GET.get('chart_filter', 'monthly')
+    start_date_str = request.GET.get('start_date')
+    end_date_str = request.GET.get('end_date')
     download_format = request.GET.get('download')
 
     now = timezone.now()
+    today = now.date()
 
-    # Use subquery to avoid JOIN duplication during aggregation
+    is_custom = request.GET.get('is_custom') == 'true'
+
+    # Handle custom date range
+    if is_custom and start_date_str and end_date_str:
+        try:
+            start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
+            end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d').date()
+            if start_date > end_date:
+                start_date, end_date = end_date, start_date
+        except ValueError:
+            is_custom = False
+    
+    if not is_custom:
+        # Default ranges based on chart_filter
+        if chart_filter == 'yearly':
+            start_date = today.replace(year=today.year - 5, month=1, day=1)
+            end_date = today
+        elif chart_filter == 'daily':
+            start_date = today - datetime.timedelta(days=30)
+            end_date = today
+        else: # monthly
+            chart_filter = 'monthly'
+            start_date = today - datetime.timedelta(days=365)
+            end_date = today
+
+    # Base Query for Valid Orders (only completed/delivered/paid)
     valid_order_ids = Order.objects.filter(
         Q(payment_status='PAID') |
         Q(payment_method='COD', items__item_status='DELIVERED')
     ).values('id')
 
     valid_orders = Order.objects.filter(id__in=valid_order_ids)
+    
+    # Filter by date range
+    filtered_orders = valid_orders.filter(created_at__date__range=[start_date, end_date])
 
-    orders = valid_orders
-
-    metrics = orders.aggregate(
+    metrics = filtered_orders.aggregate(
         total_orders=Count('id', distinct=True),
         total_coupon=Sum('discount_amount'),
         net_revenue=Sum('total_amount'),
@@ -100,56 +129,60 @@ def admin_dashboard(request):
     total_coupon = metrics['total_coupon'] or Decimal('0.00')
     net_revenue = metrics['net_revenue'] or Decimal('0.00')
     total_sales = metrics['total_sales'] or Decimal('0.00')
-    # Use simple deduction of subtotal to net_revenue if we need to show total_discount without item-level details
-    # Though tax might be included in total, we can approximate discount for dashboard UI keeping it revenue focused
     total_discount = max(total_sales - net_revenue - total_coupon, Decimal('0.00'))
 
-    chart_orders = valid_orders
-
+    # Chart Data
     if chart_filter == 'yearly':
         trunc_func = TruncYear('created_at')
-        chart_orders = chart_orders.filter(created_at__gte=now.replace(year=now.year - 5))
     elif chart_filter == 'daily':
         trunc_func = TruncDate('created_at')
-        chart_orders = chart_orders.filter(created_at__gte=now - datetime.timedelta(days=30))
     else:
         chart_filter = 'monthly'
         trunc_func = TruncMonth('created_at')
-        chart_orders = chart_orders.filter(created_at__gte=now - datetime.timedelta(days=365))
 
-    graph_data = chart_orders.annotate(date=trunc_func).values('date').annotate(
+    graph_data = filtered_orders.annotate(date=trunc_func).values('date').annotate(
         sales=Sum('total_amount')
     ).order_by('date')
 
-    # Fill in missing dates for smooth chart rendering
+    # Fill in missing points for chart
     labels = []
     data = []
+    graph_json = []
+    
     if chart_filter == 'yearly':
-        sales_dict = {item['date'].strftime('%Y'): float(item['sales']) for item in graph_data if item['date']}
-        start_year = now.year - 5
-        for y in range(start_year, now.year + 1):
+        sales_dict = {item['date'].year: float(item['sales']) for item in graph_data if item['date']}
+        for y in range(start_date.year, end_date.year + 1):
             lbl = str(y)
+            rev = float(sales_dict.get(y, 0.0))
             labels.append(lbl)
-            data.append(sales_dict.get(lbl, 0.0))
+            data.append(rev)
+            graph_json.append({"label": lbl, "revenue": rev})
+            
     elif chart_filter == 'daily':
-        sales_dict = {item['date'].strftime('%d %b'): float(item['sales']) for item in graph_data if item['date']}
-        start_date_chart = (now - datetime.timedelta(days=30)).date()
-        for i in range(31):
-            d = start_date_chart + datetime.timedelta(days=i)
-            lbl = d.strftime('%d %b')
+        sales_dict = {item['date'].strftime('%Y-%m-%d'): float(item['sales']) for item in graph_data if item['date']}
+        curr = start_date
+        while curr <= end_date:
+            lbl = curr.strftime('%d %b')
+            rev = float(sales_dict.get(curr.strftime('%Y-%m-%d'), 0.0))
             labels.append(lbl)
-            data.append(sales_dict.get(lbl, 0.0))
-    else:
-        sales_dict = {item['date'].strftime('%b %Y'): float(item['sales']) for item in graph_data if item['date']}
-        for i in range(11, -1, -1):
-            m = now.month - i
-            y = now.year
-            while m <= 0:
-                m += 12
-                y -= 1
-            lbl = datetime.date(y, m, 1).strftime('%b %Y')
+            data.append(rev)
+            graph_json.append({"label": lbl, "revenue": rev})
+            curr += datetime.timedelta(days=1)
+            
+    else: # monthly
+        sales_dict = {item['date'].strftime('%Y-%m'): float(item['sales']) for item in graph_data if item['date']}
+        curr = start_date.replace(day=1)
+        while curr <= end_date:
+            lbl = curr.strftime('%b %Y')
+            rev = float(sales_dict.get(curr.strftime('%Y-%m'), 0.0))
             labels.append(lbl)
-            data.append(sales_dict.get(lbl, 0.0))
+            data.append(rev)
+            graph_json.append({"label": lbl, "revenue": rev})
+            # Move to next month
+            if curr.month == 12:
+                curr = curr.replace(year=curr.year + 1, month=1)
+            else:
+                curr = curr.replace(month=curr.month + 1)
 
     valid_revenue_items = OrderItem.objects.filter(
         order__in=valid_orders
@@ -196,16 +229,20 @@ def admin_dashboard(request):
 
     context = {
         'total_orders': total_orders,
+        'is_custom': is_custom,
         'total_coupon': total_coupon,
         'net_revenue': net_revenue,
         'total_sales': total_sales,
         'total_discount': total_discount,
         'labels': labels,
         'data': data,
+        'graph_json': graph_json,
         'chart_filter': chart_filter,
         'top_products': top_products,
         'top_categories': top_categories,
         'top_subcategories': top_subcategories,
+        'start_date': start_date.strftime('%Y-%m-%d'),
+        'end_date': end_date.strftime('%Y-%m-%d'),
     }
 
     if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.GET.get('ajax'):

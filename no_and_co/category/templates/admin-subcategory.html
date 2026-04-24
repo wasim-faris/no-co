@@ -403,19 +403,7 @@
             slugInput.value = e.target.value.toLowerCase().split(' ').join('-');
         });
 
-              document.addEventListener('DOMContentLoaded', function() {
-            const toasts = document.querySelectorAll('.toast-item');
-            toasts.forEach((toast, index) => {
-                setTimeout(() => {
-                    toast.classList.remove('translate-x-full');
-                }, 100 * (index + 1));
-
-                setTimeout(() => {
-                    toast.classList.add('opacity-0');
-                    setTimeout(() => toast.remove(), 500);
-                }, 5000);
-            });
-        });
+      // Toast animation - removed duplicate, handled by base.html
 
         // Delete Modal Controls
         function openDeleteModal(id, name) {
@@ -425,13 +413,7 @@
         }
         function closeDeleteModal() { deleteModal.classList.add('modal-hidden'); }
 
-        // Toast Auto-hide
-        document.addEventListener('DOMContentLoaded', () => {
-            const toasts = document.querySelectorAll('.toast-item');
-            toasts.forEach((toast, i) => {
-                setTimeout(() => toast.remove(), 4000 + (i * 500));
-            });
-        });
+
 
         // Close on outside click
        window.onclick = (e) => {
