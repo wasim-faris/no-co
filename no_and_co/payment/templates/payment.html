@@ -575,12 +575,8 @@
                 var rzp = new Razorpay(razorpayOptions);
 
                 rzp.on('payment.failed', function (response) {
-                    var errMsg = (response.error && response.error.description)
-                        ? response.error.description
-                        : 'Payment failed. Please try again.';
-                    showPaymentToast(errMsg, 'error');
-
                     var rzpOrderId = (response.error && response.error.metadata && response.error.metadata.order_id) ? response.error.metadata.order_id : '{{ order_id }}';
+                    
                     fetch('/verify-payment/', {
                         method: 'POST',
                         headers: {
@@ -591,10 +587,9 @@
                             action: 'payment_failed',
                             razorpay_order_id: rzpOrderId
                         })
-                    }).catch(function(err) { console.error('Error reporting failure:', err); });
-
-                    _paymentStarted = false;
-                    resetPayBtn();
+                    }).finally(function() {
+                        window.location.href = "{% url 'order-failed' order.id %}";
+                    });
                 });
 
                 rzp.open();

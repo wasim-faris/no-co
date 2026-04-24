@@ -932,3 +932,7 @@ def remove_coupon(request):
         request.session.pop("discount", None)
         return JsonResponse({"success": True})
     return JsonResponse({"success": False})
+
+def order_failed(request, order_id):
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    return render(request, "order_failed.html", {"order": order})

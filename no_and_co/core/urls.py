@@ -20,4 +20,5 @@ urlpatterns = [
     path("remove-coupon/", views.remove_coupon, name="remove-coupon"),
     path("return-order/<int:order_id>/", views.return_order, name="return-order"),
     path("payment-success/<int:order_id>/", views.payment_success, name="payment-success"),
+    path("order-failed/<int:order_id>/", views.order_failed, name="order-failed"),
 ]
