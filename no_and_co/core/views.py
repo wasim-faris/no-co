@@ -54,7 +54,7 @@ def home(request):
                 to_attr="primary_images",
             )
         )
-        .order_by("-created_at")[:6]
+        .order_by("-created_at")[:12]
     )
 
     search_history = request.session.get("search_history", [])
