@@ -211,6 +211,25 @@ body{font-family:'Inter',sans-serif}
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Referral Section -->
+                            <div class="mt-4">
+                                <a href="javascript:void(0)" id="toggleReferral" class="text-[10px] text-gray-400 uppercase tracking-widest hover:text-black transition-colors underline-offset-4">
+                                    Have a referral code?
+                                </a>
+                                <div id="referralContainer" class="hidden overflow-hidden transition-all duration-300 max-h-0 mt-3">
+                                    <div class="group">
+                                        <label class="flex items-center text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1">
+                                            Referral Code
+                                            <span class="info-icon-wrapper" data-tippy-content="Enter a valid referral code to earn ₹40">
+                                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                            </span>
+                                        </label>
+                                        <input type="text" name="referral_code" id="referral_input" placeholder="Enter referral code" class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none uppercase">
+                                        <p id="referralStatus" class="text-[9px] font-bold mt-1 uppercase tracking-widest hidden"></p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <button type="submit" id="submitBtn" class="w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center hover:bg-[#333] transition-all">
@@ -281,6 +300,54 @@ document.addEventListener('DOMContentLoaded', () => {
             messages.forEach(msg => showToast(msg.message, msg.tags));
         } catch (e) {}
     }
+
+    // Referral Toggle
+    const toggleReferral = document.getElementById('toggleReferral');
+    const referralContainer = document.getElementById('referralContainer');
+    const referralInput = document.getElementById('referral_input');
+    const referralStatus = document.getElementById('referralStatus');
+
+    toggleReferral.addEventListener('click', () => {
+        if (referralContainer.classList.contains('hidden')) {
+            referralContainer.classList.remove('hidden');
+            setTimeout(() => {
+                referralContainer.style.maxHeight = '100px';
+            }, 10);
+        } else {
+            referralContainer.style.maxHeight = '0';
+            setTimeout(() => {
+                referralContainer.classList.add('hidden');
+            }, 300);
+        }
+    });
+
+    // Referral Validation
+    let debounceTimerReferral;
+    referralInput.addEventListener('input', () => {
+        clearTimeout(debounceTimerReferral);
+        const code = referralInput.value.trim();
+        
+        if (!code) {
+            referralStatus.classList.add('hidden');
+            return;
+        }
+
+        debounceTimerReferral = setTimeout(() => {
+            fetch(`/validate-referral-code/?code=${code}`)
+                .then(response => response.json())
+                .then(data => {
+                    referralStatus.classList.remove('hidden');
+                    referralStatus.textContent = data.message;
+                    if (data.valid) {
+                        referralStatus.classList.remove('text-red-500');
+                        referralStatus.classList.add('text-green-600');
+                    } else {
+                        referralStatus.classList.remove('text-green-600');
+                        referralStatus.classList.add('text-red-500');
+                    }
+                });
+        }, 500);
+    });
 });
 
 const signupForm = document.getElementById('signupForm');

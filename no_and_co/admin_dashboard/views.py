@@ -861,6 +861,10 @@ def admin_user_details(request, id):
     from django.shortcuts import get_object_or_404
 
     target_user = get_object_or_404(User, id=id)
+    
+    # Ensure user has a referral code
+    if not target_user.referral_code:
+        target_user.save()
 
     # User stats
     user_orders = Order.objects.filter(user=target_user).order_by('-created_at')
@@ -877,12 +881,65 @@ def admin_user_details(request, id):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    from accounts.models import ReferralRecord
+    from wallet.models import Wallet
+    
+    wallet, _ = Wallet.objects.get_or_create(user=target_user)
+    referrals_made = ReferralRecord.objects.filter(referrer=target_user).order_by('-created_at')
+
     context = {
         'target_user': target_user,
         'total_orders': total_orders,
         'total_spent': total_spent,
         'default_address': default_address,
         'page_obj': page_obj,
+        'wallet': wallet,
+        'referrals_made': referrals_made,
     }
 
     return render(request, "admin-user-details.html", context)
+
+
+@admin_required
+@never_cache
+def admin_adjust_wallet(request, id):
+    if request.method == "POST":
+        from accounts.models import User
+        from wallet.models import Wallet, WalletTransaction
+        from decimal import Decimal
+        
+        target_user = get_object_or_404(User, id=id)
+        amount = Decimal(request.POST.get('amount', '0'))
+        action = request.POST.get('action') # 'ADD' or 'DEDUCT'
+        description = request.POST.get('description', 'Manual adjustment by admin')
+        
+        if amount <= 0:
+            messages.error(request, "Amount must be greater than zero")
+            return redirect("admin-user-details", id=id)
+            
+        wallet, _ = Wallet.objects.get_or_create(user=target_user)
+        
+        if action == 'ADD':
+            wallet.balance += amount
+            transaction_type = 'CREDIT'
+        else:
+            if wallet.balance < amount:
+                messages.error(request, "Insufficient wallet balance for deduction")
+                return redirect("admin-user-details", id=id)
+            wallet.balance -= amount
+            transaction_type = 'DEBIT'
+            
+        wallet.save()
+        
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            amount=amount,
+            transaction_type=transaction_type,
+            payment_status='SUCCESS',
+            description=description
+        )
+        
+        messages.success(request, f"Wallet balance updated for {target_user.username}")
+        return redirect("admin-user-details", id=id)
+    
+    return redirect("admin-user-management")

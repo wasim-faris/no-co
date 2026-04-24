@@ -48,10 +48,15 @@ def admin_returns(request):
         "status_filter": status_filter
     })
 
+@admin_required
 def approve_return(request):
     if request.method == "POST":
         return_request_id = request.POST.get("return_request_id")
         return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        if return_request.status != "REQUESTED":
+            messages.error(request, "Invalid status transition.")
+            return redirect("admin-returns")
 
         with transaction.atomic():
             return_request.status = "APPROVED"
@@ -71,10 +76,15 @@ def approve_return(request):
         messages.success(request, "Return request approved successfully.")
     return redirect("admin-returns")
 
+@admin_required
 def reject_return(request):
     if request.method == "POST":
         return_request_id = request.POST.get("return_request_id")
         return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        if return_request.status != "REQUESTED":
+            messages.error(request, "Only newly requested returns can be rejected.")
+            return redirect("admin-returns")
 
         with transaction.atomic():
             return_request.status = "REJECTED"
@@ -93,10 +103,15 @@ def reject_return(request):
         messages.error(request, "Return request rejected.")
     return redirect("admin-returns")
 
+@admin_required
 def pickup_return(request):
     if request.method == "POST":
         return_request_id = request.POST.get("return_request_id")
         return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        if return_request.status != "PICKUP_SCHEDULED":
+            messages.error(request, "Pickup can only be marked after it is scheduled.")
+            return redirect("admin-returns")
 
         with transaction.atomic():
             return_request.status = "PICKED_UP"
@@ -115,10 +130,15 @@ def pickup_return(request):
         messages.success(request, "Item marked as picked up.")
     return redirect("admin-returns")
 
+@admin_required
 def schedule_pickup(request):
     if request.method == "POST":
         return_request_id = request.POST.get("return_request_id")
         return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        if return_request.status != "APPROVED":
+            messages.error(request, "Pickup can only be scheduled for approved returns.")
+            return redirect("admin-returns")
 
         with transaction.atomic():
             return_request.status = "PICKUP_SCHEDULED"
@@ -136,10 +156,15 @@ def schedule_pickup(request):
         messages.success(request, "Pickup scheduled for the return.")
     return redirect("admin-returns")
 
+@admin_required
 def receive_return(request):
     if request.method == "POST":
         return_request_id = request.POST.get("return_request_id")
         return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        if return_request.status != "PICKED_UP":
+            messages.error(request, "Item must be picked up before it can be received.")
+            return redirect("admin-returns")
 
         with transaction.atomic():
             return_request.status = "RECEIVED"
@@ -157,10 +182,15 @@ def receive_return(request):
         messages.success(request, "Item marked as received.")
     return redirect("admin-returns")
 
+@admin_required
 def inspect_return(request):
     if request.method == "POST":
         return_request_id = request.POST.get("return_request_id")
         return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        if return_request.status != "RECEIVED":
+            messages.error(request, "Item must be received before it can be inspected.")
+            return redirect("admin-returns")
 
         with transaction.atomic():
             return_request.status = "INSPECTED"
@@ -178,10 +208,15 @@ def inspect_return(request):
         messages.success(request, "Item marked as inspected.")
     return redirect("admin-returns")
 
+@admin_required
 def initiate_refund(request):
     if request.method == "POST":
         return_request_id = request.POST.get("return_request_id")
         return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        if return_request.status != "INSPECTED":
+            messages.error(request, "Refund can only be initiated after inspection.")
+            return redirect("admin-returns")
 
         with transaction.atomic():
             return_request.status = "REFUND_INITIATED"
@@ -201,10 +236,15 @@ def initiate_refund(request):
         messages.success(request, "Refund initiated successfully.")
     return redirect("admin-returns")
 
+@admin_required
 def complete_refund(request):
     if request.method == "POST":
         return_request_id = request.POST.get("return_request_id")
         return_request = get_object_or_404(ReturnRequest, id=return_request_id)
+
+        if return_request.status != "REFUND_INITIATED":
+            messages.error(request, "Refund must be initiated before it can be completed.")
+            return redirect("admin-returns")
 
         with transaction.atomic():
             return_request.status = "REFUNDED"
@@ -217,9 +257,7 @@ def complete_refund(request):
             order_item.save()
 
             variant = order_item.variant
-            print(variant.stock)
             variant.stock += order_item.quantity
-            print(variant.stock)
             variant.save()
 
 
@@ -229,11 +267,11 @@ def complete_refund(request):
             )
 
             user = return_request.order.user
-            amount = order_item.order.total_amount
+            # Refund the final price paid for the item (calculated during order placement)
+            amount = order_item.final_price * order_item.quantity 
             wallet , created = Wallet.objects.get_or_create(user=user)
 
             wallet.balance = Decimal(wallet.balance) + Decimal(amount)
-            print(type(wallet.balance), type(amount))
             wallet.save()
 
             WalletTransaction.objects.create(

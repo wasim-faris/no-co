@@ -1269,6 +1269,63 @@
             <div class="left-col">
                 <section>
                     <div class="section-head">
+                        <span class="label">Referral & Rewards</span>
+                    </div>
+                    <div class="module skeleton-target">
+                        <div class="module-body">
+                            <div style="display:flex; gap: 48px; flex-wrap: wrap;">
+                                <!-- Code Section -->
+                                <div style="flex: 1; min-width: 280px;">
+                                    <p class="micro" style="color: var(--ink-soft); margin-bottom: 12px;">Your Referral Code</p>
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <div style="background: var(--ink-ghost); padding: 16px 24px; border: 1px dashed var(--ink-soft); font-family: monospace; font-size: 18px; letter-spacing: 0.2em; color: var(--ink);">
+                                            {{ user.referral_code }}
+                                        </div>
+                                        <button onclick="copyReferralCode('{{ user.referral_code }}', this)" class="btn btn-outline" style="padding: 16px 20px;">
+                                            Copy
+                                        </button>
+                                    </div>
+                                    <p class="progress-sub" style="margin-top: 16px; line-height: 1.6;">
+                                        Share this code with your friends. They get <span style="color: var(--ink); font-weight: 600;">₹40</span> on signup, and you get <span style="color: var(--ink); font-weight: 600;">₹100</span> when they join.
+                                    </p>
+                                </div>
+
+                                <!-- Stats Section -->
+                                <div style="width: 200px; display: flex; flex-direction: column; gap: 24px; border-left: var(--border); padding-left: 48px;">
+                                    <div>
+                                        <p class="micro" style="color: var(--ink-soft); margin-bottom: 4px;">Total Referrals</p>
+                                        <p style="font-size: 28px; font-weight: 300; font-family: inherit;">{{ total_referrals }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="micro" style="color: var(--ink-soft); margin-bottom: 4px;">Rewards Earned</p>
+                                        <p style="font-size: 28px; font-weight: 300; font-family: inherit;">₹{{ total_rewards }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- History Section -->
+                            {% if referrals %}
+                            <div style="margin-top: 48px; pt-48px; border-top: var(--border); padding-top: 32px;">
+                                <p class="micro" style="color: var(--ink-soft); margin-bottom: 24px;">Recent Referrals</p>
+                                <div style="display: flex; flex-direction: column; gap: 16px;">
+                                    {% for ref in referrals %}
+                                    <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--ink-ghost);">
+                                        <div>
+                                            <p style="font-size: 11px; font-weight: 500; color: var(--ink);">{{ ref.referred_user.username|slice:":3" }}***{{ ref.referred_user.username|slice:"-2:" }}</p>
+                                            <p style="font-size: 9px; color: var(--ink-soft); margin-top: 2px;">{{ ref.created_at|date:"M d, Y" }}</p>
+                                        </div>
+                                        <p style="font-size: 11px; font-weight: 600; color: #2F8D46;">+₹{{ ref.reward_amount_referrer }}</p>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </section>
+
+                <section style="margin-top: 48px;">
+                    <div class="section-head">
                         <span class="label">Recent Purchase</span>
                         <a href="#" class="btn-text">Archive (12)</a>
                     </div>
@@ -1333,7 +1390,7 @@
                 <div class="wallet-module skeleton-target">
                     <p class="wallet-label">Wallet</p>
                     <p class="wallet-balance-label">Balance</p>
-                    <p class="wallet-amount">£120.00</p>
+                    <p class="wallet-amount">₹{{ wallet_balance }}</p>
                     <a href="#" class="wallet-link">View Transactions →</a>
                     <button class="wallet-manage">Manage Wallet</button>
                 </div>
@@ -1652,6 +1709,21 @@ function showToast(message, type) {
             setTimeout(function() { toast.remove(); }, 400);
         }
     }, 4000);
+}
+
+/* ── Copy Referral Code ── */
+function copyReferralCode(code, btn) {
+    navigator.clipboard.writeText(code).then(function() {
+        var originalText = btn.textContent;
+        btn.textContent = 'Copied ✓';
+        btn.classList.add('btn-dark');
+        btn.classList.remove('btn-outline');
+        setTimeout(function() {
+            btn.textContent = originalText;
+            btn.classList.remove('btn-dark');
+            btn.classList.add('btn-outline');
+        }, 2000);
+    });
 }
 </script>
 

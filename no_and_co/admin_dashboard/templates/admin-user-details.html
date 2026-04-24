@@ -40,6 +40,49 @@
             <svg class="w-3 h-3 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
             Back to Users
         </a>
+        </div>
+    </div>
+
+    <!-- Wallet Adjustment Modal -->
+    <div id="wallet-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 hidden opacity-0 transition-opacity duration-300">
+        <div id="wallet-card" class="bg-white rounded-custom w-full max-w-md p-8 shadow-2xl transform scale-95 opacity-0 transition-all duration-300">
+            <h3 class="text-2xl font-serif text-center text-gray-900 mb-2 tracking-tight">Adjust Wallet</h3>
+            <p class="text-[11px] text-gray-400 text-center mb-8 uppercase tracking-widest font-bold leading-relaxed">Update balance for {{ target_user.username }}</p>
+            
+            <form action="{% url 'admin-user-wallet-adjust' target_user.id %}" method="POST" class="space-y-6">
+                {% csrf_token %}
+                <div class="space-y-4">
+                    <div class="flex gap-4">
+                        <label class="flex-1 cursor-pointer group">
+                            <input type="radio" name="action" value="ADD" checked class="hidden peer">
+                            <div class="py-3 text-center rounded-xl border border-gray-100 text-[10px] font-bold uppercase tracking-widest text-gray-400 peer-checked:bg-green-50 peer-checked:text-green-600 peer-checked:border-green-100 transition-all">Add Funds</div>
+                        </label>
+                        <label class="flex-1 cursor-pointer group">
+                            <input type="radio" name="action" value="DEDUCT" class="hidden peer">
+                            <div class="py-3 text-center rounded-xl border border-gray-100 text-[10px] font-bold uppercase tracking-widest text-gray-400 peer-checked:bg-red-50 peer-checked:text-red-500 peer-checked:border-red-100 transition-all">Deduct Funds</div>
+                        </label>
+                    </div>
+                    
+                    <div class="group">
+                        <label class="text-[9px] font-bold uppercase text-gray-400 tracking-widest mb-1 block">Amount (₹)</label>
+                        <input type="number" name="amount" step="0.01" required placeholder="0.00" class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-black transition-all">
+                    </div>
+
+                    <div class="group">
+                        <label class="text-[9px] font-bold uppercase text-gray-400 tracking-widest mb-1 block">Reason / Description</label>
+                        <textarea name="description" rows="2" placeholder="Explain the adjustment..." class="w-full bg-gray-50 border-none rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-black transition-all"></textarea>
+                    </div>
+                </div>
+                
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="closeWalletModal()" class="flex-1 px-6 py-3 rounded-xl border border-gray-100 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:bg-gray-50 transition-colors">
+                        Cancel
+                </button>
+                <button type="submit" class="flex-1 px-6 py-3 rounded-xl bg-black text-white text-[10px] font-bold uppercase tracking-widest hover:bg-gray-800 transition-colors shadow-lg shadow-black/20">
+                    Update Balance
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -117,6 +160,49 @@
                 </div>
             </div>
             {% endif %}
+
+            <!-- Wallet & Referral -->
+            <div class="bg-white p-8 rounded-custom border border-white shadow-sm space-y-8">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-[11px] uppercase font-bold text-gray-900 tracking-widest">Wallet & Referral</h3>
+                    <button onclick="openWalletModal()" class="text-[9px] uppercase font-bold text-gray-400 hover:text-black tracking-widest transition-colors">Adjust Balance</button>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col">
+                        <span class="text-[9px] uppercase font-bold text-gray-400 tracking-widest mb-1">Wallet Balance</span>
+                        <span class="text-xl font-serif text-gray-900">₹{{ wallet.balance|floatformat:2 }}</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <span class="text-[9px] uppercase font-bold text-gray-400 tracking-widest mb-1">Referral Code</span>
+                        <span class="text-sm font-mono font-bold text-gray-900">{{ target_user.referral_code }}</span>
+                    </div>
+                </div>
+
+                <div class="pt-6 border-t border-gray-50">
+                    <span class="text-[9px] uppercase font-bold text-gray-400 tracking-widest mb-4 block">Referral History</span>
+                    {% if referrals_made %}
+                    <div class="space-y-4 max-h-[200px] overflow-y-auto hide-scrollbar">
+                        {% for ref in referrals_made %}
+                        <div class="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-[10px] font-bold text-gray-400">
+                                    {{ ref.referred_user.username|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-gray-900">{{ ref.referred_user.username }}</p>
+                                    <p class="text-[10px] text-gray-400">{{ ref.created_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-green-600">+₹{{ ref.reward_amount_referrer }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-[10px] text-gray-300 italic">No referrals made yet.</p>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
         <!-- Right Column: Stats and Orders -->
@@ -268,6 +354,29 @@
     document.getElementById('confirm-modal').addEventListener('click', function(e) {
         if (e.target === this) closeModal();
     });
+
+    // Wallet Modal
+    function openWalletModal() {
+        const modal = document.getElementById('wallet-modal');
+        const card = document.getElementById('wallet-card');
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modal.classList.add('opacity-100');
+            card.classList.remove('scale-95', 'opacity-0');
+            card.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeWalletModal() {
+        const modal = document.getElementById('wallet-modal');
+        const card = document.getElementById('wallet-card');
+        card.classList.remove('scale-100', 'opacity-100');
+        card.classList.add('scale-95', 'opacity-0');
+        modal.classList.remove('opacity-100');
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
 
     document.addEventListener('DOMContentLoaded', function() {
         const toasts = document.querySelectorAll('.toast-item');

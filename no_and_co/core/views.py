@@ -569,6 +569,7 @@ def place_order(request):
                         original_price=item.variant.price, # Base MSRP
                         discount_amount=item_coupon_discount,
                         final_price=item_final_price_per_unit,
+                        price=item_final_price_per_unit,
                         quantity=item.quantity,
                     )
 

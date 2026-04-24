@@ -13,5 +13,6 @@ urlpatterns = [
     path("reset-link/<uuid:uuid>/", views.reset_link , name="reset-link"),
     path('reset-password/<uuid:uuid>/', views.reset_password , name='reset-password'),
     path("not-found/", views.not_found , name='not-found'),
-    path("change-password/", views.change_password, name="change-password")
+    path("change-password/", views.change_password, name="change-password"),
+    path("validate-referral-code/", views.validate_referral_code, name="validate-referral-code"),
 ]

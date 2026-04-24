@@ -157,6 +157,12 @@ class OrderItem(models.Model):
         help_text="Price after applying proportional discount"
     )
 
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Direct purchase price (synced with final_price)"
+    )
+
     quantity = models.PositiveIntegerField()
 
     item_status = models.CharField(
@@ -308,7 +314,6 @@ class ReturnRequest(models.Model):
         null=True
     )
 
-    admin_remarks = models.TextField(blank=True, null=True)
 
 
     requested_at = models.DateTimeField(auto_now_add=True)

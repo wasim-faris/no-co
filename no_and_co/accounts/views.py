@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 import re
@@ -7,7 +8,7 @@ import random
 import time
 from django.views.decorators.cache import never_cache
 from django.contrib.auth import login, logout, authenticate
-from .models import PasswordResetToken
+from .models import PasswordResetToken, ReferralRecord
 import uuid
 from django.shortcuts import get_object_or_404
 from datetime import timedelta
@@ -87,10 +88,13 @@ def signup(request):
                 messages.error(request, "Full Name Already Exists")
                 return redirect("signup")
 
+            referral_code = request.POST.get("referral_code", "").strip().upper()
+
             request.session["signup_values"] = {
                 "username": username,
                 "email": email,
                 "password": password,
+                "referral_code": referral_code
             }
 
             otp = random.randint(100000, 999999)
@@ -223,10 +227,31 @@ def signup_otp_verification(request):
             username = signup_data["username"]
             email = signup_data["email"]
             password = signup_data["password"]
+            referral_code_used = signup_data.get("referral_code")
 
             user = User.objects.create_user(
                 username=username, email=email, password=password
             )
+            
+            # Handle Referral
+            if referral_code_used:
+                try:
+                    referrer = User.objects.get(referral_code=referral_code_used)
+                    if referrer != user:
+                        # Set referred_by on user record
+                        user.referred_by = referrer
+                        user.save()
+
+                        # Create Referral Record (Rewards will be paid on first delivered order)
+                        ReferralRecord.objects.create(
+                            referrer=referrer,
+                            referred_user=user,
+                            reward_amount_referrer=Decimal('100.00'),
+                            reward_amount_referred=Decimal('40.00'),
+                            reward_paid=False
+                        )
+                except User.DoesNotExist:
+                    pass
 
             old_session_key = request.session.session_key
 
@@ -490,3 +515,24 @@ def change_password(request):
         return redirect("login")
 
     return render(request, "accounts/change_password.html")
+
+from django.http import JsonResponse
+
+def validate_referral_code(request):
+    code = request.GET.get('code', '').strip().upper()
+    if not code:
+        return JsonResponse({'valid': False, 'message': ''})
+    
+    try:
+        referrer = User.objects.get(referral_code=code)
+        # Check if the user is not trying to use their own code (though they aren't logged in yet, we can't be sure)
+        # But usually, they don't have a code yet.
+        return JsonResponse({
+            'valid': True, 
+            'message': f"✓ Code applied — you'll receive ₹40 on signup"
+        })
+    except User.DoesNotExist:
+        return JsonResponse({
+            'valid': False, 
+            'message': 'Invalid referral code'
+        })

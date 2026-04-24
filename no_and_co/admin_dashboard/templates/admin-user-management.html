@@ -225,19 +225,6 @@
             if (e.target === this) closeModal();
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const toasts = document.querySelectorAll('.toast-item');
-            toasts.forEach((toast, index) => {
-                setTimeout(() => {
-                    toast.classList.remove('translate-x-full');
-                }, 100 * (index + 1));
-
-                setTimeout(() => {
-                    toast.classList.add('opacity-0');
-                    setTimeout(() => toast.remove(), 500);
-                }, 5000);
-            });
-        });
 
          if (window.history.replaceState) {
         window.history.replaceState(null, null, window.location.href);
