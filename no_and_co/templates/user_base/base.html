@@ -306,16 +306,69 @@
         }
 
         /* ════════════════════════════════════════
-           LOADING SCREEN ANIMATIONS
+           LOADING SCREEN — OUTLINE FASHION ICONS
         ════════════════════════════════════════ */
-        @keyframes sway {
-            0% { transform: rotate(-6deg); }
-            50% { transform: rotate(6deg); }
-            100% { transform: rotate(-6deg); }
+        #entrance-loader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            background: #ffffff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            transform: translateY(0);
+            transition: transform 0.5s cubic-bezier(0.76, 0, 0.24, 1);
         }
-        @keyframes fadeInLogo {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
+        #entrance-loader.dismissed { transform: translateY(-100%); }
+        /* Icon stage */
+        .ldr-stage {
+            position: relative;
+            width: 55px; height: 70px;
+        }
+        .ldr-outfit {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.15s ease-in-out;
+            pointer-events: none;
+        }
+        .ldr-outfit.active { opacity: 1; }
+        .ldr-outfit svg { width: 55px; height: 70px; display: block; }
+        /* Pulse line */
+        .ldr-pulse {
+            width: 50px; height: 1px;
+            background: #111111;
+            margin-top: 22px;
+            transform-origin: center;
+            animation: ldrLinePulse 0.8s ease-in-out infinite alternate;
+        }
+        @keyframes ldrLinePulse {
+            from { transform: scaleX(0.4); opacity: 0.4; }
+            to   { transform: scaleX(1);   opacity: 1; }
+        }
+        /* Bottom progress bar */
+        #loader-progress-track {
+            position: absolute;
+            bottom: 0; left: 0;
+            width: 100%; height: 2px;
+        }
+        #loader-progress-fill {
+            height: 100%;
+            width: 0%;
+            background: #111111;
+            transition: width 0.3s ease-out;
+        }
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .ldr-stage { width: 38px; height: 50px; }
+            .ldr-outfit svg { width: 38px; height: 50px; }
+            .ldr-pulse { width: 36px; margin-top: 16px; }
         }
     </style>
     {% block extra_head %}{% endblock %}
@@ -323,88 +376,206 @@
 
 <body class="bg-white text-black {% block body_class %}{% endblock %}">
 
-    <!-- Modern Entrance Loader -->
-    <div id="entrance-loader" class="fixed inset-0 z-[9999] bg-[#fafafa] flex flex-col items-center justify-center transition-opacity duration-[600ms] ease-in-out">
-        <div class="mb-10 opacity-0 uppercase font-bold tracking-[0.1em] text-[28px] page-title" style="animation: fadeInLogo 0.8s forwards 0.2s;">
-            NO&CO
+    <!-- ════ OUTLINE FASHION LOADER ════ -->
+    <div id="entrance-loader" style="display:none;">
+        <div class="ldr-stage">
+            <!-- 1: Women's A-line dress -->
+            <div class="ldr-outfit active" id="ldr-i0">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 70" fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Straps -->
+                    <line x1="20" y1="2" x2="20" y2="10"/><line x1="35" y1="2" x2="35" y2="10"/>
+                    <!-- Bodice -->
+                    <path d="M20,10 Q13,14 12,26 L43,26 Q42,14 35,10"/>
+                    <!-- Skirt -->
+                    <path d="M12,26 L5,68 L50,68 L43,26 Z"/>
+                </svg>
+            </div>
+            <!-- 2: Men's suit with tie -->
+            <div class="ldr-outfit" id="ldr-i1">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 70" fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Jacket -->
+                    <path d="M8,4 L18,18 L18,54 L37,54 L37,18 L47,4"/>
+                    <!-- Lapels -->
+                    <path d="M18,18 L27.5,26 L37,18"/>
+                    <!-- Trousers -->
+                    <path d="M18,54 L14,68 L26,68 L27.5,58 L29,68 L41,68 L37,54"/>
+                    <!-- Tie -->
+                    <path d="M25,20 L24,42 L27.5,46 L31,42 L30,20 Z"/>
+                </svg>
+            </div>
+            <!-- 3: Women's crop top + wide pants -->
+            <div class="ldr-outfit" id="ldr-i2">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 70" fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Crop top -->
+                    <path d="M14,4 L14,28 Q14,31 27.5,31 Q41,31 41,28 L41,4 Z"/>
+                    <!-- Wide pants -->
+                    <path d="M13,33 L7,68 L26,68 L27.5,44 L29,68 L48,68 L42,33 Z"/>
+                </svg>
+            </div>
+            <!-- 4: Men's hoodie -->
+            <div class="ldr-outfit" id="ldr-i3">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 70" fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Hood -->
+                    <path d="M11,16 Q10,2 27.5,2 Q45,2 44,16"/>
+                    <!-- Hood opening -->
+                    <path d="M19,16 Q19,22 27.5,22 Q36,22 36,16"/>
+                    <!-- Body -->
+                    <path d="M11,16 L8,68 L47,68 L44,16"/>
+                    <!-- Kangaroo pocket -->
+                    <path d="M20,46 L20,56 L35,56 L35,46"/>
+                </svg>
+            </div>
+            <!-- 5: Women's maxi gown -->
+            <div class="ldr-outfit" id="ldr-i4">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 70" fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Strapless bodice -->
+                    <path d="M15,6 Q15,2 27.5,2 Q40,2 40,6 L40,32 Q40,36 27.5,36 Q15,36 15,32 Z"/>
+                    <!-- Long flared skirt -->
+                    <path d="M15,32 L4,68 L51,68 L40,32"/>
+                </svg>
+            </div>
+            <!-- 6: Men's formal shirt + trousers -->
+            <div class="ldr-outfit" id="ldr-i5">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 70" fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Collar -->
+                    <path d="M19,2 L22,14 L27.5,10 L33,14 L36,2"/>
+                    <!-- Shirt body -->
+                    <path d="M19,2 L12,8 L12,50 L43,50 L43,8 L36,2"/>
+                    <!-- Button placket -->
+                    <line x1="27.5" y1="10" x2="27.5" y2="50"/>
+                    <!-- Trousers -->
+                    <path d="M12,50 L9,68 L25,68 L27.5,54 L30,68 L46,68 L43,50"/>
+                </svg>
+            </div>
+            <!-- 7: Women's mini skirt + top -->
+            <div class="ldr-outfit" id="ldr-i6">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 70" fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Fitted top -->
+                    <line x1="21" y1="2" x2="21" y2="8"/><line x1="34" y1="2" x2="34" y2="8"/>
+                    <path d="M21,8 Q14,12 14,28 L41,28 Q41,12 34,8"/>
+                    <!-- Mini skirt -->
+                    <path d="M14,30 L10,52 L45,52 L41,30 Z"/>
+                    <!-- Legs -->
+                    <line x1="22" y1="52" x2="20" y2="68"/><line x1="33" y1="52" x2="35" y2="68"/>
+                </svg>
+            </div>
+            <!-- 8: Men's bomber jacket -->
+            <div class="ldr-outfit" id="ldr-i7">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 70" fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Bomber body -->
+                    <path d="M10,8 L10,50 Q10,54 27.5,54 Q45,54 45,50 L45,8"/>
+                    <!-- Collar -->
+                    <path d="M10,8 Q10,4 27.5,4 Q45,4 45,8"/>
+                    <path d="M18,8 L27.5,16 L37,8"/>
+                    <!-- Cuffs -->
+                    <line x1="10" y1="46" x2="45" y2="46"/>
+                    <!-- Jeans -->
+                    <path d="M15,54 L12,68 L27,68 L27.5,60 L28,68 L43,68 L40,54"/>
+                </svg>
+            </div>
+            <!-- 9: Women's jumpsuit -->
+            <div class="ldr-outfit" id="ldr-i8">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 70" fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Straps -->
+                    <line x1="21" y1="2" x2="21" y2="10"/><line x1="34" y1="2" x2="34" y2="10"/>
+                    <!-- Fitted bodice -->
+                    <path d="M21,10 Q14,14 14,32 L41,32 Q41,14 34,10"/>
+                    <!-- Waistband -->
+                    <line x1="14" y1="34" x2="41" y2="34"/>
+                    <!-- Wide legs -->
+                    <path d="M14,34 L8,68 L26,68 L27.5,46 L29,68 L47,68 L41,34"/>
+                </svg>
+            </div>
+            <!-- 10: Men's polo shirt + shorts -->
+            <div class="ldr-outfit" id="ldr-i9">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 55 70" fill="none" stroke="#111111" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <!-- Polo collar -->
+                    <path d="M20,2 L22,12 L27.5,8 L33,12 L35,2"/>
+                    <!-- Short-sleeve polo body -->
+                    <path d="M20,2 L12,10 L12,44 L43,44 L43,10 L35,2"/>
+                    <!-- Sleeve hints -->
+                    <line x1="12" y1="24" x2="6" y2="28"/><line x1="43" y1="24" x2="49" y2="28"/>
+                    <!-- Shorts -->
+                    <path d="M12,44 L10,62 L26,62 L27.5,50 L29,62 L45,62 L43,44"/>
+                </svg>
+            </div>
         </div>
-        
-        <div class="w-12 h-16 origin-top" style="animation: sway 2.5s ease-in-out infinite;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06));">
-                <!-- Hanger hook -->
-                <path d="M12 2v1a1 1 0 0 0 1 1 1 1 0 0 1 1 1c0 .5-.5 1-1 1h-1"></path>
-                <!-- Dress body -->
-                <path d="M12 6c-1.5 0-2.5.5-4 2l-1.5 3h11L16 8c-1.5-1.5-2.5-2-4-2z"></path>
-                <!-- Flared bottom -->
-                <path d="M6.5 11l-1.5 9c-.2 1.5 1 2 2 2h10c1 0 2.2-.5 2-2l-1.5-9"></path>
-            </svg>
-        </div>
-
-        <div class="w-[140px] h-[2px] bg-gray-200 mt-12 rounded-full overflow-hidden">
-            <div id="entrance-progress" class="h-full bg-[#111] transition-all duration-300 ease-linear" style="width: 0%;"></div>
-        </div>
+        <!-- Pulse line -->
+        <div class="ldr-pulse"></div>
+        <!-- Bottom progress bar -->
+        <div id="loader-progress-track"><div id="loader-progress-fill"></div></div>
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const loader = document.getElementById("entrance-loader");
-            if (!loader) return;
-            
-            const progressBar = document.getElementById("entrance-progress");
-            const video = document.querySelector("video");
-            
-            let isDismissed = false;
-            
-            function dismissLoader() {
-                if (isDismissed) return;
-                isDismissed = true;
-                if (progressBar) progressBar.style.width = "100%";
-                loader.style.opacity = "0";
-                setTimeout(() => {
-                    loader.style.display = "none";
-                }, 600);
-            }
+    (function() {
+        var ALLOWED = ['/', '/ladies/', '/kids/'];
+        var path = window.location.pathname;
+        if (ALLOWED.indexOf(path) === -1 && !/\/product\//i.test(path)) return;
 
-            if (!video) {
-                // No video on this page, just dismiss immediately (or after a very brief delay for effect)
-                if (progressBar) progressBar.style.width = "100%";
-                setTimeout(dismissLoader, 300);
-                return;
-            }
+        var sKey = 'ldr4_' + path;
+        if (sessionStorage.getItem(sKey)) return;
+        sessionStorage.setItem(sKey, '1');
 
-            // Force dismiss after 5 seconds fallback
-            const fallbackTimeout = setTimeout(dismissLoader, 5000);
+        var loader = document.getElementById('entrance-loader');
+        if (loader) loader.style.display = 'flex';
 
-            // Track progress
-            video.addEventListener("progress", function() {
-                if (video.duration > 0) {
-                    let buffered = 0;
-                    if (video.buffered.length > 0) {
-                        buffered = video.buffered.end(video.buffered.length - 1);
-                    }
-                    let percent = (buffered / video.duration) * 100;
-                    if (percent > 95) percent = 100;
-                    if (progressBar && percent > parseFloat(progressBar.style.width || "0")) {
-                        progressBar.style.width = percent + "%";
-                    }
+        /* Detect mobile for interval speed */
+        var isMobile = window.innerWidth <= 768;
+        var INTERVAL = isMobile ? 600 : 400;
+
+        var icons = ['ldr-i0','ldr-i1','ldr-i2','ldr-i3','ldr-i4','ldr-i5','ldr-i6','ldr-i7','ldr-i8','ldr-i9'];
+        var cur = 0;
+        var cycleInterval = setInterval(function() {
+            var el = document.getElementById(icons[cur]);
+            if (el) el.classList.remove('active');
+            cur = (cur + 1) % icons.length;
+            var next = document.getElementById(icons[cur]);
+            if (next) next.classList.add('active');
+        }, INTERVAL);
+
+        var dismissed = false;
+        var startTime = Date.now();
+        var MIN_MS = 1800;
+        var fill = document.getElementById('loader-progress-fill');
+
+        function dismissLoader() {
+            if (dismissed) return;
+            dismissed = true;
+            clearInterval(cycleInterval);
+            if (fill) fill.style.width = '100%';
+            setTimeout(function() {
+                if (loader) {
+                    loader.classList.add('dismissed');
+                    setTimeout(function() { loader.style.display = 'none'; }, 550);
                 }
-            });
+            }, 120);
+        }
 
-            if (video.readyState >= 4) { // HAVE_ENOUGH_DATA
-                clearTimeout(fallbackTimeout);
-                dismissLoader();
+        function tryDismiss() {
+            var wait = Math.max(0, MIN_MS - (Date.now() - startTime));
+            setTimeout(dismissLoader, wait);
+        }
+
+        var fallback = setTimeout(dismissLoader, 4000);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var video = document.querySelector('video');
+            if (video) {
+                video.addEventListener('progress', function() {
+                    if (video.duration > 0 && fill) {
+                        var buf = video.buffered.length > 0 ? video.buffered.end(video.buffered.length - 1) : 0;
+                        var pct = Math.min(92, (buf / video.duration) * 100);
+                        if (parseFloat(fill.style.width || '0') < pct) fill.style.width = pct + '%';
+                    }
+                });
+                if (video.readyState >= 4) { clearTimeout(fallback); tryDismiss(); }
+                else video.addEventListener('canplaythrough', function() { clearTimeout(fallback); tryDismiss(); }, { once: true });
             } else {
-                video.addEventListener("canplaythrough", function() {
-                    clearTimeout(fallbackTimeout);
-                    dismissLoader();
-                });
-                
-                // Fallback loadeddata trigger
-                video.addEventListener("loadeddata", function() {
-                    if (progressBar) progressBar.style.width = "60%";
-                });
+                clearTimeout(fallback);
+                tryDismiss();
             }
         });
+    })();
     </script>
 
     <!-- Announcement Bar -->
