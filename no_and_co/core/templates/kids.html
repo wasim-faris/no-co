@@ -205,23 +205,23 @@
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </div>
 
-    <section class="w-full grid grid-cols-1 md:grid-cols-2 no-gap border-t border-gray-100">
-      <div class="w-full skeleton-wrapper">
-        <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative;">
-            <div class="skeleton skeleton-img"></div>
+    <section class="w-full flex flex-col md:flex-row items-stretch no-gap border-t border-gray-100">
+      <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper">
+        <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner" style="position: relative;">
+            <div class="skeleton skeleton-img h-full w-full"></div>
             <img data-src="{% static 'core/images/kid-img-1.avif' %}" alt="Shirts" class="w-full h-full object-cover lazy-image">
         </div>
-        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white actual-content" style="display:block !important;">
+        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white actual-content mt-auto" style="display:block !important;">
             <p class="section-label">Shirts</p>
             <p class="sub-label">Explore</p>
         </div>
       </div>
-      <div class="w-full border-l border-gray-100 skeleton-wrapper">
-        <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative;">
-            <div class="skeleton skeleton-img"></div>
+      <div class="w-full md:w-1/2 flex flex-col border-l border-gray-100 skeleton-wrapper">
+        <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner" style="position: relative;">
+            <div class="skeleton skeleton-img h-full w-full"></div>
             <img data-src="{% static 'core/images/kid-im2.avif' %}" alt="Trousers" class="w-full h-full object-cover lazy-image">
         </div>
-        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white actual-content" style="display:block !important;">
+        <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white actual-content mt-auto" style="display:block !important;">
             <p class="section-label">Trousers</p>
             <p class="sub-label">Explore</p>
         </div>
