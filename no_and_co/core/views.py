@@ -298,12 +298,6 @@ def product_listing(request):
             | Q(product__description_fit__icontains=query)
         )
 
-    if subcategory:
-        subcategory = subcategory.upper()
-        sub = get_object_or_404(Subcategory, subcategory_name=subcategory)
-        variants = variants.filter(product__subcategory=sub)
-
-    category_ref = request.GET.get("category")
     min_price = request.GET.get("price_min")
     max_price = request.GET.get("price_max")
 
@@ -313,7 +307,10 @@ def product_listing(request):
     if max_price:
         variants = variants.filter(price__lte=max_price)
 
+    category_ref = request.GET.get("category")
+    category = None
     available_subcategories = []
+    
     if category_ref:
         category_ref = category_ref.upper()
         category = get_object_or_404(Category, category_name=category_ref)
@@ -324,9 +321,18 @@ def product_listing(request):
             category=category,
             is_active=True,
             is_deleted=False,
+            products__category=category,
             products__is_active=True,
             products__is_deleted=False
         ).distinct()
+
+    if subcategory:
+        subcategory = subcategory.upper()
+        if category:
+            sub = get_object_or_404(Subcategory, subcategory_name=subcategory, category=category)
+        else:
+            sub = get_object_or_404(Subcategory, subcategory_name=subcategory)
+        variants = variants.filter(product__subcategory=sub)
 
     if sort == "newest":
         variants = variants.order_by("-id")
@@ -339,7 +345,7 @@ def product_listing(request):
     elif sort == "name_desc":
         variants = variants.order_by("-product__product_name")
 
-    paginator = Paginator(variants, 2)
+    paginator = Paginator(variants, 8)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     

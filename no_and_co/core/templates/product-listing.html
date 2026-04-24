@@ -465,6 +465,86 @@
     .filter-btn { flex: 1; padding: 16px; font-size: 12px; font-weight: 700; text-transform: uppercase; cursor: pointer; border: 1px solid #000; transition: all 0.2s; }
     .filter-btn-apply { background: #000; color: #fff; }
     .filter-btn-clear { background: #fff; color: #000; }
+
+    /* ── H&M Style Pagination ── */
+    /* ── Premium H&M Style Pagination ── */
+    .hm-pagination-container {
+        max-width: 85%;
+        margin: 30px auto 10px;
+        text-align: center;
+    }
+    @media (max-width: 768px) {
+        .hm-pagination-container { max-width: 95%; }
+    }
+
+    .load-next-btn {
+        display: inline-block;
+        min-width: 320px;
+        background: #000;
+        color: #fff;
+        text-align: center;
+        padding: 12px 24px;
+        text-transform: uppercase;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-decoration: none;
+        border-radius: 0px;
+        margin: 0 auto 25px;
+        transition: background 0.3s ease;
+    }
+    @media (max-width: 600px) {
+        .load-next-btn { min-width: 100%; width: 100%; }
+    }
+    .load-next-btn:hover {
+        background: #222;
+    }
+
+    .hm-pagination-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 0;
+        list-style: none;
+        padding: 0;
+    }
+    .hm-page-item {
+        font-size: 13px;
+        color: #777;
+        text-decoration: none;
+        transition: color 0.2s;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        line-height: 1;
+    }
+    .hm-page-item:hover {
+        color: #000;
+    }
+    .hm-page-item.active {
+        color: #000;
+        font-weight: 600;
+        cursor: default;
+    }
+    .hm-page-arrow {
+        font-size: 13px;
+        color: #111111;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        transition: opacity 0.2s;
+    }
+    .hm-page-arrow:hover {
+        opacity: 0.7;
+    }
+    .hm-page-arrow.disabled {
+        opacity: 0.3;
+        pointer-events: none;
+    }
 </style>
 {% endblock %}
 
@@ -476,12 +556,12 @@
       <!-- ══ PAGE TITLE ══ -->
       <div style="padding: 32px 0 20px;">
           <h1 class="page-title" style="margin: 0; color: #000; {% if section == 'newin' %}font-family: 'Basteleur', serif !important; font-size: 44px; letter-spacing: -0.01em; line-height: 1.1; text-transform: uppercase; -webkit-text-stroke: 0.4px currentColor; text-shadow: 0.6px 0 currentColor, -0.2px 0 currentColor; -webkit-font-smoothing: antialiased;{% endif %}">
-              {% if section == 'newin' %}
+              {% if request.GET.subcategory and request.GET.subcategory.strip %}
+                  {{ request.GET.subcategory }}
+              {% elif section == 'newin' %}
                   NEW IN
               {% elif query and query.strip and query != "None" %}
                   {{ query }}
-              {% elif request.GET.subcategory and request.GET.subcategory.strip %}
-                  {{ request.GET.subcategory }}
               {% elif request.GET.category and request.GET.category.strip %}
                   {{ request.GET.category }}
               {% else %}
@@ -498,15 +578,17 @@
 
       <!-- ══ CATEGORY TABS ══ -->
       <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
-          <a href="?category={{ request.GET.category }}{% if section %}&section={{ section }}{% endif %}" 
+          {% with current_cat=request.GET.category|default:"" %}
+          <a href="?category={{ current_cat }}{% if section %}&section={{ section }}{% endif %}" 
              class="cat-tab {% if not request.GET.subcategory %}active{% endif %}" 
              style="text-decoration: none;">All</a>
           
           {% for sub in available_subcategories %}
-          <a href="?category={{ request.GET.category }}&subcategory={{ sub.subcategory_name|upper|replace_space_with_hyphen }}{% if section %}&section={{ section }}{% endif %}" 
-             class="cat-tab {% if request.GET.subcategory == sub.subcategory_name|upper|replace_space_with_hyphen %}active{% endif %}"
+          <a href="?category={{ current_cat }}&subcategory={{ sub.subcategory_name|upper }}{% if section %}&section={{ section }}{% endif %}" 
+             class="cat-tab {% if request.GET.subcategory == sub.subcategory_name|upper %}active{% endif %}"
              style="text-decoration: none;">{{ sub.subcategory_name }}</a>
           {% endfor %}
+          {% endwith %}
       </div>
 
       <!-- ══ SORT & FILTER BAR ══ -->
@@ -701,23 +783,44 @@
   {% endfor %}
 </div> <!-- end plp-grid -->
     
-    <!-- ══ PAGINATION ══ -->
-    <div id="paginationSection">
+    <!-- ══ PREMIUM PAGINATION ══ -->
+    <div id="paginationSection" class="hm-pagination-container">
         {% if page_obj.has_other_pages %}
-        <div class="flex items-center justify-center flex-wrap gap-2.5 my-16">
-            {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                    <span class="w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-[13px] font-bold shadow-lg shadow-black/10 cursor-default">
-                        {{ num }}
-                    </span>
+            
+            {% if page_obj.has_next %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="load-next-btn">
+                Load Next Page
+            </a>
+            {% endif %}
+
+            <div class="hm-pagination-row">
+                <!-- PREV -->
+                {% if page_obj.has_previous %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="hm-page-arrow">&lt;</a>
                 {% else %}
-                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}"
-                       class="w-10 h-10 flex items-center justify-center rounded-full bg-white border border-[#eee] text-black text-[13px] font-semibold hover:border-black hover:-translate-y-[1px] transition-all">
-                        {{ num }}
-                    </a>
+                    <span class="hm-page-arrow disabled">&lt;</span>
                 {% endif %}
-            {% endfor %}
-        </div>
+
+                <!-- NUMBERS -->
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="hm-page-item active">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" class="hm-page-item">{{ num }}</a>
+                    {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" class="hm-page-item">{{ num }}</a>
+                    {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                        <span class="hm-page-item" style="cursor:default;">...</span>
+                    {% endif %}
+                {% endfor %}
+
+                <!-- NEXT -->
+                {% if page_obj.has_next %}
+                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="hm-page-arrow">&gt;</a>
+                {% else %}
+                    <span class="hm-page-arrow disabled">&gt;</span>
+                {% endif %}
+            </div>
         {% endif %}
     </div>
 {% else %}
@@ -739,7 +842,7 @@
 </div><!-- /plp-body -->
 
 <!-- ══ FOOTER ══ -->
-<div style="margin-top: 60px; border-top: 1px solid #eee;">
+<div style="margin-top: 20px; border-top: 1px solid #eee;">
     {% include 'user_base/components/footer.html' %}
 </div>
 
