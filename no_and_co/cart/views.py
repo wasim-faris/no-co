@@ -1,9 +1,9 @@
 from django.shortcuts import render, redirect
 from django.shortcuts import get_object_or_404
-from products.models import Variant, Product
+from products.models import Variant, Product, VariantImage
 from .models import Cart
-from django.contrib import messages
-from django.db.models import F, Sum
+from wishlist.models import Wishlist
+from django.db.models import F, Sum, Prefetch
 from django.http import JsonResponse
 
 
@@ -184,6 +184,26 @@ def cart_view(request):
 
     search_history = request.session.get("search_history", [])
 
+    if request.user.is_authenticated:
+        user = request.user
+        session_key = None
+    else:
+        user = None
+        session_key = request.session.session_key
+
+    wishlist_items = (
+        Wishlist.objects.filter(user=user, session_key=session_key)
+        .select_related("variant")
+        .prefetch_related(
+            Prefetch(
+                "variant__images",
+                queryset=VariantImage.objects.filter(is_primary=True),
+                to_attr="primary_images",
+            )
+        )
+    )
+    whishlist_variant_ids = list(wishlist_items.values_list("variant_id", flat=True))
+
     return render(
         request,
         "cart.html",
@@ -194,6 +214,8 @@ def cart_view(request):
             "full_total": full_total,
             "similar_items": similar_items,
             "search_history": search_history,
+            "whishlist_items": wishlist_items,
+            "whishlist_variant_ids": whishlist_variant_ids,
         },
     )
 

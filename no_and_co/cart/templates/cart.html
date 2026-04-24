@@ -253,9 +253,11 @@
     }
     .toast-close-btn:hover { opacity: 1; }
 
-    /* ─── Empty State ────────────────────────────────────────── */
-    #emptyState { display: none; }
-    #emptyState.visible { display: flex; }
+    /* ─── Wishlist heart toggle ──────────────────────────────── */
+    .like-btn .filled-heart { display: none; color: #e02b2b !important; }
+    .like-btn.liked .filled-heart { display: inline-block; }
+    .like-btn.liked .unfilled-heart { display: none; }
+    .like-btn:hover i { transform: scale(1.15); transition: transform 0.2s ease; }
 
     /* ─── Responsive ─────────────────────────────────────────── */
     @media (max-width: 1024px) {
@@ -509,8 +511,9 @@
                                 </div>
                             </a>
                         {% endif %}
-                        <button class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center opacity-80 hover:opacity-100 hover:bg-white rounded-full p-1 transition-all">
-                            <i class="ri-heart-line text-sm text-black"></i>
+                        <button class="like-btn absolute top-2 right-2 w-6 h-6 flex items-center justify-center opacity-80 hover:opacity-100 hover:bg-white rounded-full p-1 transition-all {% if item.variant.id in whishlist_variant_ids %}liked{% endif %}" data-variant-id="{{ item.variant.id }}">
+                            <i class="ri-heart-line unfilled-heart text-sm text-black"></i>
+                            <i class="ri-heart-fill filled-heart text-sm"></i>
                         </button>
                     </div>
 
@@ -1243,5 +1246,68 @@ window.addEventListener("pageshow", function (event) {
         window.location.reload();
     }
 });
+</script>
+
+<script>
+    /**
+     * AJAX WISHLIST TOGGLE SYSTEM (Synced from other pages)
+     */
+    (function() {
+        const wishlistedVariantIds = [
+            {% for item in whishlist_items %}"{{ item.variant.id }}"{% if not forloop.last %},{% endif %}{% endfor %}
+        ];
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.like-btn');
+            if (!btn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const variantId = String(btn.getAttribute('data-variant-id'));
+            if (!variantId) return;
+
+            btn.classList.toggle('liked');
+
+            fetch('/wishlist-toggle/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ variant_id: variantId })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'added') {
+                    btn.classList.add('liked');
+                } else if (data.status === 'removed') {
+                    btn.classList.remove('liked');
+                }
+            })
+            .catch(error => {
+                console.error('Wishlist error:', error);
+                btn.classList.toggle('liked'); // Revert on error
+            });
+        });
+    })();
 </script>
 {% endblock %}
