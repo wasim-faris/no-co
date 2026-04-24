@@ -761,10 +761,41 @@
 </div>
 
 <!-- ─── Remove Confirmation Modal ──────────────────────────────── -->
-<div id="removeModal" class="fixed inset-0 z-[9999] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+<style>
+    #removeModal {
+        transition: opacity 0.3s ease;
+    }
+    #modalOverlay {
+        transition: opacity 0.3s ease;
+    }
+    #removeModalContent {
+        transform: translateY(3rem);
+        transition: transform 0.3s ease;
+    }
+    #removeModalContent.modal-open {
+        transform: translateY(0);
+    }
+    @media (max-width: 768px) {
+        #removeModal {
+            align-items: flex-end;
+        }
+        #removeModalContent {
+            margin: 0;
+            max-width: 100%;
+            width: 100%;
+            border-radius: 20px 20px 0 0;
+            padding-bottom: 40px;
+            transform: translateY(100%);
+        }
+        #removeModalContent.modal-open {
+            transform: translateY(0);
+        }
+    }
+</style>
+<div id="removeModal" class="fixed inset-0 z-[9999] flex items-center justify-center opacity-0 pointer-events-none">
     <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" id="modalOverlay"></div>
 
-    <div id="removeModalContent" class="relative bg-white w-full max-w-lg mx-4 px-8 py-10 pt-12 transform translate-y-12 transition-transform duration-300 ease-out shadow-2xl">
+    <div id="removeModalContent" class="relative bg-white w-full max-w-lg mx-4 px-8 py-10 pt-12 shadow-2xl">
         <div class="flex justify-between items-start mb-8">
             <h3 class="text-[0.95rem] font-normal uppercase tracking-wide text-black">Remove an item</h3>
             <button id="closeRemoveModalBtn" class="absolute top-6 right-6 text-2xl leading-none font-thin text-black hover:opacity-60 transition-opacity outline-none">
@@ -1019,8 +1050,7 @@
         const content = document.getElementById('removeModalContent');
         modal.classList.remove('opacity-0', 'pointer-events-none');
         modal.classList.add('opacity-100', 'pointer-events-auto');
-        content.classList.remove('translate-y-12');
-        content.classList.add('translate-y-0');
+        content.classList.add('modal-open');
         // clear modal error
         const err = document.getElementById('modalError');
         if (err) { err.textContent = ''; err.classList.add('hidden'); }
@@ -1029,8 +1059,7 @@
     function closeRemoveModal() {
         const modal   = document.getElementById('removeModal');
         const content = document.getElementById('removeModalContent');
-        content.classList.remove('translate-y-0');
-        content.classList.add('translate-y-12');
+        content.classList.remove('modal-open');
         modal.classList.remove('opacity-100', 'pointer-events-auto');
         modal.classList.add('opacity-0', 'pointer-events-none');
         pendingRemoveId = null;
