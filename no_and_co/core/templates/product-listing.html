@@ -475,8 +475,10 @@
     <div class="plp-header-content">
       <!-- ══ PAGE TITLE ══ -->
       <div style="padding: 32px 0 20px;">
-          <h1 class="page-title" style="margin: 0; color: #000;">
-              {% if query and query.strip and query != "None" %}
+          <h1 class="page-title" style="margin: 0; color: #000; {% if section == 'newin' %}font-family: 'Basteleur', serif !important; font-size: 44px; letter-spacing: -0.01em; line-height: 1.1; text-transform: uppercase; -webkit-text-stroke: 0.4px currentColor; text-shadow: 0.6px 0 currentColor, -0.2px 0 currentColor; -webkit-font-smoothing: antialiased;{% endif %}">
+              {% if section == 'newin' %}
+                  NEW IN
+              {% elif query and query.strip and query != "None" %}
                   {{ query }}
               {% elif request.GET.subcategory and request.GET.subcategory.strip %}
                   {{ request.GET.subcategory }}
@@ -496,11 +498,15 @@
 
       <!-- ══ CATEGORY TABS ══ -->
       <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
-          <button class="cat-tab active" onclick="setTab(this)">Linen Clothing</button>
-          <button class="cat-tab" onclick="setTab(this)">Shirts</button>
-          <button class="cat-tab" onclick="setTab(this)">Trousers</button>
-          <button class="cat-tab" onclick="setTab(this)">Suits &amp; Blazers</button>
-          <button class="cat-tab" onclick="setTab(this)">Shorts</button>
+          <a href="?category={{ request.GET.category }}{% if section %}&section={{ section }}{% endif %}" 
+             class="cat-tab {% if not request.GET.subcategory %}active{% endif %}" 
+             style="text-decoration: none;">All</a>
+          
+          {% for sub in available_subcategories %}
+          <a href="?category={{ request.GET.category }}&subcategory={{ sub.subcategory_name|upper|replace_space_with_hyphen }}{% if section %}&section={{ section }}{% endif %}" 
+             class="cat-tab {% if request.GET.subcategory == sub.subcategory_name|upper|replace_space_with_hyphen %}active{% endif %}"
+             style="text-decoration: none;">{{ sub.subcategory_name }}</a>
+          {% endfor %}
       </div>
 
       <!-- ══ SORT & FILTER BAR ══ -->

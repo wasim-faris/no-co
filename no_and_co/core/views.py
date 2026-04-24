@@ -313,10 +313,20 @@ def product_listing(request):
     if max_price:
         variants = variants.filter(price__lte=max_price)
 
+    available_subcategories = []
     if category_ref:
         category_ref = category_ref.upper()
         category = get_object_or_404(Category, category_name=category_ref)
         variants = variants.filter(product__category=category)
+        
+        # Fetch subcategories that have products in this category
+        available_subcategories = Subcategory.objects.filter(
+            category=category,
+            is_active=True,
+            is_deleted=False,
+            products__is_active=True,
+            products__is_deleted=False
+        ).distinct()
 
     if sort == "newest":
         variants = variants.order_by("-id")
@@ -335,6 +345,8 @@ def product_listing(request):
     
     apply_offers_to_variants(page_obj.object_list)
 
+    section = request.GET.get("section")
+    
     return render(
         request,
         "product-listing.html",
@@ -345,6 +357,8 @@ def product_listing(request):
             "search_history": request.session.get("search_history", []),
             "whishlist_items": wishlist_items,
             "whishlist_variant_ids": whishlist_variant_ids,
+            "section": section,
+            "available_subcategories": available_subcategories,
         },
     )
 
