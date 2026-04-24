@@ -314,7 +314,7 @@
         color: #767676;
         font-weight: 400;
         letter-spacing: .02em;
-        margin-bottom: 24px;
+        margin-bottom: 8px;
         padding: 0;
     }
     .filter-title { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #000; }
@@ -334,7 +334,7 @@
         display: flex;
         flex-wrap: wrap;
         gap: 12px;
-        margin-bottom: 24px;
+        margin-bottom: 8px;
         padding: 0 0 10px;
     }
     .filter-tag {
@@ -678,6 +678,7 @@
 
     <!-- ══ PRODUCT GRID ══ -->
     {% if variants %}
+    
     <div class="plp-grid">
     {% for variant in variants %}
 
@@ -787,6 +788,13 @@
     <div id="paginationSection" class="hm-pagination-container">
         {% if page_obj.has_other_pages %}
             
+            {% if page_obj.has_previous %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" 
+               class="load-next-btn" style="margin-bottom: 25px;">
+                Load Previous Page
+            </a>
+            {% endif %}
+
             {% if page_obj.has_next %}
             <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="load-next-btn">
                 Load Next Page
