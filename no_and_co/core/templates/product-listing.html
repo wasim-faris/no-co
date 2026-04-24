@@ -1172,20 +1172,8 @@
             e.preventDefault();
             const formData = new FormData(sortFormEl);
             const url = new URL(window.location.href);
-            const params = url.searchParams;
             
-            // Decouple: Root context (Subcategory or Search) is kept
-            const sub = params.get('subcategory');
-            const q = params.get('q');
-            
-            // Clear current params string
-            url.search = '';
-            
-            // Re-apply context ONLY
-            if (sub) url.searchParams.set('subcategory', sub);
-            if (q) url.searchParams.set('q', q);
-            
-            // Apply new Sort value
+            // Apply new Sort value to existing URL context
             const sortVal = formData.get('sort');
             if (sortVal) {
                 url.searchParams.set('sort', sortVal);
