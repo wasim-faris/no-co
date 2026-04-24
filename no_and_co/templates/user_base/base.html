@@ -304,11 +304,108 @@
         .skeleton-wrapper.is-loaded .lazy-image {
             opacity: 1;
         }
+
+        /* ════════════════════════════════════════
+           LOADING SCREEN ANIMATIONS
+        ════════════════════════════════════════ */
+        @keyframes sway {
+            0% { transform: rotate(-6deg); }
+            50% { transform: rotate(6deg); }
+            100% { transform: rotate(-6deg); }
+        }
+        @keyframes fadeInLogo {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>
 
 <body class="bg-white text-black {% block body_class %}{% endblock %}">
+
+    <!-- Modern Entrance Loader -->
+    <div id="entrance-loader" class="fixed inset-0 z-[9999] bg-[#fafafa] flex flex-col items-center justify-center transition-opacity duration-[600ms] ease-in-out">
+        <div class="mb-10 opacity-0 uppercase font-bold tracking-[0.1em] text-[28px] page-title" style="animation: fadeInLogo 0.8s forwards 0.2s;">
+            NO&CO
+        </div>
+        
+        <div class="w-12 h-16 origin-top" style="animation: sway 2.5s ease-in-out infinite;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="w-full h-full" style="filter: drop-shadow(0 2px 4px rgba(0,0,0,0.06));">
+                <!-- Hanger hook -->
+                <path d="M12 2v1a1 1 0 0 0 1 1 1 1 0 0 1 1 1c0 .5-.5 1-1 1h-1"></path>
+                <!-- Dress body -->
+                <path d="M12 6c-1.5 0-2.5.5-4 2l-1.5 3h11L16 8c-1.5-1.5-2.5-2-4-2z"></path>
+                <!-- Flared bottom -->
+                <path d="M6.5 11l-1.5 9c-.2 1.5 1 2 2 2h10c1 0 2.2-.5 2-2l-1.5-9"></path>
+            </svg>
+        </div>
+
+        <div class="w-[140px] h-[2px] bg-gray-200 mt-12 rounded-full overflow-hidden">
+            <div id="entrance-progress" class="h-full bg-[#111] transition-all duration-300 ease-linear" style="width: 0%;"></div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const loader = document.getElementById("entrance-loader");
+            if (!loader) return;
+            
+            const progressBar = document.getElementById("entrance-progress");
+            const video = document.querySelector("video");
+            
+            let isDismissed = false;
+            
+            function dismissLoader() {
+                if (isDismissed) return;
+                isDismissed = true;
+                if (progressBar) progressBar.style.width = "100%";
+                loader.style.opacity = "0";
+                setTimeout(() => {
+                    loader.style.display = "none";
+                }, 600);
+            }
+
+            if (!video) {
+                // No video on this page, just dismiss immediately (or after a very brief delay for effect)
+                if (progressBar) progressBar.style.width = "100%";
+                setTimeout(dismissLoader, 300);
+                return;
+            }
+
+            // Force dismiss after 5 seconds fallback
+            const fallbackTimeout = setTimeout(dismissLoader, 5000);
+
+            // Track progress
+            video.addEventListener("progress", function() {
+                if (video.duration > 0) {
+                    let buffered = 0;
+                    if (video.buffered.length > 0) {
+                        buffered = video.buffered.end(video.buffered.length - 1);
+                    }
+                    let percent = (buffered / video.duration) * 100;
+                    if (percent > 95) percent = 100;
+                    if (progressBar && percent > parseFloat(progressBar.style.width || "0")) {
+                        progressBar.style.width = percent + "%";
+                    }
+                }
+            });
+
+            if (video.readyState >= 4) { // HAVE_ENOUGH_DATA
+                clearTimeout(fallbackTimeout);
+                dismissLoader();
+            } else {
+                video.addEventListener("canplaythrough", function() {
+                    clearTimeout(fallbackTimeout);
+                    dismissLoader();
+                });
+                
+                // Fallback loadeddata trigger
+                video.addEventListener("loadeddata", function() {
+                    if (progressBar) progressBar.style.width = "60%";
+                });
+            }
+        });
+    </script>
 
     <!-- Announcement Bar -->
     <div class="w-full bg-white py-3 px-6 flex items-center justify-between border-b border-black">
