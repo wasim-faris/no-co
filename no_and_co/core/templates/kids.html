@@ -174,11 +174,13 @@
 
 
 
-    <section class="w-full flex flex-col md:flex-row items-stretch no-gap border-t border-gray-100 gap-0 p-0 m-0">
+    <section class="w-full flex flex-col md:flex-row items-stretch no-gap gap-0 p-0 m-0">
       <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
         <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
             <div class="skeleton skeleton-img h-full w-full"></div>
-            <img data-src="{% static 'core/images/kid-img-1.avif' %}" alt="Shirts" class="block w-full h-full object-cover lazy-image">
+            <video autoplay loop muted playsinline onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" class="block w-full h-full object-cover m-0 p-0 lazy-image">
+                <source src="{% static 'video/kids-video-1.mp4' %}" type="video/mp4">
+            </video>
         </div>
         <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white actual-content mt-auto" style="display:block !important;">
             <p class="section-label">Shirts</p>
@@ -188,7 +190,9 @@
       <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
         <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
             <div class="skeleton skeleton-img h-full w-full"></div>
-            <img data-src="{% static 'core/images/kid-im2.avif' %}" alt="Trousers" class="block w-full h-full object-cover lazy-image">
+            <video autoplay loop muted playsinline onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" class="block w-full h-full object-cover m-0 p-0 lazy-image">
+                <source src="{% static 'video/kids-video-3.mp4' %}" type="video/mp4">
+            </video>
         </div>
         <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white actual-content mt-auto" style="display:block !important;">
             <p class="section-label">Trousers</p>
@@ -219,11 +223,13 @@
         </div>
       </div>
     </section>
-<section class="w-full flex flex-col md:flex-row items-stretch no-gap border-t border-gray-100 gap-0 p-0 m-0">
+<section class="w-full flex flex-col md:flex-row items-stretch no-gap gap-0 p-0 m-0">
       <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
         <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
             <div class="skeleton skeleton-img h-full w-full"></div>
-            <img data-src="{% static 'core/images/Newborn-KCE-wk17-18.avif' %}" alt="Shirts" class="block w-full h-full object-cover lazy-image">
+            <video autoplay loop muted playsinline onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" class="block w-full h-full object-cover m-0 p-0 lazy-image">
+                <source src="{% static 'video/kids-video-2.mp4' %}" type="video/mp4">
+            </video>
         </div>
         <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white actual-content mt-auto" style="display:block !important;">
             <p class="section-label">Shirts</p>
@@ -233,7 +239,9 @@
       <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
         <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
             <div class="skeleton skeleton-img h-full w-full"></div>
-            <img data-src="{% static 'core/images/Kids-9-14y-KCE-wk17-18.avif' %}" alt="Trousers" class="block w-full h-full object-cover lazy-image">
+            <video autoplay loop muted playsinline onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" class="block w-full h-full object-cover m-0 p-0 lazy-image">
+                <source src="{% static 'video/kids-video-4.mp4' %}" type="video/mp4">
+            </video>
         </div>
         <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white actual-content mt-auto" style="display:block !important;">
             <p class="section-label">Trousers</p>
