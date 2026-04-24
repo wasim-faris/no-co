@@ -83,7 +83,7 @@ def ladies(request):
                 to_attr="primary_images",
             )
         )
-    )
+    )[:12]
     search_history = request.session.get("search_history", [])
     variants = apply_offers_to_variants(variants)
     return render(request, "ladies.html", {"search_history": search_history, "variants": variants})
