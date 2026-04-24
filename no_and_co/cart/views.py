@@ -106,7 +106,7 @@ def cart_view(request):
 
     cart_items = Cart.objects.filter(user=user, session_key=session).prefetch_related(
         "variant__images"
-    )
+    ).order_by("-created_at")
     from offers.utils import get_best_offer, apply_offers_to_variants
     for item in cart_items:
         # We need to know the current original price and the best offer 
