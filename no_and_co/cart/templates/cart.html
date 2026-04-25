@@ -641,12 +641,12 @@
         {% endif %}
 
         <!-- Empty State (shown dynamically after all items removed) -->
-        <div id="emptyState" class="flex-col items-center justify-center py-40 text-center" style="{% if cart_items %}display: none;{% else %}display: flex;{% endif %}">
-            <div class="mb-10 opacity-20">
+        <div id="emptyState" class="flex-col items-center justify-center py-10 text-center" style="{% if cart_items %}display: none;{% else %}display: flex;{% endif %}">
+            <div class="mb-6 opacity-20">
                 <i class="ri-shopping-bag-line text-6xl font-thin"></i>
             </div>
             <h2 class="text-xl font-medium uppercase tracking-widest mb-3">Your bag is empty</h2>
-            <p class="text-[#767676] mb-10 max-w-sm text-[0.75rem] leading-relaxed">
+            <p class="text-[#767676] mb-6 max-w-sm text-[0.75rem] leading-relaxed">
                 Styles you love are waiting for you! Just click the heart icon on your favorites to save them or start filling your bag now.
             </p>
             <a href="{% url 'home' %}" class="btn-checkout py-4 px-14 w-auto inline-block">Start Shopping</a>
