@@ -3,7 +3,9 @@
 {% block title %}Variant Management - NØ & CO{% endblock %}
 
 {% block extra_head %}
-<style>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <style>
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f5f1eb;
@@ -540,6 +542,28 @@
     </div>
 </div>
 
+<!-- CROPPER MODAL -->
+<div id="cropperModal" class="fixed inset-0 z-[1000] flex items-center justify-center p-6 hidden">
+    <div class="absolute inset-0 bg-black/80 backdrop-blur-md"></div>
+    <div class="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl z-10 flex flex-col">
+        <div class="p-6 border-b border-gray-50 flex justify-between items-center bg-white">
+            <div>
+                <h3 class="text-2xl font-serif text-gray-900 mb-1">Crop Image</h3>
+                <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Adjust your image framing</p>
+            </div>
+            <button type="button" onclick="cancelCrop()" class="text-gray-400 hover:text-black transition p-2 bg-gray-50 rounded-full hover:bg-gray-100">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="bg-gray-50 flex items-center justify-center relative w-full h-[400px]">
+            <img id="imageToCrop" src="" class="max-w-full max-h-full block">
+        </div>
+        <div class="p-6 border-t border-gray-50 flex gap-4 bg-white">
+            <button type="button" onclick="cancelCrop()" class="flex-1 py-4 text-[10px] uppercase font-bold text-black border border-gray-100 hover:bg-gray-50 rounded-2xl transition">Cancel</button>
+            <button type="button" onclick="applyCrop()" class="flex-1 py-4 text-[10px] uppercase font-bold text-white bg-black rounded-2xl hover:bg-gray-800 transition shadow-xl">Apply Crop</button>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
 
@@ -687,31 +711,97 @@ document.addEventListener('click', function(e) {
     modal.classList.remove('hidden');
 });
 
+let currentCropper = null;
+let currentCropInput = null;
+let currentCropModalType = null;
+let currentCropIndex = null;
+
 function previewImage(input, modalType, index) {
     if (input.files && input.files[0]) {
         const file = input.files[0];
+        
+        currentCropInput = input;
+        currentCropModalType = modalType;
+        currentCropIndex = index;
+
         const reader = new FileReader();
         reader.onload = function(e) {
-            const previewImg = document.getElementById(`${modalType}-preview-${index}`);
-            previewImg.src = e.target.result;
-            document.getElementById(`${modalType}-preview-container-${index}`).classList.remove('hidden');
+            document.getElementById('cropperModal').classList.remove('hidden');
+            const img = document.getElementById('imageToCrop');
+            img.src = e.target.result;
 
-            // Update primary selection logic
-            let radioEl = document.getElementById(`${modalType}-radio-${index}`);
-            if (radioEl) {
-                radioEl.value = `new_${index}`;
-                radioEl.onchange = () => setPrimary(modalType, `new_${index}`);
-                if (!document.getElementById(`${modalType}_primary_image`).value) {
-                    radioEl.checked = true;
-                    setPrimary(modalType, `new_${index}`);
-                }
+            if (currentCropper) {
+                currentCropper.destroy();
             }
 
-            const imgErr = document.getElementById(`${modalType}-image-error`);
-            if (imgErr) imgErr.classList.add('hidden');
+            // Using timeout to ensure modal is visible and image has dimensions before initializing cropper
+            setTimeout(() => {
+                currentCropper = new Cropper(img, {
+                    aspectRatio: NaN, // Free crop, can be set to 1 for square etc.
+                    viewMode: 1,
+                    autoCropArea: 1,
+                    background: false,
+                });
+            }, 50);
         }
         reader.readAsDataURL(file);
     }
+}
+
+function cancelCrop() {
+    document.getElementById('cropperModal').classList.add('hidden');
+    if (currentCropper) {
+        currentCropper.destroy();
+        currentCropper = null;
+    }
+    if (currentCropInput) {
+        currentCropInput.value = ''; // Reset input to allow re-selection
+    }
+    currentCropInput = null;
+    currentCropModalType = null;
+    currentCropIndex = null;
+}
+
+function applyCrop() {
+    if (!currentCropper) return;
+
+    const canvas = currentCropper.getCroppedCanvas();
+    if (!canvas) return;
+
+    canvas.toBlob(function(blob) {
+        // Create new file from blob
+        const originalName = currentCropInput.files[0].name;
+        const file = new File([blob], originalName, { type: "image/png", lastModified: new Date().getTime() });
+        
+        // Overwrite the input files using DataTransfer
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        currentCropInput.files = dataTransfer.files;
+
+        // Apply to preview
+        const dataUrl = canvas.toDataURL("image/png");
+        const previewImg = document.getElementById(`${currentCropModalType}-preview-${currentCropIndex}`);
+        previewImg.src = dataUrl;
+        document.getElementById(`${currentCropModalType}-preview-container-${currentCropIndex}`).classList.remove('hidden');
+
+        // Update primary selection logic
+        let radioEl = document.getElementById(`${currentCropModalType}-radio-${currentCropIndex}`);
+        if (radioEl) {
+            radioEl.value = `new_${currentCropIndex}`;
+            radioEl.onchange = () => setPrimary(currentCropModalType, `new_${currentCropIndex}`);
+            if (!document.getElementById(`${currentCropModalType}_primary_image`).value) {
+                radioEl.checked = true;
+                setPrimary(currentCropModalType, `new_${currentCropIndex}`);
+            }
+        }
+
+        const imgErr = document.getElementById(`${currentCropModalType}-image-error`);
+        if (imgErr) imgErr.classList.add('hidden');
+
+        // Close and cleanup
+        cancelCrop();
+
+    }, 'image/png');
 }
 
 function removeImage(modalType, index) {
