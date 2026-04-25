@@ -102,11 +102,9 @@
                                 <div class="text-[9px] text-gray-400 uppercase font-bold tracking-tighter">TO {{ offer.end_date|date:"M d, Y" }}</div>
                             </td>
                             <td class="px-6 py-5">
-                                {% if offer.is_active %}
-                                <span class="text-[11px] font-bold text-green-500">Active</span>
-                                {% else %}
-                                <span class="text-[11px] font-bold text-gray-400">Inactive</span>
-                                {% endif %}
+                                <span id="status-badge-{{ offer.id }}" class="text-[11px] font-bold {% if offer.is_active %}text-green-500{% else %}text-gray-400{% endif %}">
+                                    {% if offer.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
                             </td>
                             <td class="px-6 py-5 text-right">
                                 <div class="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -589,14 +587,39 @@
 
     // Toggle Active Status
     window.toggleStatus = function(offerId, element) {
+        const badge = document.getElementById(`status-badge-${offerId}`);
+        const isActive = element.checked;
+        
+        // Optimistic UI Update
+        if (badge) {
+            badge.innerText = isActive ? 'Active' : 'Inactive';
+            badge.className = `text-[11px] font-bold ${isActive ? 'text-green-500' : 'text-gray-400'}`;
+        }
+
         fetch('/toggle-status/' + offerId + '/', {
             method: 'POST',
             headers: { 'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value }
         }).then(res => res.json()).then(data => {
-            if (!data.success) element.checked = !element.checked; // Revert visually on fail
+            if (data.success) {
+                showToast(`Offer ${data.is_active ? 'activated' : 'deactivated'} successfully`);
+            } else {
+                // Revert on failure
+                element.checked = !isActive;
+                if (badge) {
+                    badge.innerText = !isActive ? 'Active' : 'Inactive';
+                    badge.className = `text-[11px] font-bold ${!isActive ? 'text-green-500' : 'text-gray-400'}`;
+                }
+                showToast(data.message || 'Error updating status', 'error');
+            }
         }).catch(err => {
             console.error(err);
-            element.checked = !element.checked; // Revert visually
+            // Revert on failure
+            element.checked = !isActive;
+            if (badge) {
+                badge.innerText = !isActive ? 'Active' : 'Inactive';
+                badge.className = `text-[11px] font-bold ${!isActive ? 'text-green-500' : 'text-gray-400'}`;
+            }
+            showToast('Connection error', 'error');
         });
     };
 
