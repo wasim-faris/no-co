@@ -233,17 +233,15 @@ def signup_otp_verification(request):
             user = User.objects.create_user(
                 username=username, email=email, password=password
             )
-            
-            # Handle Referral
+
             if referral_code_used:
                 try:
                     referrer = User.objects.get(referral_code=referral_code_used)
                     if referrer != user:
-                        # Set referred_by on user record
+
                         user.referred_by = referrer
                         user.save()
 
-                        # Create Referral Record (Rewards will be paid on first delivered order)
                         ReferralRecord.objects.create(
                             referrer=referrer,
                             referred_user=user,
@@ -523,17 +521,17 @@ def validate_referral_code(request):
     code = request.GET.get('code', '').strip().upper()
     if not code:
         return JsonResponse({'valid': False, 'message': ''})
-    
+
     try:
         referrer = User.objects.get(referral_code=code)
         # Check if the user is not trying to use their own code (though they aren't logged in yet, we can't be sure)
         # But usually, they don't have a code yet.
         return JsonResponse({
-            'valid': True, 
+            'valid': True,
             'message': f"✓ Code applied — you'll receive ₹40 on signup"
         })
     except User.DoesNotExist:
         return JsonResponse({
-            'valid': False, 
+            'valid': False,
             'message': 'Invalid referral code'
         })
