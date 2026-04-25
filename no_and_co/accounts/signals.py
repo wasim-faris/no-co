@@ -1,5 +1,6 @@
 from allauth.account.signals import user_logged_in
 from django.dispatch import receiver
+from django.contrib import messages
 from cart.views import merge_cart_after_login
 from wishlist.views import merge_wishlist_item
 
@@ -19,4 +20,5 @@ def merge_cart_google_login(request, user,**kwargs):
     merge_wishlist_item(request, user, old_session_key)
 
 
+    messages.success(request, "Logged in successfully")
     request.session.pop("pre_login_session_key",None)
