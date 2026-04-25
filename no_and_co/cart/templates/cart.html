@@ -464,7 +464,7 @@
             overflow: hidden;
         }
     }
-    @media (max-width: 767px) {
+    }
 </style>
 {% endblock %}
 
@@ -641,7 +641,7 @@
         {% endif %}
 
         <!-- Empty State (shown dynamically after all items removed) -->
-        <div id="emptyState" class="flex-col items-center justify-center py-40 text-center {% if not cart_items %}visible{% endif %}">
+        <div id="emptyState" class="flex-col items-center justify-center py-40 text-center" style="{% if cart_items %}display: none;{% else %}display: flex;{% endif %}">
             <div class="mb-10 opacity-20">
                 <i class="ri-shopping-bag-line text-6xl font-thin"></i>
             </div>
