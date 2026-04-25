@@ -870,13 +870,13 @@
         <div class="filter-section">
             <h3 class="filter-section-title">Price Range</h3>
             <div style="display: flex; justify-content: space-between; margin-bottom: 24px; font-size: 13px; font-weight: 600;">
-                <span>₹<span id="minDisplay">{{ request.GET.price_min|default:"500" }}</span></span>
+                <span>₹<span id="minDisplay">{{ request.GET.price_min|default:"0" }}</span></span>
                 <span>₹<span id="maxDisplay">{{ request.GET.price_max|default:"9999" }}</span></span>
             </div>
             <div class="slider-container">
                 <div class="slider-track"></div>
                 <div class="slider-active" id="sliderActive"></div>
-                <input type="range" id="priceMin" name="price_min" min="0" max="9999" value="{{ request.GET.price_min|default:'500' }}">
+                <input type="range" id="priceMin" name="price_min" min="0" max="9999" value="{{ request.GET.price_min|default:'0' }}">
                 <input type="range" id="priceMax" name="price_max" min="0" max="9999" value="{{ request.GET.price_max|default:'9999' }}">
             </div>
         </div>

@@ -278,7 +278,7 @@ def product_listing(request):
         request.session["search_history"] = []
 
     variants = Variant.objects.filter(
-        product__is_active=True, product__is_deleted=False, is_default=True
+        product__is_active=True, product__is_deleted=False, is_default=True, is_deleted=False
     ).select_related('product__category')
 
     if query:
