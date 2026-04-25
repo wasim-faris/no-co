@@ -12,6 +12,50 @@
         rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
     <style>
+        /* --- FALLBACK TOAST STYLING (System 2) --- */
+        .inline-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            max-width: 90vw;
+            background: #000;
+            color: #fff;
+            padding: 16px 20px;
+            border-radius: 2px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateX(30px);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            z-index: 99999;
+            pointer-events: auto;
+        }
+        .inline-toast.show { opacity: 1; transform: translateX(0); }
+        .toast-item { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+        .toast-left-content { display: flex; align-items: center; gap: 14px; }
+        .toast-icon-circle {
+            width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; background: transparent;
+        }
+        .toast-message-wrapper { display: flex; flex-direction: column; }
+        .toast-main-text {
+            font-size: 12px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            line-height: 1.2;
+        }
+        .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .toast-close-btn {
+            cursor: pointer; font-size: 14px; opacity: 0.4;
+            transition: opacity 0.2s; padding: 4px; line-height: 1;
+        }
+        .toast-close-btn:hover { opacity: 1; }
+
         @font-face {
             font-family: 'Basteleur';
             src: url('{% static "fonts/basteleur/Basteleur-Bold.woff2" %}') format('woff2'),
@@ -599,6 +643,7 @@
 
     {% include 'user_base/components/navbar.html' %}
 
+    {% block django_messages %}
     {% if messages %}
     <div id="djangoToast" class="inline-toast show" role="alert" aria-live="polite">
         {% for message in messages %}
@@ -615,6 +660,7 @@
         {% endfor %}
     </div>
     {% endif %}
+    {% endblock django_messages %}
 
     <main class="pb-20 md:pb-0">
         {% block content %}
