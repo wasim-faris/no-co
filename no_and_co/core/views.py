@@ -570,18 +570,30 @@ def place_order(request):
                 )
 
 
-                for item in cart_items:
-                    # 'item.price' is the final discounted price (Base - Product/Category Offer) synced in the cart view
-                    item_discounted_total = item.price * item.quantity 
-                    
-                    # Calculate proportional coupon discount for this item based on the ALREADY DISCOUNTED price
-                    if sub_total > 0:
-                        item_coupon_discount = (item_discounted_total / sub_total) * discount
+                remaining_discount = discount
+                items = list(cart_items)
+                total_items = len(items)
+                
+                for i, item in enumerate(items):
+                    # Calculate proportional coupon discount
+                    if i == total_items - 1:
+                        # Last item takes the remainder to avoid rounding loss
+                        item_coupon_discount = remaining_discount
                     else:
-                        item_coupon_discount = Decimal("0.00")
+                        item_line_total = item.price * item.quantity
+                        if sub_total > 0:
+                            item_coupon_discount = ((item_line_total / sub_total) * discount).quantize(Decimal("0.01"))
+                        else:
+                            item_coupon_discount = Decimal("0.00")
+                        remaining_discount -= item_coupon_discount
 
-                    item_final_total = item_discounted_total - item_coupon_discount
-                    item_final_price_per_unit = item_final_total / item.quantity if item.quantity > 0 else Decimal("0.00")
+                    # Safety check: item_coupon_discount cannot exceed item_line_total
+                    item_line_total = item.price * item.quantity
+                    if item_coupon_discount > item_line_total:
+                        item_coupon_discount = item_line_total
+
+                    item_final_total = item_line_total - item_coupon_discount
+                    item_final_price_per_unit = (item_final_total / item.quantity).quantize(Decimal("0.01")) if item.quantity > 0 else Decimal("0.00")
 
                     OrderItem.objects.create(
                         order=order,
@@ -589,7 +601,7 @@ def place_order(request):
                         original_price=item.variant.price, # Base MSRP
                         discount_amount=item_coupon_discount,
                         final_price=item_final_price_per_unit,
-                        price=item_final_price_per_unit,
+                        price=item.price, # Price after product/category offers but before coupon
                         quantity=item.quantity,
                     )
 

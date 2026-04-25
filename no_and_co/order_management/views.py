@@ -109,6 +109,35 @@ def admin_update_order_status(request, order_id):
 
                 if new_status == "CANCELLED":
                     order.cancelled_at = timezone.now()
+                    
+                    # Refund logic for prepaid orders (Online or Wallet)
+                    # Note: COD orders are only refunded if they were already delivered/paid (which is rare for a cancel, but handled)
+                    if order.payment_status == "PAID" or order.payment_method == "wallet":
+                        from wallet.models import Wallet, WalletTransaction
+                        from decimal import Decimal
+                        
+                        # Only refund if not already refunded
+                        if order.payment_status != "REFUNDED":
+                            wallet, _ = Wallet.objects.get_or_create(user=order.user)
+                            refund_amount = order.total_amount
+                            
+                            # Update wallet balance
+                            wallet.balance = Decimal(wallet.balance) + Decimal(refund_amount)
+                            wallet.save()
+                            
+                            # Record transaction
+                            WalletTransaction.objects.create(
+                                wallet=wallet,
+                                order_id=order.id,
+                                amount=refund_amount,
+                                transaction_type='CREDIT',
+                                payment_status='SUCCESS',
+                                description=f"Refund for Order #{order.order_number} cancelled by administrator"
+                            )
+                            
+                            # Update order payment status
+                            order.payment_status = "REFUNDED"
+                            order.save()
 
                 if new_status == "DELIVERED":
                     order.delivered_date = timezone.now()
