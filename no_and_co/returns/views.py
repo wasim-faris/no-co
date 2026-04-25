@@ -266,8 +266,8 @@ def complete_refund(request):
             )
 
             user = return_request.order.user
-            # Refund the final price paid for the item (calculated during order placement)
-            amount = order_item.final_price * order_item.quantity 
+          
+            amount = order_item.final_price * order_item.quantity
             wallet , created = Wallet.objects.get_or_create(user=user)
 
             wallet.balance = Decimal(wallet.balance) + Decimal(amount)

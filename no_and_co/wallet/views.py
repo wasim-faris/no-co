@@ -73,7 +73,6 @@ def verify_wallet_payment(request):
             wallet_obj.balance += amount
             wallet_obj.save()
 
-            # Record transaction
             WalletTransaction.objects.create(
                 wallet=wallet_obj,
                 amount=amount,

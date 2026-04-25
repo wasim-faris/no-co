@@ -707,13 +707,13 @@ def admin_sales_report(request):
 
     # 1. Date Filtering
     today = timezone.now().date()
-    period = request.GET.get('period', 'custom')
+    period = request.GET.get('period', 'weekly')
 
-    if period == 'daily':
-        start_date = today
+    if period == 'weekly':
+        start_date = today - timedelta(days=6)
         end_date = today
-    elif period == 'weekly':
-        start_date = today - timedelta(days=7)
+    elif period == 'monthly':
+        start_date = today - timedelta(days=29)
         end_date = today
     elif period == 'yearly':
         start_date = today.replace(month=1, day=1)
@@ -782,23 +782,44 @@ def admin_sales_report(request):
     total_orders_count = metrics['total_orders'] or 0
     coupon_deduction = metrics['coupon_deduction'] or Decimal('0.00')
 
-    # 4. Chart Data: Revenue Overview (Daily)
-    daily_revenue = filtered_orders.annotate(
-        date=TruncDate('created_at')
-    ).values('date').annotate(
-        revenue=Sum('total_amount')
-    ).order_by('date')
-
-    # Prepare labels and data for JS
+    # 4. Chart Data: Revenue Overview
     daily_labels = []
     daily_values = []
-    curr = start_date
-    revenue_dict = {item['date']: float(item['revenue']) for item in daily_revenue}
 
-    while curr <= end_date:
-        daily_labels.append(curr.strftime('%d %b'))
-        daily_values.append(revenue_dict.get(curr, 0.0))
-        curr += timedelta(days=1)
+    if period == 'yearly':
+        # Group by month for yearly view
+        revenue_data = filtered_orders.annotate(
+            month=TruncMonth('created_at')
+        ).values('month').annotate(
+            revenue=Sum('total_amount')
+        ).order_by('month')
+        
+        revenue_dict = {item['month'].date() if item['month'] else None: float(item['revenue']) for item in revenue_data if item['month']}
+        
+        # Build labels and values for all months from start_date to end_date
+        curr = start_date.replace(day=1)
+        while curr <= end_date:
+            daily_labels.append(curr.strftime('%b %Y'))
+            daily_values.append(revenue_dict.get(curr, 0.0))
+            if curr.month == 12:
+                curr = curr.replace(year=curr.year + 1, month=1)
+            else:
+                curr = curr.replace(month=curr.month + 1)
+    else:
+        # Group by day for weekly, monthly, custom views
+        revenue_data = filtered_orders.annotate(
+            date=TruncDate('created_at')
+        ).values('date').annotate(
+            revenue=Sum('total_amount')
+        ).order_by('date')
+
+        revenue_dict = {item['date']: float(item['revenue']) for item in revenue_data if item['date']}
+        
+        curr = start_date
+        while curr <= end_date:
+            daily_labels.append(curr.strftime('%d %b'))
+            daily_values.append(revenue_dict.get(curr, 0.0))
+            curr += timedelta(days=1)
 
     # 5. Chart Data: Monthly Growth (Last 12 Months)
     # Ensure we show all last 12 months even if revenue is 0

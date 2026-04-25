@@ -33,6 +33,7 @@ from wallet.models import Wallet, WalletTransaction
 from coupon.models import Coupon, CouponUsage
 from offers.utils import apply_offers_to_variants
 from .utils import coupon_validation, get_cart_total,get_available_coupons
+from offers.utils import get_best_offer
 # Create your views here.
 
 
@@ -162,13 +163,13 @@ def product_details(request, id):
     apply_offers_to_variants(variants_list)
 
     if default_variant:
-        # Match the default_variant with the one in the list that has offers applied
+
         for v in variants_list:
             if v.id == default_variant.id:
                 default_variant = v
                 break
         else:
-            # Fallback if not found in list for some reason
+
             apply_offers_to_variants([default_variant])
 
     unique_variants = []
@@ -308,43 +309,42 @@ def product_listing(request):
         variants = variants.filter(price__lte=max_price)
 
     section = request.GET.get("section")
-    # Read selected categories from request
+
     categories = request.GET.getlist('category')
-    
-    # 🔥 MANDATORY DEBUG
+
+
     print("DEBUG incoming - section:", section, "categories:", categories)
-    
-    # ── Consolidate Category Filtering ──
-    # Map lowercase inputs to DB uppercase names
+
+
     category_names = [c.upper() for c in categories]
-    
-    # If no checkboxes are selected, but we have a section, use section as the default category
+
+
     if not category_names and section:
         if section == 'mens': category_names = ['MENS']
         elif section == 'ladies': category_names = ['LADIES']
         elif section == 'kids': category_names = ['KIDS']
 
-    # 🔥 FORCE override subcategory logic based on final category_names
+
     if category_names:
         subcategories = Subcategory.objects.filter(
             category__category_name__in=category_names,
             is_active=True,
             is_deleted=False
         ).distinct()
-        
-        # Apply category filter to variants
+
+
         variants = variants.filter(product__category__category_name__in=category_names)
     else:
-        # No filter -> show all active subcategories
+
         subcategories = Subcategory.objects.filter(
             is_active=True,
             is_deleted=False
         ).distinct()
 
-    # ── Subcategory Filtering ──
+
     if subcategory:
         subcategory = subcategory.upper()
-        # Filter by subcategory name, restricted by selected categories if any
+
         if category_names:
             subs = Subcategory.objects.filter(subcategory_name=subcategory, category__category_name__in=category_names)
         else:
@@ -365,17 +365,16 @@ def product_listing(request):
     paginator = Paginator(variants, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
+
     apply_offers_to_variants(page_obj.object_list)
 
-    # Build a base query string preserving all params except subcategory and page.
-    # We do this in the view because request.GET.lists() cannot be called from Django templates.
+
     base_qs_parts = []
     for key, values in request.GET.lists():
         if key not in ('subcategory', 'page'):
             for value in values:
                 base_qs_parts.append(f"{key}={value}")
-    base_qs = "&".join(base_qs_parts)  # e.g. "category=mens&category=ladies&sort=newest"
+    base_qs = "&".join(base_qs_parts)
 
     return render(
         request,
@@ -465,9 +464,8 @@ def checkout(request):
     )
 
     cart_items = Cart.objects.filter(user=request.user).select_related("variant")
-    
-    # Sync latest offer-based price to cart items before calculation
-    from offers.utils import get_best_offer
+
+
     for item in cart_items:
         _, disc = get_best_offer(item.variant.product, item.variant.price)
         item.final_price = item.variant.price - disc
@@ -564,7 +562,7 @@ def place_order(request):
             applied_coupon = Coupon.objects.filter(id=coupon_id).first()
 
         total_amount = sub_total + tax_amount - discount + delivery_charge
-        
+
         if total_amount < 0:
             total_amount = Decimal("0.00")
 
@@ -598,11 +596,11 @@ def place_order(request):
                 remaining_discount = discount
                 items = list(cart_items)
                 total_items = len(items)
-                
+
                 for i, item in enumerate(items):
-                    # Calculate proportional coupon discount
+
                     if i == total_items - 1:
-                        # Last item takes the remainder to avoid rounding loss
+
                         item_coupon_discount = remaining_discount
                     else:
                         item_line_total = item.price * item.quantity
@@ -612,7 +610,7 @@ def place_order(request):
                             item_coupon_discount = Decimal("0.00")
                         remaining_discount -= item_coupon_discount
 
-                    # Safety check: item_coupon_discount cannot exceed item_line_total
+
                     item_line_total = item.price * item.quantity
                     if item_coupon_discount > item_line_total:
                         item_coupon_discount = item_line_total
@@ -623,10 +621,10 @@ def place_order(request):
                     OrderItem.objects.create(
                         order=order,
                         variant=item.variant,
-                        original_price=item.variant.price, # Base MSRP
+                        original_price=item.variant.price,
                         discount_amount=item_coupon_discount,
                         final_price=item_final_price_per_unit,
-                        price=item.price, # Price after product/category offers but before coupon
+                        price=item.price,
                         quantity=item.quantity,
                     )
 
@@ -660,7 +658,7 @@ def place_order(request):
                         wallet.save()
 
                         if applied_coupon:
-                            # Prevent duplicate usage per order
+
                             if not CouponUsage.objects.filter(user=request.user, coupon=applied_coupon, order=order).exists():
                                 CouponUsage.objects.create(
                                     user=request.user,
@@ -712,14 +710,14 @@ def payment_success(request, order_id):
         return redirect("order-success")
 
     with transaction.atomic():
-        # Mark as PAID
+
         order.payment_status = "PAID"
         order.save()
 
-        # Handle Coupon Usage
+
         if order.coupon:
             from coupon.models import CouponUsage
-            # Check if usage already created (prevent duplicates on refresh)
+
             if not CouponUsage.objects.filter(user=request.user, coupon=order.coupon, order=order).exists():
                 CouponUsage.objects.create(
                     user=request.user,
@@ -727,7 +725,7 @@ def payment_success(request, order_id):
                     order=order
                 )
 
-        # Reduce Stock and Clear Cart
+
         cart_items = Cart.objects.filter(user=request.user)
         for item in cart_items:
             updated = Variant.objects.filter(
@@ -735,8 +733,6 @@ def payment_success(request, order_id):
             ).update(stock=F("stock") - item.quantity)
 
             if not updated:
-                # In a real payment success, failing stock reduction is tricky.
-                # Usually we pre-reserve or just log error.
                 pass
 
         cart_items.delete()
@@ -865,7 +861,6 @@ def cancel_order(request, order_id):
             messages.error(request, "This order cannot be cancelled as it has already been shipped.")
             return redirect("order_details", id=order_id)
 
-        # Restore stock only for items that weren't already cancelled
         items_to_cancel = order.items.select_related("variant").exclude(item_status="CANCELLED")
         for item in items_to_cancel:
             variant = item.variant
@@ -882,7 +877,6 @@ def cancel_order(request, order_id):
         )
         order.cancelled_at = timezone.now()
 
-        # Handle Refund for prepaid orders
         if order.payment_method in ["ONLINE", "wallet"]:
             wallet, _ = Wallet.objects.get_or_create(user=order.user)
             amount = Decimal(order.total_amount)

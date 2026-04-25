@@ -109,20 +109,20 @@ def admin_update_order_status(request, order_id):
 
                 if new_status == "CANCELLED":
                     order.cancelled_at = timezone.now()
-                    
-                    # Refund logic for prepaid orders (Online or Wallet)
-                    # Note: COD orders are only refunded if they were already delivered/paid (which is rare for a cancel, but handled)
+
+
+                
                     if order.payment_status == "PAID" or order.payment_method == "wallet":
-                        # Only refund if not already refunded
+
                         if order.payment_status != "REFUNDED":
                             wallet, _ = Wallet.objects.get_or_create(user=order.user)
                             refund_amount = order.total_amount
-                            
-                            # Update wallet balance
+
+
                             wallet.balance = Decimal(wallet.balance) + Decimal(refund_amount)
                             wallet.save()
-                            
-                            # Record transaction
+
+
                             WalletTransaction.objects.create(
                                 wallet=wallet,
                                 order_id=order.id,
@@ -131,30 +131,29 @@ def admin_update_order_status(request, order_id):
                                 payment_status='SUCCESS',
                                 description=f"Refund for Order #{order.order_number} cancelled by administrator"
                             )
-                            
-                            # Update order payment status
+
                             order.payment_status = "REFUNDED"
                             order.save()
 
                 if new_status == "DELIVERED":
                     order.delivered_date = timezone.now()
-                    
-                    # Referral Reward Logic
+
+
                     try:
-                        # Check if the user who placed the order was referred by someone
+
                         referral_record = ReferralRecord.objects.get(referred_user=order.user, reward_paid=False)
-                        
-                        # Use transaction.atomic() to ensure both rewards are processed or none
+
+
                         with transaction.atomic():
                             referrer = referral_record.referrer
                             referred_user = order.user
-                            
-                            # 1. Reward the Referrer (₹100)
+
+
                             referrer_wallet, _ = Wallet.objects.get_or_create(user=referrer)
                             reward_referrer = Decimal('100.00')
                             referrer_wallet.balance = Decimal(referrer_wallet.balance) + reward_referrer
                             referrer_wallet.save()
-                            
+
                             WalletTransaction.objects.create(
                                 wallet=referrer_wallet,
                                 amount=reward_referrer,
@@ -162,13 +161,13 @@ def admin_update_order_status(request, order_id):
                                 payment_status='SUCCESS',
                                 description=f"Referral reward — your friend completed their first order"
                             )
-                            
-                            # 2. Reward the New User (₹40)
+
+
                             user_wallet, _ = Wallet.objects.get_or_create(user=referred_user)
                             reward_referred = Decimal('40.00')
                             user_wallet.balance = Decimal(user_wallet.balance) + reward_referred
                             user_wallet.save()
-                            
+
                             WalletTransaction.objects.create(
                                 wallet=user_wallet,
                                 amount=reward_referred,
@@ -176,13 +175,13 @@ def admin_update_order_status(request, order_id):
                                 payment_status='SUCCESS',
                                 description=f"Referral bonus — reward for joining with a referral code"
                             )
-                            
-                            # 3. Mark the referral as paid to prevent duplicates
+
+
                             referral_record.reward_paid = True
                             referral_record.save()
-                            
+
                     except ReferralRecord.DoesNotExist:
-                        # Either user wasn't referred, or reward already paid
+
                         pass
 
             if tracking_id:

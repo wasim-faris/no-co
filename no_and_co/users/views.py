@@ -33,7 +33,6 @@ def user_profile(request, id):
 
     user = request.user
     
-    # Ensure existing users have a referral code
     if not user.referral_code:
         user.save()
 
@@ -53,11 +52,11 @@ def user_profile(request, id):
 
     from accounts.models import ReferralRecord
     from wallet.models import Wallet
-    
+
     referrals = ReferralRecord.objects.filter(referrer=user).order_by('-created_at')
     total_referrals = referrals.count()
     total_rewards = sum(r.reward_amount_referrer for r in referrals)
-    
+
     wallet, _ = Wallet.objects.get_or_create(user=user)
     wallet_balance = wallet.balance
 

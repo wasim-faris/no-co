@@ -13,14 +13,14 @@ from .models import Offer, OfferCategory, OfferProduct
 def admin_offers(request):
     offers = Offer.objects.all().order_by('-created_at')
 
-    # Status Filter
+
     status = request.GET.get('status')
     if status == 'active':
         offers = offers.filter(is_active=True)
     elif status == 'inactive':
         offers = offers.filter(is_active=False)
 
-    # Type Filter
+
     offer_type = request.GET.get('type')
     if offer_type == 'product':
         offers = offers.filter(apply_to='product')
@@ -36,7 +36,7 @@ def admin_offers(request):
             Q(offercategory__category__category_name__icontains=query)
         ).distinct()
 
-    # Pagination
+
     paginator = Paginator(offers, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -70,7 +70,7 @@ def create_offer(request):
         if not start_date or not end_date:
             messages.error(request, "Please select valid start and end dates")
             return redirect("admin-offers")
-            
+
         try:
             start_dt = datetime.strptime(start_date, "%Y-%m-%d").date()
             end_dt = datetime.strptime(end_date, "%Y-%m-%d").date()
@@ -87,7 +87,7 @@ def create_offer(request):
 
         from decimal import Decimal, ROUND_HALF_UP
         d_val = Decimal(discount_value).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        
+
         offer = Offer.objects.create(
             name=name, apply_to=apply_to, discount_type=discount_type,
             discount_value=d_val, min_purchase=min_purchase,
@@ -131,7 +131,7 @@ def update_offer(request, offer_id):
         if not offer.start_date or not offer.end_date:
             messages.error(request, "Please select valid start and end dates")
             return redirect("admin-offers")
-            
+
         try:
             start_dt = datetime.strptime(offer.start_date, "%Y-%m-%d").date()
             end_dt = datetime.strptime(offer.end_date, "%Y-%m-%d").date()
@@ -146,7 +146,7 @@ def update_offer(request, offer_id):
             messages.error(request, "Invalid date selection")
             return redirect("admin-offers")
 
-        # Relational Cleanup
+       
         OfferProduct.objects.filter(offer=offer).delete()
         OfferCategory.objects.filter(offer=offer).delete()
 
@@ -182,4 +182,3 @@ def toggle_offer_status(request, offer_id):
         offer.save()
         return JsonResponse({"success": True, "is_active": offer.is_active})
     return JsonResponse({"success": False}, status=400)
-
