@@ -218,13 +218,18 @@
     @media (max-width: 768px) {
         .size-row {
             grid-template-columns: repeat(4, 1fr);
-            border-top: 1.5px solid #111111;
-            border-left: 1.5px solid #111111;
+            border-top: none; /* BUG 2: Remove unwanted top line above size area on mobile */
+            border-left: 1px solid #dcdcdc; /* Match desktop thin border color */
         }
         .size-box {
-            border-right: 1.5px solid #111111;
-            border-bottom: 1.5px solid #111111;
-            font-weight: 500;
+            border-right: 1px solid #dcdcdc; /* Match desktop thin border color */
+            border-bottom: 1px solid #dcdcdc; /* Match desktop thin border color */
+            font-weight: 400; /* Match desktop font-weight */
+        }
+        .size-box.active {
+            background: #fff !important;
+            color: #000 !important;
+            border: 1px solid #000 !important;
         }
     }
 
@@ -1045,7 +1050,7 @@
                      data-discount-percent="{{ variant.discount_percent }}"
                      data-has-discount="{{ variant.has_discount|yesno:'true,false' }}"
                      data-savings="{{ variant.savings }}"
-                     data-sizes="{% for v in variants %}{% if v.color == variant.color %}{{ v.size.name }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}"
+                     data-sizes="{% for v in variants %}{% if v.color == variant.color and v.size.name %}{{ v.size.name }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}"
                      data-img1="{% if variant.primary_images %}{{ variant.primary_images.0.image.url }}{% elif variant.images.all %}{{ variant.images.all.0.image.url }}{% endif %}"
                      {% for img in variant.images.all %}
                         {% if not variant.primary_images or img.id != variant.primary_images.0.id %}
@@ -1072,7 +1077,7 @@
 
         <div class="size-row" id="sizeContainer">
             {% for v in variants %}
-                {% if v.color == default_variant.color %}
+                {% if v.color == default_variant.color and v.size.name %}
                     <div class="size-box {% if v.stock <= 0 %}out-of-stock{% endif %}"
                          data-stock="{{ v.stock }}"
                          onclick="selectSize(this)"
@@ -1470,7 +1475,8 @@
 
         // Update Sizes
         const sizesRaw = element.getAttribute('data-sizes');
-        const sizesArray = sizesRaw ? sizesRaw.split(',').filter(s => s.trim() !== "") : [];
+        // BUG 3 Fix: Filter out empty, null, or whitespace-only labels before rendering buttons
+        const sizesArray = sizesRaw ? sizesRaw.split(',').filter(s => s && s.trim() !== "") : [];
         const activeColor = element.getAttribute('data-color');
 
         sizeContainer.innerHTML = '';
