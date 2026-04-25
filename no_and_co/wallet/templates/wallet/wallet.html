@@ -298,6 +298,36 @@
         }
     }
 
+    /* ─── Load More Button (Match PLP style) ─────────────────────── */
+    .load-next-btn {
+        display: inline-block;
+        min-width: 320px;
+        background: var(--hm-black);
+        color: var(--hm-white);
+        text-align: center;
+        padding: 12px 24px;
+        text-transform: uppercase;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 1.5px;
+        text-decoration: none;
+        border-radius: 0px;
+        margin: 40px auto 25px;
+        transition: background 0.3s ease;
+        cursor: pointer;
+        border: none;
+    }
+    .load-next-btn:hover {
+        background: #222;
+    }
+    .load-next-btn:disabled {
+        background: var(--hm-gray-dark);
+        cursor: not-allowed;
+    }
+    @media (max-width: 600px) {
+        .load-next-btn { min-width: 100%; width: 100%; }
+    }
+
     @media (max-width: 768px) {
         .hm-modal { padding: 32px; width: 90%; }
     }
@@ -378,15 +408,11 @@
             </table>
         </div>
 
-        {% if page_obj.paginator.num_pages > 1 %}
-        <div class="pagination-wrapper">
-            {% for i in page_obj.paginator.page_range %}
-                {% if page_obj.number == i %}
-                    <span class="page-box active">{{ i }}</span>
-                {% else %}
-                    <a href="?page={{ i }}{% if request.GET.amount %}&amount={{ request.GET.amount }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" class="page-box">{{ i }}</a>
-                {% endif %}
-            {% endfor %}
+        {% if page_obj.has_next %}
+        <div id="load-more-container" style="text-align: center; margin-top: 2rem;">
+            <button id="load-more-btn" data-next-page="{{ page_obj.next_page_number }}" class="load-next-btn">
+                Load More
+            </button>
         </div>
         {% endif %}
     </section>
@@ -574,5 +600,60 @@
             closeAddMoneyModal();
         }
     }
+
+    /* ─── Load More Logic ────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', function() {
+        const loadMoreBtn = document.getElementById('load-more-btn');
+        const txnTableBody = document.querySelector('.txn-table tbody');
+        
+        if (loadMoreBtn) {
+            loadMoreBtn.addEventListener('click', function() {
+                const nextPage = this.getAttribute('data-next-page');
+                if (!nextPage) return;
+                
+                const originalText = this.innerText;
+                this.disabled = true;
+                this.innerText = 'Loading...';
+                
+                const url = new URL(window.location.href);
+                url.searchParams.set('page', nextPage);
+                
+                fetch(url.toString(), {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.text();
+                })
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newRows = doc.querySelectorAll('.txn-row');
+                    const nextBtnInDoc = doc.getElementById('load-more-btn');
+                    const newNextPage = nextBtnInDoc ? nextBtnInDoc.getAttribute('data-next-page') : null;
+                    
+                    // Append new rows to table
+                    newRows.forEach(row => {
+                        txnTableBody.appendChild(row);
+                    });
+                    
+                    // Update or hide the Load More button
+                    if (newNextPage) {
+                        this.setAttribute('data-next-page', newNextPage);
+                        this.disabled = false;
+                        this.innerText = originalText;
+                    } else {
+                        const container = document.getElementById('load-more-container');
+                        if (container) container.style.display = 'none';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading more transactions:', err);
+                    this.disabled = false;
+                    this.innerText = originalText;
+                });
+            });
+        }
+    });
 </script>
 {% endblock %}

@@ -787,49 +787,10 @@
     
     <!-- ══ PREMIUM PAGINATION ══ -->
     <div id="paginationSection" class="hm-pagination-container">
-        {% if page_obj.has_other_pages %}
-            
-            {% if page_obj.has_previous %}
-            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" 
-               class="load-next-btn" style="margin-bottom: 25px;">
-                Load Previous Page
-            </a>
-            {% endif %}
-
-            {% if page_obj.has_next %}
+        {% if page_obj.has_next %}
             <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="load-next-btn">
-                Load Next Page
+                LOAD MORE PRODUCTS
             </a>
-            {% endif %}
-
-            <div class="hm-pagination-row">
-                <!-- PREV -->
-                {% if page_obj.has_previous %}
-                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="hm-page-arrow">&lt;</a>
-                {% else %}
-                    <span class="hm-page-arrow disabled">&lt;</span>
-                {% endif %}
-
-                <!-- NUMBERS -->
-                {% for num in page_obj.paginator.page_range %}
-                    {% if page_obj.number == num %}
-                        <span class="hm-page-item active">{{ num }}</span>
-                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" class="hm-page-item">{{ num }}</a>
-                    {% elif num == 1 or num == page_obj.paginator.num_pages %}
-                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" class="hm-page-item">{{ num }}</a>
-                    {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
-                        <span class="hm-page-item" style="cursor:default;">...</span>
-                    {% endif %}
-                {% endfor %}
-
-                <!-- NEXT -->
-                {% if page_obj.has_next %}
-                    <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="hm-page-arrow">&gt;</a>
-                {% else %}
-                    <span class="hm-page-arrow disabled">&gt;</span>
-                {% endif %}
-            </div>
         {% endif %}
     </div>
 {% else %}
@@ -1255,6 +1216,7 @@
                 }
             });
         }
+        window.syncHearts = syncHearts;
 
         document.addEventListener('DOMContentLoaded', syncHearts);
 
@@ -1310,6 +1272,77 @@
             });
         });
     })();
+
+    /**
+     * LOAD MORE (APPEND) PAGINATION SYSTEM
+     */
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('.load-next-btn');
+        if (!btn) return;
+        
+        // Match the updated button text
+        if (btn.innerText.trim().toUpperCase() !== 'LOAD MORE PRODUCTS') return;
+
+        e.preventDefault();
+        
+        const url = btn.getAttribute('href');
+        if (!url || btn.classList.contains('loading')) return;
+        
+        btn.classList.add('loading');
+        const originalText = btn.innerText;
+        btn.innerText = 'LOADING...';
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.7';
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.text();
+        })
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            
+            // 1. Append new products
+            const newGrid = doc.querySelector('.plp-grid');
+            const currentGrid = document.querySelector('.plp-grid');
+            if (newGrid && currentGrid) {
+                const newProducts = newGrid.children;
+                Array.from(newProducts).forEach(product => {
+                    currentGrid.appendChild(product);
+                });
+            }
+            
+            // 2. Update pagination section
+            const newPagination = doc.getElementById('paginationSection');
+            const currentPagination = document.getElementById('paginationSection');
+            if (newPagination && currentPagination) {
+                currentPagination.innerHTML = newPagination.innerHTML;
+            }
+            
+            // 3. Update count
+            const newCountEl = doc.querySelector('.plp-count');
+            const currentCountEl = document.querySelector('.plp-count');
+            if (currentGrid && currentCountEl) {
+                const totalItems = currentGrid.children.length;
+                currentCountEl.textContent = totalItems + ' Items';
+            }
+            
+            // 4. Re-sync hearts for new items
+            if (typeof window.syncHearts === 'function') window.syncHearts();
+        })
+        .catch(err => {
+            console.error('Load More Error:', err);
+            btn.innerText = originalText;
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
+        })
+        .finally(() => {
+            btn.classList.remove('loading');
+        });
+    });
 </script>
 
 {% endblock %}
