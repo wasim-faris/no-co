@@ -395,7 +395,7 @@
                     <h3 class="text-xl font-serif text-gray-900 mb-2">Reject Return Request</h3>
                     <p class="text-sm text-gray-500">The customer will be notified that their return request has been declined. Click below to confirm this action.</p>
                 </div>
-                <form id="rejectForm" method="POST" action="{% url "reject_return" %}" class="flex gap-3 pt-2">
+                <form id="rejectForm" method="POST" action="{% url "reject_return" %}" class="flex gap-3 pt-2" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = 'Processing...';">
                     {% csrf_token %}
                     <input type="hidden" name="return_request_id" id="rejectRequestId">
                     <input type="hidden" name="action" value="reject">
@@ -416,7 +416,7 @@
                 </div>
                 <h3 class="text-xl font-serif text-gray-900 mb-2">Schedule Pickup</h3>
                 <p class="text-sm text-gray-500 mb-8">Confirm that the pickup has been scheduled for this return item. The courier will be notified.</p>
-                <form id="scheduleForm" method="POST" action="{% url 'schedule_pickup' %}" class="flex gap-3">
+                <form id="scheduleForm" method="POST" action="{% url 'schedule_pickup' %}" class="flex gap-3" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = 'Processing...';">
                     {% csrf_token %}
                     <input type="hidden" name="return_request_id" id="scheduleRequestId">
                     <button type="button" onclick="closeModal('scheduleModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
@@ -436,7 +436,7 @@
                 </div>
                 <h3 class="text-xl font-serif text-gray-900 mb-2">Mark as Picked Up</h3>
                 <p class="text-sm text-gray-500 mb-8">Confirm that the item has been picked up from the customer's location.</p>
-                <form id="pickupForm" method="POST" action="{% url 'pickup_return' %}" class="flex gap-3">
+                <form id="pickupForm" method="POST" action="{% url 'pickup_return' %}" class="flex gap-3" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = 'Processing...';">
                     {% csrf_token %}
                     <input type="hidden" name="return_request_id" id="pickupRequestId">
                     <button type="button" onclick="closeModal('pickupModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
@@ -456,7 +456,7 @@
                 </div>
                 <h3 class="text-xl font-serif text-gray-900 mb-2">Mark as Received</h3>
                 <p class="text-sm text-gray-500 mb-8">Confirm that the returned item has been received at the warehouse.</p>
-                <form id="receiveForm" method="POST" action="{% url 'receive_return' %}" class="flex gap-3">
+                <form id="receiveForm" method="POST" action="{% url 'receive_return' %}" class="flex gap-3" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = 'Processing...';">
                     {% csrf_token %}
                     <input type="hidden" name="return_request_id" id="receiveRequestId">
                     <button type="button" onclick="closeModal('receiveModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
@@ -476,7 +476,7 @@
                 </div>
                 <h3 class="text-2xl font-serif text-gray-900 mb-3 tracking-tight">Return Inspection</h3>
                 <p class="text-[12px] text-gray-400 font-medium leading-relaxed mb-10 px-4">Confirm that the item has passed inspection and is ready for refund processing.</p>
-                <form id="inspectForm" method="POST" action="{% url 'inspect_return' %}" class="grid grid-cols-2 gap-3">
+                <form id="inspectForm" method="POST" action="{% url 'inspect_return' %}" class="grid grid-cols-2 gap-3" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = 'Processing...';">
                     {% csrf_token %}
                     <input type="hidden" name="return_request_id" id="inspectRequestId">
                     <button type="button" onclick="closeModal('inspectModal')" class="py-4 border border-gray-100 text-gray-400 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
@@ -496,7 +496,7 @@
                 </div>
                 <h3 class="text-xl font-serif text-gray-900 mb-2">Initiate Refund</h3>
                 <p class="text-sm text-gray-500 mb-8">Confirm that the refund process has been initiated with the payment provider.</p>
-                <form id="initiateForm" method="POST" action="{% url 'initiate_refund' %}" class="flex gap-3">
+                <form id="initiateForm" method="POST" action="{% url 'initiate_refund' %}" class="flex gap-3" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = 'Processing...';">
                     {% csrf_token %}
                     <input type="hidden" name="return_request_id" id="initiateRequestId">
                     <button type="button" onclick="closeModal('initiateModal')" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>
@@ -516,7 +516,7 @@
                 </div>
                 <h3 class="text-2xl font-serif text-gray-900 mb-3 tracking-tight">Finalize Refund</h3>
                 <p class="text-[12px] text-gray-400 font-medium leading-relaxed mb-10 px-4">Confirm that the refund has been successfully completed and the customer has been credited.</p>
-                <form id="completeForm" method="POST" action="{% url 'complete_refund' %}" class="grid grid-cols-2 gap-3">
+                <form id="completeForm" method="POST" action="{% url 'complete_refund' %}" class="grid grid-cols-2 gap-3" onsubmit="const btn = this.querySelector('button[type=submit]'); btn.disabled = true; btn.innerHTML = 'Processing...';">
                     {% csrf_token %}
                     <input type="hidden" name="return_request_id" id="completeRequestId">
                     <button type="button" onclick="closeModal('completeModal')" class="py-4 border border-gray-100 text-gray-400 rounded-2xl text-[10px] font-bold uppercase tracking-widest hover:bg-gray-50 transition-all">Cancel</button>

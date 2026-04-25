@@ -1092,24 +1092,46 @@
                                                 </div>
                                             </div>
 
-                                            <!-- Return Received & Inspected -->
+                                            <!-- Return Received -->
                                             <div class="timeline-step {% if return_request.status == 'PICKED_UP' %}active{% elif return_request.status == 'RECEIVED' or return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}done{% else %}pending{% endif %}">
                                                 <div class="timeline-dot {% if return_request.status == 'PICKED_UP' %}current{% elif return_request.status == 'RECEIVED' or return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}done{% else %}{% endif %}">
                                                     {% if return_request.status == 'RECEIVED' or return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
                                                 </div>
                                                 <div class="timeline-content">
-                                                    <div class="timeline-title">Received & Inspected {% if return_request.status == 'PICKED_UP' or return_request.status == 'RECEIVED' %}<span class="timeline-progress-tag">Quality Check</span>{% endif %}</div>
-                                                    <div class="timeline-date">{% if return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}Inspection complete{% else %}Awaiting arrival{% endif %}</div>
+                                                    <div class="timeline-title">Return Received {% if return_request.status == 'PICKED_UP' %}<span class="timeline-progress-tag">In Transit</span>{% endif %}</div>
+                                                    <div class="timeline-date">{% if return_request.status == 'RECEIVED' or return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}Received at warehouse{% else %}Awaiting arrival{% endif %}</div>
                                                 </div>
                                             </div>
 
-                                            <!-- Refund Processed -->
-                                            <div class="timeline-step {% if return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' %}active{% elif return_request.status == 'REFUNDED' %}done{% else %}pending{% endif %}">
-                                                <div class="timeline-dot {% if return_request.status == 'REFUNDED' %}done{% elif return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' %}current{% else %}{% endif %}" {% if return_request.status == 'REFUNDED' %}style="background: #14532D; border-color: #14532D;"{% endif %}>
+                                            <!-- Return Inspected -->
+                                            <div class="timeline-step {% if return_request.status == 'RECEIVED' %}active{% elif return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}done{% else %}pending{% endif %}">
+                                                <div class="timeline-dot {% if return_request.status == 'RECEIVED' %}current{% elif return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}done{% else %}{% endif %}">
+                                                    {% if return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <div class="timeline-title">Return Inspected {% if return_request.status == 'RECEIVED' %}<span class="timeline-progress-tag">Quality Check</span>{% endif %}</div>
+                                                    <div class="timeline-date">{% if return_request.status == 'INSPECTED' or return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}Inspection complete{% else %}Pending inspection{% endif %}</div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Refund Initiated -->
+                                            <div class="timeline-step {% if return_request.status == 'INSPECTED' %}active{% elif return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}done{% else %}pending{% endif %}">
+                                                <div class="timeline-dot {% if return_request.status == 'INSPECTED' %}current{% elif return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}done{% else %}{% endif %}">
+                                                    {% if return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
+                                                </div>
+                                                <div class="timeline-content">
+                                                    <div class="timeline-title">Refund Initiated {% if return_request.status == 'INSPECTED' %}<span class="timeline-progress-tag">Processing</span>{% endif %}</div>
+                                                    <div class="timeline-date">{% if return_request.status == 'REFUND_INITIATED' or return_request.status == 'REFUNDED' %}Refund in progress{% else %}Awaiting initiation{% endif %}</div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Refund Completed -->
+                                            <div class="timeline-step {% if return_request.status == 'REFUND_INITIATED' %}active{% elif return_request.status == 'REFUNDED' %}done{% else %}pending{% endif %}">
+                                                <div class="timeline-dot {% if return_request.status == 'REFUNDED' %}done{% elif return_request.status == 'REFUND_INITIATED' %}current{% else %}{% endif %}" {% if return_request.status == 'REFUNDED' %}style="background: #14532D; border-color: #14532D;"{% endif %}>
                                                     {% if return_request.status == 'REFUNDED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
                                                 </div>
                                                 <div class="timeline-content">
-                                                    <div class="timeline-title">Refund Processed {% if return_request.status == 'REFUND_INITIATED' %}<span class="timeline-progress-tag">Initiated</span>{% endif %}</div>
+                                                    <div class="timeline-title">Refund Completed</div>
                                                     <div class="timeline-date">{% if return_request.status == 'REFUNDED' %}{{ return_request.refunded_at|date:"M d, Y"|default:return_request.updated_at|date:"M d, Y" }}{% else %}Final stage{% endif %}</div>
                                                 </div>
                                             </div>

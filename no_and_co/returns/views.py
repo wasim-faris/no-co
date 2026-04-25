@@ -1,4 +1,3 @@
-from tkinter import W
 
 from django.shortcuts import render, redirect, get_object_or_404
 from core.models import ReturnRequest, OrderItem, OrderStatusHistory
@@ -284,5 +283,5 @@ def complete_refund(request):
             )
 
 
-        messages.success(request, "Refund marked as completed.")
+        messages.success(request, "Refund completed successfully.")
     return redirect("admin-returns")
