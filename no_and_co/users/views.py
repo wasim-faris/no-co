@@ -376,6 +376,9 @@ def user_address(request):
         except Exception as e:
             print(f"PIN API unavailable (add): {e}")
 
+        if not Addresses.objects.filter(user=user).exists():
+            is_default = True
+
         if is_default:
             Addresses.objects.filter(user=user, is_default=True).update(
                 is_default=False
