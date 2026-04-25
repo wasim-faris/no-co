@@ -85,9 +85,12 @@ def create_offer(request):
             messages.error(request, "Invalid date selection")
             return redirect("admin-offers")
 
+        from decimal import Decimal, ROUND_HALF_UP
+        d_val = Decimal(discount_value).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        
         offer = Offer.objects.create(
             name=name, apply_to=apply_to, discount_type=discount_type,
-            discount_value=discount_value, min_purchase=min_purchase,
+            discount_value=d_val, min_purchase=min_purchase,
             max_discount=max_discount, start_date=start_date,
             end_date=end_date, is_active=is_active
         )
@@ -116,7 +119,8 @@ def update_offer(request, offer_id):
         offer.name = request.POST.get("name")
         offer.apply_to = request.POST.get("apply_to")
         offer.discount_type = request.POST.get("discount_type")
-        offer.discount_value = request.POST.get("discount_value")
+        from decimal import Decimal, ROUND_HALF_UP
+        offer.discount_value = Decimal(request.POST.get("discount_value")).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         offer.min_purchase = request.POST.get("min_purchase") or 0
         max_disc = request.POST.get("max_discount")
         offer.max_discount = max_disc if max_disc else None

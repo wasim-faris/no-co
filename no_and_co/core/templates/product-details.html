@@ -1027,7 +1027,7 @@
         <div id="priceWrapper" style="margin-bottom: 8px;">
             {% if default_variant.has_discount %}
                 <div class="flex items-baseline gap-3">
-                    <span class="text-[9px] text-gray-500 font-medium uppercase">-{{ default_variant.discount_percent }}%</span>
+                    <span class="text-[9px] text-gray-500 font-medium uppercase">-{{ default_variant.discount_percent|floatformat:"-2" }}%</span>
                     <span class="text-base font-semibold text-red-700" id="displayPrice">Rs.{{ default_variant.final_price }}</span>
                     <span id="originalPriceDisplay" class="text-xs text-gray-400 line-through">Rs.{{ default_variant.original_price }}</span>
                 </div>
@@ -1047,7 +1047,7 @@
                      data-price="{{ variant.price }}"
                      data-original-price="{{ variant.original_price }}"
                      data-final-price="{{ variant.final_price }}"
-                     data-discount-percent="{{ variant.discount_percent }}"
+                     data-discount-percent="{{ variant.discount_percent|floatformat:"-2" }}"
                      data-has-discount="{{ variant.has_discount|yesno:'true,false' }}"
                      data-savings="{{ variant.savings }}"
                      data-sizes="{% for v in variants %}{% if v.color == variant.color and v.size.name %}{{ v.size.name }}{% if not forloop.last %},{% endif %}{% endif %}{% endfor %}"
@@ -1224,7 +1224,7 @@
                     {% if item.has_discount %}
                       <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.final_price }}</span>
                       <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
-                      <span style="font-size: 9px; font-weight: 500; color: #767676;">-{{ item.discount_percent }}%</span>
+                      <span style="font-size: 9px; font-weight: 500; color: #767676;">-{{ item.discount_percent|floatformat:"-2" }}%</span>
                     {% else %}
                       <span class="similar-price" style="padding:0;">Rs.{{ item.original_price|default:item.price }}</span>
                     {% endif %}
@@ -1274,7 +1274,7 @@
                     {% if item.has_discount %}
                       <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.final_price }}</span>
                       <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
-                      <span style="font-size: 9px; font-weight: 500; color: #767676;">-{{ item.discount_percent }}%</span>
+                      <span style="font-size: 9px; font-weight: 500; color: #767676;">-{{ item.discount_percent|floatformat:"-2" }}%</span>
                     {% else %}
                       <span class="similar-price" style="padding:0;">Rs.{{ item.original_price|default:item.price }}</span>
                     {% endif %}

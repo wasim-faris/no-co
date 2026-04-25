@@ -64,11 +64,11 @@ def calculate_final_price(product, price):
     if winning_offer:
         if winning_offer.discount_type == 'percentage':
             # Use EXACT stored value to avoid 19.98% floating point issues
-            discount_percent = int(winning_offer.discount_value)
+            discount_percent = round(winning_offer.discount_value, 2)
         else:
             # For flat discounts, we still calculate BUT round to zero/clean
             if price > 0:
-                discount_percent = int((best_discount / price) * 100)
+                discount_percent = round((best_discount / price) * 100)
     
     return (
         final_price,
@@ -147,11 +147,11 @@ def apply_offers_to_variants(variants):
         if winning_offer:
             if winning_offer.discount_type == 'percentage':
                 # FIX: Use original stored percentage value directly
-                discount_percent = int(winning_offer.discount_value)
+                discount_percent = round(winning_offer.discount_value, 2)
             else:
                 # Fallback for flat discounts
                 if original_price > 0:
-                    discount_percent = int((best_discount / original_price) * 100)
+                    discount_percent = round((best_discount / original_price) * 100)
             
         variant.original_price = original_price
         variant.final_price = final_price

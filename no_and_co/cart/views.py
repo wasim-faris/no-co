@@ -119,7 +119,7 @@ def cart_view(request):
         item.discount_amount = discount_amount
         item.has_discount = discount_amount > 0
         if original_price > 0:
-            item.discount_percent = int((discount_amount / original_price) * 100)
+            item.discount_percent = round((discount_amount / original_price) * 100)
         else:
             item.discount_percent = 0
 
