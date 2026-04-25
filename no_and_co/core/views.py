@@ -307,25 +307,44 @@ def product_listing(request):
     if max_price:
         variants = variants.filter(price__lte=max_price)
 
-    category_list = request.GET.getlist("category")
-    category_names = [c.upper() for c in category_list]
-    available_subcategories = []
+    section = request.GET.get("section")
+    # Read selected categories from request
+    categories = request.GET.getlist('category')
     
+    # 🔥 MANDATORY DEBUG
+    print("DEBUG incoming - section:", section, "categories:", categories)
+    
+    # ── Consolidate Category Filtering ──
+    # Map lowercase inputs to DB uppercase names
+    category_names = [c.upper() for c in categories]
+    
+    # If no checkboxes are selected, but we have a section, use section as the default category
+    if not category_names and section:
+        if section == 'mens': category_names = ['MENS']
+        elif section == 'ladies': category_names = ['LADIES']
+        elif section == 'kids': category_names = ['KIDS']
+
+    # 🔥 FORCE override subcategory logic based on final category_names
     if category_names:
-        variants = variants.filter(product__category__category_name__in=category_names)
-        
-        # Fetch subcategories that have products in these categories
-        available_subcategories = Subcategory.objects.filter(
+        subcategories = Subcategory.objects.filter(
             category__category_name__in=category_names,
             is_active=True,
-            is_deleted=False,
-            products__category__category_name__in=category_names,
-            products__is_active=True,
-            products__is_deleted=False
+            is_deleted=False
+        ).distinct()
+        
+        # Apply category filter to variants
+        variants = variants.filter(product__category__category_name__in=category_names)
+    else:
+        # No filter -> show all active subcategories
+        subcategories = Subcategory.objects.filter(
+            is_active=True,
+            is_deleted=False
         ).distinct()
 
+    # ── Subcategory Filtering ──
     if subcategory:
         subcategory = subcategory.upper()
+        # Filter by subcategory name, restricted by selected categories if any
         if category_names:
             subs = Subcategory.objects.filter(subcategory_name=subcategory, category__category_name__in=category_names)
         else:
@@ -349,8 +368,15 @@ def product_listing(request):
     
     apply_offers_to_variants(page_obj.object_list)
 
-    section = request.GET.get("section")
-    
+    # Build a base query string preserving all params except subcategory and page.
+    # We do this in the view because request.GET.lists() cannot be called from Django templates.
+    base_qs_parts = []
+    for key, values in request.GET.lists():
+        if key not in ('subcategory', 'page'):
+            for value in values:
+                base_qs_parts.append(f"{key}={value}")
+    base_qs = "&".join(base_qs_parts)  # e.g. "category=mens&category=ladies&sort=newest"
+
     return render(
         request,
         "product-listing.html",
@@ -362,7 +388,8 @@ def product_listing(request):
             "whishlist_items": wishlist_items,
             "whishlist_variant_ids": whishlist_variant_ids,
             "section": section,
-            "available_subcategories": available_subcategories,
+            "subcategories": subcategories,
+            "base_qs": base_qs,
         },
     )
 

@@ -26,6 +26,28 @@
     }
     .cat-tab:hover { background: #f5f5f5; }
     .cat-tab.active { background: #000; color: #fff; }
+    
+    /* ── Subcategory Container ── */
+    .subcategory-container {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+
+    @media (min-width: 1024px) {
+        .subcategory-container {
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            justify-content: flex-start;
+            padding-bottom: 5px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .subcategory-container::-webkit-scrollbar {
+            display: none;
+        }
+    }
 
     /* ── Sort / Filter bar ── */
     .plp-bar-btn {
@@ -578,18 +600,16 @@
       </div>
 
       <!-- ══ CATEGORY TABS ══ -->
-      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px;">
-          {% with current_cat=request.GET.category|default:"" %}
-          <a href="?category={{ current_cat }}{% if section %}&section={{ section }}{% endif %}" 
+      <div class="subcategory-container">
+          <a href="?{{ base_qs }}" 
              class="cat-tab {% if not request.GET.subcategory %}active{% endif %}" 
              style="text-decoration: none;">All</a>
           
-          {% for sub in available_subcategories %}
-          <a href="?category={{ current_cat }}&subcategory={{ sub.subcategory_name|upper }}{% if section %}&section={{ section }}{% endif %}" 
+          {% for sub in subcategories %}
+          <a href="?{{ base_qs }}{% if base_qs %}&{% endif %}subcategory={{ sub.subcategory_name|upper }}" 
              class="cat-tab {% if request.GET.subcategory == sub.subcategory_name|upper %}active{% endif %}"
              style="text-decoration: none;">{{ sub.subcategory_name }}</a>
           {% endfor %}
-          {% endwith %}
       </div>
 
       <!-- ══ SORT & FILTER BAR ══ -->
