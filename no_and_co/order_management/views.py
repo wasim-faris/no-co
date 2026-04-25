@@ -113,9 +113,6 @@ def admin_update_order_status(request, order_id):
                     # Refund logic for prepaid orders (Online or Wallet)
                     # Note: COD orders are only refunded if they were already delivered/paid (which is rare for a cancel, but handled)
                     if order.payment_status == "PAID" or order.payment_method == "wallet":
-                        from wallet.models import Wallet, WalletTransaction
-                        from decimal import Decimal
-                        
                         # Only refund if not already refunded
                         if order.payment_status != "REFUNDED":
                             wallet, _ = Wallet.objects.get_or_create(user=order.user)
@@ -155,7 +152,7 @@ def admin_update_order_status(request, order_id):
                             # 1. Reward the Referrer (₹100)
                             referrer_wallet, _ = Wallet.objects.get_or_create(user=referrer)
                             reward_referrer = Decimal('100.00')
-                            referrer_wallet.balance += reward_referrer
+                            referrer_wallet.balance = Decimal(referrer_wallet.balance) + reward_referrer
                             referrer_wallet.save()
                             
                             WalletTransaction.objects.create(
@@ -169,7 +166,7 @@ def admin_update_order_status(request, order_id):
                             # 2. Reward the New User (₹40)
                             user_wallet, _ = Wallet.objects.get_or_create(user=referred_user)
                             reward_referred = Decimal('40.00')
-                            user_wallet.balance += reward_referred
+                            user_wallet.balance = Decimal(user_wallet.balance) + reward_referred
                             user_wallet.save()
                             
                             WalletTransaction.objects.create(
