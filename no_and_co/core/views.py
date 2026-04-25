@@ -307,32 +307,30 @@ def product_listing(request):
     if max_price:
         variants = variants.filter(price__lte=max_price)
 
-    category_ref = request.GET.get("category")
-    category = None
+    category_list = request.GET.getlist("category")
+    category_names = [c.upper() for c in category_list]
     available_subcategories = []
     
-    if category_ref:
-        category_ref = category_ref.upper()
-        category = get_object_or_404(Category, category_name=category_ref)
-        variants = variants.filter(product__category=category)
+    if category_names:
+        variants = variants.filter(product__category__category_name__in=category_names)
         
-        # Fetch subcategories that have products in this category
+        # Fetch subcategories that have products in these categories
         available_subcategories = Subcategory.objects.filter(
-            category=category,
+            category__category_name__in=category_names,
             is_active=True,
             is_deleted=False,
-            products__category=category,
+            products__category__category_name__in=category_names,
             products__is_active=True,
             products__is_deleted=False
         ).distinct()
 
     if subcategory:
         subcategory = subcategory.upper()
-        if category:
-            sub = get_object_or_404(Subcategory, subcategory_name=subcategory, category=category)
+        if category_names:
+            subs = Subcategory.objects.filter(subcategory_name=subcategory, category__category_name__in=category_names)
         else:
-            sub = get_object_or_404(Subcategory, subcategory_name=subcategory)
-        variants = variants.filter(product__subcategory=sub)
+            subs = Subcategory.objects.filter(subcategory_name=subcategory)
+        variants = variants.filter(product__subcategory__in=subs)
 
     if sort == "newest":
         variants = variants.order_by("-id")
@@ -345,7 +343,7 @@ def product_listing(request):
     elif sort == "name_desc":
         variants = variants.order_by("-product__product_name")
 
-    paginator = Paginator(variants, 8)
+    paginator = Paginator(variants, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     

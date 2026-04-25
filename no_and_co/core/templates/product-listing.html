@@ -662,18 +662,6 @@
                   {{ cat }} <span class="filter-tag-close" onclick="removeFilter('category', '{{ cat }}')">&times;</span>
               </div>
           {% endfor %}{% endif %}
-
-          {% if request.GET.price_min and request.GET.price_min != "500" %}
-              <div class="filter-tag">
-                  Min ₹{{ request.GET.price_min }} <span class="filter-tag-close" onclick="removeFilter('price_min', '{{ request.GET.price_min }}')">&times;</span>
-              </div>
-          {% endif %}
-
-          {% if request.GET.price_max and request.GET.price_max != "9999" %}
-              <div class="filter-tag">
-                  Max ₹{{ request.GET.price_max }} <span class="filter-tag-close" onclick="removeFilter('price_max', '{{ request.GET.price_max }}')">&times;</span>
-              </div>
-          {% endif %}
       </div>
     </div><!-- /plp-header-content -->
 
@@ -788,7 +776,7 @@
     <!-- ══ PREMIUM PAGINATION ══ -->
     <div id="paginationSection" class="hm-pagination-container">
         {% if page_obj.has_next %}
-            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="load-next-btn">
+            <a href="?{% for key, values in request.GET.lists %}{% if key != 'page' %}{% for value in values %}{{ key|urlencode }}={{ value|urlencode }}&{% endfor %}{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="load-next-btn">
                 LOAD MORE PRODUCTS
             </a>
         {% endif %}
@@ -851,7 +839,7 @@
                 <input type="checkbox" name="category" value="mens" {% if 'mens' in request.GET.getlist.category %}checked{% endif %}> Men
             </label>
             <label class="filter-option-checkbox">
-                <input type="checkbox" name="category" value="women" {% if 'women' in request.GET.getlist.category %}checked{% endif %}> Women
+                <input type="checkbox" name="category" value="ladies" {% if 'ladies' in request.GET.getlist.category %}checked{% endif %}> Women
             </label>
             <label class="filter-option-checkbox">
                 <input type="checkbox" name="category" value="kids" {% if 'kids' in request.GET.getlist.category %}checked{% endif %}> Kids
@@ -1285,8 +1273,8 @@
 
         e.preventDefault();
         
-        const url = btn.getAttribute('href');
-        if (!url || btn.classList.contains('loading')) return;
+        const nextBtnUrl = btn.getAttribute('href');
+        if (!nextBtnUrl || btn.classList.contains('loading')) return;
         
         btn.classList.add('loading');
         const originalText = btn.innerText;
@@ -1294,7 +1282,10 @@
         btn.style.pointerEvents = 'none';
         btn.style.opacity = '0.7';
 
-        fetch(url, {
+        // Robustly merge current URL filters with the next page number
+        const fetchUrl = new URL(nextBtnUrl, window.location.href);
+        
+        fetch(fetchUrl.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(response => {
@@ -1341,6 +1332,9 @@
         })
         .finally(() => {
             btn.classList.remove('loading');
+            btn.innerText = originalText;
+            btn.style.pointerEvents = '';
+            btn.style.opacity = '';
         });
     });
 </script>
