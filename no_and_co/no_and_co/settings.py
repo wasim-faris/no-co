@@ -59,7 +59,7 @@ INSTALLED_APPS = [
     "payment",
     "wallet",
     "coupon",
-    "offers"
+    "offers",
 ]
 
 MIDDLEWARE = [
