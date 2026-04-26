@@ -1,54 +1,225 @@
-<footer class="w-full bg-white border-t border-gray-200 px-6 md:px-12 py-8 md:py-10">
-    <div class="w-full grid grid-cols-1 md:grid-cols-4 gap-8 mb-6">
-      <div class="md:col-span-2">
-        <h2 class="brand text-xl text-black uppercase tracking-widest mb-3">NO&CO</h2>
-        <p class="text-gray-500 text-xs leading-relaxed max-w-xs mb-6">
-          Modern fashion for men, women, and kids. Discover timeless essentials designed for everyday confidence and comfort.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-2">
-          <input type="text" placeholder="Get exclusive updates" class="bg-white border border-gray-300 px-4 py-2.5 text-xs text-black w-full max-w-xs focus:outline-none focus:border-black transition-colors placeholder-gray-400">
-          <button class="bg-black text-white text-[0.65rem] font-bold uppercase tracking-widest px-6 py-2.5 hover:bg-gray-800 transition-colors whitespace-nowrap">Submit</button>
+<style>
+/* Footer Custom Styles */
+.marquee-container {
+    width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+    border-bottom: 1px solid #2a2a2a;
+    padding: 8px 0;
+    background: #111;
+}
+.marquee-content {
+    display: inline-block;
+    animation: marquee 20s linear infinite;
+    font-size: 11px;
+    color: #555;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.brand-tagline {
+    font-family: 'Playfair Display', serif;
+    font-size: 60px;
+    line-height: 1.1;
+    color: #fff;
+}
+.brand-tagline i {
+    color: #999;
+}
+.explore-link {
+    display: inline-block;
+    position: relative;
+    font-family: 'Barlow', sans-serif;
+    color: #fff;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    margin-top: 15px;
+    text-decoration: none;
+    padding-bottom: 4px;
+}
+.explore-link::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: 0;
+    left: 0;
+    background-color: #fff;
+    transition: width 0.3s ease;
+}
+.explore-link:hover::after {
+    width: 100%;
+}
+.email-input {
+    background: #1a1a1a;
+    border: none;
+    color: #fff;
+    padding: 12px 16px;
+    font-size: 12px;
+    width: 100%;
+    outline: none;
+    font-family: 'Barlow', sans-serif;
+}
+.email-input::placeholder {
+    color: #666;
+}
+.subscribe-btn {
+    background: #fff;
+    color: #111;
+    border: none;
+    padding: 12px 24px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: 'Barlow', sans-serif;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+.link-grid {
+    border-top: 1px solid #2a2a2a;
+}
+.link-col {
+    border-right: 1px solid #2a2a2a;
+    padding: 40px 20px;
+}
+.link-col:last-child {
+    border-right: none;
+}
+.footer-heading {
+    color: #fff;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 20px;
+    font-family: 'Barlow', sans-serif;
+}
+.footer-item {
+    display: block;
+    color: #888;
+    font-size: 12px;
+    margin-bottom: 12px;
+    text-decoration: none;
+    position: relative;
+    width: max-content;
+    transition: color 0.3s ease;
+    font-family: 'Barlow', sans-serif;
+}
+.footer-item::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: -2px;
+    left: 0;
+    background-color: #fff;
+    transition: width 0.3s ease;
+}
+.footer-item:hover {
+    color: #fff;
+}
+.footer-item:hover::after {
+    width: 100%;
+}
+.social-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid #333;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin-right: 10px;
+}
+.social-circle:hover {
+    background: #fff;
+    color: #111;
+}
+.bottom-bar {
+    border-top: 1px solid #2a2a2a;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    color: #444;
+    font-size: 11px;
+    font-family: 'Barlow', sans-serif;
+}
+@media (max-width: 768px) {
+    .brand-tagline { font-size: 40px; }
+    .link-col { border-right: none; border-bottom: 1px solid #2a2a2a; padding: 20px; }
+    .bottom-bar { flex-direction: column; gap: 10px; align-items: center; padding: 20px; text-align: center; }
+}
+</style>
+
+<footer style="background-color: #111; color: #fff;">
+    <div class="marquee-container">
+        <div class="marquee-content">
+            Free shipping over ₹999 · New arrivals weekly · Easy 30-day returns · Sustainably made &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            Free shipping over ₹999 · New arrivals weekly · Easy 30-day returns · Sustainably made &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            Free shipping over ₹999 · New arrivals weekly · Easy 30-day returns · Sustainably made &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            Free shipping over ₹999 · New arrivals weekly · Easy 30-day returns · Sustainably made &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         </div>
-      </div>
-
-      <div>
-        <h3 class="footer-title">Popular</h3>
-        <a href="#" class="footer-link">Men's Collection</a>
-        <a href="#" class="footer-link">Women's Collection</a>
-        <a href="#" class="footer-link">Kids Wear</a>
-        <a href="#" class="footer-link">New Arrivals</a>
-      </div>
-
-      <div>
-        <h3 class="footer-title">Menu</h3>
-        <div class="grid grid-cols-2 gap-x-4">
-          <div>
-            <a href="#" class="footer-link">All Category</a>
-            <a href="#" class="footer-link">Shop by Color</a>
-            <a href="#" class="footer-link">Style Guide</a>
-          </div>
-          <div>
-            <a href="#" class="footer-link">Testimonial</a>
-            <a href="#" class="footer-link">Blog</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="hidden md:block">
-         <h3 class="footer-title">Other</h3>
-         <a href="#" class="footer-link">Tracking order</a>
-         <a href="#" class="footer-link">FAQ</a>
-         <a href="#" class="footer-link">About Us</a>
-         <a href="#" class="footer-link">Contact Us</a>
-         <a href="#" class="footer-link">Terms and Conditions</a>
-      </div>
     </div>
 
-    <div class="w-full pt-5 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-      <p class="text-[0.6rem] text-gray-400 uppercase tracking-widest">© 2024 NO&CO. All rights reserved</p>
-      <div class="flex gap-6">
-        <a href="#" class="text-[0.6rem] text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Privacy Policy</a>
-        <a href="#" class="text-[0.6rem] text-gray-400 uppercase tracking-widest hover:text-black transition-colors">Cookie Settings</a>
-      </div>
+    <div style="padding: 60px 40px;">
+        <div class="brand-tagline">Dress for the life you want to <i>live.</i></div>
+        <a href="#" class="explore-link">Explore collections &rarr;</a>
+
+        <div style="margin-top: 40px; max-width: 400px; display: flex;">
+            <input type="email" placeholder="Your email address" class="email-input">
+            <button class="subscribe-btn">SUBSCRIBE</button>
+        </div>
     </div>
-  </footer>
+
+    <div class="grid grid-cols-1 md:grid-cols-4 link-grid">
+        <div class="link-col">
+            <div class="text-2xl font-bold uppercase tracking-widest mb-4" style="color: #fff; font-family: 'Inter', sans-serif;">NO&CO</div>
+            <p style="color: #888; font-size: 12px; font-family: 'Barlow', sans-serif; margin-bottom: 20px; line-height: 1.6;">
+                Modern fashion for men, women, and kids. Discover timeless essentials designed for everyday confidence.
+            </p>
+            <div style="display: flex;">
+                <a href="#" class="social-circle"><i class="ri-instagram-line"></i></a>
+                <a href="#" class="social-circle"><i class="ri-pinterest-line"></i></a>
+                <a href="#" class="social-circle"><i class="ri-twitter-x-line"></i></a>
+            </div>
+        </div>
+
+        <div class="link-col">
+            <div class="footer-heading">Popular</div>
+            <a href="#" class="footer-item">Men's</a>
+            <a href="#" class="footer-item">Women's</a>
+            <a href="#" class="footer-item">Kids</a>
+            <a href="#" class="footer-item">New Arrivals</a>
+            <a href="#" class="footer-item">Sale</a>
+        </div>
+
+        <div class="link-col">
+            <div class="footer-heading">Menu</div>
+            <a href="#" class="footer-item">All Category</a>
+            <a href="#" class="footer-item">Shop by Color</a>
+            <a href="#" class="footer-item">Style Guide</a>
+            <a href="#" class="footer-item">Testimonial</a>
+            <a href="#" class="footer-item">Blog</a>
+        </div>
+
+        <div class="link-col">
+            <div class="footer-heading">Other</div>
+            <a href="#" class="footer-item">Tracking Order</a>
+            <a href="#" class="footer-item">FAQ</a>
+            <a href="#" class="footer-item">About Us</a>
+            <a href="#" class="footer-item">Contact Us</a>
+            <a href="#" class="footer-item">Terms & Conditions</a>
+        </div>
+    </div>
+
+    <div class="bottom-bar">
+        <div>© 2025 NO&CO · Privacy Policy · Cookies</div>
+        <div><i class="ri-global-line"></i> EN — India</div>
+    </div>
+</footer>
