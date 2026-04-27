@@ -3,7 +3,8 @@ from decimal import Decimal
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 import re
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 import random
 import time
 from django.views.decorators.cache import never_cache
@@ -109,13 +110,18 @@ def signup(request):
 
             request.session["otp_count"] = 0
 
-            send_mail(
-                "Email verification OTP",
-                f"Your OTP to sign up is {otp}",
-                "waseemfaris@gmail.com",
-                [email],
-                fail_silently=False,
+            # ── HTML OTP email ───────────────────────────────────────
+            html_body = render_to_string('emails/otp_email.html', {'otp': otp})
+            text_body = f"Your NO & CO verification code is: {otp}\n\nThis code expires in 10 minutes."
+            msg = EmailMultiAlternatives(
+                subject="Your NO & CO Verification Code",
+                body=text_body,
+                from_email=None,          # uses settings.DEFAULT_FROM_EMAIL
+                to=[email],
             )
+            msg.attach_alternative(html_body, 'text/html')
+            msg.send(fail_silently=False)
+            # ────────────────────────────────────────────────────────
 
             messages.success(request, "otp successfully send to mail")
             return redirect("signup-otp-verification")
@@ -305,13 +311,18 @@ def resend_otp_verification(request):
 
             email = signup_data["email"]
 
-            send_mail(
-                "Resend Email verification OTP",
-                f"Your OTP to sign up is {otp}",
-                "waseemfaris@gmail.com",
-                [email],
-                fail_silently=False,
+            # ── HTML OTP email ───────────────────────────────────────
+            html_body = render_to_string('emails/otp_email.html', {'otp': otp})
+            text_body = f"Your NO & CO verification code is: {otp}\n\nThis code expires in 10 minutes."
+            msg = EmailMultiAlternatives(
+                subject="Your NO & CO Verification Code",
+                body=text_body,
+                from_email=None,
+                to=[email],
             )
+            msg.attach_alternative(html_body, 'text/html')
+            msg.send(fail_silently=False)
+            # ────────────────────────────────────────────────────────
 
             otp_count += 1
             request.session["otp_count"] = otp_count
@@ -375,23 +386,13 @@ def forgot_password(request):
 
                 reset_link = f"http://127.0.0.1:8000/reset-link/{uuid_token}/"
 
-                message = f"""
-                    Hello,
-                    We received a request to reset your password.
-                    Click the link below to reset your password:
-                    {reset_link}
-                    If you did not request a password reset, you can safely ignore this email.
-                    Thanks,
-                    Your Website Team
-                    """
-
-                send_mail(
-                    "Password Reset Request",  # subject
-                    message,  # email body
-                    "your_email@gmail.com",  # from email (configured in settings)
-                    [email],  # recipient list
-                    fail_silently=False,
-                )
+                # ── HTML forgot-password email ──────────────────────────
+                try:
+                    from utils.email_utils import send_forgot_password_email
+                    send_forgot_password_email(user, reset_link=reset_link, expiry_hours=10)
+                except Exception as e:
+                    print(f"[forgot_password] email failed: {e}")
+                # ────────────────────────────────────────────────────────
                 messages.success(request, "reset link send to the email")
                 return redirect("email-confirm")
 

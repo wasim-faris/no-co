@@ -7,6 +7,7 @@ from django.db.models import F, Sum, Prefetch
 from django.http import JsonResponse
 
 
+
 def cart_view(request):
 
     if request.method == "POST":
