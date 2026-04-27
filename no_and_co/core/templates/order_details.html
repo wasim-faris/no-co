@@ -1371,6 +1371,10 @@
         document.body.style.overflow = 'hidden';
 
         returnOrderForm.reset();
+        
+        const orderItemId = row.getAttribute('data-order-item-id');
+        if (returnOrderItemIdInput) returnOrderItemIdInput.value = orderItemId;
+
         returnReasonError.classList.remove('show');
         returnDescriptionError.classList.remove('show');
         returnReason.style.borderColor = '#E5E5E5';
@@ -1379,7 +1383,6 @@
         const name = row.querySelector('.prod-name')?.textContent || 'Product Name';
         const img = row.querySelector('.prod-thumb img');
         const meta = row.querySelector('.prod-meta')?.textContent || '';
-        const orderItemId = row.getAttribute('data-order-item-id');
 
         const sizeMatch = meta.match(/Size:\s*([^·]+)/i);
         const colorMatch = meta.match(/Colour:\s*([^·]+)/i);
@@ -1388,8 +1391,6 @@
         if (img) document.getElementById('return-product-image').src = img.src;
         document.getElementById('return-product-size').textContent = sizeMatch ? sizeMatch[1].trim() : 'N/A';
         document.getElementById('return-product-color').textContent = colorMatch ? colorMatch[1].trim() : 'N/A';
-        
-        if (returnOrderItemIdInput) returnOrderItemIdInput.value = orderItemId;
     }
 
     function closeReturnModal() {
