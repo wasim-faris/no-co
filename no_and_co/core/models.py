@@ -1,4 +1,5 @@
 from django.db import models
+from cloudinary.models import CloudinaryField
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.utils.timezone import now
@@ -10,7 +11,7 @@ from payment.models import Payment
 
 class Banner(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
-    image = models.ImageField(upload_to="banners/")
+    image = CloudinaryField('image', folder="banners/")
     link = models.CharField(max_length=255, blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -20,7 +21,7 @@ class Banner(models.Model):
 
 class HomepageVideo(models.Model):
     title = models.CharField(max_length=255, blank=True, null=True)
-    video = models.FileField(upload_to="homepage_videos/", blank=True, null=True)
+    video = CloudinaryField('video', resource_type='video', folder="homepage_videos/", blank=True, null=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -303,7 +304,7 @@ class ReturnRequest(models.Model):
         max_length=50,
         choices=RETURN_REASON_CHOICES
     )
-    image = models.ImageField(upload_to="returns/", blank=True, null=True)
+    image = CloudinaryField('image', folder="returns/", blank=True, null=True)
     description = models.TextField(
         blank=True,
         null=True

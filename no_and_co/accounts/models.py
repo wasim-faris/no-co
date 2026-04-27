@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from cloudinary.models import CloudinaryField
 import uuid
 import string
 import random
@@ -9,8 +10,9 @@ def generate_referral_code():
 
 class User(AbstractUser):
     phone_number = models.CharField(max_length=13, null=True , blank=True, unique=True)
-    profile_photo = models.ImageField(
-        upload_to="profile_photos/",
+    profile_photo = CloudinaryField(
+        'image',
+        folder="profile_photos/",
         default="profile_photos/default.jpg",
         blank=True,
         null=True
