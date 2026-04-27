@@ -136,7 +136,7 @@ class VariantImage(models.Model):
         on_delete=models.CASCADE,
         related_name='images'
     )
-    image = models.ImageField(upload_to='variant_images/')
+    image = models.ImageField(upload_to='products/')
     is_primary = models.BooleanField(default=False)
 
     def __str__(self):

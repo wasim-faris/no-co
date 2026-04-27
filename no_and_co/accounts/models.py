@@ -11,7 +11,9 @@ class User(AbstractUser):
     phone_number = models.CharField(max_length=13, null=True , blank=True, unique=True)
     profile_photo = models.ImageField(
         upload_to="profile_photos/",
-        default="profile_photos/default.jpg"
+        default="profile_photos/default.jpg",
+        blank=True,
+        null=True
     )
     referral_code = models.CharField(max_length=20, unique=True, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)

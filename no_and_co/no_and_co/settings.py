@@ -60,7 +60,22 @@ INSTALLED_APPS = [
     "wallet",
     "coupon",
     "offers",
+    'cloudinary',
+    'cloudinary_storage',
 ]
+
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': 'dtzgudrqx',
+    'API_KEY': '736959376681496',
+    'API_SECRET': 'mG_3_GOnUawwBVt-fc7-0vZS-70',
+}
+
+import cloudinary
+cloudinary.config(
+    cloud_name='dtzgudrqx',
+    api_key='736959376681496',
+    api_secret='mG_3_GOnUawwBVt-fc7-0vZS-70'
+)
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -72,6 +87,8 @@ MIDDLEWARE = [
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     'allauth.account.middleware.AccountMiddleware',
 ]
+
+DEFAULT_FILE_STORAGE = 'no_and_co.storage.MixedMediaStorage'
 
 ROOT_URLCONF = "no_and_co.urls"
 

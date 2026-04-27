@@ -1,19 +1,32 @@
 from django.db import models
+from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.utils.timezone import now
 import random
 import string
-from django.utils.timezone import now
-# Create your models here.
-from django.db import models
-from django.conf import settings
 from products.models import Variant
 from users.models import Addresses
-import random
-import string
-from django.conf import settings
-from django.db import models
-from django.utils.timezone import now
-from django.core.exceptions import ValidationError
 from payment.models import Payment
+
+class Banner(models.Model):
+    title = models.CharField(max_length=255, blank=True, null=True)
+    image = models.ImageField(upload_to="banners/")
+    link = models.CharField(max_length=255, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title or f"Banner {self.id}"
+
+class HomepageVideo(models.Model):
+    title = models.CharField(max_length=255, blank=True, null=True)
+    video = models.FileField(upload_to="homepage_videos/", blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.title or f"Video {self.id}"
+
 def generate_order_number():
     date_part = now().strftime("%Y%m%d")
     random_part = "".join(
@@ -290,6 +303,7 @@ class ReturnRequest(models.Model):
         max_length=50,
         choices=RETURN_REASON_CHOICES
     )
+    image = models.ImageField(upload_to="returns/", blank=True, null=True)
     description = models.TextField(
         blank=True,
         null=True
