@@ -652,11 +652,12 @@ def place_order(request):
                             )
                     cart_items.delete()
                     request.session['last_order_id'] = order.id
-                    try:
-                        from utils.email_utils import send_order_confirmation_email
-                        send_order_confirmation_email(order)
-                    except Exception:
-                        pass
+                    if order.user.email:
+                        try:
+                            from utils.email_utils import send_order_confirmation_email
+                            send_order_confirmation_email(order)
+                        except Exception as e:
+                            print(f"Order email error (COD): {e}")
                     return redirect("order-success")
 
                 if payment_method == "wallet":
@@ -695,11 +696,12 @@ def place_order(request):
                                 )
                             cart_items.delete()
                             request.session['last_order_id'] = order.id
-                            try:
-                                from utils.email_utils import send_order_confirmation_email
-                                send_order_confirmation_email(order)
-                            except Exception:
-                                pass
+                            if order.user.email:
+                                try:
+                                    from utils.email_utils import send_order_confirmation_email
+                                    send_order_confirmation_email(order)
+                                except Exception as e:
+                                    print(f"Order email error (Wallet): {e}")
                             return redirect("order-success")
 
                     else:
@@ -721,11 +723,12 @@ def payment_success(request, order_id):
 
     if order.payment_status == "PAID":
         request.session['last_order_id'] = order.id
-        try:
-            from utils.email_utils import send_order_confirmation_email
-            send_order_confirmation_email(order)
-        except Exception:
-            pass
+        if order.user.email:
+            try:
+                from utils.email_utils import send_order_confirmation_email
+                send_order_confirmation_email(order)
+            except Exception as e:
+                print(f"Order email error (Payment Success): {e}")
         return redirect("order-success")
 
     with transaction.atomic():

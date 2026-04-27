@@ -86,40 +86,16 @@ def send_forgot_password_email(user, reset_link: str, expiry_hours: int = 24) ->
 # ─────────────────────────────────────────
 # ORDER CONFIRMATION EMAIL
 # ─────────────────────────────────────────
-def send_order_confirmation_email(order) -> bool:
-    """
-    Send a luxury order confirmation email.
-
-    Usage:
-        from utils.email_utils import send_order_confirmation_email
-        send_order_confirmation_email(order_instance)
-
-    The `order` object must be an Order model instance with the
-    standard relations: order.items, order.address, order.user.
-
-    Returns True on success, False on failure.
-    """
-    subject = f"Order Confirmed — #{order.order_number}"
-    from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'NO & CO <no-reply@noandco.com>')
-    to_email = order.user.email
-
-    # ── Build item list for the template ──────────────────────────
-    items = []
-    for oi in order.items.select_related('variant__product', 'variant__size').all():
-        variant_parts = []
-        if oi.variant.color:
-            variant_parts.append(oi.variant.color)
-        if oi.variant.size:
-            variant_parts.append(f"Size {oi.variant.size.name}")
-
-        items.append({
-            'name':     oi.variant.product.product_name,
-            'variant':  ' · '.join(variant_parts),
-            'quantity': oi.quantity,
-            'price':    oi.price,
-        })
-
-    # ── Shipping address block ─────────────────────────────────────
+def send_order_confirmation_email(order):
+    from django.core.mail import EmailMultiAlternatives
+    from django.template.loader import render_to_string
+    from datetime import date, timedelta
+    
+    # Calculate estimated delivery (7 days from now)
+    estimated_delivery_date = date.today() + timedelta(days=7)
+    estimated_delivery = estimated_delivery_date.strftime("%d %B %Y").lstrip('0')
+    
+    # Build shipping address string from address ForeignKey
     addr = order.address
     address_parts = [
         f"{addr.first_name} {addr.last_name}",
@@ -129,58 +105,57 @@ def send_order_confirmation_email(order) -> bool:
         address_parts.append(addr.address_line2)
     address_parts.append(f"{addr.city}, {addr.state} – {addr.pin_code}")
     address_parts.append(addr.country)
-    shipping_address = "\n".join(address_parts)
+    shipping_address_str = "\n".join(address_parts)
+    
+    # Build items list for template compatibility
+    items_data = []
+    for oi in order.items.select_related('variant__product', 'variant__size').all():
+        variant_desc = ""
+        if oi.variant.color and oi.variant.size:
+            variant_desc = f"{oi.variant.color} · Size {oi.variant.size.name}"
+        elif oi.variant.color:
+            variant_desc = oi.variant.color
+        elif oi.variant.size:
+            variant_desc = f"Size {oi.variant.size.name}"
 
-    # ── Estimated delivery ─────────────────────────────────────────
-    from datetime import date, timedelta
-    estimated_delivery_date = date.today() + timedelta(days=7)
-    estimated_delivery = estimated_delivery_date.strftime("%-d %B %Y")  # e.g. "3 May 2025"
-    # Windows fallback (%-d not supported on Windows):
-    # estimated_delivery = estimated_delivery_date.strftime("%d %B %Y").lstrip('0')
+        items_data.append({
+            'name':     oi.variant.product.product_name,
+            'variant':  variant_desc,
+            'quantity': oi.quantity,
+            'price':    oi.price,
+        })
 
-    # ── Template context ───────────────────────────────────────────
     context = {
-        'customer_name':      addr.first_name,
-        'order_id':           order.order_number,
-        'order_date':         order.created_at.strftime("%d %B %Y"),
-        'items':              items,
-        'subtotal':           order.active_original_subtotal,
+        'customer_name':      order.user.get_full_name() or order.user.username,
+        'order_id':           order.id,
+        'order_date':         order.created_at.strftime('%B %d, %Y'),
+        'items':              items_data,
+        'subtotal':           order.subtotal,
         'shipping':           order.delivery_charge,
-        'discount':           order.active_discount if order.active_discount > 0 else None,
-        'total':              order.active_total,
-        'shipping_address':   shipping_address,
+        'total':              order.total_amount,
+        'shipping_address':   shipping_address_str,
         'estimated_delivery': estimated_delivery,
     }
-
-    # ── Plain-text fallback ────────────────────────────────────────
-    item_lines = "\n".join(
-        f"  • {i['name']} (x{i['quantity']}) — ₹{i['price']}"
-        for i in items
+    
+    html_content = render_to_string(
+        'emails/order_confirmation_email.html', context
     )
-    text_body = (
-        f"Hi {context['customer_name']},\n\n"
-        f"Your order #{context['order_id']} has been confirmed.\n\n"
-        f"Items:\n{item_lines}\n\n"
-        f"Subtotal: ₹{context['subtotal']}\n"
-        f"Shipping: {'Free' if not context['shipping'] else '₹' + str(context['shipping'])}\n"
-        f"Total:    ₹{context['total']}\n\n"
-        f"Ship to:\n{shipping_address}\n\n"
-        f"Estimated Delivery: {context['estimated_delivery']}\n\n"
-        f"Thank you for shopping with NO & CO."
+    
+    plain_text = f"""
+Order Confirmed — #{order.id}
+
+Hi {context['customer_name']},
+Your order has been placed successfully.
+Order ID: {order.id}
+Total: {order.total_amount}
+We will notify you when it ships.
+"""
+    
+    msg = EmailMultiAlternatives(
+        subject=f'Order Confirmed — #{order.id}',
+        body=plain_text,
+        from_email='waseemfaris@gmail.com',
+        to=[order.user.email],
     )
-
-    html_body = render_to_string('emails/order_confirmation_email.html', context)
-
-    try:
-        msg = EmailMultiAlternatives(
-            subject=subject,
-            body=text_body,
-            from_email=from_email,
-            to=[to_email],
-        )
-        msg.attach_alternative(html_body, 'text/html')
-        msg.send(fail_silently=False)
-        return True
-    except Exception as exc:
-        print(f"[send_order_confirmation_email] Failed to send to {to_email}: {exc}")
-        return False
+    msg.attach_alternative(html_content, 'text/html')
+    msg.send(fail_silently=False)
