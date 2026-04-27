@@ -1,0 +1,388 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- Mobile Navigation Elements (MANDATORY TOP-LEVEL) -->
+<button id="hamburger-btn" class="hamburger-btn" aria-label="Open Menu">
+    <div class="hamburger-box">
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+        <span class="hamburger-line"></span>
+    </div>
+</button>
+<div id="drawer-overlay" class="drawer-overlay"></div>
+<aside id="profile-drawer" class="profile-drawer">
+    <div class="drawer-header">
+        <div class="drawer-user-info">
+            <div class="drawer-avatar">
+                {% if user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg" %}
+                    <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}">
+                {% else %}
+                    <div class="drawer-avatar-placeholder">{{ user.username|slice:":1"|upper }}</div>
+                {% endif %}
+            </div>
+            <div class="drawer-user-text">
+                <h3 class="drawer-name">{{ user.get_full_name|default:user.username }}</h3>
+                <p class="drawer-email">{{ user.email }}</p>
+            </div>
+        </div>
+        <button id="drawer-close" class="drawer-close-btn">&times;</button>
+    </div>
+    <div class="drawer-separator"></div>
+    <nav class="drawer-nav">
+        <a href="{% url 'user-profile' user.id %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'user-profile' %}active{% endif %}">
+            <svg class="drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+            </svg>
+            <span>Overview</span>
+        </a>
+        <a href="{% url 'orders' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'orders' or request.resolver_match.url_name == 'order_details' %}active{% endif %}">
+            <svg class="drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
+            </svg>
+            <span>Orders</span>
+        </a>
+        <a href="{% url 'wishlist' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
+            <svg class="drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+            </svg>
+            <span>Wishlist</span>
+        </a>
+        <a href="{% url 'user-address' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'user-address' %}active{% endif %}">
+            <svg class="drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+            </svg>
+            <span>Addresses</span>
+        </a>
+        <a href="{% url 'update-profile' user.id %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'update-profile' %}active{% endif %}">
+            <svg class="drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="21" x2="4" y2="14" /><line x1="4" y1="10" x2="4" y2="3" /><line x1="12" y1="21" x2="12" y2="12" /><line x1="12" y1="8" x2="12" y2="3" /><line x1="20" y1="21" x2="20" y2="16" /><line x1="20" y1="12" x2="20" y2="3" /><line x1="1" y1="14" x2="7" y2="14" /><line x1="9" y1="8" x2="15" y2="8" /><line x1="17" y1="16" x2="23" y2="16" />
+            </svg>
+            <span>Settings</span>
+        </a>
+    </nav>
+    <div class="drawer-footer">
+        <a href="{% url 'account_logout' %}" class="logout-link">Logout</a>
+    </div>
+</aside>
+
+<div class="profile-master-container">
+    <div class="profile-layout">
+        <!-- Desktop Sidebar Only -->
+        {% include 'user_base/components/profile_sidebar.html' %}
+
+        <!-- Content Area -->
+        <main class="profile-main-content">
+            <div class="profile-content-inner">
+                {% block profile_content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    console.log("Profile Navigation System Loaded");
+    document.addEventListener('DOMContentLoaded', function() {
+        const hamburger = document.getElementById('hamburger-btn');
+        const drawer = document.getElementById('profile-drawer');
+        const overlay = document.getElementById('drawer-overlay');
+        const closeBtn = document.getElementById('drawer-close');
+
+        function openDrawer() {
+            console.log("Opening Drawer");
+            if (drawer) drawer.classList.add('open');
+            if (overlay) overlay.classList.add('visible');
+            if (hamburger) hamburger.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeDrawer() {
+            console.log("Closing Drawer");
+            if (drawer) drawer.classList.remove('open');
+            if (overlay) overlay.classList.remove('visible');
+            if (hamburger) hamburger.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        if (hamburger) hamburger.addEventListener('click', openDrawer);
+        if (overlay) overlay.addEventListener('click', closeDrawer);
+        if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+
+        document.querySelectorAll('.drawer-nav-item').forEach(function(item) {
+            item.addEventListener('click', closeDrawer);
+        });
+    });
+</script>
+
+<style>
+/* Base Profile Layout Styles */
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9f9f9;
+    --bg-drawer: #ffffff;
+    --bg-active: #f5f5f5;
+    --border-color: #eeeeee;
+    --text-primary: #111111;
+    --text-muted: #888888;
+    --accent: #111111;
+}
+
+/* 1. HAMBURGER BUTTON (MOBILE/TABLET ONLY) */
+.hamburger-btn {
+    display: none;
+    position: fixed;
+    top: 80px; /* Below header */
+    left: 16px;
+    width: 40px;
+    height: 40px;
+    background: #ffffff;
+    border: 1px solid #111111;
+    z-index: 9999; /* Above everything */
+    cursor: pointer;
+    padding: 10px;
+    align-items: center;
+    justify-content: center;
+    outline: none;
+}
+
+.hamburger-box {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.hamburger-line {
+    display: block;
+    width: 100%;
+    height: 1px;
+    background: #111111;
+    transition: all 0.3s ease;
+}
+
+.hamburger-btn.active .hamburger-line:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+.hamburger-btn.active .hamburger-line:nth-child(2) { opacity: 0; }
+.hamburger-btn.active .hamburger-line:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+
+/* 2. DRAWER OVERLAY */
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.1);
+    backdrop-filter: blur(2px);
+    z-index: 9998;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.35s ease;
+}
+
+.drawer-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 3. SLIDE-IN DRAWER */
+.profile-drawer {
+    display: none;
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 280px;
+    height: 100vh;
+    background: var(--bg-drawer);
+    z-index: 10000;
+    transform: translateX(-100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+}
+
+.profile-drawer.open {
+    transform: translateX(0);
+}
+
+.drawer-header {
+    padding: 32px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.drawer-user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.drawer-avatar, .drawer-avatar-placeholder {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.drawer-avatar-placeholder {
+    background: #f0f0f0;
+    color: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.drawer-user-text { display: flex; flex-direction: column; gap: 2px; }
+
+.drawer-name {
+    color: #111;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.drawer-email {
+    color: var(--text-muted);
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 11px;
+}
+
+.drawer-close-btn {
+    background: none;
+    border: none;
+    color: #111;
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.drawer-separator {
+    height: 1px;
+    background: #eee;
+    margin: 0 24px 16px;
+}
+
+.drawer-nav {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.drawer-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    text-decoration: none;
+    color: #555;
+    font-family: 'Helvetica Neue', sans-serif;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: all 0.2s ease;
+}
+
+.drawer-nav-item:hover { color: #000; background: #f9f9f9; }
+
+.drawer-nav-item.active {
+    color: #000;
+    font-weight: 600;
+    background: #f5f5f5;
+}
+
+.drawer-icon { width: 16px; height: 16px; stroke-width: 1.2; }
+
+.drawer-footer {
+    padding: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+.logout-link {
+    color: #888;
+    font-size: 11px;
+    text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.profile-master-container {
+    background: var(--bg-primary);
+    min-height: 100vh;
+    color: var(--text-primary);
+    width: 100%;
+}
+
+.profile-layout {
+    display: flex;
+    max-width: 1200px; /* Zara/HM standard is slightly tighter than ultra-wide */
+    margin: 0 auto;
+}
+
+.profile-main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Desktop Responsiveness */
+@media (min-width: 1025px) {
+    .profile-content-inner {
+        padding: 60px 80px;
+    }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+    body, .profile-master-container, .profile-layout, .profile-main-content, .profile-content-inner {
+        background-color: #ffffff !important;
+    }
+
+    .hamburger-btn { display: flex !important; }
+    .profile-drawer { display: flex !important; }
+
+    .profile-layout {
+        flex-direction: column;
+    }
+    
+    .profile-content-inner {
+        padding: 40px 20px 100px;
+    }
+    
+    .profile-master-container {
+        padding-bottom: 80px;
+    }
+}
+
+/* Global Reset */
+.profile-master-container * {
+    box-sizing: border-box;
+    font-family: 'Helvetica Neue', 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4 {
+    font-weight: 500;
+    letter-spacing: -0.01em;
+}
+
+p, span, label, input, button {
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.uppercase-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #111;
+    display: block;
+    margin-bottom: 12px;
+}
+</style>
+{% endblock %}

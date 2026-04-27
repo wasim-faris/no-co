@@ -1,0 +1,104 @@
+{% load static %}
+<!-- Desktop Sidebar Component -->
+<div class="profile-sidebar-wrapper">
+    <aside class="profile-sidebar-desktop">
+        <div class="sidebar-inner">
+            <span class="sidebar-label">Account Settings</span>
+            <nav class="sidebar-nav">
+                <a href="{% url 'user-profile' user.id %}" class="sidebar-link {% if request.resolver_match.url_name == 'user-profile' %}active{% endif %}">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                        <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                    </svg>
+                    <span>Overview</span>
+                </a>
+                <a href="{% url 'orders' %}" class="sidebar-link {% if request.resolver_match.url_name == 'orders' or request.resolver_match.url_name == 'order_details' %}active{% endif %}">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><path d="M3 6h18" /><path d="M16 10a4 4 0 0 1-8 0" />
+                    </svg>
+                    <span>Orders</span>
+                </a>
+                <a href="{% url 'wishlist' %}" class="sidebar-link {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                    </svg>
+                    <span>Wishlist</span>
+                </a>
+                <a href="{% url 'user-address' %}" class="sidebar-link {% if request.resolver_match.url_name == 'user-address' %}active{% endif %}">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
+                    </svg>
+                    <span>Addresses</span>
+                </a>
+                <a href="{% url 'update-profile' user.id %}" class="sidebar-link {% if request.resolver_match.url_name == 'update-profile' %}active{% endif %}">
+                    <svg class="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                        <path d="M4 21v-7" /><path d="M4 10V3" /><path d="M12 21v-9" /><path d="M12 8V3" /><path d="M20 21v-5" /><path d="M20 12V3" /><path d="M1 14h6" /><path d="M9 8h6" /><path d="M17 16h6" />
+                    </svg>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </div>
+    </aside>
+</div>
+
+<style>
+/* CSS Variables */
+.profile-sidebar-wrapper {
+    --bg-side: #ffffff;
+    --text-main: #111111;
+    --text-muted: #888888;
+    --border-dim: #eeeeee;
+    --bg-active: #f5f5f5;
+}
+
+/* DESKTOP SIDEBAR */
+@media (min-width: 1025px) {
+    .profile-sidebar-desktop {
+        width: 260px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+        background: var(--bg-side);
+        border-right: 1px solid var(--border-dim);
+        flex-shrink: 0;
+        z-index: 10;
+    }
+    .sidebar-inner { padding: 60px 0; }
+    .sidebar-label {
+        font-family: 'Helvetica Neue', sans-serif;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #111;
+        padding: 0 40px;
+        margin-bottom: 32px;
+        display: block;
+    }
+    .sidebar-nav { display: flex; flex-direction: column; }
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 40px;
+        text-decoration: none;
+        color: #555;
+        transition: all 0.2s ease;
+        font-family: 'Helvetica Neue', sans-serif;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .sidebar-icon { width: 16px; height: 16px; opacity: 0.6; }
+    .sidebar-link:hover { color: #000; background: #f9f9f9; }
+    .sidebar-link.active {
+        background: var(--bg-active);
+        color: #000;
+        font-weight: 600;
+    }
+    .sidebar-link.active .sidebar-icon { opacity: 1; }
+}
+
+@media (max-width: 1024px) {
+    .profile-sidebar-desktop { display: none !important; }
+}
+</style>

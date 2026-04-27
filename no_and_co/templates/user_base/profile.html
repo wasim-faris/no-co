@@ -1,0 +1,426 @@
+{% extends 'user_base/profile_base.html' %}
+{% load static %}
+
+{% block profile_content %}
+<div class="profile-overview">
+    <!-- User Header Section -->
+    <header class="overview-header">
+        <div class="user-identity">
+            <div class="avatar-container">
+                {% if user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg" %}
+                    <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="user-avatar">
+                {% else %}
+                    <div class="user-avatar-placeholder">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="user-info">
+                <h1 class="user-name">{{ user.get_full_name|default:user.username }}</h1>
+                <p class="user-email">{{ user.email }}</p>
+                <div class="profile-badge">Member since {{ user.date_joined|date:"Y" }}</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="{% url 'update-profile' user.id %}" class="btn-primary">Edit Profile</a>
+        </div>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-label">Total Orders</span>
+            <span class="stat-value">{{ user.orders.count }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Wishlist</span>
+            <span class="stat-value">{{ user.wishlist_items.count }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Addresses</span>
+            <span class="stat-value">{{ user.addresses.count }}</span>
+        </div>
+    </div>
+
+    <!-- Referral Section (RESTORED) -->
+    <section class="referral-section">
+        <div class="referral-card">
+            <div class="referral-content">
+                <h3 class="referral-title">Invite friends & earn rewards</h3>
+                <p class="referral-text">Share your code with friends. They get a discount, and you earn rewards on their first purchase.</p>
+                
+                <div class="referral-code-box">
+                    <span class="code-label">Your Code</span>
+                    <div class="code-wrapper">
+                        <input type="text" value="{{ user.referral_code }}" id="referralCode" readonly>
+                        <button onclick="copyReferralCode()" id="copyBtn">Copy Code</button>
+                    </div>
+                </div>
+            </div>
+            <div class="referral-stats">
+                <div class="ref-stat">
+                    <span class="ref-stat-val">{{ total_referrals|default:"0" }}</span>
+                    <span class="ref-stat-lbl">Referrals</span>
+                </div>
+                <div class="ref-stat">
+                    <span class="ref-stat-val">₹{{ total_rewards|default:"0" }}</span>
+                    <span class="ref-stat-lbl">Earned</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Recent Orders -->
+    <section class="recent-orders">
+        <div class="section-header">
+            <h2 class="section-title">Recent Orders</h2>
+            <a href="{% url 'orders' %}" class="view-all-link">View All Orders</a>
+        </div>
+        
+        {% if user.orders.exists %}
+            <!-- Desktop Table -->
+            <div class="orders-table-wrapper">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Total</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in user.orders.all|slice:":5" %}
+                        <tr>
+                            <td class="order-id">#{{ order.order_number }}</td>
+                            <td>{{ order.created_at|date:"d M Y" }}</td>
+                            <td><span class="status-badge {{ order.status|lower }}">{{ order.status }}</span></td>
+                            <td class="order-total">₹{{ order.total_amount }}</td>
+                            <td class="text-right">
+                                <a href="{% url 'order_details' order.id %}" class="btn-text">View</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mobile Card List -->
+            <div class="orders-cards-mobile">
+                {% for order in user.orders.all|slice:":5" %}
+                <div class="order-card-sm">
+                    <div class="order-card-header">
+                        <span class="order-id">#{{ order.order_number }}</span>
+                        <span class="order-date">{{ order.created_at|date:"d M Y" }}</span>
+                    </div>
+                    <div class="order-status-row">
+                        <span class="status-badge {{ order.status|lower }}">{{ order.status }}</span>
+                        <span class="order-total">₹{{ order.total_amount }}</span>
+                    </div>
+                    <a href="{% url 'order_details' order.id %}" class="btn-card-mobile">View Order</a>
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <p>No orders found yet.</p>
+                <a href="{% url 'product-listing' %}" class="btn-outline">Start Shopping</a>
+            </div>
+        {% endif %}
+    </section>
+</div>
+
+<script>
+function copyReferralCode() {
+    const code = document.getElementById('referralCode');
+    code.select();
+    document.execCommand('copy');
+    
+    const btn = document.getElementById('copyBtn');
+    const originalText = btn.innerText;
+    btn.innerText = 'Copied!';
+    btn.style.background = '#27ae60';
+    
+    setTimeout(() => {
+        btn.innerText = originalText;
+        btn.style.background = '#000';
+    }, 2000);
+}
+</script>
+
+<style>
+/* H&M Style Profile Overview */
+.profile-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+}
+
+/* Header */
+.overview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 40px;
+    border-bottom: 1px solid #eee;
+}
+
+.user-identity {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.user-avatar, .user-avatar-placeholder {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.user-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f0f0f0;
+    color: #111;
+    font-size: 24px;
+    font-weight: 500;
+}
+
+.user-name {
+    font-size: 24px;
+    color: #111;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.user-email {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 6px;
+}
+
+.profile-badge {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #111;
+    font-weight: 600;
+}
+
+.btn-primary {
+    padding: 12px 24px;
+    background: #000;
+    color: #fff;
+    text-decoration: none;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover { background: #333; }
+
+/* Stats Grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.stat-card {
+    background: #ffffff;
+    padding: 32px 24px;
+    border: 1px solid #eee;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.stat-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: #888;
+    font-weight: 600;
+}
+
+.stat-value {
+    font-size: 28px;
+    color: #111;
+    font-weight: 500;
+}
+
+/* Referral Section */
+.referral-card {
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    padding: 40px;
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+}
+
+.referral-content { flex: 1; }
+
+.referral-title {
+    font-size: 20px;
+    margin-bottom: 12px;
+    color: #111;
+}
+
+.referral-text {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 24px;
+    max-width: 400px;
+}
+
+.referral-code-box {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.code-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+.code-wrapper {
+    display: flex;
+    max-width: 320px;
+}
+
+.code-wrapper input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #ddd;
+    border-right: none;
+    background: #fff;
+    font-family: monospace;
+    font-size: 14px;
+    color: #111;
+    outline: none;
+}
+
+.code-wrapper button {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 0 20px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.referral-stats {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+}
+
+.ref-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.ref-stat-val { font-size: 24px; font-weight: 500; color: #111; }
+.ref-stat-lbl { font-size: 9px; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-top: 4px; }
+
+/* Recent Orders */
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+}
+
+.section-title { font-size: 20px; color: #111; }
+.view-all-link { font-size: 12px; color: #111; text-decoration: underline; }
+
+.orders-table-wrapper { border-top: 1px solid #111; }
+.orders-table { width: 100%; border-collapse: collapse; }
+.orders-table th {
+    text-align: left;
+    padding: 20px 12px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    border-bottom: 1px solid #eee;
+}
+.orders-table td { padding: 20px 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+
+.status-badge {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+.status-badge.delivered { color: #27ae60; }
+.status-badge.pending { color: #888; }
+.status-badge.cancelled { color: #e74c3c; }
+
+.btn-text { color: #111; text-decoration: underline; font-weight: 500; }
+
+.orders-cards-mobile { display: none; }
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .profile-overview { gap: 40px; }
+    
+    .overview-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 24px;
+        border-bottom: none;
+    }
+    
+    .stats-grid { grid-template-columns: 1fr; gap: 12px; }
+    .stat-card { padding: 24px; flex-direction: row; justify-content: space-between; align-items: center; }
+    
+    .referral-card { flex-direction: column; padding: 24px; gap: 32px; }
+    .referral-stats { justify-content: space-around; border-top: 1px solid #eee; padding-top: 24px; }
+    
+    .orders-table-wrapper { display: none; }
+    .orders-cards-mobile { display: flex; flex-direction: column; gap: 16px; }
+    
+    .order-card-sm {
+        border: 1px solid #eee;
+        padding: 20px;
+    }
+    
+    .order-card-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    
+    .order-status-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+    }
+    
+    .btn-card-mobile {
+        display: block;
+        text-align: center;
+        background: #000;
+        color: #fff;
+        padding: 12px;
+        text-decoration: none;
+        font-size: 11px;
+        text-transform: uppercase;
+    }
+}
+</style>
+{% endblock %}

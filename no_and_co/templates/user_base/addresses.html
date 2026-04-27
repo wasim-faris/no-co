@@ -1,0 +1,390 @@
+{% extends 'user_base/profile_base.html' %}
+{% load static %}
+
+{% block profile_content %}
+<div class="addresses-page">
+    <header class="section-header">
+        <h1 class="page-title">Saved Addresses</h1>
+        <button id="showAddressForm" class="btn-primary">Add New Address</button>
+    </header>
+
+    <!-- Address Cards Grid -->
+    <div class="address-grid">
+        {% for addr in addresses %}
+        <div class="address-card">
+            <div class="card-header">
+                <span class="addr-type">{{ addr.type|upper }}</span>
+                {% if addr.is_default %}
+                <span class="default-badge">Default</span>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                <h3 class="addr-name">{{ addr.first_name }} {{ addr.last_name }}</h3>
+                <p class="addr-text">{{ addr.address_line1 }}</p>
+                {% if addr.address_line2 %}<p class="addr-text">{{ addr.address_line2 }}</p>{% endif %}
+                <p class="addr-text">{{ addr.city }}, {{ addr.state }} - {{ addr.pin_code }}</p>
+                <p class="addr-text">{{ addr.country }}</p>
+                <p class="addr-phone">Phone: {{ addr.phone_number }}</p>
+            </div>
+            <div class="card-footer">
+                <div class="footer-main-actions">
+                    <button class="btn-text" onclick="openEditModal('{{ addr.id }}')">Edit</button>
+                    <form method="POST" action="{% url 'delete-user-address' addr.id %}" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-text btn-danger">Delete</button>
+                    </form>
+                </div>
+                {% if not addr.is_default %}
+                <form method="POST" action="{% url 'user-address-set-default' addr.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-outline-sm">Set as Default</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <p>You haven't saved any addresses yet.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Add New Address Modal -->
+    <div id="addressFormSection" class="address-form-overlay" style="display:none;">
+        <div class="address-form-modal">
+            <div class="modal-header">
+                <h2 class="modal-title">New Address</h2>
+                <button id="hideAddressForm" class="btn-close">&times;</button>
+            </div>
+            <form method="POST" class="minimal-form" action="{% url 'user-address' %}">
+                {% csrf_token %}
+                <div class="form-grid">
+                    <div class="input-group">
+                        <label class="form-label">First Name</label>
+                        <input type="text" name="first_name" required>
+                    </div>
+                    <div class="input-group">
+                        <label class="form-label">Last Name</label>
+                        <input type="text" name="last_name" required>
+                    </div>
+                    <div class="input-group full-width">
+                        <label class="form-label">Phone Number</label>
+                        <input type="text" name="phone" required>
+                    </div>
+                    <div class="input-group full-width">
+                        <label class="form-label">Address Line 1</label>
+                        <input type="text" name="address_line_1" required>
+                    </div>
+                    <div class="input-group full-width">
+                        <label class="form-label">Address Line 2 (Optional)</label>
+                        <input type="text" name="address_line_2">
+                    </div>
+                    <div class="input-group">
+                        <label class="form-label">City</label>
+                        <input type="text" name="city" required>
+                    </div>
+                    <div class="input-group">
+                        <label class="form-label">State</label>
+                        <input type="text" name="state" required>
+                    </div>
+                    <div class="input-group">
+                        <label class="form-label">Pincode</label>
+                        <input type="text" name="postal_code" required>
+                    </div>
+                    <div class="input-group">
+                        <label class="form-label">Country</label>
+                        <input type="text" name="country" value="India" required>
+                    </div>
+                    <div class="input-group">
+                        <label class="form-label">Address Type</label>
+                        <select name="address_type">
+                            <option value="home">Home</option>
+                            <option value="work">Work</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="input-group checkbox-group">
+                        <input type="checkbox" name="is_default" id="is_default">
+                        <label for="is_default">Set as default address</label>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary-full">Save Address</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('showAddressForm').addEventListener('click', function() {
+        document.getElementById('addressFormSection').style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    });
+
+    document.getElementById('hideAddressForm').addEventListener('click', function() {
+        document.getElementById('addressFormSection').style.display = 'none';
+        document.body.style.overflow = 'auto';
+    });
+
+    // Close on overlay click
+    document.getElementById('addressFormSection').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    });
+</script>
+
+<style>
+/* Clean H&M Style Addresses Page */
+.addresses-page {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 32px;
+}
+
+.page-title {
+    font-size: 24px;
+    color: #111;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn-primary {
+    padding: 12px 24px;
+    background: #000;
+    color: #fff;
+    border: none;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-primary:hover { background: #333; }
+
+/* Grid */
+.address-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.address-card {
+    background: #ffffff;
+    border: 1px solid #eee;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.addr-type {
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: #888;
+    font-weight: 600;
+}
+
+.default-badge {
+    font-size: 9px;
+    background: #f5f5f5;
+    color: #111;
+    padding: 4px 10px;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.addr-name {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #111;
+}
+
+.addr-text {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.addr-phone {
+    font-size: 13px;
+    color: #111;
+    margin-top: 12px;
+}
+
+.card-footer {
+    border-top: 1px solid #eee;
+    padding-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: #111;
+    font-size: 11px;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.btn-text.btn-danger { color: #888; }
+.btn-text.btn-danger:hover { color: #e74c3c; }
+
+.btn-outline-sm {
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #111;
+    font-size: 10px;
+    padding: 8px 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+}
+
+.btn-outline-sm:hover { border-color: #000; }
+
+/* Modal Styles */
+.address-form-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(4px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.address-form-modal {
+    background: #fff;
+    width: 100%;
+    max-width: 540px;
+    border: 1px solid #eee;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    padding: 32px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title { font-size: 18px; text-transform: uppercase; letter-spacing: 1px; }
+
+.btn-close {
+    background: none;
+    border: none;
+    color: #000;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.minimal-form { padding: 40px; }
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 24px;
+}
+
+.full-width { grid-column: span 2; }
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+}
+
+.minimal-form input, .minimal-form select {
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #111;
+    padding: 12px;
+    font-size: 13px;
+    outline: none;
+}
+
+.minimal-form input:focus { border-color: #000; }
+
+.checkbox-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    grid-column: span 2;
+}
+
+.btn-primary-full {
+    width: 100%;
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 18px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 12px;
+    cursor: pointer;
+    margin-top: 24px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 1024px) {
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 24px;
+    }
+    
+    .btn-primary { width: 100%; }
+    
+    .address-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .address-card { padding: 24px; }
+    
+    .minimal-form { padding: 24px; }
+    .form-grid { grid-template-columns: 1fr; }
+    .full-width { grid-column: span 1; }
+    
+    .address-form-modal {
+        width: 100%;
+        height: 100%;
+        max-height: 100vh;
+    }
+}
+</style>
+{% endblock %}
