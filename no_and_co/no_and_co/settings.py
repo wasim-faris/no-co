@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,12 +22,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-t&an(vrup$mq$k(73$z@6qt=7b7b6y2*ya2jo!_c!p+v2$((ei"
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='127.0.0.1,localhost').split(',')
 
 LOGIN_REDIRECT_URL = "home"
 
@@ -65,16 +66,16 @@ INSTALLED_APPS = [
 ]
 
 CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': 'dtzgudrqx',
-    'API_KEY': '736959376681496',
-    'API_SECRET': 'mG_3_GOnUawwBVt-fc7-0vZS-70',
+    'CLOUD_NAME': config('CLOUD_NAME'),
+    'API_KEY': config('CLOUD_API_KEY'),
+    'API_SECRET': config('CLOUD_API_SECRET'),
 }
 
 import cloudinary
 cloudinary.config(
-    cloud_name='dtzgudrqx',
-    api_key='736959376681496',
-    api_secret='mG_3_GOnUawwBVt-fc7-0vZS-70'
+    cloud_name=config('CLOUD_NAME'),
+    api_key=config('CLOUD_API_KEY'),
+    api_secret=config('CLOUD_API_SECRET')
 )
 
 MIDDLEWARE = [
@@ -127,11 +128,11 @@ AUTH_USER_MODEL = "accounts.User"
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'no_and_co',
-        'USER': 'postgres',
-        'PASSWORD': 'asdfghjkl',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': config('NO_AND_CO_DB_NAME'),
+        'USER': config('NO_AND_CO_DB_USER'),
+        'PASSWORD': config('NO_AND_CO_DB_PASSWORD'),
+        'HOST': config('NO_AND_CO_DB_HOST'),
+        'PORT': config('NO_AND_CO_DB_PORT'),
     }
 }
 
@@ -227,8 +228,8 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = "testingemailwasim@gmail.com"
-EMAIL_HOST_PASSWORD = "aohhxotksyichqva"
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 ACCOUNT_LOGIN_METHODS = {"email"}
 
@@ -248,5 +249,5 @@ SOCIALACCOUNT_AUTO_SIGNUP = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION = True
 SOCIALACCOUNT_EMAIL_AUTHENTICATION_AUTO_CONNECT = True
 
-RAZORPAY_KEY_ID = "rzp_test_SeSm0OvwnrDBEF"
-RAZORPAY_KEY_SECRET = "4KUYK6nR0XL9AJ4wxCAnvC4S"
+RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
