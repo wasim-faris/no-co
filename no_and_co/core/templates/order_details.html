@@ -663,7 +663,7 @@
     }
 </style>
 
-<div class="shell" data-order-number="{{ order.order_number }}" data-order-id="{{ order.id }}" data-default-status="{{ order.items.first.item_status|default:'PENDING' }}">
+<div class="shell" data-order-number="{{ order.order_number }}" data-order-id="{{ order.id }}" data-default-status="{{ order.status|default:'PENDING' }}">
 
     <!-- ─── Sidebar ──────────────────────────────────────────── -->
     <aside class="sidebar">
@@ -730,12 +730,22 @@
                     &nbsp;·&nbsp; {{ order.created_at|date:"M d, Y" }}
                 </p>
             </div>
-            <a href="{% url 'download_invoice' order.id %}" target="_blank" class="btn btn-dark" id="download-invoice-btn">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                </svg>
-                Download Invoice
-            </a>
+            <div class="header-actions" style="display: flex; gap: 12px;">
+                {% if order.status != 'CANCELLED' and order.status != 'DELIVERED' and order.status != 'SHIPPED' %}
+                    <button class="btn btn-hm-secondary" id="cancel-order-btn" style="color: #7F1D1D; border-color: #FECACA; background: #FEF2F2;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                        Cancel Order
+                    </button>
+                {% endif %}
+                <a href="{% url 'download_invoice' order.id %}" target="_blank" class="btn btn-dark" id="download-invoice-btn">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Download Invoice
+                </a>
+            </div>
         </div>
 
         <!-- Two-column detail layout -->
@@ -770,19 +780,21 @@
                                     <span class="status-badge badge-return-requested" id="order-status-badge">Return Requested</span>
                                 {% endif %}
                             {% else %}
-                                {% with item_status=order.items.first.item_status %}
-                                    {% if item_status == 'DELIVERED' or order.delivered_date %}
+                                {% with status=order.status %}
+                                    {% if status == 'DELIVERED' or order.delivered_date %}
                                         <span class="status-badge badge-delivered" id="order-status-badge">Delivered</span>
-                                    {% elif item_status == 'SHIPPED' %}
+                                    {% elif status == 'SHIPPED' %}
                                         <span class="status-badge" style="color: #1a3a3a; border-color: #bee5eb; background: #e3f2fd;" id="order-status-badge">Shipped</span>
-                                    {% elif item_status == 'OUT_FOR_DELIVERY' %}
+                                    {% elif status == 'OUT_FOR_DELIVERY' %}
                                         <span class="status-badge" style="color: #065F46; border-color: #A7F3D0; background: #ECFDF5;" id="order-status-badge">Out for Delivery</span>
-                                    {% elif item_status == 'CANCELLED' %}
+                                    {% elif status == 'CANCELLED' %}
                                         <span class="status-badge badge-cancelled" id="order-status-badge">Cancelled</span>
-                                    {% elif item_status == 'RETURN_COMPLETED' %}
+                                    {% elif status == 'PARTIAL_CANCELLED' %}
+                                        <span class="status-badge" style="color: #92400E; border-color: #FDE68A; background: #FFFBEB;" id="order-status-badge">Partial Cancelled</span>
+                                    {% elif status == 'RETURN_COMPLETED' %}
                                         <span class="status-badge badge-return-completed" id="order-status-badge">Return Completed</span>
                                     {% else %}
-                                        <span class="status-badge badge-pending" id="order-status-badge">{{ order.items.first.get_item_status_display|default:"Order Placed" }}</span>
+                                        <span class="status-badge badge-pending" id="order-status-badge">{{ order.get_status_display|default:"Order Placed" }}</span>
                                     {% endif %}
                                 {% endwith %}
                             {% endif %}
@@ -906,37 +918,23 @@
                         <div class="info-row">
                             <span class="info-label">Status</span>
                                 <span class="info-value" style="font-weight:500;">
-                                    {% if order.payment_method == 'COD' %}
-                                        {% with return_request=order.returns.first %}
-                                            {% if return_request %}
-                                                {% if return_request.status == 'REFUNDED' %}
-                                                    <span style="color:#111;">Refunded</span>
-                                                {% elif return_request.status == 'APPROVED' %}
-                                                    <span style="color:#92400E;">Refund in Process</span>
-                                                {% elif return_request.status == 'REQUESTED' %}
-                                                    <span style="color:#92400E;">Refund Not Applicable</span>
-                                                {% elif return_request.status == 'REJECTED' %}
-                                                    <span style="color:#14532D;">Paid</span>
-                                                {% endif %}
-                                            {% else %}
-                                                {% if order.items.first.item_status == 'CANCELLED' %}
-                                                    <span style="color:#7F1D1D;">Voided</span>
-                                                {% elif order.items.first.item_status == 'DELIVERED' or order.delivered_date %}
-                                                    <span style="color:#14532D;">Paid</span>
-                                                {% else %}
-                                                    <span style="color:#92400E;">Pending</span>
-                                                {% endif %}
-                                            {% endif %}
-                                        {% endwith %}
-                                    {% else %}
-                                        {% if order.items.first.item_status == 'CANCELLED' %}
+                                    {% with status=order.payment_status %}
+                                        {% if status == 'PAID' %}
+                                            <span style="color:#14532D;">Paid</span>
+                                        {% elif status == 'REFUNDED' %}
+                                            <span style="color:#111;">Refunded</span>
+                                        {% elif status == 'PARTIALLY_REFUNDED' %}
+                                            <span style="color:#92400E;">Partially Refunded</span>
+                                        {% elif status == 'VOIDED' %}
                                             <span style="color:#7F1D1D;">Voided</span>
+                                        {% elif status == 'FAILED' %}
+                                            <span style="color:#7F1D1D;">Failed</span>
+                                        {% elif status == 'PENDING' and order.payment_method == 'COD' %}
+                                            <span style="color:#92400E;">Pay on Delivery</span>
                                         {% else %}
-                                            <span style="color:{% if order.payment_status == 'PAID' %}#14532D{% elif order.payment_status == 'FAILED' %}#7F1D1D{% else %}#92400E{% endif %};">
-                                                {{ order.get_payment_status_display }}
-                                            </span>
+                                            <span style="color:#92400E;">{{ order.get_payment_status_display }}</span>
                                         {% endif %}
-                                    {% endif %}
+                                    {% endwith %}
                                 </span>
                         </div>
                     </div>
@@ -984,22 +982,28 @@
                     </div>
                     <div class="module-body">
                         <div class="price-row">
-                            <span class="price-label">Subtotal ({{ order.items.count }} items)</span>
-                            <span class="price-value">₹{{ order.subtotal }}</span>
+                            <span class="price-label">Subtotal ({{ order.active_items.count }} items)</span>
+                            <span class="price-value">₹{{ order.active_original_subtotal }}</span>
                         </div>
-                        {% if order.discount_amount > 0 %}
+                        {% if order.active_discount > 0 %}
                         <div class="price-row" style="background: #f0fdf4; margin: 4px -8px; padding: 8px; border-radius: 4px;">
                             <span class="price-label" style="color: #15803d; display: flex; align-items: center; gap: 4px;">
                                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82zM7 7h.01"/></svg>
                                 PROMO ({% if order.coupon %}{{ order.coupon.code }}{% else %}Applied{% endif %})
                             </span>
-                            <span class="price-value" style="color: #15803d; font-weight: 600;">– ₹{{ order.discount_amount }}</span>
+                            <span class="price-value" style="color: #15803d; font-weight: 600;">– ₹{{ order.active_discount }}</span>
                         </div>
                         {% endif %}
                         <div class="price-row">
                             <span class="price-label">GST (incl.)</span>
-                            <span class="price-value">₹{{ order.tax_amount }}</span>
+                            <span class="price-value">₹{{ order.active_tax }}</span>
                         </div>
+                        {% if order.cancelled_subtotal > 0 %}
+                        <div class="price-row" style="border-top: 1px dashed var(--ink-faint); margin-top: 8px; padding-top: 8px;">
+                            <span class="price-label" style="color: var(--ink-soft);">Cancelled Amount</span>
+                            <span class="price-value" style="color: var(--ink-soft); text-decoration: line-through;">₹{{ order.cancelled_subtotal }}</span>
+                        </div>
+                        {% endif %}
                         <div class="price-row">
                             <span class="price-label">Delivery</span>
                             <span class="price-value" style="color: {% if order.delivery_charge == 0 %}#14532D{% else %}var(--ink-mid){% endif %};">
@@ -1008,7 +1012,7 @@
                         </div>
                         <div class="price-total">
                             <span class="price-total-label">Total (Incl. Tax)</span>
-                            <span class="price-total-value">₹{{ order.total_amount }}</span>
+                            <span class="price-total-value">₹{{ order.active_total }}</span>
                         </div>
                     </div>
                 </div>
@@ -1137,7 +1141,7 @@
                                             </div>
                                         {% endif %}
                                     {% endif %}
-                                {% elif latest_status == 'CANCELLED' or item_cancelled == 'CANCELLED' %}
+                                {% elif order.status == 'CANCELLED' %}
                                     <!-- Only Cancelled Status Milestone -->
                                     <div class="timeline-step failed">
                                         <div class="timeline-dot failed" style="background: #7F1D1D; border-color: #7F1D1D; color: white;">
@@ -1148,73 +1152,24 @@
                                             <div class="timeline-date">{% if order.cancelled_at %}{{ order.cancelled_at|date:"M d, Y" }}{% else %}The delivery journey has been stopped.{% endif %}</div>
                                         </div>
                                     </div>
+                                {% elif order.status == 'PARTIAL_CANCELLED' %}
+                                    <!-- Partial Cancellation Milestone -->
+                                    <div class="timeline-step">
+                                        <div class="timeline-dot done" style="background: #92400E; border-color: #FDE68A;">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-title" style="color: #92400E; font-weight: 700;">Partially Cancelled</div>
+                                            <div class="timeline-date">Some items in this order were cancelled.</div>
+                                        </div>
+                                    </div>
+                                    
+                                    {% with status=order.active_items.first.item_status|default:"PENDING"|upper %}
+                                        {% include 'partials/order_timeline_steps.html' with status=status %}
+                                    {% endwith %}
                                 {% else %}
-                                    {% with status=order.items.first.item_status|default:"PENDING"|upper %}
-                                        <!-- 1. Pending -->
-                                        <div class="timeline-step done">
-                                            <div class="timeline-dot {% if status == 'PENDING' %}current{% else %}done{% endif %}">
-                                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                            </div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Pending {% if status == 'PENDING' %}<span class="timeline-progress-tag">In Progress</span>{% endif %}</div>
-                                                <div class="timeline-date">{{ order.created_at|date:"M d, Y" }}</div>
-                                            </div>
-                                        </div>
-
-                                        <!-- 2. Confirmed -->
-                                        <div class="timeline-step {% if status == 'PENDING' %}pending{% else %}done{% endif %}">
-                                            <div class="timeline-dot {% if status == 'CONFIRMED' %}current{% elif status == 'PENDING' %}{% else %}done{% endif %}">
-                                                {% if status != 'PENDING' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
-                                            </div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Confirmed {% if status == 'CONFIRMED' %}<span class="timeline-progress-tag">In Progress</span>{% endif %}</div>
-                                                <div class="timeline-date">{% if status == 'PENDING' %}Next step{% else %}Order verified{% endif %}</div>
-                                            </div>
-                                        </div>
-
-                                        <!-- 3. Processing -->
-                                        <div class="timeline-step {% if status == 'PENDING' or status == 'CONFIRMED' %}pending{% else %}done{% endif %}">
-                                            <div class="timeline-dot {% if status == 'PROCESSING' %}current{% elif status == 'PENDING' or status == 'CONFIRMED' %}{% else %}done{% endif %}">
-                                                {% if status != 'PENDING' and status != 'CONFIRMED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
-                                            </div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Processing {% if status == 'PROCESSING' %}<span class="timeline-progress-tag">In Progress</span>{% endif %}</div>
-                                                <div class="timeline-date">{% if status == 'PROCESSING' %}Packing and quality check{% else %}Ready for dispatch{% endif %}</div>
-                                            </div>
-                                        </div>
-
-                                        <!-- 4. Shipped -->
-                                        <div class="timeline-step {% if status == 'PENDING' or status == 'CONFIRMED' or status == 'PROCESSING' %}pending{% else %}done{% endif %}">
-                                            <div class="timeline-dot {% if status == 'SHIPPED' %}current{% elif status == 'OUT_FOR_DELIVERY' or status == 'DELIVERED' %}done{% else %}{% endif %}">
-                                                {% if status == 'SHIPPED' or status == 'OUT_FOR_DELIVERY' or status == 'DELIVERED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
-                                            </div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Shipped {% if status == 'SHIPPED' %}<span class="timeline-progress-tag">In Transit</span>{% endif %}</div>
-                                                <div class="timeline-date">{% if status == 'SHIPPED' %}On the way to local hub{% else %}Handed over to carrier{% endif %}</div>
-                                            </div>
-                                        </div>
-
-                                        <!-- 5. Out for Delivery -->
-                                        <div class="timeline-step {% if status == 'PENDING' or status == 'CONFIRMED' or status == 'PROCESSING' or status == 'SHIPPED' %}pending{% else %}done{% endif %}">
-                                            <div class="timeline-dot {% if status == 'OUT_FOR_DELIVERY' %}current{% elif status == 'DELIVERED' %}done{% else %}{% endif %}">
-                                                {% if status == 'OUT_FOR_DELIVERY' or status == 'DELIVERED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
-                                            </div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Out for Delivery {% if status == 'OUT_FOR_DELIVERY' %}<span class="timeline-progress-tag">Today</span>{% endif %}</div>
-                                                <div class="timeline-date">{% if status == 'OUT_FOR_DELIVERY' %}Arrival expected soon{% else %}At your doorstep{% endif %}</div>
-                                            </div>
-                                        </div>
-
-                                        <!-- 6. Delivered -->
-                                        <div class="timeline-step {% if status == 'DELIVERED' %}done{% else %}pending{% endif %}">
-                                            <div class="timeline-dot {% if status == 'DELIVERED' %}done{% else %}{% endif %}" {% if status == 'DELIVERED' %}style="background: #14532D; border-color: #14532D;"{% endif %}>
-                                                {% if status == 'DELIVERED' %}<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>{% endif %}
-                                            </div>
-                                            <div class="timeline-content">
-                                                <div class="timeline-title">Delivered</div>
-                                                <div class="timeline-date">{% if status == 'DELIVERED' %}{{ order.delivered_date|date:"M d, Y"|default:"Successfully delivered" }}{% else %}Journey completion{% endif %}</div>
-                                            </div>
-                                        </div>
+                                    {% with status=order.active_items.first.item_status|default:"PENDING"|upper %}
+                                        {% include 'partials/order_timeline_steps.html' with status=status %}
                                     {% endwith %}
                                 {% endif %}
                             {% endwith %}
@@ -1328,12 +1283,16 @@
     const cancelOrderForm = document.getElementById('cancelOrderForm');
 
     /* ─── Modal Logic ─────────────────────────────────────────── */
-    function openModal(title, subtitle, confirmText, cancelText) {
+    function openModal(title, subtitle, confirmText, cancelText, actionUrl) {
         modalTitle.textContent = title;
         modalSubtitle.textContent = subtitle;
         modalConfirm.textContent = confirmText || 'Confirm';
         modalCancel.textContent = cancelText || 'Cancel';
         
+        if (actionUrl) {
+            cancelOrderForm.action = actionUrl;
+        }
+
         modal.classList.add('open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
@@ -1371,7 +1330,8 @@
                 'Cancel Entire Order',
                 'Are you sure you want to cancel this order? This action will cancel all items in this order.',
                 'Confirm Cancellation',
-                'Keep Order'
+                'Keep Order',
+                "{% url 'cancel-order' order.id %}"
             );
         });
     }
@@ -1469,11 +1429,14 @@
     // Individual item cancellation trigger
     document.querySelectorAll('.cancel-item-btn').forEach(btn => {
         btn.addEventListener('click', function() {
+            const itemId = this.closest('.product-row').getAttribute('data-order-item-id');
+            const actionUrl = `/cancel-order-item/${itemId}/`;
             openModal(
                 'Cancel Item',
                 'Are you sure you want to cancel this specific item?',
                 'Confirm Cancellation',
-                'Keep Item'
+                'Keep Item',
+                actionUrl
             );
         });
     });

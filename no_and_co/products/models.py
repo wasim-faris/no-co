@@ -5,6 +5,29 @@ from cloudinary.models import CloudinaryField
 
 class Product(models.Model):
     product_name = models.CharField(max_length=255)
+    offer_percentage = models.DecimalField(
+        max_digits=5, 
+        decimal_places=2, 
+        default=0,
+        validators=[MinValueValidator(0), MaxValueValidator(100)]
+    )
+
+    def get_discounted_price(self, price):
+        """
+        Single source of truth for pricing.
+        Priority: Best Offer from Offer App > Product Manual Offer Percentage > Original Price.
+        """
+        from decimal import Decimal
+        from offers.utils import get_best_offer
+        
+        # 1. Check Offer App (Highest priority)
+        _, disc_amount = get_best_offer(self, price)
+        
+        # 2. Check Manual Product Offer Percentage
+        if disc_amount == 0 and self.offer_percentage > 0:
+            disc_amount = (Decimal(str(price)) * (self.offer_percentage / Decimal('100'))).quantize(Decimal('0.01'))
+            
+        return (Decimal(str(price)) - disc_amount).quantize(Decimal('0.01'))
 
     description_fit = models.TextField(blank=True, null=True)
     materials = models.TextField(blank=True, null=True)

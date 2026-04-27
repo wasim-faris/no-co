@@ -20,15 +20,17 @@
                     {% else %}Return Rejected{% endif %}
                 </span>
             {% else %}
-                {% with item_status=order.items.first.item_status %}
-                    {% if item_status == 'DELIVERED' or order.delivered_date %}
+                {% with status=order.status %}
+                    {% if status == 'DELIVERED' or order.delivered_date %}
                         <span class="status-badge badge-delivered order-status-badge" data-role="listing-status">Delivered</span>
-                    {% elif item_status == 'SHIPPED' %}
+                    {% elif status == 'SHIPPED' %}
                         <span class="status-badge" style="color: #1a3a3a; border-color: #bee5eb; background: #e3f2fd;" data-role="listing-status">Shipped</span>
-                    {% elif item_status == 'CANCELLED' or item_status == 'RETURNED' %}
-                        <span class="status-badge badge-cancelled order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
+                    {% elif status == 'CANCELLED' %}
+                        <span class="status-badge badge-cancelled order-status-badge" data-role="listing-status">Cancelled</span>
+                    {% elif status == 'PARTIAL_CANCELLED' %}
+                        <span class="status-badge" style="color: #92400E; border-color: #FDE68A; background: #FFFBEB;" data-role="listing-status">Partial Cancelled</span>
                     {% else %}
-                        <span class="status-badge badge-pending order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
+                        <span class="status-badge badge-pending order-status-badge" data-role="listing-status">{{ order.get_status_display|default:"Order Placed" }}</span>
                     {% endif %}
                 {% endwith %}
             {% endif %}
@@ -50,7 +52,7 @@
             {% with item=order.items.first %}
             <div class="order-product-name">{{ item.variant.product.product_name }}</div>
             <div class="order-variant">{{ item.variant.color }} &nbsp;·&nbsp; Size {{ item.variant.size.name }} {% if order.items.count > 1 %}&nbsp;·&nbsp; +{{ order.items.count|add:"-1" }} more{% endif %}</div>
-            <div class="order-amount">₹{{ order.total_amount }} <span class="order-amount-label">Total</span></div>
+            <div class="order-amount">₹{{ order.active_total }} <span class="order-amount-label">Total</span></div>
             {% endwith %}
         </div>
         <a href="{% url 'order_details' order.id %}" class="order-arrow" title="View Details">

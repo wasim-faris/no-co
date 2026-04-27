@@ -534,13 +534,20 @@ def place_order(request):
         address_id = request.POST.get("address_id")
         address = get_object_or_404(Addresses, id=address_id, user=user)
 
-        payment_status = "PAID" if payment_method == "COD" else "PENDING"
+        payment_status = "PENDING" if payment_method == "COD" else "PAID"
 
         if not address_id:
             messages.error(request, "Add address to place order")
             return redirect("checkout")
 
         cart_items = Cart.objects.filter(user=user)
+
+        # Update cart prices to latest discounted price before calculation
+        for item in cart_items:
+            latest_price = item.variant.product.get_discounted_price(item.variant.price)
+            if item.price != latest_price:
+                item.price = latest_price
+                item.save()
 
         if not cart_items.exists():
             messages.error(request, "no products in the cart")
@@ -861,43 +868,133 @@ def cancel_order(request, order_id):
             messages.error(request, "This order cannot be cancelled as it has already been shipped.")
             return redirect("order_details", id=order_id)
 
+        total_refund = Decimal('0.00')
         items_to_cancel = order.items.select_related("variant").exclude(item_status="CANCELLED")
+        
         for item in items_to_cancel:
+            # Restore stock
             variant = item.variant
-            print(variant.stock)
             variant.stock += item.quantity
-            print(variant.stock)
             variant.save()
+            
+            # Calculate refund for this item
+            total_refund += Decimal(item.final_price) * item.quantity
+
+        # If all items are now cancelled, add delivery charge back to refund
+        if not order.items.exclude(item_status="CANCELLED").exclude(id__in=[i.id for i in items_to_cancel]).exists():
+             total_refund += Decimal(order.delivery_charge)
 
         order.items.update(item_status="CANCELLED")
+        order.status = "CANCELLED"
+        order.cancelled_at = timezone.now()
+        
         OrderStatusHistory.objects.create(
             order=order,
             status="CANCELLED",
             updated_at=timezone.now()
         )
-        order.cancelled_at = timezone.now()
 
-        if order.payment_method in ["ONLINE", "wallet"]:
+        if order.payment_method in ["ONLINE", "wallet"] and total_refund > 0:
             wallet, _ = Wallet.objects.get_or_create(user=order.user)
-            amount = Decimal(order.total_amount)
-
-            wallet.balance = F('balance') + amount
+            wallet.balance = F('balance') + total_refund
             wallet.save()
 
             WalletTransaction.objects.create(
                 wallet=wallet,
                 order_id=order.id,
-                amount=amount,
+                amount=total_refund,
                 payment_status="SUCCESS",
                 transaction_type="CREDIT",
-                description=f"Refund for cancelled Order #{order.id}"
+                description=f"Refund for cancelled items in Order #{order.order_number}"
             )
 
     if order.payment_method == "ONLINE" and order.payment_status == "PAID":
         order.payment_status = "REFUNDED"
         order.save()
         messages.success(request, "Order cancelled successfully and refund processed.")
+    elif order.payment_method == "COD":
+        order.payment_status = "VOIDED"
+        order.save()
+        messages.success(request, "Order cancelled successfully.")
+    else:
+        order.save()
+        messages.success(request, "Order cancelled successfully.")
     return redirect("order_details", id=order_id)
+
+@login_required(login_url="login")
+@transaction.atomic
+def cancel_order_item(request, item_id):
+    item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+    order = item.order
+
+    if item.item_status == "CANCELLED":
+        messages.info(request, "This item is already cancelled.")
+        return redirect("order_details", id=order.id)
+
+    if item.item_status in ["SHIPPED", "DELIVERED"]:
+        messages.error(request, "This item cannot be cancelled as it has already been shipped.")
+        return redirect("order_details", id=order.id)
+
+    # 1. Restore stock
+    variant = item.variant
+    variant.stock += item.quantity
+    variant.save()
+
+    # 2. Update item status
+    item.item_status = "CANCELLED"
+    item.save()
+
+    # 3. Handle Refund
+    if order.payment_status == "PAID" or order.payment_method == "wallet":
+        wallet, _ = Wallet.objects.get_or_create(user=order.user)
+        refund_amount = Decimal(item.final_price) * item.quantity
+        
+        # Check if this is the last item to be cancelled
+        if not order.items.exclude(id=item.id).exclude(item_status="CANCELLED").exists():
+            refund_amount += Decimal(order.delivery_charge)
+        
+        wallet.balance = F('balance') + refund_amount
+        wallet.save()
+
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            order_id=order.id,
+            amount=refund_amount,
+            payment_status="SUCCESS",
+            transaction_type="CREDIT",
+            description=f"Refund for cancelled item in Order #{order.order_number}"
+        )
+
+    # 4. Auto Update Order Status
+    all_items = order.items.all()
+    total_items = all_items.count()
+    cancelled_items = all_items.filter(item_status="CANCELLED").count()
+
+    if cancelled_items == total_items:
+        order.status = "CANCELLED"
+        order.cancelled_at = timezone.now()
+        if order.payment_method == "ONLINE" and order.payment_status == "PAID":
+            order.payment_status = "REFUNDED"
+        elif order.payment_method == "COD":
+            order.payment_status = "VOIDED"
+    elif cancelled_items > 0:
+        order.status = "PARTIAL_CANCELLED"
+        if order.payment_status == "PAID":
+            order.payment_status = "PARTIALLY_REFUNDED"
+    else:
+        order.status = "PENDING"
+    
+    order.save()
+
+    # Log history
+    OrderStatusHistory.objects.create(
+        order=order,
+        status=order.status,
+        updated_at=timezone.now()
+    )
+
+    messages.success(request, "Item cancelled successfully.")
+    return redirect("order_details", id=order.id)
 
 
 def return_order(request, order_id):
