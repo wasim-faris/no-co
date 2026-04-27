@@ -1,426 +1,710 @@
-{% extends 'user_base/profile_base.html' %}
+{% extends 'user_base/base.html' %}
 {% load static %}
 
-{% block profile_content %}
-<div class="profile-overview">
-    <!-- User Header Section -->
-    <header class="overview-header">
-        <div class="user-identity">
-            <div class="avatar-container">
-                {% if user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg" %}
-                    <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="user-avatar">
-                {% else %}
-                    <div class="user-avatar-placeholder">
-                        {{ user.username|slice:":1"|upper }}
-                    </div>
-                {% endif %}
-            </div>
-            <div class="user-info">
-                <h1 class="user-name">{{ user.get_full_name|default:user.username }}</h1>
-                <p class="user-email">{{ user.email }}</p>
-                <div class="profile-badge">Member since {{ user.date_joined|date:"Y" }}</div>
-            </div>
-        </div>
-        <div class="header-actions">
-            <a href="{% url 'update-profile' user.id %}" class="btn-primary">Edit Profile</a>
-        </div>
-    </header>
+{% block content %}
+<!-- GOOGLE FONTS -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 
-    <!-- Stats Grid -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-label">Total Orders</span>
-            <span class="stat-value">{{ user.orders.count }}</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">Wishlist</span>
-            <span class="stat-value">{{ user.wishlist_items.count }}</span>
-        </div>
-        <div class="stat-card">
-            <span class="stat-label">Addresses</span>
-            <span class="stat-value">{{ user.addresses.count }}</span>
-        </div>
+<!-- 
+    PREMIUM FASHION BRAND REDESIGN
+    Typography: Cormorant Garamond (Serif) + DM Sans (Sans)
+    Brand Aesthetic: H&M Premium, Zara, COS
+-->
+
+<!-- 1. MOBILE NAVIGATION ELEMENTS (Keep existing logic) -->
+<button id="hamburger-btn" class="luxury-hamburger" aria-label="Open Menu">
+    <div class="hamb-box">
+        <span class="hamb-line"></span>
+        <span class="hamb-line"></span>
     </div>
+</button>
 
-    <!-- Referral Section (RESTORED) -->
-    <section class="referral-section">
-        <div class="referral-card">
-            <div class="referral-content">
-                <h3 class="referral-title">Invite friends & earn rewards</h3>
-                <p class="referral-text">Share your code with friends. They get a discount, and you earn rewards on their first purchase.</p>
+<div id="drawer-overlay" class="luxury-overlay"></div>
+<aside id="profile-drawer" class="luxury-drawer">
+    <div class="drawer-header-luxury">
+        <div class="drawer-user-info-minimal">
+            <h3 class="drawer-user-name-serif">{{ user.get_full_name|default:user.username }}</h3>
+            <p class="drawer-user-email-tiny">{{ user.email }}</p>
+        </div>
+        <button id="drawer-close" class="btn-close-drawer">&times;</button>
+    </div>
+    <nav class="drawer-nav-luxury">
+        <a href="{% url 'user-profile' user.id %}" class="drawer-link active">Overview</a>
+        <a href="{% url 'orders' %}" class="drawer-link">Orders</a>
+        <a href="{% url 'wishlist' %}" class="drawer-link">Wishlist</a>
+        <a href="{% url 'user-address' %}" class="drawer-link">Addresses</a>
+        <a href="{% url 'update-profile' user.id %}" class="drawer-link">Settings</a>
+    </nav>
+    <div class="drawer-footer-luxury">
+        <a href="{% url 'account_logout' %}" class="logout-link-luxury">Logout</a>
+    </div>
+</aside>
+
+<div class="luxury-page-wrapper">
+    <div class="luxury-layout-container">
+        <!-- 2. DESKTOP SIDEBAR (Keep existing structure) -->
+        <aside class="luxury-desktop-sidebar">
+            {% include 'user_base/components/profile_sidebar.html' %}
+        </aside>
+
+        <!-- 3. MAIN EDITORIAL CONTENT -->
+        <main class="luxury-main-content">
+            
+            <!-- SKELETON LOADER -->
+            <div id="luxury-skeleton" class="skeleton-container">
+                <div class="skel-hero"></div>
+                <div class="skel-strip"></div>
+                <div class="skel-grid">
+                    <div class="skel-card"></div>
+                    <div class="skel-card"></div>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT AREA -->
+            <div id="luxury-content" class="content-fade-in" style="display: none;">
                 
-                <div class="referral-code-box">
-                    <span class="code-label">Your Code</span>
-                    <div class="code-wrapper">
-                        <input type="text" value="{{ user.referral_code }}" id="referralCode" readonly>
-                        <button onclick="copyReferralCode()" id="copyBtn">Copy Code</button>
+                <!-- HERO SECTION -->
+                <section class="editorial-hero">
+                    <div class="hero-identity">
+                        <div class="avatar-editorial-wrapper">
+                            <div class="avatar-square-frame">
+                                {% if user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg" %}
+                                    <img src="{{ user.profile_photo.url }}" alt="{{ user.get_full_name }}" class="editorial-avatar-img">
+                                {% else %}
+                                    <div class="editorial-avatar-placeholder">{{ user.username|slice:":1"|upper }}</div>
+                                {% endif %}
+                                <div class="avatar-edit-overlay" onclick="document.getElementById('photo_upload_input').click()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                    <span>Update Photo</span>
+                                </div>
+                            </div>
+                            {% if user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg" %}
+                                <form action="{% url 'delete-profile-pic' user.id %}" method="POST" class="mt-2 text-center">
+                                    {% csrf_token %}
+                                    <button type="submit" class="link-remove-minimal">Remove Photo</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        <div class="user-meta-display">
+                            <h1 class="display-name-serif">{{ user.get_full_name|default:user.username }}</h1>
+                            <div class="meta-details-row">
+                                <span class="meta-item">{{ user.email }}</span>
+                                <span class="meta-sep"></span>
+                                <span class="meta-item">{{ user.phone|default:"+91 00000 00000" }}</span>
+                                <span class="meta-sep"></span>
+                                <span class="meta-item accent-gold">Since {{ user.date_joined|date:"Y" }}</span>
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-            <div class="referral-stats">
-                <div class="ref-stat">
-                    <span class="ref-stat-val">{{ total_referrals|default:"0" }}</span>
-                    <span class="ref-stat-lbl">Referrals</span>
-                </div>
-                <div class="ref-stat">
-                    <span class="ref-stat-val">₹{{ total_rewards|default:"0" }}</span>
-                    <span class="ref-stat-lbl">Earned</span>
-                </div>
-            </div>
-        </div>
-    </section>
+                    <div class="hero-actions">
+                        <button onclick="openEditModal()" class="btn-rect-outline">Edit Account</button>
+                    </div>
+                    
+                    <form id="avatar-upload-form" action="{% url 'add-profile-pic' user.id %}" method="POST" enctype="multipart/form-data" class="hidden">
+                        {% csrf_token %}
+                        <input type="file" id="photo_upload_input" name="profile_photo" onchange="this.form.submit()">
+                    </form>
+                </section>
 
-    <!-- Recent Orders -->
-    <section class="recent-orders">
-        <div class="section-header">
-            <h2 class="section-title">Recent Orders</h2>
-            <a href="{% url 'orders' %}" class="view-all-link">View All Orders</a>
-        </div>
-        
-        {% if user.orders.exists %}
-            <!-- Desktop Table -->
-            <div class="orders-table-wrapper">
-                <table class="orders-table">
-                    <thead>
-                        <tr>
-                            <th>Order</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Total</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for order in user.orders.all|slice:":5" %}
-                        <tr>
-                            <td class="order-id">#{{ order.order_number }}</td>
-                            <td>{{ order.created_at|date:"d M Y" }}</td>
-                            <td><span class="status-badge {{ order.status|lower }}">{{ order.status }}</span></td>
-                            <td class="order-total">₹{{ order.total_amount }}</td>
-                            <td class="text-right">
-                                <a href="{% url 'order_details' order.id %}" class="btn-text">View</a>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                <!-- STATS STRIP -->
+                <section class="editorial-stats-strip">
+                    <a href="{% url 'orders' %}" class="strip-item">
+                        <span class="label-tiny-caps">Orders</span>
+                        <span class="number-serif-large">{{ user.orders.count|default:"0"|stringformat:"02d" }}</span>
+                    </a>
+                    <a href="{% url 'user-address' %}" class="strip-item">
+                        <span class="label-tiny-caps">Saved Addresses</span>
+                        <span class="number-serif-large">{{ user.addresses.count|default:"0"|stringformat:"02d" }}</span>
+                    </a>
+                    <a href="{% url 'wishlist' %}" class="strip-item">
+                        <span class="label-tiny-caps">Wishlist</span>
+                        <span class="number-serif-large">{{ user.wishlist_items.count|default:"0"|stringformat:"02d" }}</span>
+                    </a>
+                </section>
 
-            <!-- Mobile Card List -->
-            <div class="orders-cards-mobile">
-                {% for order in user.orders.all|slice:":5" %}
-                <div class="order-card-sm">
-                    <div class="order-card-header">
-                        <span class="order-id">#{{ order.order_number }}</span>
-                        <span class="order-date">{{ order.created_at|date:"d M Y" }}</span>
+                <!-- PAGE CONTENT GRID -->
+                <div class="editorial-body-grid">
+                    
+                    <!-- COLUMN 1 -->
+                    <div class="editorial-col">
+                        
+                        <!-- WALLET -->
+                        <div class="editorial-card dark-surface">
+                            <div class="card-head">
+                                <span class="label-tiny-caps white-faded">Available Balance</span>
+                            </div>
+                            <div class="wallet-display">
+                                <span class="balance-serif-large">₹{{ wallet_balance|default:"0.00" }}</span>
+                                <a href="#" class="link-gold-tiny">Reload Account</a>
+                            </div>
+                        </div>
+
+                        <!-- PROFILE COMPLETION -->
+                        <div class="editorial-card bordered-surface">
+                            <div class="card-head justify-between">
+                                <span class="label-tiny-caps">Profile Integrity</span>
+                                <span class="serif-percent"><span id="pct-count">0</span>%</span>
+                            </div>
+                            <div class="minimal-progress-track">
+                                <div class="minimal-progress-fill" id="progress-bar" data-target="{{ profile_completion }}"></div>
+                            </div>
+                            <div class="integrity-grid">
+                                <div class="integrity-item {% if user.is_authenticated %}checked{% endif %}">
+                                    <span class="integrity-dot"></span><span class="label-tiny-caps">Account</span>
+                                </div>
+                                <div class="integrity-item {% if user.profile_photo and user.profile_photo.name != 'profile_photos/default.jpg' %}checked{% endif %}">
+                                    <span class="integrity-dot"></span><span class="label-tiny-caps">Visual</span>
+                                </div>
+                                <div class="integrity-item {% if user.phone %}checked{% endif %}">
+                                    <span class="integrity-dot"></span><span class="label-tiny-caps">Contact</span>
+                                </div>
+                                <div class="integrity-item {% if user.addresses.exists %}checked{% endif %}">
+                                    <span class="integrity-dot"></span><span class="label-tiny-caps">Shipping</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="order-status-row">
-                        <span class="status-badge {{ order.status|lower }}">{{ order.status }}</span>
-                        <span class="order-total">₹{{ order.total_amount }}</span>
+
+                    <!-- COLUMN 2 -->
+                    <div class="editorial-col">
+                        
+                        <!-- REFERRAL -->
+                        <div class="editorial-card bordered-surface">
+                            <div class="card-head">
+                                <span class="label-tiny-caps">Referral Program</span>
+                            </div>
+                            <p class="body-text-minimal">Share the invitation. Your inner circle receives a welcome gift, and you earn credit toward future collections.</p>
+                            
+                            <div class="luxury-referral-field">
+                                <span class="code-serif-display" id="refCodeText">{{ user.referral_code }}</span>
+                                <button onclick="copyRefCode()" class="btn-copy-editorial" id="copyBtn">Copy</button>
+                            </div>
+
+                            <div class="referral-meta-grid">
+                                <div class="ref-meta-item">
+                                    <span class="ref-num">{{ total_referrals|default:"0" }}</span>
+                                    <span class="label-tiny-caps">Invited</span>
+                                </div>
+                                <div class="ref-meta-item">
+                                    <span class="ref-num">₹{{ total_rewards|default:"0" }}</span>
+                                    <span class="label-tiny-caps">Credits Earned</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DEFAULT ADDRESS -->
+                        <div class="editorial-card bordered-surface">
+                            <div class="card-head justify-between">
+                                <span class="label-tiny-caps">Primary Address</span>
+                                <a href="{% url 'user-address' %}" class="link-black-underline">Manage</a>
+                            </div>
+                            {% if addresses %}
+                                {% with first_addr=addresses.0 %}
+                                <div class="primary-addr-box">
+                                    <h4 class="addr-name-serif">{{ first_addr.first_name }} {{ first_addr.last_name }}</h4>
+                                    <p class="addr-detail-light">
+                                        {{ first_addr.address_line1 }}<br>
+                                        {% if first_addr.address_line2 %}{{ first_addr.address_line2 }}<br>{% endif %}
+                                        {{ first_addr.city }}, {{ first_addr.state }} {{ first_addr.pin_code }}<br>
+                                        {{ first_addr.country }}
+                                    </p>
+                                </div>
+                                {% endwith %}
+                            {% else %}
+                                <p class="body-text-minimal italic">No shipping details provided.</p>
+                            {% endif %}
+                        </div>
                     </div>
-                    <a href="{% url 'order_details' order.id %}" class="btn-card-mobile">View Order</a>
                 </div>
-                {% endfor %}
             </div>
-        {% else %}
-            <div class="empty-state">
-                <p>No orders found yet.</p>
-                <a href="{% url 'product-listing' %}" class="btn-outline">Start Shopping</a>
-            </div>
-        {% endif %}
-    </section>
+        </main>
+    </div>
 </div>
 
-<script>
-function copyReferralCode() {
-    const code = document.getElementById('referralCode');
-    code.select();
-    document.execCommand('copy');
-    
-    const btn = document.getElementById('copyBtn');
-    const originalText = btn.innerText;
-    btn.innerText = 'Copied!';
-    btn.style.background = '#27ae60';
-    
-    setTimeout(() => {
-        btn.innerText = originalText;
-        btn.style.background = '#000';
-    }, 2000);
-}
-</script>
+<!-- EDIT MODAL (Slide-in) -->
+<div id="editModal" class="luxury-modal-panel">
+    <div class="modal-blur-overlay" onclick="closeEditModal()"></div>
+    <div class="modal-slide-content">
+        <div class="modal-head-editorial">
+            <h2 class="modal-title-serif">Update Profile</h2>
+            <button onclick="closeEditModal()" class="btn-close-x">&times;</button>
+        </div>
+        <form action="{% url 'update-profile' user.id %}" method="POST" class="luxury-form-flow">
+            {% csrf_token %}
+            <div class="luxury-input-group">
+                <label class="label-tiny-caps">First Name</label>
+                <input type="text" name="first_name" value="{{ user.first_name }}" placeholder="Jane">
+            </div>
+            <div class="luxury-input-group">
+                <label class="label-tiny-caps">Last Name</label>
+                <input type="text" name="last_name" value="{{ user.last_name }}" placeholder="Doe">
+            </div>
+            <div class="luxury-input-group">
+                <label class="label-tiny-caps">Username</label>
+                <input type="text" name="username" value="{{ user.username }}" placeholder="janedoe">
+            </div>
+            <div class="luxury-input-group">
+                <label class="label-tiny-caps">Email</label>
+                <input type="email" name="email" value="{{ user.email }}" placeholder="jane@example.com">
+            </div>
+            <div class="luxury-input-group">
+                <label class="label-tiny-caps">Phone</label>
+                <input type="text" name="phone" value="{{ user.phone|default:'' }}" placeholder="+91 98765 43210">
+            </div>
+            <div class="modal-foot-editorial">
+                <button type="submit" class="btn-full-black">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <style>
-/* H&M Style Profile Overview */
-.profile-overview {
+/* PREMIUM THEME CONFIG */
+:root {
+    --luxury-bg: #FAF8F5;
+    --luxury-white: #FFFFFF;
+    --luxury-dark: #0D0D0D;
+    --luxury-muted: #888480;
+    --luxury-border: #EDEAE6;
+    --luxury-gold: #C9A96E;
+    --font-serif: 'Cormorant Garamond', serif;
+    --font-sans: 'DM Sans', sans-serif;
+}
+
+.luxury-page-wrapper {
+    background: var(--luxury-bg);
+    min-height: 100vh;
+    padding-bottom: 120px;
+}
+
+/* LAYOUT STRUCTURE */
+.luxury-layout-container {
     display: flex;
-    flex-direction: column;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.luxury-desktop-sidebar {
+    width: 280px;
+    background: #fff;
+    border-right: 1px solid var(--luxury-border);
+    min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+    .luxury-desktop-sidebar { display: none; }
+    .luxury-layout-container { display: block; }
+}
+
+.luxury-main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* SKELETON LOGIC */
+@keyframes editorialShimmer {
+    0% { background-position: -800px 0; }
+    100% { background-position: 800px 0; }
+}
+.skeleton-container div {
+    background: #f6f7f8;
+    background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+    background-repeat: no-repeat;
+    background-size: 800px 100%;
+    animation: editorialShimmer 1.5s linear infinite forwards;
+}
+.skel-hero { height: 350px; width: 100%; margin-bottom: 2px; }
+.skel-strip { height: 140px; width: 100%; margin-bottom: 40px; }
+.skel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 40px; }
+.skel-card { height: 300px; }
+
+/* CONTENT ANIMATION */
+.content-fade-in {
+    animation: luxuryEntry 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+@keyframes luxuryEntry {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* HERO SECTION */
+.editorial-hero {
+    padding: 80px 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid var(--luxury-border);
+}
+
+.hero-identity {
+    display: flex;
+    align-items: center;
     gap: 60px;
 }
 
-/* Header */
-.overview-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-bottom: 40px;
-    border-bottom: 1px solid #eee;
+.avatar-square-frame {
+    width: 110px;
+    height: 110px;
+    position: relative;
+    background: #f0f0f0;
+    overflow: hidden;
+    cursor: pointer;
 }
 
-.user-identity {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-}
-
-.user-avatar, .user-avatar-placeholder {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
+.editorial-avatar-img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
+    filter: grayscale(100%);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.user-avatar-placeholder {
+.avatar-square-frame:hover .editorial-avatar-img {
+    filter: grayscale(0%);
+    transform: scale(1.08);
+}
+
+.editorial-avatar-placeholder {
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f0f0f0;
-    color: #111;
-    font-size: 24px;
-    font-weight: 500;
+    font-family: var(--font-serif);
+    font-size: 44px;
+    font-weight: 300;
 }
 
-.user-name {
-    font-size: 24px;
-    color: #111;
-    margin-bottom: 4px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.user-email {
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 6px;
-}
-
-.profile-badge {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #111;
-    font-weight: 600;
-}
-
-.btn-primary {
-    padding: 12px 24px;
-    background: #000;
+.avatar-edit-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(13, 13, 13, 0.7);
     color: #fff;
-    text-decoration: none;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    transition: background 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.btn-primary:hover { background: #333; }
+.avatar-edit-overlay span {
+    font-family: var(--font-sans);
+    font-size: 8px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
 
-/* Stats Grid */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+.avatar-edit-overlay svg { width: 20px; height: 20px; }
+
+.avatar-square-frame:hover .avatar-edit-overlay { opacity: 1; }
+
+.display-name-serif {
+    font-family: var(--font-serif);
+    font-size: 52px;
+    font-weight: 300;
+    line-height: 1;
+    margin-bottom: 20px;
+    color: var(--luxury-dark);
+}
+
+.meta-details-row {
+    display: flex;
+    align-items: center;
     gap: 20px;
-}
-
-.stat-card {
-    background: #ffffff;
-    padding: 32px 24px;
-    border: 1px solid #eee;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.stat-label {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: #888;
-    font-weight: 600;
-}
-
-.stat-value {
-    font-size: 28px;
-    color: #111;
-    font-weight: 500;
-}
-
-/* Referral Section */
-.referral-card {
-    background: #f9f9f9;
-    border: 1px solid #eee;
-    padding: 40px;
-    display: flex;
-    justify-content: space-between;
-    gap: 40px;
-}
-
-.referral-content { flex: 1; }
-
-.referral-title {
-    font-size: 20px;
-    margin-bottom: 12px;
-    color: #111;
-}
-
-.referral-text {
+    font-family: var(--font-sans);
     font-size: 13px;
-    color: #666;
-    margin-bottom: 24px;
-    max-width: 400px;
+    color: var(--luxury-muted);
 }
 
-.referral-code-box {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
+.meta-sep { width: 3px; height: 3px; background: #ddd; border-radius: 50%; }
 
-.code-label {
+.accent-gold {
+    color: var(--luxury-gold);
+    text-transform: uppercase;
     font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.link-remove-minimal {
+    font-family: var(--font-sans);
+    font-size: 9px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    font-weight: 600;
+    color: var(--luxury-muted);
+    text-decoration: underline;
+    background: none; border: none;
 }
 
-.code-wrapper {
-    display: flex;
-    max-width: 320px;
-}
-
-.code-wrapper input {
-    flex: 1;
-    padding: 12px 16px;
-    border: 1px solid #ddd;
-    border-right: none;
-    background: #fff;
-    font-family: monospace;
-    font-size: 14px;
-    color: #111;
-    outline: none;
-}
-
-.code-wrapper button {
-    background: #000;
-    color: #fff;
-    border: none;
-    padding: 0 20px;
+.btn-rect-outline {
+    border: 1px solid var(--luxury-dark);
+    padding: 16px 32px;
+    font-family: var(--font-sans);
     font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: background 0.2s;
+    letter-spacing: 2.5px;
+    transition: all 0.3s;
 }
 
-.referral-stats {
+.btn-rect-outline:hover { background: var(--luxury-dark); color: #fff; }
+
+/* STATS STRIP */
+.editorial-stats-strip {
+    background: var(--luxury-dark);
     display: flex;
-    gap: 40px;
-    align-items: center;
+    padding: 40px 0;
 }
 
-.ref-stat {
+.strip-item {
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    transition: transform 0.4s ease;
 }
 
-.ref-stat-val { font-size: 24px; font-weight: 500; color: #111; }
-.ref-stat-lbl { font-size: 9px; text-transform: uppercase; color: #888; letter-spacing: 1px; margin-top: 4px; }
+.strip-item:hover { transform: translateY(-4px); }
 
-/* Recent Orders */
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
+.label-tiny-caps {
+    font-family: var(--font-sans);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.25em;
+    color: var(--luxury-muted);
+    font-weight: 500;
+}
+
+.white-faded { color: rgba(255, 255, 255, 0.4) !important; }
+
+.number-serif-large {
+    font-family: var(--font-serif);
+    font-size: 44px;
+    color: #fff;
+    font-weight: 300;
+}
+
+/* CONTENT GRID */
+.editorial-body-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    padding: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.editorial-col { display: flex; flex-direction: column; gap: 40px; }
+
+.editorial-card { background: #fff; padding: 40px; position: relative; }
+
+.bordered-surface { border: 1px solid var(--luxury-border); }
+.dark-surface { background: var(--luxury-dark); }
+
+.card-head { display: flex; align-items: center; margin-bottom: 32px; }
+.justify-between { justify-content: space-between; }
+
+.body-text-minimal {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.8;
+    color: #555;
     margin-bottom: 32px;
 }
 
-.section-title { font-size: 20px; color: #111; }
-.view-all-link { font-size: 12px; color: #111; text-decoration: underline; }
+/* WALLET */
+.wallet-display { display: flex; justify-content: space-between; align-items: flex-end; }
+.balance-serif-large { font-family: var(--font-serif); font-size: 48px; color: #fff; font-weight: 300; }
+.link-gold-tiny { color: var(--luxury-gold); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; text-decoration: underline; }
 
-.orders-table-wrapper { border-top: 1px solid #111; }
-.orders-table { width: 100%; border-collapse: collapse; }
-.orders-table th {
-    text-align: left;
-    padding: 20px 12px;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: #888;
-    border-bottom: 1px solid #eee;
+/* INTEGRITY/COMPLETION */
+.serif-percent { font-family: var(--font-serif); font-size: 26px; color: var(--luxury-dark); }
+.minimal-progress-track { height: 1px; background: var(--luxury-border); margin-bottom: 32px; }
+.minimal-progress-fill { height: 1px; background: var(--luxury-dark); width: 0; transition: width 1.5s cubic-bezier(0.65, 0, 0.35, 1); }
+
+.integrity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.integrity-item { display: flex; align-items: center; gap: 12px; opacity: 0.3; }
+.integrity-item.checked { opacity: 1; }
+.integrity-dot { width: 5px; height: 5px; background: var(--luxury-border); border-radius: 50%; }
+.checked .integrity-dot { background: var(--luxury-gold); }
+
+/* REFERRAL */
+.luxury-referral-field {
+    border: 1px dashed var(--luxury-gold);
+    background: #fdfdfd;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
 }
-.orders-table td { padding: 20px 12px; border-bottom: 1px solid #eee; font-size: 13px; }
+.code-serif-display { font-family: var(--font-serif); font-size: 32px; letter-spacing: 4px; color: var(--luxury-dark); }
+.btn-copy-editorial { background: var(--luxury-dark); color: #fff; border: none; padding: 12px 24px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.btn-copy-editorial.copied { background: var(--luxury-gold); }
 
-.status-badge {
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
+.referral-meta-grid { display: flex; gap: 40px; }
+.ref-meta-item { display: flex; flex-direction: column; }
+.ref-num { font-family: var(--font-serif); font-size: 28px; }
+
+/* ADDRESS */
+.addr-name-serif { font-family: var(--font-serif); font-size: 22px; font-weight: 400; margin-bottom: 12px; }
+.addr-detail-light { font-family: var(--font-sans); font-size: 13px; line-height: 1.8; color: #666; font-weight: 300; }
+.link-black-underline { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #000; text-decoration: underline; }
+
+/* HAMBURGER & DRAWER (MOBILE) */
+.luxury-hamburger {
+    display: none;
+    position: fixed;
+    top: 70px; right: 24px;
+    z-index: 9999;
+    background: #fff;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    align-items: center; justify-content: center;
 }
-.status-badge.delivered { color: #27ae60; }
-.status-badge.pending { color: #888; }
-.status-badge.cancelled { color: #e74c3c; }
+.hamb-box { width: 18px; height: 10px; display: flex; flex-direction: column; justify-content: space-between; }
+.hamb-line { height: 1.5px; background: #000; width: 100%; transition: 0.3s; }
 
-.btn-text { color: #111; text-decoration: underline; font-weight: 500; }
+.luxury-overlay { position: fixed; inset: 0; background: rgba(13,13,13,0.3); backdrop-filter: blur(4px); z-index: 9997; opacity: 0; visibility: hidden; transition: 0.5s; }
+.luxury-overlay.visible { opacity: 1; visibility: visible; }
 
-.orders-cards-mobile { display: none; }
+.luxury-drawer {
+    position: fixed;
+    right: 0; top: 0;
+    width: 300px; height: 100%;
+    background: #fff;
+    z-index: 9998;
+    transform: translateX(100%);
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    padding: 60px 32px;
+    display: flex; flex-direction: column;
+}
+.luxury-drawer.open { transform: translateX(0); }
 
-/* Responsive */
+.drawer-header-luxury { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 60px; }
+.drawer-user-name-serif { font-family: var(--font-serif); font-size: 28px; line-height: 1.1; margin-bottom: 6px; }
+.drawer-user-email-tiny { font-size: 11px; color: var(--luxury-muted); }
+.btn-close-drawer { font-size: 32px; font-weight: 200; background: none; border: none; }
+
+.drawer-nav-luxury { display: flex; flex-direction: column; gap: 32px; flex: 1; }
+.drawer-link { font-family: var(--font-sans); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; color: #555; }
+.drawer-link.active { color: #000; font-weight: 700; }
+.logout-link-luxury { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--luxury-muted); }
+
+/* MODAL PANEL */
+.luxury-modal-panel { position: fixed; inset: 0; z-index: 10005; visibility: hidden; }
+.luxury-modal-panel.active { visibility: visible; }
+.modal-blur-overlay { position: absolute; inset: 0; background: rgba(13,13,13,0.4); backdrop-filter: blur(6px); opacity: 0; transition: 0.5s; }
+.luxury-modal-panel.active .modal-blur-overlay { opacity: 1; }
+.modal-slide-content { position: absolute; right: 0; top: 0; width: 480px; height: 100%; background: #fff; transform: translateX(100%); transition: transform 0.7s cubic-bezier(0.165, 0.84, 0.44, 1); padding: 80px 60px; display: flex; flex-direction: column; }
+.luxury-modal-panel.active .modal-slide-content { transform: translateX(0); }
+
+.modal-head-editorial { display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; }
+.modal-title-serif { font-family: var(--font-serif); font-size: 36px; font-weight: 300; }
+.btn-close-x { font-size: 40px; font-weight: 100; background: none; border: none; }
+
+.luxury-input-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
+.luxury-input-group input { border: none; border-bottom: 1px solid var(--luxury-border); padding: 12px 0; font-size: 15px; outline: none; transition: 0.3s; }
+.luxury-input-group input:focus { border-bottom-color: #000; }
+
+.btn-full-black { width: 100%; background: #000; color: #fff; border: none; padding: 22px; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; }
+
+/* RESPONSIVE BREAKS */
 @media (max-width: 1024px) {
-    .profile-overview { gap: 40px; }
-    
-    .overview-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 24px;
-        border-bottom: none;
-    }
-    
-    .stats-grid { grid-template-columns: 1fr; gap: 12px; }
-    .stat-card { padding: 24px; flex-direction: row; justify-content: space-between; align-items: center; }
-    
-    .referral-card { flex-direction: column; padding: 24px; gap: 32px; }
-    .referral-stats { justify-content: space-around; border-top: 1px solid #eee; padding-top: 24px; }
-    
-    .orders-table-wrapper { display: none; }
-    .orders-cards-mobile { display: flex; flex-direction: column; gap: 16px; }
-    
-    .order-card-sm {
-        border: 1px solid #eee;
-        padding: 20px;
-    }
-    
-    .order-card-header {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 12px;
-    }
-    
-    .order-status-row {
-        display: flex;
-        justify-content: space-between;
-        margin-bottom: 20px;
-    }
-    
-    .btn-card-mobile {
-        display: block;
-        text-align: center;
-        background: #000;
-        color: #fff;
-        padding: 12px;
-        text-decoration: none;
-        font-size: 11px;
-        text-transform: uppercase;
-    }
+    .luxury-hamburger { display: flex; }
+    .editorial-hero { padding: 60px 24px; }
+    .display-name-serif { font-size: 42px; }
+    .editorial-body-grid { grid-template-columns: 1fr; padding: 32px 24px; }
+}
+
+@media (max-width: 768px) {
+    .editorial-hero { flex-direction: column; align-items: flex-start; gap: 40px; }
+    .hero-identity { flex-direction: column; align-items: flex-start; gap: 32px; }
+    .editorial-stats-strip { flex-direction: column; gap: 40px; }
+    .modal-slide-content { width: 100%; padding: 60px 24px; }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. SKELETON HANDLER
+    setTimeout(() => {
+        const skel = document.getElementById('luxury-skeleton');
+        const content = document.getElementById('luxury-content');
+        if(skel) skel.style.display = 'none';
+        if(content) content.style.display = 'block';
+
+        // 2. PROGRESS ANIMATION
+        const bar = document.getElementById('progress-bar');
+        if(bar) {
+            const target = bar.getAttribute('data-target');
+            bar.style.width = target + '%';
+            animateValue("pct-count", 0, target, 1800);
+        }
+    }, 1500);
+
+    // 3. COUNTER LOGIC
+    function animateValue(id, start, end, duration) {
+        const obj = document.getElementById(id);
+        if(!obj) return;
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    // 4. DRAWER HANDLER
+    const hamb = document.getElementById('hamburger-btn');
+    const drawer = document.getElementById('profile-drawer');
+    const overlay = document.getElementById('drawer-overlay');
+    const closeD = document.getElementById('drawer-close');
+
+    function openD() { 
+        drawer.classList.add('open'); 
+        overlay.classList.add('visible'); 
+        document.body.style.overflow = 'hidden';
+    }
+    function closeDwr() { 
+        drawer.classList.remove('open'); 
+        overlay.classList.remove('visible'); 
+        document.body.style.overflow = '';
+    }
+
+    if(hamb) hamb.onclick = openD;
+    if(overlay) overlay.onclick = closeDwr;
+    if(closeD) closeD.onclick = closeDwr;
+});
+
+// MODAL CONTROLS
+function openEditModal() { document.getElementById('editModal').classList.add('active'); }
+function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
+
+// CLIPBOARD
+function copyRefCode() {
+    const txt = document.getElementById('refCodeText').innerText;
+    navigator.clipboard.writeText(txt).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const orig = btn.innerText;
+        btn.innerText = 'Copied ✓';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.innerText = orig;
+            btn.classList.remove('copied');
+        }, 3000);
+    });
+}
+</script>
 {% endblock %}
