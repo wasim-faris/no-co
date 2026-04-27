@@ -160,6 +160,13 @@ class Order(models.Model):
         return Decimal('0.00')
 
     @property
+    def refund_amount(self):
+        from decimal import Decimal
+        if self.payment_method == 'COD':
+            return Decimal('0.00')
+        return self.cancelled_subtotal
+
+    @property
     def active_total(self):
         from decimal import Decimal
         if self.active_items.exists():

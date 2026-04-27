@@ -813,10 +813,11 @@ def download_invoice(request, id):
 
     order = get_object_or_404(Order, user=request.user, id=id)
 
-    items = list(
-        order.items.select_related("variant__product", "variant__size").all()
-    )
+    # Use the entire item set to show both active and cancelled items
+    items = list(order.items.select_related("variant__product", "variant__size").all())
+    
     for item in items:
+        # line_total for each item (unit price * qty)
         item.line_total = item.price * item.quantity
 
     context = {
