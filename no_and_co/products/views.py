@@ -339,6 +339,9 @@ def admin_variants(request, id):
                     for i in range(4):
                         img = request.FILES.get(f"image_{i}")
                         if img:
+                            if img.size > 2 * 1024 * 1024:
+                                messages.error(request, f"Image {img.name} exceeds the 2MB size limit.")
+                                return redirect("admin-variants", id=product.id)
                             img.seek(0)
                             is_primary = f"new_{i}" == primary_val
                             VariantImage.objects.create(
@@ -404,6 +407,9 @@ def admin_variants(request, id):
             for i in range(4):
                 img = request.FILES.get(f"image_{i}")
                 if img:
+                    if img.size > 2 * 1024 * 1024:
+                        messages.error(request, f"Image {img.name} exceeds the 2MB size limit.")
+                        return redirect("admin-variants", id=product.id)
                     is_primary = f"new_{i}" == primary_val
                     VariantImage.objects.create(
                         variant=variant, image=img, is_primary=is_primary

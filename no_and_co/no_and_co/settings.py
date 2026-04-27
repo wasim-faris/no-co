@@ -186,8 +186,35 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 #     BASE_DIR / "static",
 # ]
 
-# MEDIA_URL = "/media/"
-# MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# HYBRID MEDIA STORAGE PATCH
+import os
+from cloudinary_storage.storage import MediaCloudinaryStorage
+from cloudinary import CloudinaryResource
+
+_original_url = MediaCloudinaryStorage.url
+def _hybrid_url(self, name):
+    if not name: return ""
+    local_path = os.path.join(str(MEDIA_ROOT), str(name))
+    if os.path.exists(local_path):
+        return MEDIA_URL + str(name)
+    return _original_url(self, name)
+MediaCloudinaryStorage.url = _hybrid_url
+
+_orig_cloud_url = CloudinaryResource.url
+@property
+def _hybrid_cloud_url(self):
+    if not getattr(self, 'public_id', None): return ""
+    file_name = str(self.public_id)
+    if getattr(self, 'format', None):
+        file_name += f".{self.format}"
+    local_path = os.path.join(str(MEDIA_ROOT), file_name)
+    if os.path.exists(local_path):
+        return MEDIA_URL + file_name
+    return _orig_cloud_url.fget(self)
+CloudinaryResource.url = _hybrid_cloud_url
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

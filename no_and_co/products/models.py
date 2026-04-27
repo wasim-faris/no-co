@@ -137,7 +137,16 @@ class VariantImage(models.Model):
         on_delete=models.CASCADE,
         related_name='images'
     )
-    image = CloudinaryField('image', folder='products/')
+    image = CloudinaryField(
+        'image', 
+        folder='products/',
+        transformation={
+            'quality': 'auto',
+            'fetch_format': 'auto',
+            'width': 1200,
+            'crop': 'limit'
+        }
+    )
     is_primary = models.BooleanField(default=False)
 
     def __str__(self):
