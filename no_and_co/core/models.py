@@ -137,7 +137,7 @@ class Order(models.Model):
 
     @property
     def active_original_subtotal(self):
-        return sum(item.original_price * item.quantity for item in self.active_items)
+        return sum(item.price * item.quantity for item in self.active_items)
 
     @property
     def active_discount(self):
@@ -156,7 +156,7 @@ class Order(models.Model):
         from decimal import Decimal
         if self.subtotal > 0:
             tax_rate = self.tax_amount / self.subtotal
-            return (self.active_subtotal * tax_rate).quantize(Decimal('0.01'))
+            return (self.active_original_subtotal * tax_rate).quantize(Decimal('0.01'))
         return Decimal('0.00')
 
     @property

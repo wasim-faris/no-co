@@ -613,7 +613,12 @@
                                         </div>
                                     </div>
                                     <div class="text-right flex-shrink-0 mobile-product-price">
-                                        <span class="text-[13px] md:text-[11px] font-bold tracking-tight mobile-product-price">₹{{ item.variant.price|floatformat:2 }}</span>
+                                        <div class="flex flex-col items-end">
+                                            <span class="text-[13px] md:text-[11px] font-bold tracking-tight mobile-product-price">₹{{ item.price|floatformat:2 }}</span>
+                                            {% if item.price < item.variant.price %}
+                                            <span class="text-[10px] text-gray-400 line-through">₹{{ item.variant.price|floatformat:2 }}</span>
+                                            {% endif %}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

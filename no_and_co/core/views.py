@@ -467,11 +467,8 @@ def checkout(request):
 
 
     for item in cart_items:
-        _, disc = get_best_offer(item.variant.product, item.variant.price)
-        item.final_price = item.variant.price - disc
-        if item.price != item.final_price:
-            item.price = item.final_price
-            item.save()
+        item.price = item.variant.product.get_discounted_price(item.variant.price)
+        item.save()
 
     GST_RATE = Decimal("0.12")
     sub_total = sum(item.price * item.quantity for item in cart_items)
