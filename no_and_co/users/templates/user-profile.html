@@ -150,6 +150,7 @@
             margin-bottom: 48px;
             gap: 24px;
             flex-wrap: wrap;
+            position: relative;
         }
 
         .shell .profile-identity {
@@ -969,15 +970,15 @@
 
         /* ── Toast ── */
         #toast-container {
-            position: fixed;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
+            position: absolute;
+            top: 0;
+            right: 0;
             z-index: 10000;
             display: flex;
             flex-direction: column;
             gap: 10px;
             pointer-events: none;
+            transform: translateY(-10px);
         }
 
         .custom-pill-toast {
@@ -1068,54 +1069,9 @@
         }
     </style>
 
-<body class="page-loading">
-
-<div id="toast-container"></div>
-
-<div class="shell">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <span class="sidebar-section-label">Account</span>
-        <ul class="nav-list">
-            <li class="nav-item">
-                <a href="{% url 'user-profile' request.user.id %}" class="nav-link active">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h10M4 18h16"/></svg>
-                    Overview
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'orders' %}" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                    Orders
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'wishlist' %}" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                    Wishlist
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'user-address' %}" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
-                    Addresses
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                    Settings
-                </a>
-            </li>
-        </ul>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main animate-in">
-
         <!-- PROFILE HEADER -->
         <header class="profile-header">
+            <div id="toast-container"></div>
             <div class="profile-identity">
                 <div style="display:flex;flex-direction:column;align-items:center;">
                     <div class="avatar-wrap skeleton-target" id="avatar-skeleton">
@@ -1157,7 +1113,7 @@
                         Change Password
                     </a>
                     {% endif %}
-                    <p class="profile-phone">{{ request.user.phone_number|default_if_none:'' }}</p>
+                    <p class="profile-phone">{{ request.user.phone_number|default:'' }}</p>
                     <p class="member-since">Member since <span>{{ request.user.date_joined|date:"M Y" }}</span></p>
                 </div>
             </div>

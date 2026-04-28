@@ -94,8 +94,8 @@
                             <h1 class="display-name-serif">{{ user.username }}</h1>
                             <div class="meta-details-row">
                                 <span class="meta-item">{{ user.email }}</span>
-                                {% if user.phone %}
-                                    <span class="meta-item">{{ user.phone }}</span>
+                                {% if user.phone_number %}
+                                    <span class="meta-item">{{ user.phone_number }}</span>
                                 {% endif %}
                                 <span class="meta-item accent-gold">Since {{ user.date_joined|date:"Y" }}</span>
                             </div>
@@ -160,7 +160,7 @@
                                 <div class="integrity-item {% if user.profile_photo and user.profile_photo.name != 'profile_photos/default.jpg' %}checked{% endif %}">
                                     <span class="integrity-dot"></span><span class="label-tiny-caps">Visual</span>
                                 </div>
-                                <div class="integrity-item {% if user.phone %}checked{% endif %}">
+                                <div class="integrity-item {% if user.phone_number %}checked{% endif %}">
                                     <span class="integrity-dot"></span><span class="label-tiny-caps">Contact</span>
                                 </div>
                                 <div class="integrity-item {% if user.addresses.exists %}checked{% endif %}">
@@ -246,7 +246,7 @@
             </div>
             <div class="luxury-input-group">
                 <label class="label-tiny-caps">Phone</label>
-                <input type="text" name="phone" value="{{ user.phone|default:'' }}" placeholder="+91 98765 43210">
+                <input type="text" name="phone" value="{{ user.phone_number|default:'' }}" placeholder="+91 98765 43210">
             </div>
             <div class="modal-foot-editorial">
                 <button type="submit" class="btn-full-black">Save Changes</button>

@@ -82,8 +82,17 @@ def update_profile(request, id):
 
     if request.method == "POST":
 
+        phone_number = request.POST.get("phone", "").strip().replace(" ", "")
+
+        if phone_number:
+            if not phone_number.startswith("+91"):
+                if len(phone_number) == 10 and phone_number.isdigit():
+                    phone_number = "+91" + phone_number
+                else:
+                    messages.error(request, "Invalid phone number")
+                    return redirect("user-profile", id=id)
+
         username = request.POST.get("username", "").strip()
-        phone_number = request.POST.get("phone")
         email = request.POST.get("email")
         old_mail = request.user.email
         user = request.user
@@ -99,10 +108,8 @@ def update_profile(request, id):
             return redirect("user-profile", id=user.id)
 
         try:
-            parsed = phonenumbers.parse(phone_number, None)
-
-            if not phonenumbers.is_valid_number(parsed):
-                messages.error(request, "Invalid phone number")
+            if not phone_number:
+                messages.error(request, "Phone number is required")
                 return redirect("user-profile", id=id)
 
             if not username:
@@ -125,6 +132,8 @@ def update_profile(request, id):
             old_phone_number = user.phone_number
 
             user.phone_number = phone_number
+            print("Saved phone:", user.phone_number)
+            user.save()
 
             if phone_number != old_phone_number:
                 if (
@@ -191,8 +200,8 @@ def update_profile(request, id):
             messages.success(request, "User profile updated successfully")
             return redirect("user-profile", id=id)
 
-        except NumberParseException:
-            messages.error(request, "Invalid phone number")
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
             return redirect("user-profile", id=id)
 
 
@@ -265,6 +274,7 @@ def email_verificaton(request):
         if str(otp) == str(user_otp):
             phone_number = request.session.get("phone_number", None)
             user.phone_number = phone_number
+            print("PHONE SAVED (after email verify):", phone_number)
             user.email = new_mail
             user.save()
             request.session.pop("otp", None)
