@@ -196,6 +196,8 @@ def update_profile(request, id):
             return redirect("user-profile", id=id)
 
 
+from django.http import JsonResponse
+
 def add_profile_pic(request, id):
 
     if request.method == "POST":
@@ -204,11 +206,17 @@ def add_profile_pic(request, id):
         new_photo = request.FILES.get("profile_photo")
 
         if not new_photo:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"error": "Please select a profile picture"}, status=400)
             messages.error(request, "Please select a profile picture")
             return redirect("user-profile", id=id)
 
         user.profile_photo = new_photo
         user.save()
+        
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({"image_url": user.profile_photo.url})
+            
         messages.success(request, "profile uploadded succesfully")
         return redirect("user-profile", id=id)
 

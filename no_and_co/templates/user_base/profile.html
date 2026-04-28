@@ -94,9 +94,9 @@
                             <h1 class="display-name-serif">{{ user.username }}</h1>
                             <div class="meta-details-row">
                                 <span class="meta-item">{{ user.email }}</span>
-                                <span class="meta-sep"></span>
-                                <span class="meta-item">{{ user.phone|default:"+91 00000 00000" }}</span>
-                                <span class="meta-sep"></span>
+                                {% if user.phone %}
+                                    <span class="meta-item">{{ user.phone }}</span>
+                                {% endif %}
                                 <span class="meta-item accent-gold">Since {{ user.date_joined|date:"Y" }}</span>
                             </div>
                         </div>
@@ -107,7 +107,7 @@
                     
                     <form id="avatar-upload-form" action="{% url 'add-profile-pic' user.id %}" method="POST" enctype="multipart/form-data" class="hidden">
                         {% csrf_token %}
-                        <input type="file" id="photo_upload_input" name="profile_photo" onchange="this.form.submit()">
+                        <input type="file" id="photo_upload_input" name="profile_photo">
                     </form>
                 </section>
 
@@ -333,12 +333,13 @@ body {
 
 /* HERO SECTION */
 .editorial-hero {
-    padding: 80px 60px;
+    padding: 24px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     background: #fff;
-    border-bottom: 1px solid var(--luxury-border);
+    border-bottom: 1px solid #eee;
+    gap: 18px;
 }
 
 .hero-identity {
@@ -395,52 +396,31 @@ body {
 }
 
 .avatar-square-frame:hover .editorial-avatar-img {
-    filter: grayscale(0%);
-    transform: scale(1.08);
-}
-
-.editorial-avatar-placeholder {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-serif);
-    font-size: 44px;
-    font-weight: 300;
-}
-
-.avatar-edit-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(13, 13, 13, 0.7);
-    color: #fff;
-    display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
-    gap: 10px;
+    text-align: left;
 }
 
 .display-name-serif {
-    font-family: var(--font-serif);
-    font-size: 32px;
-    font-weight: 300;
+    font-family: var(--font-sans);
+    font-size: 18px;
+    font-weight: 500;
     line-height: 1.2;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     color: var(--luxury-dark);
 }
 
 .meta-details-row {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
     font-family: var(--font-sans);
     font-size: 13px;
-    color: var(--luxury-muted);
+    color: #777;
 }
-.meta-sep { width: 3px; height: 3px; background: #ddd; border-radius: 50%; }
+
+.meta-sep { display: none; }
 
 .accent-gold {
     color: var(--luxury-gold);
@@ -474,39 +454,46 @@ body {
 
 /* STATS STRIP */
 .editorial-stats-strip {
-    background: var(--luxury-dark);
-    display: flex;
-    padding: 40px 0;
+    background: #fff;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    margin: 16px 0;
 }
 
 .strip-item {
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    justify-content: center;
+    padding: 16px 8px;
     text-decoration: none;
-    transition: transform 0.4s ease;
+    border-right: 1px solid #eee;
+    transition: background 0.2s ease;
 }
 
-.strip-item:hover { transform: translateY(-4px); }
+.strip-item:last-child {
+    border-right: none;
+}
+
+.strip-item:hover { background: #f9f9f9; }
 
 .label-tiny-caps {
     font-family: var(--font-sans);
-    font-size: 9px;
+    font-size: 10px;
     text-transform: uppercase;
-    letter-spacing: 0.25em;
-    color: var(--luxury-muted);
+    letter-spacing: 1px;
+    color: #888;
     font-weight: 500;
 }
 
-.white-faded { color: rgba(255, 255, 255, 0.4) !important; }
-
 .number-serif-large {
-    font-family: var(--font-serif);
-    font-size: 44px;
-    color: #fff;
-    font-weight: 300;
+    font-family: var(--font-sans);
+    font-size: 18px;
+    color: var(--luxury-dark);
+    font-weight: 500;
+    margin-top: 4px;
 }
 
 /* CONTENT GRID */
@@ -595,7 +582,7 @@ body {
     display: none;
     position: fixed;
     top: 70px; right: 24px;
-    z-index: 9999;
+    z-index: 9000;
     background: #fff;
     width: 44px; height: 44px;
     border-radius: 50%;
@@ -662,15 +649,16 @@ body {
 /* RESPONSIVE BREAKS */
 @media (max-width: 1024px) {
     .luxury-hamburger { display: flex; }
-    .editorial-hero { padding: 40px 24px; }
-    .editorial-body-grid { padding: 24px; }
+    .editorial-hero { padding: 16px; }
+    .editorial-body-grid { padding: 16px; }
 }
 
 @media (max-width: 767px) {
     .editorial-hero {
+        padding: 14px 16px;
         flex-direction: row;
         align-items: center;
-        justify-content: flex-start;
+        justify-content: space-between;
         gap: 16px;
     }
     
@@ -679,35 +667,41 @@ body {
     }
     
     .avatar-square-frame {
-        width: 80px;
-        height: 80px;
+        width: 70px;
+        height: 70px;
         flex-shrink: 0;
     }
     
     .display-name-serif {
-        font-size: 24px;
-        margin-bottom: 4px;
+        font-size: 18px;
+        margin-bottom: 2px;
     }
     
     .meta-details-row {
-        gap: 8px;
-        font-size: 11px;
-    }
-    
-    .hero-actions {
-        display: none; /* Hide desktop edit button on mobile if needed or keep it minimal */
+        gap: 0;
+        font-size: 12px;
     }
     
     .editorial-stats-strip {
-        padding: 30px 0;
+        margin: 12px 0;
+        grid-template-columns: repeat(3, 1fr);
     }
     
     .strip-item {
-        gap: 8px;
+        padding: 14px 6px;
     }
     
     .number-serif-large {
-        font-size: 32px;
+        font-size: 18px;
+    }
+    
+    .editorial-body-grid {
+        padding: 16px;
+        gap: 16px;
+    }
+    
+    .hero-actions {
+        display: none;
     }
 }
 </style>
@@ -769,8 +763,54 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // MODAL CONTROLS
-function openEditModal() { document.getElementById('editModal').classList.add('active'); }
-function closeEditModal() { document.getElementById('editModal').classList.remove('active'); }
+function openEditModal() { 
+    document.getElementById('editModal').classList.add('active'); 
+    const hamb = document.getElementById('hamburger-btn');
+    if (hamb) hamb.style.display = 'none';
+}
+function closeEditModal() { 
+    document.getElementById('editModal').classList.remove('active'); 
+    const hamb = document.getElementById('hamburger-btn');
+    if (hamb && window.innerWidth <= 1024) hamb.style.display = 'flex';
+}
+
+// AJAX AVATAR UPLOAD
+document.getElementById('photo_upload_input').addEventListener('change', async function() {
+    const form = document.getElementById('avatar-upload-form');
+    const formData = new FormData(form);
+    const loader = document.getElementById('profile-img-loader');
+    
+    if (loader) loader.classList.add('active');
+    
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.image_url) {
+            const avatarImg = document.getElementById('profile-avatar-display');
+            if (avatarImg) {
+                avatarImg.src = data.image_url;
+            } else {
+                // If there was no image before, we might need to replace the placeholder
+                location.reload(); // Fallback for simplicity when transitioning from placeholder to image
+            }
+        } else if (data.error) {
+            alert(data.error);
+        }
+    } catch (error) {
+        console.error('Upload failed:', error);
+    } finally {
+        if (loader) loader.classList.remove('active');
+    }
+});
 
 // CLIPBOARD
 function copyRefCode() {
