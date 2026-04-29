@@ -567,7 +567,7 @@
                     </svg>
                 </button>
             </div>
-            <form id="editProfileForm" method="POST">
+            <form id="editProfileForm" action="{% url 'update-profile' user.id %}" method="POST">
                 {% csrf_token %}
                 <div class="edit-field-group">
                     <label class="edit-label" for="editUsername">Username</label>
