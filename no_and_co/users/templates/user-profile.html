@@ -587,17 +587,23 @@
                             <span class="wallet-tier">Silver Member</span>
                             <span class="wallet-logo">NØ&CO</span>
                         </div>
+
                         <div class="wallet-balance-wrap">
-                            <div class="wallet-balance display-text">340</div>
-                            <div class="wallet-label">Points Balance</div>
+                            <div class="wallet-subtitle">WALLET</div>
+                            <div class="wallet-balance display-text" id="wallet-balance">₹0.00</div>
+                            <div class="wallet-label">AVAILABLE BALANCE</div>
                         </div>
+
                         <div class="progress-wrap">
-                            <div class="progress-bar">
-                                <div class="progress-fill animate-progress"></div>
+                            <div class="progress-header">
+                                <span class="progress-title">PROFILE COMPLETION</span>
+                                <span class="progress-percentage display-text" id="progress-percent">0%</span>
                             </div>
-                            <div class="progress-stats">
-                                <span>340 PTS</span>
-                                <span>160 PTS TO GOLD</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                            <div class="progress-footer">
+                                4 of 6 steps completed
                             </div>
                         </div>
                     </div>
@@ -736,5 +742,367 @@
 
         </div>
     </div>
+    <style>
+        /* Add these specific overrides for the new card contents */
+        .wallet-subtitle {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            margin-bottom: 4px;
+            font-family: var(--font-ui);
+        }
+
+        .wallet-balance {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 4px;
+            color: #FAFAF8;
+        }
+
+        .wallet-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(255,255,255,0.4);
+            font-family: var(--font-ui);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .progress-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            font-family: var(--font-ui);
+        }
+
+        .progress-percentage {
+            font-size: 24px;
+            line-height: 1;
+            color: #FAFAF8;
+        }
+
+        .progress-bar {
+            height: 2px;
+            background: rgba(255,255,255,0.15);
+            width: 100%;
+            margin-bottom: 10px;
+            position: relative;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            border-radius: 1px;
+            transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .progress-footer {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            font-family: var(--font-ui);
+        }
+        /* ==========================================================================
+           ISSUE 1: PROFILE HEADER ALIGNMENT (Desktop 1024px+)
+           ========================================================================== */
+        @media (min-width: 1024px) {
+            .profile-header {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                margin: 0 auto;
+            }
+
+            .user-contact {
+                justify-content: center;
+            }
+        }
+
+        /* ==========================================================================
+           ISSUE 2: SIDEBAR HAMBURGER AND DRAWER (Mobile/Tablet < 1024px)
+           ========================================================================== */
+        .mobile-sidebar-toggle {
+            display: none;
+        }
+
+        .sidebar-overlay {
+            display: none;
+        }
+
+        .mobile-drawer {
+            display: none;
+        }
+
+        @media (max-width: 1023px) {
+            .left-sidebar, .profile-sidebar { 
+                display: none !important; 
+            }
+
+            .mobile-sidebar-toggle {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                position: fixed;
+                top: 70px;
+                right: 16px;
+                width: 40px;
+                height: 40px;
+                background-color: #111111;
+                border: none;
+                cursor: pointer;
+                z-index: 9999;
+                padding: 0;
+            }
+
+            .hamburger-icon {
+                width: 20px;
+                height: 14px;
+                position: relative;
+            }
+
+            .hamburger-icon span {
+                display: block;
+                position: absolute;
+                height: 2px;
+                width: 100%;
+                background: #FFFFFF;
+                border-radius: 1px;
+                left: 0;
+                transition: .25s ease-in-out;
+            }
+
+            .hamburger-icon span:nth-child(1) { top: 0px; }
+            .hamburger-icon span:nth-child(2) { top: 6px; }
+            .hamburger-icon span:nth-child(3) { top: 12px; }
+
+            .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(1) {
+                top: 6px;
+                transform: rotate(45deg);
+            }
+            .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(2) {
+                opacity: 0;
+            }
+            .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(3) {
+                top: 6px;
+                transform: rotate(-45deg);
+            }
+
+            .sidebar-overlay {
+                display: block;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 9997;
+                opacity: 0;
+                visibility: hidden;
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+
+            .sidebar-overlay.is-active {
+                opacity: 1;
+                visibility: visible;
+            }
+
+            .mobile-drawer {
+                display: flex;
+                flex-direction: column;
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 260px;
+                height: 100%;
+                background-color: #111111;
+                z-index: 9998;
+                transform: translateX(100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                padding-top: 80px;
+            }
+
+            .mobile-drawer.is-active {
+                transform: translateX(0);
+            }
+
+            .drawer-header {
+                padding: 0 24px 24px 24px;
+            }
+
+            .drawer-title {
+                font-family: 'Inter', sans-serif;
+                font-size: 10px;
+                color: #C9A96E;
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+                font-weight: 500;
+                margin: 0;
+            }
+
+            .drawer-nav {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .drawer-nav-item {
+                display: flex;
+                align-items: center;
+                height: 48px;
+                padding: 0 24px;
+                font-family: 'Inter', sans-serif;
+                font-size: 13px;
+                color: #FFFFFF;
+                text-decoration: none;
+                border-left: 3px solid transparent;
+                transition: background-color 0.2s ease;
+            }
+
+            .drawer-nav-item:hover {
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+
+            .drawer-nav-item.active {
+                border-left: 3px solid #C9A96E;
+                background-color: rgba(255, 255, 255, 0.05);
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // --- 1. Progress Bar & Percent Animation (0 -> 68% over 1.0s) ---
+            const targetPercent = 68;
+            const durationPercent = 1000;
+
+            const progressFill = document.getElementById("progress-fill");
+            const progressText = document.getElementById("progress-percent");
+
+            // Trigger CSS width animation
+            setTimeout(() => {
+                progressFill.style.width = targetPercent + "%";
+            }, 50);
+
+            // Number counter for percent
+            let startTimestampPercent = null;
+            const stepPercent = (timestamp) => {
+                if (!startTimestampPercent) startTimestampPercent = timestamp;
+                const progress = Math.min((timestamp - startTimestampPercent) / durationPercent, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+
+                progressText.textContent = Math.floor(easeOut * targetPercent) + "%";
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(stepPercent);
+                } else {
+                    progressText.textContent = targetPercent + "%";
+                }
+            };
+            window.requestAnimationFrame(stepPercent);
+
+            // --- 2. Wallet Balance Animation (0 -> 1240 over 1.2s) ---
+            const targetBalance = 1240;
+            const durationBalance = 1200;
+            const balanceText = document.getElementById("wallet-balance");
+
+            let startTimestampBalance = null;
+            const stepBalance = (timestamp) => {
+                if (!startTimestampBalance) startTimestampBalance = timestamp;
+                const progress = Math.min((timestamp - startTimestampBalance) / durationBalance, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+
+                const currentVal = easeOut * targetBalance;
+
+                balanceText.textContent = "₹" + currentVal.toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(stepBalance);
+                } else {
+                    balanceText.textContent = "₹" + targetBalance.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+            };
+            window.requestAnimationFrame(stepBalance);
+        });
+    </script>
+    <!-- Mobile Drawer Toggle Button -->
+    <button class="mobile-sidebar-toggle" id="drawerToggle" aria-label="Toggle Menu">
+        <div class="hamburger-icon">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </button>
+
+    <!-- Dark Overlay -->
+    <div class="sidebar-overlay" id="drawerOverlay"></div>
+
+    <!-- The Drawer -->
+    <nav class="mobile-drawer" id="mobileDrawer">
+        <div class="drawer-header">
+            <h3 class="drawer-title">Account Settings</h3>
+        </div>
+        <div class="drawer-nav">
+            <a href="#" class="drawer-nav-item active">Overview</a>
+            <a href="#" class="drawer-nav-item">Orders</a>
+            <a href="#" class="drawer-nav-item">Wishlist</a>
+            <a href="#" class="drawer-nav-item">Addresses</a>
+            <a href="#" class="drawer-nav-item">Settings</a>
+        </div>
+    </nav>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const drawerToggle = document.getElementById('drawerToggle');
+            const mobileDrawer = document.getElementById('mobileDrawer');
+            const drawerOverlay = document.getElementById('drawerOverlay');
+
+            const toggleDrawer = () => {
+                drawerToggle.classList.toggle('is-active');
+                mobileDrawer.classList.toggle('is-active');
+                drawerOverlay.classList.toggle('is-active');
+                
+                if (mobileDrawer.classList.contains('is-active')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            };
+
+            if (drawerToggle) {
+                drawerToggle.addEventListener('click', toggleDrawer);
+            }
+
+            if (drawerOverlay) {
+                drawerOverlay.addEventListener('click', () => {
+                    if (mobileDrawer.classList.contains('is-active')) toggleDrawer();
+                });
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && mobileDrawer && mobileDrawer.classList.contains('is-active')) {
+                    toggleDrawer();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

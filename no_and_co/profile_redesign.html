@@ -587,17 +587,23 @@
                             <span class="wallet-tier">Silver Member</span>
                             <span class="wallet-logo">NØ&CO</span>
                         </div>
+                        
                         <div class="wallet-balance-wrap">
-                            <div class="wallet-balance display-text">340</div>
-                            <div class="wallet-label">Points Balance</div>
+                            <div class="wallet-subtitle">WALLET</div>
+                            <div class="wallet-balance display-text" id="wallet-balance">₹0.00</div>
+                            <div class="wallet-label">AVAILABLE BALANCE</div>
                         </div>
+                        
                         <div class="progress-wrap">
-                            <div class="progress-bar">
-                                <div class="progress-fill animate-progress"></div>
+                            <div class="progress-header">
+                                <span class="progress-title">PROFILE COMPLETION</span>
+                                <span class="progress-percentage display-text" id="progress-percent">0%</span>
                             </div>
-                            <div class="progress-stats">
-                                <span>340 PTS</span>
-                                <span>160 PTS TO GOLD</span>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                            <div class="progress-footer">
+                                4 of 6 steps completed
                             </div>
                         </div>
                     </div>
@@ -736,5 +742,141 @@
 
         </div>
     </div>
+    <style>
+        /* Add these specific overrides for the new card contents */
+        .wallet-subtitle {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            margin-bottom: 4px;
+            font-family: var(--font-ui);
+        }
+
+        .wallet-balance {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 4px;
+            color: #FAFAF8;
+        }
+
+        .wallet-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(255,255,255,0.4);
+            font-family: var(--font-ui);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .progress-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            font-family: var(--font-ui);
+        }
+
+        .progress-percentage {
+            font-size: 24px;
+            line-height: 1;
+            color: #FAFAF8;
+        }
+
+        .progress-bar {
+            height: 2px;
+            background: rgba(255,255,255,0.15);
+            width: 100%;
+            margin-bottom: 10px;
+            position: relative;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            border-radius: 1px;
+            transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .progress-footer {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            font-family: var(--font-ui);
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // --- 1. Progress Bar & Percent Animation (0 -> 68% over 1.0s) ---
+            const targetPercent = 68;
+            const durationPercent = 1000;
+            
+            const progressFill = document.getElementById("progress-fill");
+            const progressText = document.getElementById("progress-percent");
+            
+            // Trigger CSS width animation
+            setTimeout(() => {
+                progressFill.style.width = targetPercent + "%";
+            }, 50);
+
+            // Number counter for percent
+            let startTimestampPercent = null;
+            const stepPercent = (timestamp) => {
+                if (!startTimestampPercent) startTimestampPercent = timestamp;
+                const progress = Math.min((timestamp - startTimestampPercent) / durationPercent, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+                
+                progressText.textContent = Math.floor(easeOut * targetPercent) + "%";
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(stepPercent);
+                } else {
+                    progressText.textContent = targetPercent + "%";
+                }
+            };
+            window.requestAnimationFrame(stepPercent);
+
+            // --- 2. Wallet Balance Animation (0 -> 1240 over 1.2s) ---
+            const targetBalance = 1240;
+            const durationBalance = 1200;
+            const balanceText = document.getElementById("wallet-balance");
+            
+            let startTimestampBalance = null;
+            const stepBalance = (timestamp) => {
+                if (!startTimestampBalance) startTimestampBalance = timestamp;
+                const progress = Math.min((timestamp - startTimestampBalance) / durationBalance, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+                
+                const currentVal = easeOut * targetBalance;
+                
+                balanceText.textContent = "₹" + currentVal.toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(stepBalance);
+                } else {
+                    balanceText.textContent = "₹" + targetBalance.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+            };
+            window.requestAnimationFrame(stepBalance);
+        });
+    </script>
 </body>
 </html>
