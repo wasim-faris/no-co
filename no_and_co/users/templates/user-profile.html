@@ -552,11 +552,153 @@
             animation: fillBar 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
             animation-delay: 0.4s;
         }
+
+        /* ==========================================================================
+           DESKTOP SIDEBAR (1024px+)
+           ========================================================================== */
+        .page-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .desktop-sidebar {
+            display: none; /* hidden on mobile */
+        }
+
+        @media (min-width: 1024px) {
+            .page-wrapper {
+                display: grid;
+                grid-template-columns: 260px 1fr;
+            }
+
+            .desktop-sidebar {
+                display: flex;
+                flex-direction: column;
+                width: 260px;
+                background: #FAFAF8;
+                border-right: 0.5px solid #E8E6E1;
+                position: sticky;
+                top: 0;
+                height: 100vh;
+                overflow-y: auto;
+                padding: 48px 0 32px;
+                flex-shrink: 0;
+            }
+
+            .sidebar-label {
+                font-family: 'Inter', sans-serif;
+                font-size: 10px;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.15em;
+                color: #999999;
+                padding: 0 24px;
+                margin-bottom: 32px;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .sidebar-nav-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                height: 48px;
+                padding: 0 24px;
+                font-family: 'Inter', sans-serif;
+                font-size: 13px;
+                font-weight: 400;
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                color: #666666;
+                text-decoration: none;
+                border-left: 3px solid transparent;
+                transition: all 0.2s ease;
+            }
+
+            .sidebar-nav-item svg {
+                width: 16px;
+                height: 16px;
+                flex-shrink: 0;
+                opacity: 0.6;
+                transition: opacity 0.2s ease;
+            }
+
+            .sidebar-nav-item:hover {
+                color: #111111;
+                background: rgba(0,0,0,0.03);
+            }
+
+            .sidebar-nav-item:hover svg {
+                opacity: 1;
+            }
+
+            .sidebar-nav-item.active {
+                color: #111111;
+                border-left: 3px solid #C9A96E;
+                background: rgba(201,169,110,0.06);
+            }
+
+            .sidebar-nav-item.active svg {
+                opacity: 1;
+            }
+
+            /* Hide hamburger on desktop */
+            .mobile-sidebar-toggle {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <div class="container">
+    <div class="page-wrapper">
+
+        <!-- Desktop Sidebar (1024px+) -->
+        <aside class="desktop-sidebar">
+            <div class="sidebar-label">Account Settings</div>
+            <nav class="sidebar-nav">
+                <a href="{% url 'user-profile' user.id %}" class="sidebar-nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    Overview
+                </a>
+                <a href="{% url 'orders' %}" class="sidebar-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    </svg>
+                    Orders
+                </a>
+                <a href="{% url 'wishlist' %}" class="sidebar-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                    Wishlist
+                </a>
+                <a href="{% url 'user-address' %}" class="sidebar-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    Addresses
+                </a>
+                <a href="#" class="sidebar-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    Settings
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+        <div class="container">
         <div class="layout-grid">
 
             <!-- Left Panel -->
@@ -564,17 +706,35 @@
 
                 <!-- Profile Header -->
                 <div class="profile-header">
-                    <div class="avatar-wrapper">
+                    <div class="avatar-wrapper" id="avatarWrapper">
                         <div class="avatar-ring"></div>
-                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop" alt="User Avatar" class="avatar">
-                        <div class="member-badge">MEMBER SINCE APR 2026</div>
+                        <img id="profileAvatar"
+                             src="{% if has_profile_photo %}{{ user.profile_photo.url }}{% else %}{% load static %}{% static 'images/default-avatar.png' %}{% endif %}"
+                             alt="{{ user.username }}"
+                             class="avatar">
+                        {% if has_profile_photo %}
+                        <div class="avatar-remove-overlay" id="avatarRemoveOverlay">
+                            <span class="avatar-remove-btn" id="removePhotoBtn">Remove</span>
+                        </div>
+                        {% endif %}
+                        <div class="member-badge">MEMBER SINCE {{ user.date_joined|date:"M Y"|upper }}</div>
                     </div>
-                    <h1 class="user-name display-text">Alexander Sterling</h1>
+                    <!-- Hidden file input for photo upload -->
+                    <input type="file" id="photoFileInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+                    {% if not has_profile_photo %}
+                    <button class="add-photo-link" id="addPhotoBtn" onclick="document.getElementById('photoFileInput').click()">Add Photo</button>
+                    {% else %}
+                    <button class="add-photo-link" id="addPhotoBtn" onclick="document.getElementById('photoFileInput').click()" style="display:none"></button>
+                    {% endif %}
+                    <h1 class="user-name display-text">{{ user.get_full_name|default:user.username }}</h1>
                     <div class="user-contact">
-                        <span>alexander.sterling@example.com</span>
-                        <span>+44 7700 900077</span>
+                        <span>{{ user.email }}</span>
+                        {% if user.phone_number %}<span>{{ user.phone_number }}</span>{% endif %}
                     </div>
-                    <button class="btn-outline">Edit Profile</button>
+                    <button class="btn-outline" id="editProfileBtn">Edit Profile</button>
+                    {% if user.has_usable_password %}
+                    <a href="#" class="change-password-link" id="changePasswordBtn">Change Password</a>
+                    {% endif %}
                 </div>
 
                 <!-- Loyalty / Wallet Section -->
@@ -582,9 +742,9 @@
                     <div class="section-header">
                         <h2 class="section-title">NØ&CO Membership</h2>
                     </div>
-                    <div class="wallet-card">
+                    <div class="wallet-card" data-balance="{{ wallet_balance }}" data-percent="{{ profile_completion }}">
                         <div class="wallet-top">
-                            <span class="wallet-tier">Silver Member</span>
+                            <span class="wallet-tier">Member</span>
                             <span class="wallet-logo">NØ&CO</span>
                         </div>
 
@@ -602,9 +762,7 @@
                             <div class="progress-bar">
                                 <div class="progress-fill" id="progress-fill"></div>
                             </div>
-                            <div class="progress-footer">
-                                4 of 6 steps completed
-                            </div>
+                            <div class="progress-footer" id="progress-footer"></div>
                         </div>
                     </div>
                 </div>
@@ -615,42 +773,17 @@
                         <h2 class="section-title">Recent Orders</h2>
                     </div>
                     <div class="order-list">
-                        <!-- Order 1 -->
-                        <div class="order-card">
-                            <img src="https://images.unsplash.com/photo-1594938298593-70f111f451b6?q=80&w=200&auto=format&fit=crop" alt="Order item" class="order-img">
-                            <div class="order-info">
-                                <div class="order-number display-text">#ORD-90821</div>
-                                <div class="order-date">April 24, 2026</div>
-                                <div class="status-chip delivered">Delivered</div>
-                            </div>
-                            <a href="#" class="order-action">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                    <polyline points="12 5 19 12 12 19"></polyline>
-                                </svg>
-                            </a>
-                        </div>
-                        <!-- Order 2 -->
-                        <div class="order-card">
-                            <img src="https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?q=80&w=200&auto=format&fit=crop" alt="Order item" class="order-img">
-                            <div class="order-info">
-                                <div class="order-number display-text">#ORD-90754</div>
-                                <div class="order-date">March 12, 2026</div>
-                                <div class="status-chip processing">Processing</div>
-                            </div>
-                            <a href="#" class="order-action">
-                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
-                                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                                    <polyline points="12 5 19 12 12 19"></polyline>
-                                </svg>
-                            </a>
-                        </div>
+                        {% if order_count > 0 %}
+                        <p style="font-size:13px;color:var(--muted);font-weight:300;">You have {{ order_count }} order{{ order_count|pluralize }}. <a href="{% url 'orders' %}" style="color:var(--primary);border-bottom:0.5px solid var(--primary);">View all</a></p>
+                        {% else %}
+                        <p style="font-size:13px;color:var(--muted);font-weight:300;">No orders yet.</p>
+                        {% endif %}
                     </div>
                 </div>
 
                 <!-- Log Out -->
                 <div class="logout-section">
-                    <a href="#" class="logout-link">Log Out</a>
+                    <a href="{% url 'logout-user' %}" class="logout-link">Log Out</a>
                 </div>
 
             </div> <!-- End Left Panel -->
@@ -669,8 +802,8 @@
                                 <line x1="12" y1="22.08" x2="12" y2="12"></line>
                             </svg>
                         </div>
-                        <div class="stat-value display-text">15</div>
-                        <a href="#" class="stat-action">
+                        <div class="stat-value display-text">{{ order_count }}</div>
+                        <a href="{% url 'orders' %}" class="stat-action">
                             Track
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -689,8 +822,8 @@
                                 <path d="M16 10a4 4 0 0 1-8 0"></path>
                             </svg>
                         </div>
-                        <div class="stat-value display-text">0</div>
-                        <a href="#" class="stat-action">
+                        <div class="stat-value display-text">{{ wishlist_count }}</div>
+                        <a href="{% url 'wishlist' %}" class="stat-action">
                             View
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -708,7 +841,7 @@
                                 <line x1="1" y1="10" x2="23" y2="10"></line>
                             </svg>
                         </div>
-                        <div class="stat-value display-text">$250</div>
+                        <div class="stat-value display-text">₹{{ wallet_balance|floatformat:0 }}</div>
                         <a href="#" class="stat-action">
                             Manage
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
@@ -727,8 +860,8 @@
                                 <circle cx="12" cy="10" r="3"></circle>
                             </svg>
                         </div>
-                        <div class="stat-value display-text">1</div>
-                        <a href="#" class="stat-action">
+                        <div class="stat-value display-text">{{ address_count }}</div>
+                        <a href="{% url 'user-address' %}" class="stat-action">
                             Add
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -742,8 +875,10 @@
 
         </div>
     </div>
+        </div>
+    </div>
+    </div> <!-- end page-wrapper -->
     <style>
-        /* Add these specific overrides for the new card contents */
         .wallet-subtitle {
             font-size: 10px;
             text-transform: uppercase;
@@ -815,6 +950,111 @@
             color: rgba(255,255,255,0.5);
             font-family: var(--font-ui);
         }
+
+        /* Add Photo / Change Password links */
+        .add-photo-link, .change-password-link {
+            display: inline-block;
+            margin-top: 8px;
+            font-family: var(--font-ui);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #999;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            text-decoration: none;
+        }
+        .add-photo-link:hover, .change-password-link:hover {
+            color: var(--primary);
+            text-decoration: underline;
+        }
+        .change-password-link { margin-top: 12px; display: block; }
+
+        /* Avatar remove overlay */
+        .avatar-wrapper { position: relative; }
+        .avatar-remove-overlay {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0 0 50% 50%;
+            padding: 6px 0 2px;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .avatar-wrapper:hover .avatar-remove-overlay { opacity: 1; }
+        .avatar-remove-btn {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* Edit Drawer */
+        .edit-drawer-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            z-index: 10000;
+        }
+        .edit-drawer-overlay.active { display: block; }
+        .edit-drawer {
+            position: fixed; top: 0; right: 0;
+            width: 420px; max-width: 100%;
+            height: 100%;
+            background: var(--bg);
+            z-index: 10001;
+            transform: translateX(100%);
+            transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+            display: flex;
+            flex-direction: column;
+            border-left: 0.5px solid var(--border);
+        }
+        .edit-drawer.active { transform: translateX(0); }
+        .edit-drawer-inner { padding: 48px 40px; }
+        .edit-drawer-head {
+            margin-bottom: 40px;
+            padding-bottom: 16px;
+            border-bottom: 0.5px solid var(--border);
+        }
+        .edit-field-group { margin-bottom: 28px; }
+        .edit-label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--muted);
+            margin-bottom: 8px;
+            font-family: var(--font-ui);
+        }
+        .edit-input {
+            width: 100%;
+            border: none;
+            border-bottom: 0.5px solid var(--border);
+            background: transparent;
+            font-family: var(--font-ui);
+            font-size: 14px;
+            color: var(--primary);
+            padding: 8px 0;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .edit-input:focus { border-color: var(--primary); }
+        .edit-save-btn { margin-top: 16px; font-family: var(--font-ui); width: 100%; }
+
+        /* Avatar upload spinner */
+        .avatar-uploading { opacity: 0.5; }
+
+        @media (max-width: 767px) {
+            .edit-drawer { width: 100%; }
+            .avatar-remove-overlay { opacity: 1; }
+        }
         /* ==========================================================================
            ISSUE 1: PROFILE HEADER ALIGNMENT (Desktop 1024px+)
            ========================================================================== */
@@ -848,59 +1088,66 @@
         }
 
         @media (max-width: 1023px) {
-            .left-sidebar, .profile-sidebar { 
-                display: none !important; 
+            .left-sidebar, .profile-sidebar {
+                display: none !important;
             }
 
+            /* --- PREMIUM HAMBURGER BUTTON --- */
             .mobile-sidebar-toggle {
                 display: flex;
+                flex-direction: column;
                 justify-content: center;
-                align-items: center;
+                align-items: flex-end;
+                gap: 5px;
                 position: fixed;
-                top: 70px;
-                right: 16px;
-                width: 40px;
-                height: 40px;
-                background-color: #111111;
-                border: none;
+                top: 68px;
+                right: 20px;
+                width: 44px;
+                height: 44px;
+                background: transparent;
+                border: 0.5px solid rgba(0,0,0,0.2);
+                border-radius: 0;
                 cursor: pointer;
-                z-index: 9999;
-                padding: 0;
+                z-index: 999;
+                padding: 0 12px;
             }
 
+            /* Three asymmetric premium lines */
             .hamburger-icon {
-                width: 20px;
-                height: 14px;
-                position: relative;
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 5px;
+                width: 100%;
             }
 
             .hamburger-icon span {
                 display: block;
-                position: absolute;
-                height: 2px;
-                width: 100%;
-                background: #FFFFFF;
-                border-radius: 1px;
-                left: 0;
-                transition: .25s ease-in-out;
+                height: 1px;
+                background: #111111;
+                transform-origin: center;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             }
 
-            .hamburger-icon span:nth-child(1) { top: 0px; }
-            .hamburger-icon span:nth-child(2) { top: 6px; }
-            .hamburger-icon span:nth-child(3) { top: 12px; }
+            .hamburger-icon span:nth-child(1) { width: 18px; }
+            .hamburger-icon span:nth-child(2) { width: 12px; }
+            .hamburger-icon span:nth-child(3) { width: 15px; }
 
+            /* Open state — animates to a clean X */
             .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(1) {
-                top: 6px;
-                transform: rotate(45deg);
+                width: 18px;
+                transform: rotate(45deg) translateY(6px);
             }
             .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(2) {
                 opacity: 0;
+                transform: scaleX(0);
             }
             .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(3) {
-                top: 6px;
-                transform: rotate(-45deg);
+                width: 18px;
+                transform: rotate(-45deg) translateY(-6px);
             }
 
+            /* --- OVERLAY --- */
             .sidebar-overlay {
                 display: block;
                 position: fixed;
@@ -908,7 +1155,7 @@
                 left: 0;
                 width: 100%;
                 height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
+                background-color: rgba(0, 0, 0, 0.4);
                 z-index: 9997;
                 opacity: 0;
                 visibility: hidden;
@@ -920,6 +1167,7 @@
                 visibility: visible;
             }
 
+            /* --- MOBILE DRAWER --- */
             .mobile-drawer {
                 display: flex;
                 flex-direction: column;
@@ -928,7 +1176,7 @@
                 right: 0;
                 width: 260px;
                 height: 100%;
-                background-color: #111111;
+                background-color: #0D0D0D;
                 z-index: 9998;
                 transform: translateX(100%);
                 transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -965,19 +1213,23 @@
                 padding: 0 24px;
                 font-family: 'Inter', sans-serif;
                 font-size: 13px;
-                color: #FFFFFF;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: rgba(255,255,255,0.7);
                 text-decoration: none;
                 border-left: 3px solid transparent;
-                transition: background-color 0.2s ease;
+                transition: all 0.2s ease;
             }
 
             .drawer-nav-item:hover {
-                background-color: rgba(255, 255, 255, 0.05);
+                color: #FFFFFF;
+                background-color: rgba(255, 255, 255, 0.04);
             }
 
             .drawer-nav-item.active {
                 border-left: 3px solid #C9A96E;
-                background-color: rgba(255, 255, 255, 0.05);
+                color: #C9A96E;
+                background-color: rgba(201,169,110,0.07);
             }
         }
     </style>
@@ -1052,57 +1304,266 @@
         </div>
     </button>
 
-    <!-- Dark Overlay -->
+    <!-- Hamburger Overlay -->
     <div class="sidebar-overlay" id="drawerOverlay"></div>
 
-    <!-- The Drawer -->
+    <!-- Mobile Nav Drawer -->
     <nav class="mobile-drawer" id="mobileDrawer">
         <div class="drawer-header">
             <h3 class="drawer-title">Account Settings</h3>
         </div>
         <div class="drawer-nav">
-            <a href="#" class="drawer-nav-item active">Overview</a>
-            <a href="#" class="drawer-nav-item">Orders</a>
-            <a href="#" class="drawer-nav-item">Wishlist</a>
-            <a href="#" class="drawer-nav-item">Addresses</a>
+            <a href="{% url 'user-profile' user.id %}" class="drawer-nav-item active">Overview</a>
+            <a href="{% url 'orders' %}" class="drawer-nav-item">Orders</a>
+            <a href="{% url 'wishlist' %}" class="drawer-nav-item">Wishlist</a>
+            <a href="{% url 'user-address' %}" class="drawer-nav-item">Addresses</a>
             <a href="#" class="drawer-nav-item">Settings</a>
         </div>
     </nav>
 
+    <!-- Edit Profile Drawer -->
+    <div class="edit-drawer-overlay" id="editDrawerOverlay"></div>
+    <div class="edit-drawer" id="editDrawer">
+        <div class="edit-drawer-inner">
+            <div class="edit-drawer-head">
+                <span class="label">Edit Profile</span>
+            </div>
+            <form id="editProfileForm">
+                {% csrf_token %}
+                <div class="edit-field-group">
+                    <label class="edit-label" for="editUsername">Username</label>
+                    <input class="edit-input" type="text" id="editUsername" name="username" value="{{ user.username }}">
+                </div>
+                <div class="edit-field-group">
+                    <label class="edit-label" for="editEmail">Email</label>
+                    <input class="edit-input" type="email" id="editEmail" name="email" value="{{ user.email }}">
+                </div>
+                <div class="edit-field-group">
+                    <label class="edit-label" for="editPhone">Phone</label>
+                    <input class="edit-input" type="text" id="editPhone" name="phone" value="{{ user.phone_number|default:'' }}">
+                </div>
+                <button type="submit" class="btn-outline edit-save-btn" id="editSaveBtn">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    {% if user.has_usable_password %}
+    <!-- Change Password Drawer -->
+    <div class="edit-drawer-overlay" id="pwdDrawerOverlay" style="display:none;"></div>
+    <div class="edit-drawer" id="pwdDrawer" style="transform:translateX(100%)">
+        <div class="edit-drawer-inner">
+            <div class="edit-drawer-head">
+                <span class="label">Change Password</span>
+            </div>
+            <form id="pwdForm" action="{% url 'change-password' %}" method="POST">
+                {% csrf_token %}
+                <div class="edit-field-group">
+                    <label class="edit-label">Current Password</label>
+                    <input class="edit-input" type="password" name="old_password" id="oldPwd" placeholder="Current password">
+                </div>
+                <div class="edit-field-group">
+                    <label class="edit-label">New Password</label>
+                    <input class="edit-input" type="password" name="new_password1" id="newPwd1" placeholder="New password">
+                </div>
+                <div class="edit-field-group">
+                    <label class="edit-label">Confirm New Password</label>
+                    <input class="edit-input" type="password" name="new_password2" id="newPwd2" placeholder="Confirm password">
+                </div>
+                <button type="submit" class="btn-outline edit-save-btn">Update Password</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const drawerToggle = document.getElementById('drawerToggle');
-            const mobileDrawer = document.getElementById('mobileDrawer');
-            const drawerOverlay = document.getElementById('drawerOverlay');
+    document.addEventListener("DOMContentLoaded", () => {
 
-            const toggleDrawer = () => {
-                drawerToggle.classList.toggle('is-active');
-                mobileDrawer.classList.toggle('is-active');
-                drawerOverlay.classList.toggle('is-active');
-                
-                if (mobileDrawer.classList.contains('is-active')) {
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    document.body.style.overflow = '';
-                }
-            };
+        /* ── CSRF helper ── */
+        function getCookie(name) {
+            const m = document.cookie.match('(?:^|;)\\s*' + name + '=([^;]*)');
+            return m ? decodeURIComponent(m[1]) : null;
+        }
 
-            if (drawerToggle) {
-                drawerToggle.addEventListener('click', toggleDrawer);
+        /* ── Toast (matches existing inline-toast system) ── */
+        function showProfileToast(msg, type) {
+            let el = document.getElementById('djangoToast');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'djangoToast';
+                el.className = 'inline-toast';
+                document.body.appendChild(el);
             }
+            el.innerHTML = `<div class="toast-item">
+                <div class="toast-left-content">
+                    <div class="toast-icon-circle">${type === 'error' ? '✕' : '✓'}</div>
+                    <div class="toast-message-wrapper">
+                        <span class="toast-main-text">${msg}</span>
+                        <span class="toast-sub-text">Notification</span>
+                    </div>
+                </div>
+                <div class="toast-close-btn" onclick="this.closest('.inline-toast').classList.remove('show')">✕</div>
+            </div>`;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 3000);
+        }
 
-            if (drawerOverlay) {
-                drawerOverlay.addEventListener('click', () => {
-                    if (mobileDrawer.classList.contains('is-active')) toggleDrawer();
-                });
-            }
+        /* ── Wallet balance animation (reads real value from data-balance) ── */
+        const walletCard = document.querySelector('.wallet-card');
+        const targetBalance = walletCard ? parseFloat(walletCard.dataset.balance || 0) : 0;
+        const targetPercent = walletCard ? parseInt(walletCard.dataset.percent || 0) : 0;
 
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && mobileDrawer && mobileDrawer.classList.contains('is-active')) {
-                    toggleDrawer();
-                }
+        const progressFill  = document.getElementById('progress-fill');
+        const progressText  = document.getElementById('progress-percent');
+        const progressFooter = document.getElementById('progress-footer');
+        const balanceText   = document.getElementById('wallet-balance');
+
+        /* Set real progress footer text */
+        if (progressFooter) progressFooter.textContent = `${Math.round(targetPercent)}% complete`;
+
+        /* Animate bar */
+        setTimeout(() => { if (progressFill) progressFill.style.width = targetPercent + '%'; }, 50);
+
+        /* Animate percent counter */
+        let tsP = null;
+        const animPercent = ts => {
+            if (!tsP) tsP = ts;
+            const p = Math.min((ts - tsP) / 1000, 1);
+            const e = 1 - Math.pow(1 - p, 3);
+            if (progressText) progressText.textContent = Math.floor(e * targetPercent) + '%';
+            if (p < 1) requestAnimationFrame(animPercent);
+            else if (progressText) progressText.textContent = targetPercent + '%';
+        };
+        requestAnimationFrame(animPercent);
+
+        /* Animate wallet balance counter */
+        let tsB = null;
+        const animBalance = ts => {
+            if (!tsB) tsB = ts;
+            const p = Math.min((ts - tsB) / 1200, 1);
+            const e = 1 - Math.pow(1 - p, 3);
+            const v = e * targetBalance;
+            if (balanceText) balanceText.textContent = '\u20b9' + v.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+            if (p < 1) requestAnimationFrame(animBalance);
+            else if (balanceText) balanceText.textContent = '\u20b9' + targetBalance.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+        };
+        requestAnimationFrame(animBalance);
+
+        /* ── Hamburger / Mobile Nav Drawer ── */
+        const hamburgerBtn = document.getElementById('drawerToggle');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+
+        const toggleNavDrawer = open => {
+            const force = typeof open === 'boolean';
+            const isOpen = force ? open : !mobileDrawer.classList.contains('is-active');
+            hamburgerBtn.classList.toggle('is-active', isOpen);
+            mobileDrawer.classList.toggle('is-active', isOpen);
+            drawerOverlay.classList.toggle('is-active', isOpen);
+            document.body.style.overflow = isOpen ? 'hidden' : '';
+        };
+
+        if (hamburgerBtn) hamburgerBtn.addEventListener('click', () => toggleNavDrawer());
+        if (drawerOverlay) drawerOverlay.addEventListener('click', () => toggleNavDrawer(false));
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleNavDrawer(false); });
+
+        /* ── Edit Profile Drawer ── */
+        const editBtn     = document.getElementById('editProfileBtn');
+        const editDrawer  = document.getElementById('editDrawer');
+        const editOverlay = document.getElementById('editDrawerOverlay');
+
+        const openEditDrawer  = () => { editDrawer.classList.add('active'); editOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
+        const closeEditDrawer = () => { editDrawer.classList.remove('active'); editOverlay.classList.remove('active'); document.body.style.overflow = ''; };
+
+        if (editBtn)     editBtn.addEventListener('click', openEditDrawer);
+        if (editOverlay) editOverlay.addEventListener('click', closeEditDrawer);
+
+        /* Submit edit-profile form via standard form POST (backend handles redirect/messages) */
+        const editForm = document.getElementById('editProfileForm');
+        if (editForm) {
+            editForm.setAttribute('action', window.location.pathname.replace('user-profile', 'update-profile'));
+            editForm.setAttribute('method', 'POST');
+        }
+
+        /* ── Change Password Drawer ── */
+        const pwdBtn     = document.getElementById('changePasswordBtn');
+        const pwdDrawer  = document.getElementById('pwdDrawer');
+        const pwdOverlay = document.getElementById('pwdDrawerOverlay');
+
+        if (pwdBtn && pwdDrawer) {
+            pwdBtn.addEventListener('click', e => {
+                e.preventDefault();
+                pwdDrawer.classList.add('active');
+                if (pwdOverlay) { pwdOverlay.style.display = 'block'; pwdOverlay.classList.add('active'); }
+                document.body.style.overflow = 'hidden';
             });
-        });
+            if (pwdOverlay) pwdOverlay.addEventListener('click', () => {
+                pwdDrawer.classList.remove('active');
+                pwdOverlay.style.display = 'none';
+                document.body.style.overflow = '';
+            });
+        }
+
+        /* ── Avatar Photo Upload (XHR) ── */
+        const photoInput  = document.getElementById('photoFileInput');
+        const avatarImg   = document.getElementById('profileAvatar');
+        const addPhotoBtn = document.getElementById('addPhotoBtn');
+
+        if (photoInput && avatarImg) {
+            photoInput.addEventListener('change', () => {
+                const file = photoInput.files[0];
+                if (!file) return;
+
+                const fd = new FormData();
+                fd.append('profile_photo', file);
+
+                avatarImg.classList.add('avatar-uploading');
+
+                const userId = {{ user.id }};
+                fetch(`/add-profile-pic/${userId}/`, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') },
+                    body: fd
+                })
+                .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+                .then(data => {
+                    avatarImg.src = data.image_url;
+                    avatarImg.classList.remove('avatar-uploading');
+                    if (addPhotoBtn) addPhotoBtn.style.display = 'none';
+                    showProfileToast('Photo updated', 'success');
+                    /* Show remove overlay dynamically if it wasn't there */
+                    let overlay = document.getElementById('avatarRemoveOverlay');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.className = 'avatar-remove-overlay';
+                        overlay.id = 'avatarRemoveOverlay';
+                        overlay.innerHTML = '<span class="avatar-remove-btn" id="removePhotoBtn">Remove</span>';
+                        document.getElementById('avatarWrapper').appendChild(overlay);
+                        bindRemoveBtn();
+                    }
+                })
+                .catch(() => {
+                    avatarImg.classList.remove('avatar-uploading');
+                    showProfileToast('Upload failed. Try again.', 'error');
+                });
+            });
+        }
+
+        /* ── Avatar Remove ── */
+        function bindRemoveBtn() {
+            const rmBtn = document.getElementById('removePhotoBtn');
+            if (!rmBtn) return;
+            rmBtn.addEventListener('click', () => {
+                const userId = {{ user.id }};
+                fetch(`/delete-profile-pic/${userId}/`, {
+                    method: 'GET',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                }).then(() => {
+                    window.location.reload();
+                });
+            });
+        }
+        bindRemoveBtn();
+    });
     </script>
 </body>
 </html>
