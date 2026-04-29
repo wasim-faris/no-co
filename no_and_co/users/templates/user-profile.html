@@ -86,31 +86,43 @@
             align-items: center;
         }
 
-        /* ── FIX 1: Avatar wrapper — extra bottom padding to give room for the badge ── */
+        /* FIX 3: Avatar wrapper — extra bottom padding for badge + no grey bleed */
         .avatar-wrapper {
             position: relative;
             display: inline-block;
-            /* push down enough so the badge (bottom:-12px) doesn't overlap the trash icon */
-            margin-bottom: 44px;
+            /* enough room for badge (bottom:-24px + ~16px text height) */
+            margin-bottom: 52px;
+            /* clip children to the circle so no grey rectangle leaks out */
+            border-radius: 50%;
+            /* keep overflow:visible so badge can peek below, but ring needs separate treatment */
         }
 
+        /* Separate ring element so it can overflow without leaking inner children */
         .avatar-ring {
             position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px;
             border: 1px solid transparent; border-radius: 50%;
             transition: border-color 0.4s ease;
+            pointer-events: none;
+            z-index: 3;
         }
         .avatar-wrapper:hover .avatar-ring { border-color: var(--accent); }
 
         .avatar {
             width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
             display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            position: relative; z-index: 1;
         }
 
+        /* FIX 3: Member badge pushed further down so it clears the trash overlay */
         .member-badge {
-            position: absolute; bottom: -24px; left: 50%; transform: translateX(-50%);
+            position: absolute;
+            bottom: -32px;
+            left: 50%;
+            transform: translateX(-50%);
             background: var(--primary); color: white; padding: 6px 14px;
             font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em;
             white-space: nowrap; border-radius: 2px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 4;
         }
 
         .user-name { font-size: 36px; line-height: 1.1; margin-bottom: 12px; color: var(--primary); }
@@ -233,17 +245,12 @@
         .add-photo-link:hover, .change-password-link:hover { color: var(--primary); text-decoration: underline; }
         .change-password-link { margin-top: 12px; display: block; }
 
-        /* ── FIX 2: AVATAR TRASH ICON OVERLAY ──
-           Desktop: hidden by default, visible on hover
-           Mobile: always visible (handled in media query below)
-        ── */
+        /* ── AVATAR TRASH ICON OVERLAY ── */
         .avatar-remove-overlay {
             position: absolute;
-            /* sit just inside the bottom of the circle */
             bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 64px;  /* match avatar size */
+            left: 0;
+            width: 100%;
             height: 28px;
             background: rgba(0,0,0,0.55);
             display: flex;
@@ -253,11 +260,11 @@
             opacity: 0;
             transition: opacity 0.25s ease;
             cursor: pointer;
+            z-index: 2;
         }
         /* Desktop: show on hover */
         .avatar-wrapper:hover .avatar-remove-overlay { opacity: 1; }
 
-        /* Trash icon SVG inside overlay */
         .avatar-remove-overlay svg {
             width: 13px;
             height: 13px;
@@ -266,9 +273,30 @@
             flex-shrink: 0;
         }
 
-        .avatar-uploading { opacity: 0.5; }
+        /* ── FIX 2: Avatar upload spinner overlay ── */
+        .avatar-upload-spinner {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 5;
+        }
+        .avatar-upload-spinner.active { display: flex; }
+        .avatar-upload-spinner svg {
+            width: 22px; height: 22px;
+            animation: spin 0.8s linear infinite;
+            color: #fff;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
 
-        /* ── EDIT / PASSWORD DRAWER ── */
+        /* ── FIX 1: EDIT / PASSWORD DRAWER with X close button ── */
         .edit-drawer-overlay {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 10000;
@@ -281,8 +309,25 @@
             display: flex; flex-direction: column; border-left: 0.5px solid var(--border);
         }
         .edit-drawer.active { transform: translateX(0); }
-        .edit-drawer-inner { padding: 48px 40px; }
-        .edit-drawer-head { margin-bottom: 40px; padding-bottom: 16px; border-bottom: 0.5px solid var(--border); }
+        .edit-drawer-inner { padding: 48px 40px; height: 100%; overflow-y: auto; }
+        .edit-drawer-head {
+            margin-bottom: 40px; padding-bottom: 16px; border-bottom: 0.5px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        /* FIX 1: X close button inside drawer */
+        .drawer-close-btn {
+            width: 32px; height: 32px;
+            display: flex; align-items: center; justify-content: center;
+            background: none; border: 0.5px solid var(--border);
+            cursor: pointer; border-radius: 0;
+            transition: background 0.2s ease, border-color 0.2s ease;
+            flex-shrink: 0;
+        }
+        .drawer-close-btn:hover { background: var(--primary); border-color: var(--primary); }
+        .drawer-close-btn:hover svg { color: #fff; }
+        .drawer-close-btn svg { width: 12px; height: 12px; color: var(--muted); transition: color 0.2s ease; }
+
         .edit-field-group { margin-bottom: 28px; }
         .edit-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 8px; font-family: var(--font-ui); }
         .edit-input {
@@ -293,10 +338,7 @@
         .edit-input:focus { border-color: var(--primary); }
         .edit-save-btn { margin-top: 16px; font-family: var(--font-ui); width: 100%; }
 
-        /* ── FIX 3: HAMBURGER — X animation ──
-           The CSS classes .is-active transforms bars into an X.
-           JS toggles .is-active on the button element.
-        ── */
+        /* ── HAMBURGER ── */
         .mobile-sidebar-toggle {
             display: none;
             position: fixed;
@@ -331,7 +373,6 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
         }
 
-        /* When drawer is open: white X on dark background */
         .mobile-sidebar-toggle.is-active {
             background: rgba(13,13,13,0.85);
             border-color: rgba(255,255,255,0.15);
@@ -343,7 +384,6 @@
         .hamburger-icon span:nth-child(2) { width: 12px; }
         .hamburger-icon span:nth-child(3) { width: 15px; }
 
-        /* X state — all three bars normalize to same width then rotate */
         .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(1) {
             width: 18px;
             transform: translateY(6px) rotate(45deg);
@@ -405,14 +445,8 @@
 
             .user-contact { flex-direction: column; align-items: center; justify-content: center; }
 
-            /* FIX 2 (mobile): trash icon always visible on mobile */
+            /* trash icon always visible on mobile */
             .avatar-remove-overlay { opacity: 1; }
-
-            /* FIX 2 (mobile): match larger avatar size for overlay */
-            .avatar-remove-overlay {
-                width: 80px;
-                height: 30px;
-            }
         }
 
         @media (min-width: 768px) {
@@ -421,8 +455,6 @@
             .user-name { font-size: 48px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
             .user-contact { flex-direction: row; gap: 16px; justify-content: center; }
-            /* Match overlay width to larger avatar */
-            .avatar-remove-overlay { width: 80px; }
         }
 
         @media (min-width: 1200px) {
@@ -438,11 +470,64 @@
             .mobile-drawer { display: none !important; }
             .sidebar-overlay { display: none !important; }
         }
+
+        /* ─── Inline Toast ─── */
+        .inline-toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            max-width: 90vw;
+            background: #000;
+            color: #fff;
+            padding: 0;
+            border-radius: 2px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            opacity: 0;
+            transform: translateX(30px);
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            z-index: 99999;
+            pointer-events: none;
+        }
+        .inline-toast.show {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: auto;
+        }
+        .toast-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            width: 100%;
+        }
+        .toast-left-content { display: flex; align-items: center; gap: 14px; }
+        .toast-icon-circle {
+            width: 24px; height: 24px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; flex-shrink: 0;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff; background: transparent;
+        }
+        .toast-message-wrapper { display: flex; flex-direction: column; }
+        .toast-main-text {
+            font-size: 12px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            line-height: 1.2;
+        }
+        .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+        .toast-close-btn {
+            cursor: pointer; font-size: 14px; opacity: 0.4;
+            transition: opacity 0.2s; padding: 4px; line-height: 1;
+        }
+        .toast-close-btn:hover { opacity: 1; }
     </style>
 </head>
 <body>
 
-    <!-- HAMBURGER: direct child of body, position:fixed -->
+    <!-- HAMBURGER -->
     <button class="mobile-sidebar-toggle" id="drawerToggle" aria-label="Toggle Menu">
         <div class="hamburger-icon">
             <span></span>
@@ -472,7 +557,16 @@
     <div class="edit-drawer-overlay" id="editDrawerOverlay"></div>
     <div class="edit-drawer" id="editDrawer">
         <div class="edit-drawer-inner">
-            <div class="edit-drawer-head"><span class="label">Edit Profile</span></div>
+            <!-- FIX 1: X close button added to drawer head -->
+            <div class="edit-drawer-head">
+                <span class="label">Edit Profile</span>
+                <button class="drawer-close-btn" id="editDrawerCloseBtn" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
             <form id="editProfileForm" method="POST">
                 {% csrf_token %}
                 <div class="edit-field-group">
@@ -497,7 +591,16 @@
     <div class="edit-drawer-overlay" id="pwdDrawerOverlay"></div>
     <div class="edit-drawer" id="pwdDrawer">
         <div class="edit-drawer-inner">
-            <div class="edit-drawer-head"><span class="label">Change Password</span></div>
+            <!-- FIX 1: X close button added to password drawer head -->
+            <div class="edit-drawer-head">
+                <span class="label">Change Password</span>
+                <button class="drawer-close-btn" id="pwdDrawerCloseBtn" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
             <form id="pwdForm" action="{% url 'change-password' %}" method="POST">
                 {% csrf_token %}
                 <div class="edit-field-group">
@@ -570,8 +673,14 @@
                                      alt="{{ user.username }}"
                                      class="avatar">
 
+                                <!-- FIX 2: Upload spinner overlay (shown during upload) -->
+                                <div class="avatar-upload-spinner" id="avatarSpinner">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                                    </svg>
+                                </div>
+
                                 {% if has_profile_photo %}
-                                <!-- FIX 2: Trash icon overlay instead of "Remove" text -->
                                 <div class="avatar-remove-overlay" id="avatarRemoveOverlay">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="3 6 5 6 21 6"></polyline>
@@ -583,6 +692,7 @@
                                 </div>
                                 {% endif %}
 
+                                <!-- FIX 3: Badge is last child so it renders above the avatar clip -->
                                 <div class="member-badge">MEMBER SINCE {{ user.date_joined|date:"M Y"|upper }}</div>
                             </div>
 
@@ -660,9 +770,6 @@
                         </div>
 
                         <!-- Logout -->
-                        <div class="logout-section">
-                            <a href="{% url 'logout-user' %}" class="logout-link">Log Out</a>
-                        </div>
 
                     </div><!-- End Left Panel -->
 
@@ -781,14 +888,13 @@
         };
         requestAnimationFrame(animBalance);
 
-        /* ── FIX 3: Hamburger / Nav Drawer — properly toggles X ── */
+        /* Hamburger / Nav Drawer */
         const hamburgerBtn = document.getElementById('drawerToggle');
         const mobileDrawer = document.getElementById('mobileDrawer');
         const drawerOverlay = document.getElementById('drawerOverlay');
 
         const toggleNavDrawer = open => {
             const isOpen = typeof open === 'boolean' ? open : !mobileDrawer.classList.contains('is-active');
-            // Toggle .is-active on the BUTTON so the CSS X-transform fires
             hamburgerBtn.classList.toggle('is-active', isOpen);
             mobileDrawer.classList.toggle('is-active', isOpen);
             drawerOverlay.classList.toggle('is-active', isOpen);
@@ -800,38 +906,37 @@
         document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleNavDrawer(false); });
 
         /* Edit Profile Drawer */
-        const editBtn     = document.getElementById('editProfileBtn');
-        const editDrawer  = document.getElementById('editDrawer');
-        const editOverlay = document.getElementById('editDrawerOverlay');
+        const editBtn          = document.getElementById('editProfileBtn');
+        const editDrawer       = document.getElementById('editDrawer');
+        const editOverlay      = document.getElementById('editDrawerOverlay');
+        const editDrawerClose  = document.getElementById('editDrawerCloseBtn');
 
         const openEdit  = () => { editDrawer.classList.add('active'); editOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
         const closeEdit = () => { editDrawer.classList.remove('active'); editOverlay.classList.remove('active'); document.body.style.overflow = ''; };
 
-        if (editBtn)     editBtn.addEventListener('click', openEdit);
-        if (editOverlay) editOverlay.addEventListener('click', closeEdit);
+        if (editBtn)         editBtn.addEventListener('click', openEdit);
+        if (editOverlay)     editOverlay.addEventListener('click', closeEdit);
+        if (editDrawerClose) editDrawerClose.addEventListener('click', closeEdit);
 
         /* Change Password Drawer */
-        const pwdBtn     = document.getElementById('changePasswordBtn');
-        const pwdDrawer  = document.getElementById('pwdDrawer');
-        const pwdOverlay = document.getElementById('pwdDrawerOverlay');
+        const pwdBtn      = document.getElementById('changePasswordBtn');
+        const pwdDrawer   = document.getElementById('pwdDrawer');
+        const pwdOverlay  = document.getElementById('pwdDrawerOverlay');
+        const pwdClose    = document.getElementById('pwdDrawerCloseBtn');
 
         if (pwdBtn && pwdDrawer) {
-            pwdBtn.addEventListener('click', e => {
-                e.preventDefault();
-                pwdDrawer.classList.add('active');
-                if (pwdOverlay) pwdOverlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            });
-            if (pwdOverlay) pwdOverlay.addEventListener('click', () => {
-                pwdDrawer.classList.remove('active');
-                pwdOverlay.classList.remove('active');
-                document.body.style.overflow = '';
-            });
+            const openPwd  = e => { e.preventDefault(); pwdDrawer.classList.add('active'); if (pwdOverlay) pwdOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
+            const closePwd = () => { pwdDrawer.classList.remove('active'); if (pwdOverlay) pwdOverlay.classList.remove('active'); document.body.style.overflow = ''; };
+
+            pwdBtn.addEventListener('click', openPwd);
+            if (pwdOverlay) pwdOverlay.addEventListener('click', closePwd);
+            if (pwdClose)   pwdClose.addEventListener('click', closePwd);
         }
 
-        /* Photo Upload */
+        /* FIX 2: Photo Upload with spinner */
         const photoInput  = document.getElementById('photoFileInput');
         const avatarImg   = document.getElementById('profileAvatar');
+        const avatarSpinner = document.getElementById('avatarSpinner');
         const addPhotoBtn = document.getElementById('addPhotoBtn');
 
         if (photoInput && avatarImg) {
@@ -840,7 +945,10 @@
                 if (!file) return;
                 const fd = new FormData();
                 fd.append('profile_photo', file);
-                avatarImg.classList.add('avatar-uploading');
+
+                // Show spinner
+                if (avatarSpinner) avatarSpinner.classList.add('active');
+
                 fetch(`/add-profile-pic/{{ user.id }}/`, {
                     method: 'POST',
                     headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') },
@@ -849,7 +957,7 @@
                 .then(r => { if (!r.ok) throw new Error(); return r.json(); })
                 .then(data => {
                     avatarImg.src = data.image_url;
-                    avatarImg.classList.remove('avatar-uploading');
+                    if (avatarSpinner) avatarSpinner.classList.remove('active');
                     if (addPhotoBtn) addPhotoBtn.style.display = 'none';
                     showProfileToast('Photo updated', 'success');
                     // Inject trash icon overlay if not already present
@@ -869,13 +977,13 @@
                     }
                 })
                 .catch(() => {
-                    avatarImg.classList.remove('avatar-uploading');
+                    if (avatarSpinner) avatarSpinner.classList.remove('active');
                     showProfileToast('Upload failed. Try again.', 'error');
                 });
             });
         }
 
-        /* ── FIX 2: Bind trash icon click to delete photo ── */
+        /* Bind trash icon click to delete photo */
         function bindRemoveBtn() {
             const overlay = document.getElementById('avatarRemoveOverlay');
             if (!overlay) return;
