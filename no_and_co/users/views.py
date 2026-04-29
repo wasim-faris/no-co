@@ -65,6 +65,7 @@ def user_profile(request, id):
     order_count = Order.objects.filter(user=user).count()
     wishlist_count = Wishlist.objects.filter(user=user).count()
     address_count = Addresses.objects.filter(user=user).count()
+    recent_orders = Order.objects.filter(user=user).order_by('-created_at')[:2]
 
     return render(
         request,
@@ -81,6 +82,7 @@ def user_profile(request, id):
             "order_count": order_count,
             "wishlist_count": wishlist_count,
             "address_count": address_count,
+            "recent_orders": recent_orders,
         },
     )
 

@@ -15,16 +15,11 @@
             --card-bg: #FFFFFF;
             --border: #E8E6E1;
             --muted: #888888;
-
             --font-display: 'Cormorant Garamond', serif;
             --font-ui: 'Inter', sans-serif;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
             background-color: var(--bg);
@@ -32,50 +27,64 @@
             font-family: var(--font-ui);
             line-height: 1.5;
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
-        .label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: var(--muted);
-            font-weight: 500;
+        .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); font-weight: 500; }
+        .display-text { font-family: var(--font-display); font-weight: 400; }
+        a { color: var(--primary); text-decoration: none; }
+
+        /* ── PAGE WRAPPER ── */
+        .page-wrapper { display: flex; min-height: 100vh; }
+
+        /* ── DESKTOP SIDEBAR ── */
+        .desktop-sidebar { display: none; }
+
+        @media (min-width: 1024px) {
+            .page-wrapper { display: grid; grid-template-columns: 260px 1fr; }
+            .desktop-sidebar {
+                display: flex; flex-direction: column;
+                width: 260px; background: #FAFAF8;
+                border-right: 0.5px solid #E8E6E1;
+                position: sticky; top: 0; height: 100vh;
+                overflow-y: auto; padding: 48px 0 32px; flex-shrink: 0;
+            }
+            .sidebar-label {
+                font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 500;
+                text-transform: uppercase; letter-spacing: 0.15em; color: #999999;
+                padding: 0 24px; margin-bottom: 32px;
+            }
+            .sidebar-nav { display: flex; flex-direction: column; }
+            .sidebar-nav-item {
+                display: flex; align-items: center; gap: 12px; height: 48px;
+                padding: 0 24px; font-family: 'Inter', sans-serif; font-size: 13px;
+                font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em;
+                color: #666666; text-decoration: none; border-left: 3px solid transparent;
+                transition: all 0.2s ease;
+            }
+            .sidebar-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 0.6; transition: opacity 0.2s ease; }
+            .sidebar-nav-item:hover { color: #111111; background: rgba(0,0,0,0.03); }
+            .sidebar-nav-item:hover svg { opacity: 1; }
+            .sidebar-nav-item.active { color: #111111; border-left: 3px solid #C9A96E; background: rgba(201,169,110,0.06); }
+            .sidebar-nav-item.active svg { opacity: 1; }
         }
 
-        .display-text {
-            font-family: var(--font-display);
-            font-weight: 400;
-        }
+        /* ── MAIN CONTENT ── */
+        .main-content { flex: 1; min-width: 0; }
 
-        a {
-            color: var(--primary);
-            text-decoration: none;
-        }
+        .container { max-width: 1440px; margin: 0 auto; padding: 24px; }
 
-        /* Layout */
-        .container {
-            max-width: 1440px;
-            margin: 0 auto;
-            padding: 24px;
-        }
+        .layout-grid { display: grid; grid-template-columns: 1fr; gap: 64px; }
 
-        .layout-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 64px;
-        }
+        .left-panel { display: flex; flex-direction: column; }
 
-        /* Left Panel */
-        .left-panel {
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Profile Header */
+        /* ── PROFILE HEADER ── */
         .profile-header {
             margin-bottom: 64px;
             text-align: center;
+            /* NO position:relative, NO flex-row with hamburger */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .avatar-wrapper {
@@ -85,1217 +94,295 @@
         }
 
         .avatar-ring {
-            position: absolute;
-            top: -6px;
-            left: -6px;
-            right: -6px;
-            bottom: -6px;
-            border: 1px solid transparent;
-            border-radius: 50%;
+            position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px;
+            border: 1px solid transparent; border-radius: 50%;
             transition: border-color 0.4s ease;
         }
-
-        .avatar-wrapper:hover .avatar-ring {
-            border-color: var(--accent);
-        }
+        .avatar-wrapper:hover .avatar-ring { border-color: var(--accent); }
 
         .avatar {
-            width: 64px;
-            height: 64px;
-            border-radius: 50%;
-            object-fit: cover;
-            display: block;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+            display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
 
         .member-badge {
-            position: absolute;
-            bottom: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--primary);
-            color: white;
-            padding: 6px 14px;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            white-space: nowrap;
-            border-radius: 2px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: absolute; bottom: -12px; left: 50%; transform: translateX(-50%);
+            background: var(--primary); color: white; padding: 6px 14px;
+            font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em;
+            white-space: nowrap; border-radius: 2px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
-        .user-name {
-            font-size: 36px;
-            line-height: 1.1;
-            margin-bottom: 12px;
-            color: var(--primary);
-        }
+        .user-name { font-size: 36px; line-height: 1.1; margin-bottom: 12px; color: var(--primary); }
 
         .user-contact {
-            font-size: 13px;
-            color: var(--muted);
-            font-weight: 300;
-            margin-bottom: 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
+            font-size: 13px; color: var(--muted); font-weight: 300;
+            margin-bottom: 32px; display: flex; flex-direction: column; gap: 4px;
+            text-align: center; justify-content: center; align-items: center;
         }
 
         .btn-outline {
-            display: inline-block;
-            border: 1px solid var(--primary);
-            padding: 14px 32px;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            background: transparent;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: var(--primary);
-            border-radius: 0;
-            font-weight: 500;
+            display: inline-block; border: 1px solid var(--primary);
+            padding: 14px 32px; font-size: 10px; text-transform: uppercase;
+            letter-spacing: 0.15em; background: transparent; cursor: pointer;
+            transition: all 0.3s ease; color: var(--primary); border-radius: 0; font-weight: 500;
         }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .btn-filled { background: var(--primary) !important; color: white !important; }
+        .btn-filled:hover { background: #333 !important; }
 
-        .btn-outline:hover {
-            background: var(--primary);
-            color: white;
-        }
+        /* ── SECTIONS ── */
+        .section-header { margin-bottom: 32px; padding-bottom: 16px; border-bottom: 0.5px solid var(--border); }
+        .section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--primary); font-weight: 500; }
 
-        /* Section Global */
-        .section-header {
-            margin-bottom: 32px;
-            padding-bottom: 16px;
-            border-bottom: 0.5px solid var(--border);
-        }
-
-        .section-title {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: var(--primary);
-            font-weight: 500;
-        }
-
-        /* Wallet Card */
-        .wallet-section {
-            margin-bottom: 64px;
-        }
+        /* ── WALLET CARD ── */
+        .wallet-section { margin-bottom: 64px; margin-top: 48px; }
 
         .wallet-card {
-            background: var(--primary);
-            color: white;
-            padding: 40px;
-            border-radius: 4px;
-            position: relative;
-            overflow: hidden;
+            background: var(--primary); color: white; padding: 40px;
+            border-radius: 4px; position: relative; overflow: hidden;
             box-shadow: 0 24px 48px rgba(0,0,0,0.12);
         }
-
         .wallet-card::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 300px;
-            height: 300px;
+            content: ''; position: absolute; top: 0; right: 0;
+            width: 300px; height: 300px;
             background: radial-gradient(circle, rgba(201,169,110,0.15) 0%, rgba(201,169,110,0) 70%);
-            transform: translate(30%, -30%);
-            pointer-events: none;
+            transform: translate(30%, -30%); pointer-events: none;
         }
 
-        .wallet-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 56px;
-            position: relative;
-            z-index: 2;
-        }
+        .wallet-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 56px; position: relative; z-index: 2; }
+        .wallet-tier { color: var(--accent); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500; }
+        .wallet-logo { font-family: var(--font-display); font-size: 16px; letter-spacing: 0.2em; color: rgba(255,255,255,0.6); }
 
-        .wallet-tier {
-            color: var(--accent);
-            font-size: 10px;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            font-weight: 500;
-        }
+        .wallet-subtitle { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 4px; font-family: var(--font-ui); }
+        .wallet-balance-wrap { margin-bottom: 40px; position: relative; z-index: 2; }
+        .wallet-balance { font-size: 48px; line-height: 1; margin-bottom: 4px; color: #FAFAF8; font-family: var(--font-display); }
+        .wallet-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.4); font-family: var(--font-ui); }
 
-        .wallet-logo {
-            font-family: var(--font-display);
-            font-size: 16px;
-            letter-spacing: 0.2em;
-            color: rgba(255,255,255,0.6);
-        }
-
-        .wallet-balance-wrap {
-            margin-bottom: 40px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .wallet-balance {
-            font-size: 56px;
-            line-height: 1;
-            margin-bottom: 8px;
-        }
-
-        .wallet-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: rgba(255,255,255,0.5);
-        }
-
-        .progress-wrap {
-            width: 100%;
-            position: relative;
-            z-index: 2;
-        }
+        .progress-wrap { width: 100%; position: relative; z-index: 2; }
+        .progress-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+        .progress-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); font-family: var(--font-ui); }
+        .progress-percentage { font-size: 24px; line-height: 1; color: #FAFAF8; font-family: var(--font-display); }
 
         .progress-bar {
-            height: 2px;
-            background: rgba(255,255,255,0.15);
-            width: 100%;
-            margin-bottom: 16px;
-            position: relative;
-            border-radius: 1px;
-            overflow: hidden;
+            height: 2px; background: rgba(255,255,255,0.15); width: 100%;
+            margin-bottom: 10px; position: relative; border-radius: 1px; overflow: hidden;
         }
-
         .progress-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: var(--accent);
-            width: 0%;
-            border-radius: 1px;
+            position: absolute; top: 0; left: 0; height: 100%;
+            background: var(--accent); width: 0%; border-radius: 1px;
+            transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
         }
+        .progress-footer { font-size: 10px; color: rgba(255,255,255,0.5); font-family: var(--font-ui); }
 
-        @keyframes fillBar {
-            from { width: 0%; }
-            to { width: 68%; } /* 340/500 */
+        /* ── RECENT ORDERS MOBILE ── */
+        .recent-orders-mobile { margin-bottom: 48px; }
+        .recent-order-row {
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 0.5px solid var(--border); padding: 14px 0;
         }
+        .recent-order-left { display: flex; flex-direction: column; gap: 4px; }
+        .recent-order-number { font-size: 12px; font-weight: 500; color: var(--primary); }
+        .recent-order-date { font-size: 11px; color: var(--muted); font-weight: 300; }
+        .view-all-orders-link { display: block; margin-top: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+        .view-all-orders-link:hover { color: var(--primary); }
 
-        .progress-stats {
-            display: flex;
-            justify-content: space-between;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: rgba(255,255,255,0.7);
-            font-weight: 400;
-        }
+        /* ── STATUS CHIPS ── */
+        .status-chip { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 2px; }
+        .status-delivered { background: rgba(201,169,110,0.1); color: #997B41; }
+        .status-processing { background: rgba(234,179,8,0.1); color: #854d0e; }
+        .status-shipped { background: rgba(59,130,246,0.1); color: #1d4ed8; }
+        .status-cancelled { background: rgba(239,68,68,0.1); color: #991b1b; }
 
-        /* Recent Activity */
-        .recent-activity {
-            margin-bottom: 64px;
-        }
+        /* ── LOGOUT ── */
+        .logout-section { margin-top: 24px; margin-bottom: 64px; text-align: center; }
+        .logout-link { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); display: inline-block; position: relative; padding-bottom: 4px; transition: color 0.3s ease; }
+        .logout-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 0.5px; background: var(--muted); }
+        .logout-link:hover { color: var(--primary); }
 
-        .order-list {
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-        }
-
-        .order-card {
-            background: var(--card-bg);
-            border: 0.5px solid var(--border);
-            padding: 16px;
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-            border-radius: 2px;
-        }
-
-        .order-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 16px 32px rgba(0,0,0,0.04);
-            border-color: var(--border);
-        }
-
-        .order-img {
-            width: 72px;
-            height: 96px;
-            object-fit: cover;
-            background: #F5F5F5;
-            border-radius: 2px;
-        }
-
-        .order-info {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .order-number {
-            font-size: 22px;
-            margin-bottom: 6px;
-            color: var(--primary);
-        }
-
-        .order-date {
-            font-size: 12px;
-            color: var(--muted);
-            margin-bottom: 12px;
-            font-weight: 300;
-        }
-
-        .status-chip {
-            align-self: flex-start;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: 4px 10px;
-            background: #F5F5F5;
-            color: var(--primary);
-            border-radius: 2px;
-        }
-
-        .status-chip.delivered {
-            background: rgba(201,169,110,0.1);
-            color: #997B41;
-        }
-
-        .order-action {
-            padding: 16px;
-            color: var(--muted);
-            transition: color 0.3s ease;
-        }
-
-        .order-action:hover {
-            color: var(--primary);
-        }
-
-        /* Log out */
-        .logout-section {
-            margin-top: 24px;
-            margin-bottom: 64px;
-            text-align: center;
-        }
-
-        .logout-link {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: var(--muted);
-            display: inline-block;
-            position: relative;
-            padding-bottom: 4px;
-            transition: color 0.3s ease;
-        }
-
-        .logout-link::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 0.5px;
-            background: var(--muted);
-            transition: background 0.3s ease;
-        }
-
-        .logout-link:hover {
-            color: var(--primary);
-        }
-
-        .logout-link:hover::after {
-            background: var(--primary);
-        }
-
-        /* Right Panel - Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
+        /* ── STATS GRID ── */
+        .stats-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
 
         .stat-card {
-            background: var(--card-bg);
-            border: 0.5px solid var(--border);
-            padding: 40px 32px;
-            display: flex;
-            flex-direction: column;
+            background: var(--card-bg); border: 0.5px solid var(--border);
+            padding: 40px 32px; display: flex; flex-direction: column;
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
             border-radius: 2px;
         }
-
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 24px 48px rgba(0,0,0,0.06);
-            border-color: var(--accent);
-        }
-
-        .stat-icon-wrap {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-        }
-
-        .stat-icon {
-            width: 20px;
-            height: 20px;
-            color: var(--primary);
-            opacity: 0.8;
-        }
-
-        .stat-value {
-            font-size: 48px;
-            line-height: 1;
-            margin-bottom: 16px;
-            color: var(--primary);
-        }
-
+        .stat-card:hover { transform: translateY(-4px); box-shadow: 0 24px 48px rgba(0,0,0,0.06); border-color: var(--accent); }
+        .stat-icon-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .stat-icon { width: 20px; height: 20px; color: var(--primary); opacity: 0.8; }
+        .stat-value { font-size: 48px; line-height: 1; margin-bottom: 16px; color: var(--primary); }
         .stat-action {
-            display: inline-flex;
-            align-items: center;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            font-weight: 500;
-            color: var(--primary);
-            margin-top: auto;
-            width: max-content;
-            padding-bottom: 2px;
-            border-bottom: 1px solid transparent;
+            display: inline-flex; align-items: center; font-size: 10px;
+            text-transform: uppercase; letter-spacing: 0.15em; font-weight: 500;
+            color: var(--primary); margin-top: auto; width: max-content;
+            padding-bottom: 2px; border-bottom: 1px solid transparent;
             transition: color 0.3s ease, border-color 0.3s ease;
         }
+        .stat-action:hover { color: var(--accent); border-color: var(--accent); }
+        .stat-action svg { width: 12px; height: 12px; margin-left: 6px; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .stat-action:hover svg { transform: translateX(4px); }
 
-        .stat-action:hover {
-            color: var(--accent);
-            border-color: var(--accent);
+        /* ── ADD PHOTO / CHANGE PASSWORD ── */
+        .add-photo-link, .change-password-link {
+            display: inline-block; margin-top: 8px; font-family: var(--font-ui);
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #999; background: none; border: none; cursor: pointer; padding: 0; text-decoration: none;
+        }
+        .add-photo-link:hover, .change-password-link:hover { color: var(--primary); text-decoration: underline; }
+        .change-password-link { margin-top: 12px; display: block; }
+
+        /* ── AVATAR REMOVE OVERLAY ── */
+        .avatar-remove-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.6); display: flex; align-items: center;
+            justify-content: center; border-radius: 0 0 50% 50%;
+            padding: 6px 0 2px; opacity: 0; transition: opacity 0.25s ease;
+        }
+        .avatar-wrapper:hover .avatar-remove-overlay { opacity: 1; }
+        .avatar-remove-btn { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: #fff; cursor: pointer; }
+        .avatar-uploading { opacity: 0.5; }
+
+        /* ── EDIT / PASSWORD DRAWER ── */
+        .edit-drawer-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 10000;
+        }
+        .edit-drawer-overlay.active { display: block; }
+        .edit-drawer {
+            position: fixed; top: 0; right: 0; width: 420px; max-width: 100%;
+            height: 100%; background: var(--bg); z-index: 10001;
+            transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+            display: flex; flex-direction: column; border-left: 0.5px solid var(--border);
+        }
+        .edit-drawer.active { transform: translateX(0); }
+        .edit-drawer-inner { padding: 48px 40px; }
+        .edit-drawer-head { margin-bottom: 40px; padding-bottom: 16px; border-bottom: 0.5px solid var(--border); }
+        .edit-field-group { margin-bottom: 28px; }
+        .edit-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 8px; font-family: var(--font-ui); }
+        .edit-input {
+            width: 100%; border: none; border-bottom: 0.5px solid var(--border);
+            background: transparent; font-family: var(--font-ui); font-size: 14px;
+            color: var(--primary); padding: 8px 0; outline: none; transition: border-color 0.2s;
+        }
+        .edit-input:focus { border-color: var(--primary); }
+        .edit-save-btn { margin-top: 16px; font-family: var(--font-ui); width: 100%; }
+
+        /* ── HAMBURGER — FIXED, ZERO LAYOUT IMPACT ──
+           Lives outside all containers, position:fixed only */
+        .mobile-sidebar-toggle {
+            display: none;
+            position: fixed;
+            top: 20px;
+            right: 16px;
+            z-index: 9999;
+            width: 44px;
+            height: 44px;
+            background: transparent;
+            border: 0.5px solid rgba(0,0,0,0.18);
+            border-radius: 0;
+            cursor: pointer;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-end;
+            padding: 0 12px;
+            margin: 0;
         }
 
-        .stat-action svg {
-            width: 12px;
-            height: 12px;
-            margin-left: 6px;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        .hamburger-icon { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; width: 100%; }
+        .hamburger-icon span {
+            display: block; height: 1px; background: #111111;
+            transform-origin: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+        .hamburger-icon span:nth-child(1) { width: 18px; }
+        .hamburger-icon span:nth-child(2) { width: 12px; }
+        .hamburger-icon span:nth-child(3) { width: 15px; }
 
-        .stat-action:hover svg {
-            transform: translateX(4px);
+        .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(1) { width: 18px; transform: rotate(45deg) translateY(6px); }
+        .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(3) { width: 18px; transform: rotate(-45deg) translateY(-6px); }
+
+        /* ── SIDEBAR OVERLAY ── */
+        .sidebar-overlay {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.4);
+            z-index: 9997; opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
+        .sidebar-overlay.is-active { opacity: 1; visibility: visible; }
 
-        /* Media Queries */
-        @media (min-width: 768px) {
-            .container {
-                padding: 64px 48px;
-            }
+        /* ── MOBILE DRAWER ── */
+        .mobile-drawer {
+            display: none; flex-direction: column; position: fixed;
+            top: 0; right: 0; width: 260px; height: 100%;
+            background: #0D0D0D; z-index: 9998;
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            padding-top: 80px;
+        }
+        .mobile-drawer.is-active { transform: translateX(0); }
 
+        .drawer-header { padding: 0 24px 24px 24px; }
+        .drawer-title { font-family: 'Inter', sans-serif; font-size: 10px; color: #C9A96E; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 500; margin: 0; }
+        .drawer-nav { display: flex; flex-direction: column; }
+        .drawer-nav-item {
+            display: flex; align-items: center; height: 48px; padding: 0 24px;
+            font-family: 'Inter', sans-serif; font-size: 13px; letter-spacing: 0.08em;
+            text-transform: uppercase; color: rgba(255,255,255,0.7); text-decoration: none;
+            border-left: 3px solid transparent; transition: all 0.2s ease;
+        }
+        .drawer-nav-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
+        .drawer-nav-item.active { border-left: 3px solid #C9A96E; color: #C9A96E; background: rgba(201,169,110,0.07); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 1023px) {
+            /* Show hamburger on mobile/tablet — it's position:fixed so zero layout impact */
+            .mobile-sidebar-toggle { display: flex; }
+            .mobile-drawer { display: flex; }
+            .desktop-sidebar { display: none !important; }
+
+            /* Profile header: pure centered column, nothing else in it */
             .profile-header {
-                text-align: left;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
             }
 
-            .user-contact {
-                flex-direction: row;
-                gap: 16px;
-                justify-content: flex-start;
-            }
+            .user-contact { flex-direction: column; align-items: center; justify-content: center; }
 
-            .user-contact span:not(:last-child)::after {
-                content: '•';
-                margin-left: 16px;
-                color: var(--border);
-            }
+            .avatar-remove-overlay { opacity: 1; }
+        }
 
-            .avatar-wrapper {
-                margin-bottom: 40px;
-            }
-
-            .avatar {
-                width: 80px;
-                height: 80px;
-            }
-
-            .user-name {
-                font-size: 48px;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 24px;
-            }
-
-            .logout-section {
-                text-align: left;
-            }
+        @media (min-width: 768px) {
+            .container { padding: 64px 48px; }
+            .avatar { width: 80px; height: 80px; }
+            .user-name { font-size: 48px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+            .user-contact { flex-direction: row; gap: 16px; justify-content: center; }
         }
 
         @media (min-width: 1200px) {
-            .container {
-                padding: 80px 64px;
-            }
-
-            .layout-grid {
-                grid-template-columns: 6fr 4fr;
-                gap: 120px;
-                align-items: start;
-            }
-
-            .right-panel {
-                position: sticky;
-                top: 80px;
-            }
-
-            .logout-section {
-                margin-top: 48px;
-            }
-        }
-
-        /* Animation class */
-        .animate-progress {
-            animation: fillBar 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-            animation-delay: 0.4s;
-        }
-
-        /* ==========================================================================
-           DESKTOP SIDEBAR (1024px+)
-           ========================================================================== */
-        .page-wrapper {
-            display: flex;
-            min-height: 100vh;
-        }
-
-        .desktop-sidebar {
-            display: none; /* hidden on mobile */
+            .container { padding: 80px 64px; }
+            .layout-grid { grid-template-columns: 6fr 4fr; gap: 120px; align-items: start; }
+            .right-panel { position: sticky; top: 80px; }
         }
 
         @media (min-width: 1024px) {
-            .page-wrapper {
-                display: grid;
-                grid-template-columns: 260px 1fr;
-            }
-
-            .desktop-sidebar {
-                display: flex;
-                flex-direction: column;
-                width: 260px;
-                background: #FAFAF8;
-                border-right: 0.5px solid #E8E6E1;
-                position: sticky;
-                top: 0;
-                height: 100vh;
-                overflow-y: auto;
-                padding: 48px 0 32px;
-                flex-shrink: 0;
-            }
-
-            .sidebar-label {
-                font-family: 'Inter', sans-serif;
-                font-size: 10px;
-                font-weight: 500;
-                text-transform: uppercase;
-                letter-spacing: 0.15em;
-                color: #999999;
-                padding: 0 24px;
-                margin-bottom: 32px;
-            }
-
-            .sidebar-nav {
-                display: flex;
-                flex-direction: column;
-            }
-
-            .sidebar-nav-item {
-                display: flex;
-                align-items: center;
-                gap: 12px;
-                height: 48px;
-                padding: 0 24px;
-                font-family: 'Inter', sans-serif;
-                font-size: 13px;
-                font-weight: 400;
-                text-transform: uppercase;
-                letter-spacing: 0.08em;
-                color: #666666;
-                text-decoration: none;
-                border-left: 3px solid transparent;
-                transition: all 0.2s ease;
-            }
-
-            .sidebar-nav-item svg {
-                width: 16px;
-                height: 16px;
-                flex-shrink: 0;
-                opacity: 0.6;
-                transition: opacity 0.2s ease;
-            }
-
-            .sidebar-nav-item:hover {
-                color: #111111;
-                background: rgba(0,0,0,0.03);
-            }
-
-            .sidebar-nav-item:hover svg {
-                opacity: 1;
-            }
-
-            .sidebar-nav-item.active {
-                color: #111111;
-                border-left: 3px solid #C9A96E;
-                background: rgba(201,169,110,0.06);
-            }
-
-            .sidebar-nav-item.active svg {
-                opacity: 1;
-            }
-
-            /* Hide hamburger on desktop */
-            .mobile-sidebar-toggle {
-                display: none !important;
-            }
+            .profile-header { align-items: center; text-align: center; }
+            .user-contact { justify-content: center; }
+            /* Hamburger hidden on desktop */
+            .mobile-sidebar-toggle { display: none !important; }
+            .mobile-drawer { display: none !important; }
+            .sidebar-overlay { display: none !important; }
         }
     </style>
 </head>
 <body>
 
-    <div class="page-wrapper">
-
-        <!-- Desktop Sidebar (1024px+) -->
-        <aside class="desktop-sidebar">
-            <div class="sidebar-label">Account Settings</div>
-            <nav class="sidebar-nav">
-                <a href="{% url 'user-profile' user.id %}" class="sidebar-nav-item active">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
-                    </svg>
-                    Overview
-                </a>
-                <a href="{% url 'orders' %}" class="sidebar-nav-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
-                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                    </svg>
-                    Orders
-                </a>
-                <a href="{% url 'wishlist' %}" class="sidebar-nav-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                    </svg>
-                    Wishlist
-                </a>
-                <a href="{% url 'user-address' %}" class="sidebar-nav-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                        <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    Addresses
-                </a>
-                <a href="#" class="sidebar-nav-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square">
-                        <circle cx="12" cy="12" r="3"></circle>
-                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                    Settings
-                </a>
-            </nav>
-        </aside>
-
-        <!-- Main Content -->
-        <div class="main-content">
-        <div class="container">
-        <div class="layout-grid">
-
-            <!-- Left Panel -->
-            <div class="left-panel">
-
-                <!-- Profile Header -->
-                <div class="profile-header">
-                    <div class="avatar-wrapper" id="avatarWrapper">
-                        <div class="avatar-ring"></div>
-                        <img id="profileAvatar"
-                             src="{% if has_profile_photo %}{{ user.profile_photo.url }}{% else %}{% load static %}{% static 'images/default-avatar.png' %}{% endif %}"
-                             alt="{{ user.username }}"
-                             class="avatar">
-                        {% if has_profile_photo %}
-                        <div class="avatar-remove-overlay" id="avatarRemoveOverlay">
-                            <span class="avatar-remove-btn" id="removePhotoBtn">Remove</span>
-                        </div>
-                        {% endif %}
-                        <div class="member-badge">MEMBER SINCE {{ user.date_joined|date:"M Y"|upper }}</div>
-                    </div>
-                    <!-- Hidden file input for photo upload -->
-                    <input type="file" id="photoFileInput" accept="image/jpeg,image/png,image/webp" style="display:none">
-                    {% if not has_profile_photo %}
-                    <button class="add-photo-link" id="addPhotoBtn" onclick="document.getElementById('photoFileInput').click()">Add Photo</button>
-                    {% else %}
-                    <button class="add-photo-link" id="addPhotoBtn" onclick="document.getElementById('photoFileInput').click()" style="display:none"></button>
-                    {% endif %}
-                    <h1 class="user-name display-text">{{ user.get_full_name|default:user.username }}</h1>
-                    <div class="user-contact">
-                        <span>{{ user.email }}</span>
-                        {% if user.phone_number %}<span>{{ user.phone_number }}</span>{% endif %}
-                    </div>
-                    <button class="btn-outline" id="editProfileBtn">Edit Profile</button>
-                    {% if user.has_usable_password %}
-                    <a href="#" class="change-password-link" id="changePasswordBtn">Change Password</a>
-                    {% endif %}
-                </div>
-
-                <!-- Loyalty / Wallet Section -->
-                <div class="wallet-section">
-                    <div class="section-header">
-                        <h2 class="section-title">NØ&CO Membership</h2>
-                    </div>
-                    <div class="wallet-card" data-balance="{{ wallet_balance }}" data-percent="{{ profile_completion }}">
-                        <div class="wallet-top">
-                            <span class="wallet-tier">Member</span>
-                            <span class="wallet-logo">NØ&CO</span>
-                        </div>
-
-                        <div class="wallet-balance-wrap">
-                            <div class="wallet-subtitle">WALLET</div>
-                            <div class="wallet-balance display-text" id="wallet-balance">₹0.00</div>
-                            <div class="wallet-label">AVAILABLE BALANCE</div>
-                        </div>
-
-                        <div class="progress-wrap">
-                            <div class="progress-header">
-                                <span class="progress-title">PROFILE COMPLETION</span>
-                                <span class="progress-percentage display-text" id="progress-percent">0%</span>
-                            </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" id="progress-fill"></div>
-                            </div>
-                            <div class="progress-footer" id="progress-footer"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Recent Activity -->
-                <div class="recent-activity">
-                    <div class="section-header">
-                        <h2 class="section-title">Recent Orders</h2>
-                    </div>
-                    <div class="order-list">
-                        {% if order_count > 0 %}
-                        <p style="font-size:13px;color:var(--muted);font-weight:300;">You have {{ order_count }} order{{ order_count|pluralize }}. <a href="{% url 'orders' %}" style="color:var(--primary);border-bottom:0.5px solid var(--primary);">View all</a></p>
-                        {% else %}
-                        <p style="font-size:13px;color:var(--muted);font-weight:300;">No orders yet.</p>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Log Out -->
-                <div class="logout-section">
-                    <a href="{% url 'logout-user' %}" class="logout-link">Log Out</a>
-                </div>
-
-            </div> <!-- End Left Panel -->
-
-            <!-- Right Panel (Sticky Stats) -->
-            <div class="right-panel">
-                <div class="stats-grid">
-
-                    <!-- Orders Card -->
-                    <div class="stat-card">
-                        <div class="stat-icon-wrap">
-                            <div class="label">Orders</div>
-                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
-                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
-                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
-                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
-                            </svg>
-                        </div>
-                        <div class="stat-value display-text">{{ order_count }}</div>
-                        <a href="{% url 'orders' %}" class="stat-action">
-                            Track
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                                <polyline points="12 5 19 12 12 19"></polyline>
-                            </svg>
-                        </a>
-                    </div>
-
-                    <!-- Bag Card -->
-                    <div class="stat-card">
-                        <div class="stat-icon-wrap">
-                            <div class="label">Bag</div>
-                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
-                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
-                                <line x1="3" y1="6" x2="21" y2="6"></line>
-                                <path d="M16 10a4 4 0 0 1-8 0"></path>
-                            </svg>
-                        </div>
-                        <div class="stat-value display-text">{{ wishlist_count }}</div>
-                        <a href="{% url 'wishlist' %}" class="stat-action">
-                            View
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                                <polyline points="12 5 19 12 12 19"></polyline>
-                            </svg>
-                        </a>
-                    </div>
-
-                    <!-- Wallet Card (Balance) -->
-                    <div class="stat-card">
-                        <div class="stat-icon-wrap">
-                            <div class="label">Wallet</div>
-                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
-                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                                <line x1="1" y1="10" x2="23" y2="10"></line>
-                            </svg>
-                        </div>
-                        <div class="stat-value display-text">₹{{ wallet_balance|floatformat:0 }}</div>
-                        <a href="#" class="stat-action">
-                            Manage
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                                <polyline points="12 5 19 12 12 19"></polyline>
-                            </svg>
-                        </a>
-                    </div>
-
-                    <!-- Addresses Card -->
-                    <div class="stat-card">
-                        <div class="stat-icon-wrap">
-                            <div class="label">Saved Addresses</div>
-                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                                <circle cx="12" cy="10" r="3"></circle>
-                            </svg>
-                        </div>
-                        <div class="stat-value display-text">{{ address_count }}</div>
-                        <a href="{% url 'user-address' %}" class="stat-action">
-                            Add
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
-                                <line x1="5" y1="12" x2="19" y2="12"></line>
-                                <polyline points="12 5 19 12 12 19"></polyline>
-                            </svg>
-                        </a>
-                    </div>
-
-                </div>
-            </div> <!-- End Right Panel -->
-
-        </div>
-    </div>
-        </div>
-    </div>
-    </div> <!-- end page-wrapper -->
-    <style>
-        .wallet-subtitle {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: var(--accent);
-            margin-bottom: 4px;
-            font-family: var(--font-ui);
-        }
-
-        .wallet-balance {
-            font-size: 48px;
-            line-height: 1;
-            margin-bottom: 4px;
-            color: #FAFAF8;
-        }
-
-        .wallet-label {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: rgba(255,255,255,0.4);
-            font-family: var(--font-ui);
-        }
-
-        .progress-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 10px;
-        }
-
-        .progress-title {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.15em;
-            color: var(--accent);
-            font-family: var(--font-ui);
-        }
-
-        .progress-percentage {
-            font-size: 24px;
-            line-height: 1;
-            color: #FAFAF8;
-        }
-
-        .progress-bar {
-            height: 2px;
-            background: rgba(255,255,255,0.15);
-            width: 100%;
-            margin-bottom: 10px;
-            position: relative;
-            border-radius: 1px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            background: var(--accent);
-            width: 0%;
-            border-radius: 1px;
-            transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-
-        .progress-footer {
-            font-size: 10px;
-            color: rgba(255,255,255,0.5);
-            font-family: var(--font-ui);
-        }
-
-        /* Add Photo / Change Password links */
-        .add-photo-link, .change-password-link {
-            display: inline-block;
-            margin-top: 8px;
-            font-family: var(--font-ui);
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #999;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            text-decoration: none;
-        }
-        .add-photo-link:hover, .change-password-link:hover {
-            color: var(--primary);
-            text-decoration: underline;
-        }
-        .change-password-link { margin-top: 12px; display: block; }
-
-        /* Avatar remove overlay */
-        .avatar-wrapper { position: relative; }
-        .avatar-remove-overlay {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            background: rgba(0,0,0,0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0 0 50% 50%;
-            padding: 6px 0 2px;
-            opacity: 0;
-            transition: opacity 0.25s ease;
-        }
-        .avatar-wrapper:hover .avatar-remove-overlay { opacity: 1; }
-        .avatar-remove-btn {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            color: #fff;
-            cursor: pointer;
-        }
-
-        /* Edit Drawer */
-        .edit-drawer-overlay {
-            display: none;
-            position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3);
-            z-index: 10000;
-        }
-        .edit-drawer-overlay.active { display: block; }
-        .edit-drawer {
-            position: fixed; top: 0; right: 0;
-            width: 420px; max-width: 100%;
-            height: 100%;
-            background: var(--bg);
-            z-index: 10001;
-            transform: translateX(100%);
-            transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
-            display: flex;
-            flex-direction: column;
-            border-left: 0.5px solid var(--border);
-        }
-        .edit-drawer.active { transform: translateX(0); }
-        .edit-drawer-inner { padding: 48px 40px; }
-        .edit-drawer-head {
-            margin-bottom: 40px;
-            padding-bottom: 16px;
-            border-bottom: 0.5px solid var(--border);
-        }
-        .edit-field-group { margin-bottom: 28px; }
-        .edit-label {
-            display: block;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.12em;
-            color: var(--muted);
-            margin-bottom: 8px;
-            font-family: var(--font-ui);
-        }
-        .edit-input {
-            width: 100%;
-            border: none;
-            border-bottom: 0.5px solid var(--border);
-            background: transparent;
-            font-family: var(--font-ui);
-            font-size: 14px;
-            color: var(--primary);
-            padding: 8px 0;
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .edit-input:focus { border-color: var(--primary); }
-        .edit-save-btn { margin-top: 16px; font-family: var(--font-ui); width: 100%; }
-
-        /* Avatar upload spinner */
-        .avatar-uploading { opacity: 0.5; }
-
-        @media (max-width: 767px) {
-            .edit-drawer { width: 100%; }
-            .avatar-remove-overlay { opacity: 1; }
-        }
-        /* ==========================================================================
-           ISSUE 1: PROFILE HEADER ALIGNMENT (Desktop 1024px+)
-           ========================================================================== */
-        @media (min-width: 1024px) {
-            .profile-header {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-                margin: 0 auto;
-            }
-
-            .user-contact {
-                justify-content: center;
-            }
-        }
-
-        /* ==========================================================================
-           ISSUE 2: SIDEBAR HAMBURGER AND DRAWER (Mobile/Tablet < 1024px)
-           ========================================================================== */
-        .mobile-sidebar-toggle {
-            display: none;
-        }
-
-        .sidebar-overlay {
-            display: none;
-        }
-
-        .mobile-drawer {
-            display: none;
-        }
-
-        @media (max-width: 1023px) {
-            .left-sidebar, .profile-sidebar {
-                display: none !important;
-            }
-
-            /* --- PREMIUM HAMBURGER BUTTON --- */
-            .mobile-sidebar-toggle {
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-                align-items: flex-end;
-                gap: 5px;
-                position: fixed;
-                top: 68px;
-                right: 20px;
-                width: 44px;
-                height: 44px;
-                background: transparent;
-                border: 0.5px solid rgba(0,0,0,0.2);
-                border-radius: 0;
-                cursor: pointer;
-                z-index: 999;
-                padding: 0 12px;
-            }
-
-            /* Three asymmetric premium lines */
-            .hamburger-icon {
-                display: flex;
-                flex-direction: column;
-                align-items: flex-end;
-                gap: 5px;
-                width: 100%;
-            }
-
-            .hamburger-icon span {
-                display: block;
-                height: 1px;
-                background: #111111;
-                transform-origin: center;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-
-            .hamburger-icon span:nth-child(1) { width: 18px; }
-            .hamburger-icon span:nth-child(2) { width: 12px; }
-            .hamburger-icon span:nth-child(3) { width: 15px; }
-
-            /* Open state — animates to a clean X */
-            .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(1) {
-                width: 18px;
-                transform: rotate(45deg) translateY(6px);
-            }
-            .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(2) {
-                opacity: 0;
-                transform: scaleX(0);
-            }
-            .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(3) {
-                width: 18px;
-                transform: rotate(-45deg) translateY(-6px);
-            }
-
-            /* --- OVERLAY --- */
-            .sidebar-overlay {
-                display: block;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.4);
-                z-index: 9997;
-                opacity: 0;
-                visibility: hidden;
-                transition: opacity 0.3s ease, visibility 0.3s ease;
-            }
-
-            .sidebar-overlay.is-active {
-                opacity: 1;
-                visibility: visible;
-            }
-
-            /* --- MOBILE DRAWER --- */
-            .mobile-drawer {
-                display: flex;
-                flex-direction: column;
-                position: fixed;
-                top: 0;
-                right: 0;
-                width: 260px;
-                height: 100%;
-                background-color: #0D0D0D;
-                z-index: 9998;
-                transform: translateX(100%);
-                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                padding-top: 80px;
-            }
-
-            .mobile-drawer.is-active {
-                transform: translateX(0);
-            }
-
-            .drawer-header {
-                padding: 0 24px 24px 24px;
-            }
-
-            .drawer-title {
-                font-family: 'Inter', sans-serif;
-                font-size: 10px;
-                color: #C9A96E;
-                text-transform: uppercase;
-                letter-spacing: 0.15em;
-                font-weight: 500;
-                margin: 0;
-            }
-
-            .drawer-nav {
-                display: flex;
-                flex-direction: column;
-            }
-
-            .drawer-nav-item {
-                display: flex;
-                align-items: center;
-                height: 48px;
-                padding: 0 24px;
-                font-family: 'Inter', sans-serif;
-                font-size: 13px;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                color: rgba(255,255,255,0.7);
-                text-decoration: none;
-                border-left: 3px solid transparent;
-                transition: all 0.2s ease;
-            }
-
-            .drawer-nav-item:hover {
-                color: #FFFFFF;
-                background-color: rgba(255, 255, 255, 0.04);
-            }
-
-            .drawer-nav-item.active {
-                border-left: 3px solid #C9A96E;
-                color: #C9A96E;
-                background-color: rgba(201,169,110,0.07);
-            }
-        }
-    </style>
-
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // --- 1. Progress Bar & Percent Animation (0 -> 68% over 1.0s) ---
-            const targetPercent = 68;
-            const durationPercent = 1000;
-
-            const progressFill = document.getElementById("progress-fill");
-            const progressText = document.getElementById("progress-percent");
-
-            // Trigger CSS width animation
-            setTimeout(() => {
-                progressFill.style.width = targetPercent + "%";
-            }, 50);
-
-            // Number counter for percent
-            let startTimestampPercent = null;
-            const stepPercent = (timestamp) => {
-                if (!startTimestampPercent) startTimestampPercent = timestamp;
-                const progress = Math.min((timestamp - startTimestampPercent) / durationPercent, 1);
-                const easeOut = 1 - Math.pow(1 - progress, 3); // cubic ease-out
-
-                progressText.textContent = Math.floor(easeOut * targetPercent) + "%";
-
-                if (progress < 1) {
-                    window.requestAnimationFrame(stepPercent);
-                } else {
-                    progressText.textContent = targetPercent + "%";
-                }
-            };
-            window.requestAnimationFrame(stepPercent);
-
-            // --- 2. Wallet Balance Animation (0 -> 1240 over 1.2s) ---
-            const targetBalance = 1240;
-            const durationBalance = 1200;
-            const balanceText = document.getElementById("wallet-balance");
-
-            let startTimestampBalance = null;
-            const stepBalance = (timestamp) => {
-                if (!startTimestampBalance) startTimestampBalance = timestamp;
-                const progress = Math.min((timestamp - startTimestampBalance) / durationBalance, 1);
-                const easeOut = 1 - Math.pow(1 - progress, 3); // cubic ease-out
-
-                const currentVal = easeOut * targetBalance;
-
-                balanceText.textContent = "₹" + currentVal.toLocaleString('en-IN', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-
-                if (progress < 1) {
-                    window.requestAnimationFrame(stepBalance);
-                } else {
-                    balanceText.textContent = "₹" + targetBalance.toLocaleString('en-IN', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                }
-            };
-            window.requestAnimationFrame(stepBalance);
-        });
-    </script>
-    <!-- Mobile Drawer Toggle Button -->
+    <!-- HAMBURGER: direct child of body, position:fixed, zero layout impact -->
     <button class="mobile-sidebar-toggle" id="drawerToggle" aria-label="Toggle Menu">
         <div class="hamburger-icon">
             <span></span>
@@ -1304,7 +391,7 @@
         </div>
     </button>
 
-    <!-- Hamburger Overlay -->
+    <!-- Sidebar overlay -->
     <div class="sidebar-overlay" id="drawerOverlay"></div>
 
     <!-- Mobile Nav Drawer -->
@@ -1325,10 +412,8 @@
     <div class="edit-drawer-overlay" id="editDrawerOverlay"></div>
     <div class="edit-drawer" id="editDrawer">
         <div class="edit-drawer-inner">
-            <div class="edit-drawer-head">
-                <span class="label">Edit Profile</span>
-            </div>
-            <form id="editProfileForm">
+            <div class="edit-drawer-head"><span class="label">Edit Profile</span></div>
+            <form id="editProfileForm" method="POST">
                 {% csrf_token %}
                 <div class="edit-field-group">
                     <label class="edit-label" for="editUsername">Username</label>
@@ -1342,32 +427,30 @@
                     <label class="edit-label" for="editPhone">Phone</label>
                     <input class="edit-input" type="text" id="editPhone" name="phone" value="{{ user.phone_number|default:'' }}">
                 </div>
-                <button type="submit" class="btn-outline edit-save-btn" id="editSaveBtn">Save Changes</button>
+                <button type="submit" class="btn-outline edit-save-btn">Save Changes</button>
             </form>
         </div>
     </div>
 
     {% if user.has_usable_password %}
     <!-- Change Password Drawer -->
-    <div class="edit-drawer-overlay" id="pwdDrawerOverlay" style="display:none;"></div>
-    <div class="edit-drawer" id="pwdDrawer" style="transform:translateX(100%)">
+    <div class="edit-drawer-overlay" id="pwdDrawerOverlay"></div>
+    <div class="edit-drawer" id="pwdDrawer">
         <div class="edit-drawer-inner">
-            <div class="edit-drawer-head">
-                <span class="label">Change Password</span>
-            </div>
+            <div class="edit-drawer-head"><span class="label">Change Password</span></div>
             <form id="pwdForm" action="{% url 'change-password' %}" method="POST">
                 {% csrf_token %}
                 <div class="edit-field-group">
                     <label class="edit-label">Current Password</label>
-                    <input class="edit-input" type="password" name="old_password" id="oldPwd" placeholder="Current password">
+                    <input class="edit-input" type="password" name="old_password" placeholder="Current password">
                 </div>
                 <div class="edit-field-group">
                     <label class="edit-label">New Password</label>
-                    <input class="edit-input" type="password" name="new_password1" id="newPwd1" placeholder="New password">
+                    <input class="edit-input" type="password" name="new_password1" placeholder="New password">
                 </div>
                 <div class="edit-field-group">
                     <label class="edit-label">Confirm New Password</label>
-                    <input class="edit-input" type="password" name="new_password2" id="newPwd2" placeholder="Confirm password">
+                    <input class="edit-input" type="password" name="new_password2" placeholder="Confirm password">
                 </div>
                 <button type="submit" class="btn-outline edit-save-btn">Update Password</button>
             </form>
@@ -1375,16 +458,202 @@
     </div>
     {% endif %}
 
+    <div class="page-wrapper">
+
+        <!-- Desktop Sidebar -->
+        <aside class="desktop-sidebar">
+            <div class="sidebar-label">Account Settings</div>
+            <nav class="sidebar-nav">
+                <a href="{% url 'user-profile' user.id %}" class="sidebar-nav-item active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                    Overview
+                </a>
+                <a href="{% url 'orders' %}" class="sidebar-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+                    Orders
+                </a>
+                <a href="{% url 'wishlist' %}" class="sidebar-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                    Wishlist
+                </a>
+                <a href="{% url 'user-address' %}" class="sidebar-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                    Addresses
+                </a>
+                <a href="#" class="sidebar-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    Settings
+                </a>
+            </nav>
+            <div class="sidebar-logout">
+                <a href="{% url 'logout-user' %}" class="sidebar-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="container">
+                <div class="layout-grid">
+
+                    <!-- Left Panel -->
+                    <div class="left-panel">
+
+                        <!-- Profile Header — NO hamburger inside, just profile content -->
+                        <div class="profile-header">
+                            <div class="avatar-wrapper" id="avatarWrapper">
+                                <div class="avatar-ring"></div>
+                                <img id="profileAvatar"
+                                     src="{{ user.profile_photo.url }}"
+                                     alt="{{ user.username }}"
+                                     class="avatar">
+                                {% if has_profile_photo %}
+                                <div class="avatar-remove-overlay" id="avatarRemoveOverlay">
+                                    <span class="avatar-remove-btn" id="removePhotoBtn">Remove</span>
+                                </div>
+                                {% endif %}
+                                <div class="member-badge">MEMBER SINCE {{ user.date_joined|date:"M Y"|upper }}</div>
+                            </div>
+
+                            <input type="file" id="photoFileInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+
+                            {% if not has_profile_photo %}
+                            <button class="add-photo-link" id="addPhotoBtn" onclick="document.getElementById('photoFileInput').click()">Add Photo</button>
+                            {% else %}
+                            <button class="add-photo-link" id="addPhotoBtn" onclick="document.getElementById('photoFileInput').click()" style="display:none"></button>
+                            {% endif %}
+
+                            <h1 class="user-name display-text">{{ user.get_full_name|default:user.username }}</h1>
+
+                            <div class="user-contact">
+                                <span>{{ user.email }}</span>
+                                {% if user.phone_number %}<span>{{ user.phone_number }}</span>{% endif %}
+                            </div>
+
+                            <button class="btn-outline btn-filled" id="editProfileBtn">Edit Profile</button>
+
+                            {% if user.has_usable_password %}
+                            <a href="#" class="change-password-link" id="changePasswordBtn">Change Password</a>
+                            {% endif %}
+                        </div>
+
+                        <!-- Wallet / Membership Section -->
+                        <div class="wallet-section">
+                            <div class="section-header">
+                                <h2 class="section-title">NØ&CO Membership</h2>
+                            </div>
+                            <div class="wallet-card" data-balance="{{ wallet_balance }}" data-percent="{{ profile_completion }}">
+                                <div class="wallet-top">
+                                    <span class="wallet-tier">Member</span>
+                                    <span class="wallet-logo">NØ&CO</span>
+                                </div>
+                                <div class="wallet-balance-wrap">
+                                    <div class="wallet-subtitle">WALLET</div>
+                                    <div class="wallet-balance display-text" id="wallet-balance">₹0.00</div>
+                                    <div class="wallet-label">AVAILABLE BALANCE</div>
+                                </div>
+                                <div class="progress-wrap">
+                                    <div class="progress-header">
+                                        <span class="progress-title">PROFILE COMPLETION</span>
+                                        <span class="progress-percentage display-text" id="progress-percent">0%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="progress-fill"></div>
+                                    </div>
+                                    <div class="progress-footer" id="progress-footer"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Orders (mobile only) -->
+                        <div class="recent-orders-mobile">
+                            <div class="section-header">
+                                <h2 class="section-title">Recent Orders</h2>
+                            </div>
+                            {% if recent_orders %}
+                            <div class="recent-orders-list">
+                                {% for order in recent_orders %}
+                                <div class="recent-order-row">
+                                    <div class="recent-order-left">
+                                        <span class="recent-order-number">#{{ order.order_number }}</span>
+                                        <span class="recent-order-date">{{ order.created_at|date:"d M Y" }}</span>
+                                    </div>
+                                    <span class="status-chip status-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <a href="{% url 'orders' %}" class="view-all-orders-link">View All Orders →</a>
+                            {% else %}
+                            <p style="font-size:13px;color:#999;text-align:center;padding:24px 0;">No orders yet.</p>
+                            {% endif %}
+                        </div>
+
+                        <!-- Logout -->
+                        <div class="logout-section">
+                            <a href="{% url 'logout-user' %}" class="logout-link">Log Out</a>
+                        </div>
+
+                    </div><!-- End Left Panel -->
+
+                    <!-- Right Panel -->
+                    <div class="right-panel">
+                        <div class="stats-grid">
+
+                            <div class="stat-card">
+                                <div class="stat-icon-wrap">
+                                    <div class="label">Orders</div>
+                                    <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                                </div>
+                                <div class="stat-value display-text">{{ order_count }}</div>
+                                <a href="{% url 'orders' %}" class="stat-action">Track <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-icon-wrap">
+                                    <div class="label">Bag</div>
+                                    <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                                </div>
+                                <div class="stat-value display-text">{{ wishlist_count }}</div>
+                                <a href="{% url 'wishlist' %}" class="stat-action">View <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-icon-wrap">
+                                    <div class="label">Wallet</div>
+                                    <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                                </div>
+                                <div class="stat-value display-text">₹{{ wallet_balance|floatformat:2 }}</div>
+                                <a href="#" class="stat-action">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-icon-wrap">
+                                    <div class="label">Saved Addresses</div>
+                                    <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                </div>
+                                <div class="stat-value display-text">{{ address_count }}</div>
+                                <a href="{% url 'user-address' %}" class="stat-action">Add <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
+
+                        </div>
+                    </div><!-- End Right Panel -->
+
+                </div>
+            </div>
+        </div><!-- End Main Content -->
+
+    </div><!-- End Page Wrapper -->
+
     <script>
     document.addEventListener("DOMContentLoaded", () => {
 
-        /* ── CSRF helper ── */
         function getCookie(name) {
             const m = document.cookie.match('(?:^|;)\\s*' + name + '=([^;]*)');
             return m ? decodeURIComponent(m[1]) : null;
         }
 
-        /* ── Toast (matches existing inline-toast system) ── */
         function showProfileToast(msg, type) {
             let el = document.getElementById('djangoToast');
             if (!el) {
@@ -1407,23 +676,19 @@
             setTimeout(() => el.classList.remove('show'), 3000);
         }
 
-        /* ── Wallet balance animation (reads real value from data-balance) ── */
+        /* Animations */
         const walletCard = document.querySelector('.wallet-card');
         const targetBalance = walletCard ? parseFloat(walletCard.dataset.balance || 0) : 0;
         const targetPercent = walletCard ? parseInt(walletCard.dataset.percent || 0) : 0;
 
-        const progressFill  = document.getElementById('progress-fill');
-        const progressText  = document.getElementById('progress-percent');
+        const progressFill   = document.getElementById('progress-fill');
+        const progressText   = document.getElementById('progress-percent');
         const progressFooter = document.getElementById('progress-footer');
-        const balanceText   = document.getElementById('wallet-balance');
+        const balanceText    = document.getElementById('wallet-balance');
 
-        /* Set real progress footer text */
         if (progressFooter) progressFooter.textContent = `${Math.round(targetPercent)}% complete`;
-
-        /* Animate bar */
         setTimeout(() => { if (progressFill) progressFill.style.width = targetPercent + '%'; }, 50);
 
-        /* Animate percent counter */
         let tsP = null;
         const animPercent = ts => {
             if (!tsP) tsP = ts;
@@ -1435,7 +700,6 @@
         };
         requestAnimationFrame(animPercent);
 
-        /* Animate wallet balance counter */
         let tsB = null;
         const animBalance = ts => {
             if (!tsB) tsB = ts;
@@ -1448,14 +712,13 @@
         };
         requestAnimationFrame(animBalance);
 
-        /* ── Hamburger / Mobile Nav Drawer ── */
+        /* Hamburger / Nav Drawer */
         const hamburgerBtn = document.getElementById('drawerToggle');
         const mobileDrawer = document.getElementById('mobileDrawer');
         const drawerOverlay = document.getElementById('drawerOverlay');
 
         const toggleNavDrawer = open => {
-            const force = typeof open === 'boolean';
-            const isOpen = force ? open : !mobileDrawer.classList.contains('is-active');
+            const isOpen = typeof open === 'boolean' ? open : !mobileDrawer.classList.contains('is-active');
             hamburgerBtn.classList.toggle('is-active', isOpen);
             mobileDrawer.classList.toggle('is-active', isOpen);
             drawerOverlay.classList.toggle('is-active', isOpen);
@@ -1466,25 +729,18 @@
         if (drawerOverlay) drawerOverlay.addEventListener('click', () => toggleNavDrawer(false));
         document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleNavDrawer(false); });
 
-        /* ── Edit Profile Drawer ── */
+        /* Edit Profile Drawer */
         const editBtn     = document.getElementById('editProfileBtn');
         const editDrawer  = document.getElementById('editDrawer');
         const editOverlay = document.getElementById('editDrawerOverlay');
 
-        const openEditDrawer  = () => { editDrawer.classList.add('active'); editOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
-        const closeEditDrawer = () => { editDrawer.classList.remove('active'); editOverlay.classList.remove('active'); document.body.style.overflow = ''; };
+        const openEdit  = () => { editDrawer.classList.add('active'); editOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
+        const closeEdit = () => { editDrawer.classList.remove('active'); editOverlay.classList.remove('active'); document.body.style.overflow = ''; };
 
-        if (editBtn)     editBtn.addEventListener('click', openEditDrawer);
-        if (editOverlay) editOverlay.addEventListener('click', closeEditDrawer);
+        if (editBtn)     editBtn.addEventListener('click', openEdit);
+        if (editOverlay) editOverlay.addEventListener('click', closeEdit);
 
-        /* Submit edit-profile form via standard form POST (backend handles redirect/messages) */
-        const editForm = document.getElementById('editProfileForm');
-        if (editForm) {
-            editForm.setAttribute('action', window.location.pathname.replace('user-profile', 'update-profile'));
-            editForm.setAttribute('method', 'POST');
-        }
-
-        /* ── Change Password Drawer ── */
+        /* Change Password Drawer */
         const pwdBtn     = document.getElementById('changePasswordBtn');
         const pwdDrawer  = document.getElementById('pwdDrawer');
         const pwdOverlay = document.getElementById('pwdDrawerOverlay');
@@ -1493,17 +749,17 @@
             pwdBtn.addEventListener('click', e => {
                 e.preventDefault();
                 pwdDrawer.classList.add('active');
-                if (pwdOverlay) { pwdOverlay.style.display = 'block'; pwdOverlay.classList.add('active'); }
+                if (pwdOverlay) { pwdOverlay.classList.add('active'); }
                 document.body.style.overflow = 'hidden';
             });
             if (pwdOverlay) pwdOverlay.addEventListener('click', () => {
                 pwdDrawer.classList.remove('active');
-                pwdOverlay.style.display = 'none';
+                pwdOverlay.classList.remove('active');
                 document.body.style.overflow = '';
             });
         }
 
-        /* ── Avatar Photo Upload (XHR) ── */
+        /* Photo Upload */
         const photoInput  = document.getElementById('photoFileInput');
         const avatarImg   = document.getElementById('profileAvatar');
         const addPhotoBtn = document.getElementById('addPhotoBtn');
@@ -1512,14 +768,10 @@
             photoInput.addEventListener('change', () => {
                 const file = photoInput.files[0];
                 if (!file) return;
-
                 const fd = new FormData();
                 fd.append('profile_photo', file);
-
                 avatarImg.classList.add('avatar-uploading');
-
-                const userId = {{ user.id }};
-                fetch(`/add-profile-pic/${userId}/`, {
+                fetch(`/add-profile-pic/{{ user.id }}/`, {
                     method: 'POST',
                     headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') },
                     body: fd
@@ -1530,7 +782,6 @@
                     avatarImg.classList.remove('avatar-uploading');
                     if (addPhotoBtn) addPhotoBtn.style.display = 'none';
                     showProfileToast('Photo updated', 'success');
-                    /* Show remove overlay dynamically if it wasn't there */
                     let overlay = document.getElementById('avatarRemoveOverlay');
                     if (!overlay) {
                         overlay = document.createElement('div');
@@ -1548,22 +799,20 @@
             });
         }
 
-        /* ── Avatar Remove ── */
         function bindRemoveBtn() {
             const rmBtn = document.getElementById('removePhotoBtn');
             if (!rmBtn) return;
             rmBtn.addEventListener('click', () => {
-                const userId = {{ user.id }};
-                fetch(`/delete-profile-pic/${userId}/`, {
+                fetch(`/delete-profile-pic/{{ user.id }}/`, {
                     method: 'GET',
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                }).then(() => {
-                    window.location.reload();
-                });
+                }).then(() => window.location.reload());
             });
         }
         bindRemoveBtn();
+
     });
     </script>
+
 </body>
 </html>
