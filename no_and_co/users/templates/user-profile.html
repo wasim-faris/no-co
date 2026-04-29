@@ -576,6 +576,30 @@
                             {% endif %}
                         </div>
 
+                        <!-- Referral Section -->
+                        <div class="referral-section" style="margin-bottom: 24px;">
+                            <div class="section-header">
+                                <h2 class="section-title">Refer & Earn</h2>
+                            </div>
+                            <div class="stat-card" style="cursor: default; transform: none; box-shadow: none; border-color: var(--border);">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px;">
+                                    <div>
+                                        <div class="label" style="margin-bottom: 12px;">Your Referral Code</div>
+                                        <div class="display-text" style="font-size: 32px; letter-spacing: 0.15em; color: var(--primary);">{{ user.referral_code }}</div>
+                                    </div>
+                                    <button class="btn-outline" style="padding: 10px 24px; font-size: 9px;" onclick="copyReferralCode('{{ user.referral_code|escapejs }}')">Copy Code</button>
+                                </div>
+                                <div style="border-top: 0.5px solid var(--border); padding-top: 24px;">
+                                    <div class="label" style="text-transform: none; letter-spacing: 0.05em; color: var(--muted); font-size: 11px;">
+                                        {{ total_referrals }} user{{ total_referrals|pluralize }} joined using your code.
+                                        {% if total_rewards > 0 %}
+                                        <span style="color: var(--accent); margin-left: 8px;">• Total earned: ₹{{ total_rewards }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Wallet / Membership Section -->
                         <div class="wallet-section">
                             <div class="section-header">
@@ -824,6 +848,17 @@
                 });
             }
 
+            // Copy Referral Code
+            window.copyReferralCode = function(code) {
+                if (!code) return;
+                navigator.clipboard.writeText(code).then(() => {
+                    if (typeof showProfileToast === 'function') {
+                        showProfileToast("Referral code copied to clipboard", "success");
+                    }
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            };
         });
     </script>
 {% endblock %}
