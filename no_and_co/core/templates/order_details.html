@@ -227,6 +227,35 @@
         .desktop-sidebar { display: none !important; }
     }
 
+    /* ─── MAP SECTION ────────────────────────────────────────── */
+    .map-module { overflow: hidden; }
+    .map-wrap { height: 200px; border-bottom: 1px solid var(--border); background: #f9f9f9; }
+    .map-footer { padding: 24px; display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+    .map-address-details { 
+        font-family: var(--font-ui); 
+        font-size: 13px; 
+        line-height: 1.6; 
+        color: var(--primary); 
+        font-weight: 300; 
+    }
+    .map-address-details strong { 
+        display: block; 
+        font-size: 14px; 
+        font-weight: 600; 
+        margin-bottom: 4px; 
+        color: var(--primary);
+        font-family: var(--font-ui);
+    }
+    .map-external-btn { 
+        font-size: 8px !important; 
+        padding: 10px 16px !important; 
+        height: auto !important;
+    }
+    @media (max-width: 600px) {
+        .map-footer { flex-direction: column; }
+        .map-external-btn { width: 100%; }
+    }
+
     /* ─── MODAL ─── */
     .manage-modal {
         display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
