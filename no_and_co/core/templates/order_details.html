@@ -264,6 +264,37 @@
     .return-required { color: #DC2626; }
     .return-modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; }
     .return-modal-close:hover { color: var(--primary); }
+
+    /* ─── MINI ACTIONS & ITEM STATUS ─── */
+    .order-action-mini {
+        display: inline-block;
+        font-size: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-weight: 600;
+        padding: 8px 16px;
+        background: white;
+        border: 1px solid var(--border);
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-top: 10px;
+        color: var(--primary);
+        font-family: var(--font-ui);
+    }
+    .order-action-mini:hover {
+        border-color: var(--primary);
+        background: #fafafa;
+    }
+
+    .item-state-note {
+        font-size: 9px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-top: 10px;
+        font-family: var(--font-ui);
+        font-weight: 400;
+    }
 </style>
 
 {% include 'user_base/components/mobile_drawer.html' %}
@@ -772,7 +803,7 @@
             {% csrf_token %}
             <div class="manage-modal-actions">
                 <button type="button" class="btn btn-hm-secondary" id="manage-modal-cancel">Keep Order</button>
-                <button type="submit" class="btn btn-hm-primary" id="manage-modal-confirm">Confirm Cancellation</button>
+                <button type="submit" class="btn btn-dark" id="manage-modal-confirm">Confirm Cancellation</button>
             </div>
         </form>
     </div>
@@ -841,7 +872,7 @@
 
             <div class="manage-modal-actions return-modal-actions">
                 <button type="button" class="btn btn-hm-secondary" id="return-modal-cancel">Cancel</button>
-                <button type="submit" class="btn btn-hm-primary" id="return-modal-submit">Submit Return Request</button>
+                <button type="submit" class="btn btn-dark" id="return-modal-submit">Submit Return Request</button>
             </div>
         </form>
     </div>
