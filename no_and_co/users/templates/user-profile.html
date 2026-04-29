@@ -21,7 +21,7 @@
 
         .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); font-weight: 500; }
         .display-text { font-family: var(--font-display); font-weight: 400; }
-        
+
         /* ── PAGE WRAPPER ── */
         .profile-page-wrapper { display: flex; min-height: 100vh; }
 
@@ -171,7 +171,7 @@
         .progress-footer { font-size: 10px; color: rgba(255,255,255,0.5); font-family: var(--font-ui); }
 
         /* ── RECENT ORDERS MOBILE ── */
-        .recent-orders-mobile { margin-bottom: 48px; }
+        .recent-orders-mobile { margin-bottom: 0; }
         .recent-order-row {
             display: flex; align-items: center; justify-content: space-between;
             border-bottom: 0.5px solid var(--border); padding: 14px 0;
@@ -436,7 +436,9 @@
             <a href="{% url 'orders' %}" class="drawer-nav-item">Orders</a>
             <a href="{% url 'wishlist' %}" class="drawer-nav-item">Wishlist</a>
             <a href="{% url 'user-address' %}" class="drawer-nav-item">Addresses</a>
-            <a href="#" class="drawer-nav-item">Settings</a>
+            {% if user.has_usable_password %}
+            <a href="{% url 'change-password' %}" class="drawer-nav-item">Change Password</a>
+            {% endif %}
         </div>
     </nav>
 
@@ -472,39 +474,7 @@
         </div>
     </div>
 
-    {% if user.has_usable_password %}
-    <!-- Change Password Drawer -->
-    <div class="edit-drawer-overlay" id="pwdDrawerOverlay"></div>
-    <div class="edit-drawer" id="pwdDrawer">
-        <div class="edit-drawer-inner">
-            <div class="edit-drawer-head">
-                <span class="label">Change Password</span>
-                <button class="drawer-close-btn" id="pwdDrawerCloseBtn" aria-label="Close">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                        <line x1="18" y1="6" x2="6" y2="18"></line>
-                        <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                </button>
-            </div>
-            <form id="pwdForm" action="{% url 'change-password' %}" method="POST">
-                {% csrf_token %}
-                <div class="edit-field-group">
-                    <label class="edit-label">Current Password</label>
-                    <input class="edit-input" type="password" name="old_password" placeholder="Current password">
-                </div>
-                <div class="edit-field-group">
-                    <label class="edit-label">New Password</label>
-                    <input class="edit-input" type="password" name="new_password1" placeholder="New password">
-                </div>
-                <div class="edit-field-group">
-                    <label class="edit-label">Confirm New Password</label>
-                    <input class="edit-input" type="password" name="new_password2" placeholder="Confirm password">
-                </div>
-                <button type="submit" class="btn-outline edit-save-btn">Update Password</button>
-            </form>
-        </div>
-    </div>
-    {% endif %}
+
 
     <div class="profile-page-wrapper">
 
@@ -528,10 +498,12 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                     Addresses
                 </a>
-                <a href="#" class="sidebar-nav-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    Settings
+                {% if user.has_usable_password %}
+                <a href="{% url 'change-password' %}" class="sidebar-nav-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                    Change Password
                 </a>
+                {% endif %}
             </nav>
             <div class="sidebar-logout">
                 <form action="{% url 'logout-user' %}" method="post">
@@ -600,7 +572,7 @@
                             <button class="btn-outline btn-filled" id="editProfileBtn">Edit Profile</button>
 
                             {% if user.has_usable_password %}
-                            <a href="#" class="change-password-link" id="changePasswordBtn">Change Password</a>
+                            <a href="{% url 'change-password' %}" class="change-password-link">Change Password</a>
                             {% endif %}
                         </div>
 
@@ -713,11 +685,6 @@
             const editOverlay = document.getElementById('editDrawerOverlay');
             const editClose = document.getElementById('editDrawerCloseBtn');
 
-            const pwdBtn = document.getElementById('changePasswordBtn');
-            const pwdDrawer = document.getElementById('pwdDrawer');
-            const pwdOverlay = document.getElementById('pwdDrawerOverlay');
-            const pwdClose = document.getElementById('pwdDrawerCloseBtn');
-
             function toggleDrawer(drawer, overlay, show) {
                 if (show) {
                     drawer.classList.add('active');
@@ -733,13 +700,6 @@
             if (editBtn) editBtn.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, true));
             if (editOverlay) editOverlay.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, false));
             if (editClose) editClose.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, false));
-
-            if (pwdBtn) pwdBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                toggleDrawer(pwdDrawer, pwdOverlay, true);
-            });
-            if (pwdOverlay) pwdOverlay.addEventListener('click', () => toggleDrawer(pwdDrawer, pwdOverlay, false));
-            if (pwdClose) pwdClose.addEventListener('click', () => toggleDrawer(pwdDrawer, pwdOverlay, false));
 
             // Mobile sidebar toggle
             const drawerToggle = document.getElementById('drawerToggle');

@@ -525,8 +525,6 @@ def validate_referral_code(request):
 
     try:
         referrer = User.objects.get(referral_code=code)
-        # Check if the user is not trying to use their own code (though they aren't logged in yet, we can't be sure)
-        # But usually, they don't have a code yet.
         return JsonResponse({
             'valid': True,
             'message': f"✓ Code applied — you'll receive ₹40 on signup"
