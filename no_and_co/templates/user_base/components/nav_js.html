@@ -1,0 +1,30 @@
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Mobile sidebar toggle
+        const drawerToggle = document.getElementById('drawerToggle');
+        const mobileDrawer = document.getElementById('mobileDrawer');
+        const drawerOverlay = document.getElementById('drawerOverlay');
+
+        if (drawerToggle) {
+            drawerToggle.addEventListener('click', function () {
+                this.classList.toggle('is-active');
+                mobileDrawer.classList.toggle('is-active');
+                drawerOverlay.classList.toggle('is-active');
+                if (mobileDrawer.classList.contains('is-active')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            });
+        }
+
+        if (drawerOverlay) {
+            drawerOverlay.addEventListener('click', function () {
+                drawerToggle.classList.remove('is-active');
+                mobileDrawer.classList.remove('is-active');
+                this.classList.remove('is-active');
+                document.body.style.overflow = '';
+            });
+        }
+    });
+</script>

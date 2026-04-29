@@ -1,0 +1,33 @@
+<!-- HAMBURGER -->
+<button class="mobile-sidebar-toggle" id="drawerToggle" aria-label="Toggle Menu">
+    <div class="hamburger-icon">
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+</button>
+
+<!-- Sidebar overlay -->
+<div class="sidebar-overlay" id="drawerOverlay"></div>
+
+<!-- Mobile Nav Drawer -->
+<nav class="mobile-drawer" id="mobileDrawer">
+    <div class="drawer-header">
+        <h3 class="drawer-title">Account Settings</h3>
+    </div>
+    <div class="drawer-nav">
+        <a href="{% url 'user-profile' user.id %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'user-profile' %}active{% endif %}">Overview</a>
+        <a href="{% url 'orders' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'orders' or request.resolver_match.url_name == 'order_details' %}active{% endif %}">Orders</a>
+        <a href="{% url 'wishlist' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">Wishlist</a>
+        <a href="{% url 'user-address' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'user-address' %}active{% endif %}">Addresses</a>
+        {% if user.has_usable_password %}
+        <a href="{% url 'change-password' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'change-password' %}active{% endif %}">Change Password</a>
+        {% endif %}
+        <form action="{% url 'logout-user' %}" method="post">
+            {% csrf_token %}
+            <button type="submit" class="drawer-nav-item w-full text-left bg-transparent border-none cursor-pointer" style="margin-top: auto; border-top: 0.5px solid rgba(255,255,255,0.1); width: 100%;">
+                Logout
+            </button>
+        </form>
+    </div>
+</nav>
