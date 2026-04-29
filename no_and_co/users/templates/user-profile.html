@@ -996,6 +996,12 @@
         }
         bindRemoveBtn();
 
+        /* Render Django messages as toasts */
+        {% if messages %}
+            {% for message in messages %}
+                showProfileToast("{{ message|escapejs }}", "{% if message.tags == 'error' %}error{% else %}success{% endif %}");
+            {% endfor %}
+        {% endif %}
     });
     </script>
 
