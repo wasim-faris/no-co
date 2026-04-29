@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NØ&CO | Profile</title>
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}NØ&CO | Profile{% endblock %}
+
+{% block extra_head %}
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
@@ -19,33 +19,22 @@
             --font-ui: 'Inter', sans-serif;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            background-color: var(--bg);
-            color: var(--primary);
-            font-family: var(--font-ui);
-            line-height: 1.5;
-            -webkit-font-smoothing: antialiased;
-        }
-
         .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); font-weight: 500; }
         .display-text { font-family: var(--font-display); font-weight: 400; }
-        a { color: var(--primary); text-decoration: none; }
-
+        
         /* ── PAGE WRAPPER ── */
-        .page-wrapper { display: flex; min-height: 100vh; }
+        .profile-page-wrapper { display: flex; min-height: 100vh; }
 
         /* ── DESKTOP SIDEBAR ── */
         .desktop-sidebar { display: none; }
 
         @media (min-width: 1024px) {
-            .page-wrapper { display: grid; grid-template-columns: 260px 1fr; }
+            .profile-page-wrapper { display: grid; grid-template-columns: 260px 1fr; }
             .desktop-sidebar {
                 display: flex; flex-direction: column;
                 width: 260px; background: #FAFAF8;
                 border-right: 0.5px solid #E8E6E1;
-                position: sticky; top: 0; height: 100vh;
+                position: sticky; top: 52px; height: calc(100vh - 52px);
                 overflow-y: auto; padding: 48px 0 32px; flex-shrink: 0;
             }
             .sidebar-label {
@@ -69,9 +58,9 @@
         }
 
         /* ── MAIN CONTENT ── */
-        .main-content { flex: 1; min-width: 0; }
+        .profile-main-content { flex: 1; min-width: 0; }
 
-        .container { max-width: 1440px; margin: 0 auto; padding: 24px; }
+        .profile-container { max-width: 1440px; margin: 0 auto; padding: 24px; }
 
         .layout-grid { display: grid; grid-template-columns: 1fr; gap: 64px; }
 
@@ -86,18 +75,13 @@
             align-items: center;
         }
 
-        /* FIX 3: Avatar wrapper — extra bottom padding for badge + no grey bleed */
         .avatar-wrapper {
             position: relative;
             display: inline-block;
-            /* enough room for badge (bottom:-24px + ~16px text height) */
             margin-bottom: 52px;
-            /* clip children to the circle so no grey rectangle leaks out */
             border-radius: 50%;
-            /* keep overflow:visible so badge can peek below, but ring needs separate treatment */
         }
 
-        /* Separate ring element so it can overflow without leaking inner children */
         .avatar-ring {
             position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px;
             border: 1px solid transparent; border-radius: 50%;
@@ -113,7 +97,6 @@
             position: relative; z-index: 1;
         }
 
-        /* FIX 3: Member badge pushed further down so it clears the trash overlay */
         .member-badge {
             position: absolute;
             bottom: -32px;
@@ -206,12 +189,6 @@
         .status-shipped { background: rgba(59,130,246,0.1); color: #1d4ed8; }
         .status-cancelled { background: rgba(239,68,68,0.1); color: #991b1b; }
 
-        /* ── LOGOUT ── */
-        .logout-section { margin-top: 24px; margin-bottom: 64px; text-align: center; }
-        .logout-link { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); display: inline-block; position: relative; padding-bottom: 4px; transition: color 0.3s ease; }
-        .logout-link::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 0.5px; background: var(--muted); }
-        .logout-link:hover { color: var(--primary); }
-
         /* ── STATS GRID ── */
         .stats-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
 
@@ -236,7 +213,6 @@
         .stat-action svg { width: 12px; height: 12px; margin-left: 6px; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         .stat-action:hover svg { transform: translateX(4px); }
 
-        /* ── ADD PHOTO / CHANGE PASSWORD ── */
         .add-photo-link, .change-password-link {
             display: inline-block; margin-top: 8px; font-family: var(--font-ui);
             font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
@@ -262,16 +238,8 @@
             cursor: pointer;
             z-index: 2;
         }
-        /* Desktop: show on hover */
         .avatar-wrapper:hover .avatar-remove-overlay { opacity: 1; }
-
-        .avatar-remove-overlay svg {
-            width: 13px;
-            height: 13px;
-            color: #ffffff;
-            display: block;
-            flex-shrink: 0;
-        }
+        .avatar-remove-overlay svg { width: 13px; height: 13px; color: #ffffff; display: block; flex-shrink: 0; }
 
         /* ── FIX 2: Avatar upload spinner overlay ── */
         .avatar-upload-spinner {
@@ -290,10 +258,6 @@
             width: 22px; height: 22px;
             animation: spin 0.8s linear infinite;
             color: #fff;
-        }
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
         }
 
         /* ── FIX 1: EDIT / PASSWORD DRAWER with X close button ── */
@@ -315,7 +279,6 @@
             display: flex; align-items: center; justify-content: space-between;
         }
 
-        /* FIX 1: X close button inside drawer */
         .drawer-close-btn {
             width: 32px; height: 32px;
             display: flex; align-items: center; justify-content: center;
@@ -342,20 +305,21 @@
         .mobile-sidebar-toggle {
             display: none;
             position: fixed;
-            top: 20px;
+            top: 60px; /* Pushed down for navbar */
             right: 16px;
             z-index: 9999;
             width: 44px;
             height: 44px;
-            background: transparent;
+            background: #fff;
             border: 0.5px solid rgba(0,0,0,0.18);
-            border-radius: 0;
+            border-radius: 50%;
             cursor: pointer;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 0;
             margin: 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.06);
         }
 
         .hamburger-icon {
@@ -373,29 +337,15 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
         }
 
-        .mobile-sidebar-toggle.is-active {
-            background: rgba(13,13,13,0.85);
-            border-color: rgba(255,255,255,0.15);
-        }
-        .mobile-sidebar-toggle.is-active .hamburger-icon span {
-            background: #ffffff;
-        }
+        .mobile-sidebar-toggle.is-active { background: rgba(13,13,13,0.85); border-color: rgba(255,255,255,0.15); }
+        .mobile-sidebar-toggle.is-active .hamburger-icon span { background: #ffffff; }
         .hamburger-icon span:nth-child(1) { width: 18px; }
         .hamburger-icon span:nth-child(2) { width: 12px; }
         .hamburger-icon span:nth-child(3) { width: 15px; }
 
-        .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(1) {
-            width: 18px;
-            transform: translateY(6px) rotate(45deg);
-        }
-        .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(2) {
-            opacity: 0;
-            transform: scaleX(0);
-        }
-        .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(3) {
-            width: 18px;
-            transform: translateY(-6px) rotate(-45deg);
-        }
+        .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(1) { width: 18px; transform: translateY(6px) rotate(45deg); }
+        .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(3) { width: 18px; transform: translateY(-6px) rotate(-45deg); }
 
         /* ── SIDEBAR OVERLAY ── */
         .sidebar-overlay {
@@ -434,23 +384,13 @@
             .mobile-sidebar-toggle { display: flex; }
             .mobile-drawer { display: flex; }
             .desktop-sidebar { display: none !important; }
-
-            .profile-header {
-                width: 100%;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-            }
-
+            .profile-header { width: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; }
             .user-contact { flex-direction: column; align-items: center; justify-content: center; }
-
-            /* trash icon always visible on mobile */
             .avatar-remove-overlay { opacity: 1; }
         }
 
         @media (min-width: 768px) {
-            .container { padding: 64px 48px; }
+            .profile-container { padding: 64px 48px; }
             .avatar { width: 80px; height: 80px; }
             .user-name { font-size: 48px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
@@ -458,7 +398,7 @@
         }
 
         @media (min-width: 1200px) {
-            .container { padding: 80px 64px; }
+            .profile-container { padding: 80px 64px; }
             .layout-grid { grid-template-columns: 6fr 4fr; gap: 120px; align-items: start; }
             .right-panel { position: sticky; top: 80px; }
         }
@@ -470,63 +410,10 @@
             .mobile-drawer { display: none !important; }
             .sidebar-overlay { display: none !important; }
         }
-
-        /* ─── Inline Toast ─── */
-        .inline-toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 320px;
-            max-width: 90vw;
-            background: #000;
-            color: #fff;
-            padding: 0;
-            border-radius: 2px;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            opacity: 0;
-            transform: translateX(30px);
-            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-            z-index: 99999;
-            pointer-events: none;
-        }
-        .inline-toast.show {
-            opacity: 1;
-            transform: translateX(0);
-            pointer-events: auto;
-        }
-        .toast-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            width: 100%;
-        }
-        .toast-left-content { display: flex; align-items: center; gap: 14px; }
-        .toast-icon-circle {
-            width: 24px; height: 24px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px; flex-shrink: 0;
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff; background: transparent;
-        }
-        .toast-message-wrapper { display: flex; flex-direction: column; }
-        .toast-main-text {
-            font-size: 12px; font-weight: 700;
-            text-transform: uppercase; letter-spacing: 0.1em;
-            line-height: 1.2;
-        }
-        .toast-sub-text { font-size: 10px; opacity: 0.6; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .toast-close-btn {
-            cursor: pointer; font-size: 14px; opacity: 0.4;
-            transition: opacity 0.2s; padding: 4px; line-height: 1;
-        }
-        .toast-close-btn:hover { opacity: 1; }
     </style>
-</head>
-<body>
+{% endblock %}
 
+{% block content %}
     <!-- HAMBURGER -->
     <button class="mobile-sidebar-toggle" id="drawerToggle" aria-label="Toggle Menu">
         <div class="hamburger-icon">
@@ -557,7 +444,6 @@
     <div class="edit-drawer-overlay" id="editDrawerOverlay"></div>
     <div class="edit-drawer" id="editDrawer">
         <div class="edit-drawer-inner">
-            <!-- FIX 1: X close button added to drawer head -->
             <div class="edit-drawer-head">
                 <span class="label">Edit Profile</span>
                 <button class="drawer-close-btn" id="editDrawerCloseBtn" aria-label="Close">
@@ -591,7 +477,6 @@
     <div class="edit-drawer-overlay" id="pwdDrawerOverlay"></div>
     <div class="edit-drawer" id="pwdDrawer">
         <div class="edit-drawer-inner">
-            <!-- FIX 1: X close button added to password drawer head -->
             <div class="edit-drawer-head">
                 <span class="label">Change Password</span>
                 <button class="drawer-close-btn" id="pwdDrawerCloseBtn" aria-label="Close">
@@ -621,7 +506,7 @@
     </div>
     {% endif %}
 
-    <div class="page-wrapper">
+    <div class="profile-page-wrapper">
 
         <!-- Desktop Sidebar -->
         <aside class="desktop-sidebar">
@@ -649,16 +534,19 @@
                 </a>
             </nav>
             <div class="sidebar-logout">
-                <a href="{% url 'logout-user' %}" class="sidebar-nav-item">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                    Logout
-                </a>
+                <form action="{% url 'logout-user' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="sidebar-nav-item w-full text-left bg-transparent border-none cursor-pointer">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                        Logout
+                    </button>
+                </form>
             </div>
         </aside>
 
         <!-- Main Content -->
-        <div class="main-content">
-            <div class="container">
+        <div class="profile-main-content">
+            <div class="profile-container">
                 <div class="layout-grid">
 
                     <!-- Left Panel -->
@@ -673,7 +561,6 @@
                                      alt="{{ user.username }}"
                                      class="avatar">
 
-                                <!-- FIX 2: Upload spinner overlay (shown during upload) -->
                                 <div class="avatar-upload-spinner" id="avatarSpinner">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                                         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
@@ -692,7 +579,6 @@
                                 </div>
                                 {% endif %}
 
-                                <!-- FIX 3: Badge is last child so it renders above the avatar clip -->
                                 <div class="member-badge">MEMBER SINCE {{ user.date_joined|date:"M Y"|upper }}</div>
                             </div>
 
@@ -769,8 +655,6 @@
                             {% endif %}
                         </div>
 
-                        <!-- Logout -->
-
                     </div><!-- End Left Panel -->
 
                     <!-- Right Panel -->
@@ -798,19 +682,19 @@
                             <div class="stat-card">
                                 <div class="stat-icon-wrap">
                                     <div class="label">Wallet</div>
-                                    <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                                    <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
                                 </div>
-                                <div class="stat-value display-text">₹{{ wallet_balance|floatformat:2 }}</div>
-                                <a href="#" class="stat-action">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                                <div class="stat-value display-text">₹{{ wallet_balance }}</div>
+                                <a href="{% url 'wallet' %}" class="stat-action">Reload <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
                             </div>
 
                             <div class="stat-card">
                                 <div class="stat-icon-wrap">
-                                    <div class="label">Saved Addresses</div>
+                                    <div class="label">Address</div>
                                     <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
                                 </div>
                                 <div class="stat-value display-text">{{ address_count }}</div>
-                                <a href="{% url 'user-address' %}" class="stat-action">Add <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                                <a href="{% url 'user-address' %}" class="stat-action">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
                             </div>
 
                         </div>
@@ -823,187 +707,163 @@
     </div><!-- End Page Wrapper -->
 
     <script>
-    document.addEventListener("DOMContentLoaded", () => {
+        document.addEventListener('DOMContentLoaded', function () {
+            const editBtn = document.getElementById('editProfileBtn');
+            const editDrawer = document.getElementById('editDrawer');
+            const editOverlay = document.getElementById('editDrawerOverlay');
+            const editClose = document.getElementById('editDrawerCloseBtn');
 
-        function getCookie(name) {
-            const m = document.cookie.match('(?:^|;)\\s*' + name + '=([^;]*)');
-            return m ? decodeURIComponent(m[1]) : null;
-        }
+            const pwdBtn = document.getElementById('changePasswordBtn');
+            const pwdDrawer = document.getElementById('pwdDrawer');
+            const pwdOverlay = document.getElementById('pwdDrawerOverlay');
+            const pwdClose = document.getElementById('pwdDrawerCloseBtn');
 
-        function showProfileToast(msg, type) {
-            let el = document.getElementById('djangoToast');
-            if (!el) {
-                el = document.createElement('div');
-                el.id = 'djangoToast';
-                el.className = 'inline-toast';
-                document.body.appendChild(el);
+            function toggleDrawer(drawer, overlay, show) {
+                if (show) {
+                    drawer.classList.add('active');
+                    overlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    drawer.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
             }
-            el.innerHTML = `<div class="toast-item">
-                <div class="toast-left-content">
-                    <div class="toast-icon-circle">${type === 'error' ? '✕' : '✓'}</div>
-                    <div class="toast-message-wrapper">
-                        <span class="toast-main-text">${msg}</span>
-                        <span class="toast-sub-text">Notification</span>
-                    </div>
-                </div>
-                <div class="toast-close-btn" onclick="this.closest('.inline-toast').classList.remove('show')">✕</div>
-            </div>`;
-            el.classList.add('show');
-            setTimeout(() => el.classList.remove('show'), 3000);
-        }
 
-        /* Wallet / progress animations */
-        const walletCard = document.querySelector('.wallet-card');
-        const targetBalance = walletCard ? parseFloat(walletCard.dataset.balance || 0) : 0;
-        const targetPercent = walletCard ? parseInt(walletCard.dataset.percent || 0) : 0;
+            if (editBtn) editBtn.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, true));
+            if (editOverlay) editOverlay.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, false));
+            if (editClose) editClose.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, false));
 
-        const progressFill   = document.getElementById('progress-fill');
-        const progressText   = document.getElementById('progress-percent');
-        const progressFooter = document.getElementById('progress-footer');
-        const balanceText    = document.getElementById('wallet-balance');
+            if (pwdBtn) pwdBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                toggleDrawer(pwdDrawer, pwdOverlay, true);
+            });
+            if (pwdOverlay) pwdOverlay.addEventListener('click', () => toggleDrawer(pwdDrawer, pwdOverlay, false));
+            if (pwdClose) pwdClose.addEventListener('click', () => toggleDrawer(pwdDrawer, pwdOverlay, false));
 
-        if (progressFooter) progressFooter.textContent = `${Math.round(targetPercent)}% complete`;
-        setTimeout(() => { if (progressFill) progressFill.style.width = targetPercent + '%'; }, 50);
+            // Mobile sidebar toggle
+            const drawerToggle = document.getElementById('drawerToggle');
+            const mobileDrawer = document.getElementById('mobileDrawer');
+            const drawerOverlay = document.getElementById('drawerOverlay');
 
-        let tsP = null;
-        const animPercent = ts => {
-            if (!tsP) tsP = ts;
-            const p = Math.min((ts - tsP) / 1000, 1);
-            const e = 1 - Math.pow(1 - p, 3);
-            if (progressText) progressText.textContent = Math.floor(e * targetPercent) + '%';
-            if (p < 1) requestAnimationFrame(animPercent);
-            else if (progressText) progressText.textContent = targetPercent + '%';
-        };
-        requestAnimationFrame(animPercent);
-
-        let tsB = null;
-        const animBalance = ts => {
-            if (!tsB) tsB = ts;
-            const p = Math.min((ts - tsB) / 1200, 1);
-            const e = 1 - Math.pow(1 - p, 3);
-            const v = e * targetBalance;
-            if (balanceText) balanceText.textContent = '\u20b9' + v.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
-            if (p < 1) requestAnimationFrame(animBalance);
-            else if (balanceText) balanceText.textContent = '\u20b9' + targetBalance.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
-        };
-        requestAnimationFrame(animBalance);
-
-        /* Hamburger / Nav Drawer */
-        const hamburgerBtn = document.getElementById('drawerToggle');
-        const mobileDrawer = document.getElementById('mobileDrawer');
-        const drawerOverlay = document.getElementById('drawerOverlay');
-
-        const toggleNavDrawer = open => {
-            const isOpen = typeof open === 'boolean' ? open : !mobileDrawer.classList.contains('is-active');
-            hamburgerBtn.classList.toggle('is-active', isOpen);
-            mobileDrawer.classList.toggle('is-active', isOpen);
-            drawerOverlay.classList.toggle('is-active', isOpen);
-            document.body.style.overflow = isOpen ? 'hidden' : '';
-        };
-
-        if (hamburgerBtn) hamburgerBtn.addEventListener('click', () => toggleNavDrawer());
-        if (drawerOverlay) drawerOverlay.addEventListener('click', () => toggleNavDrawer(false));
-        document.addEventListener('keydown', e => { if (e.key === 'Escape') toggleNavDrawer(false); });
-
-        /* Edit Profile Drawer */
-        const editBtn          = document.getElementById('editProfileBtn');
-        const editDrawer       = document.getElementById('editDrawer');
-        const editOverlay      = document.getElementById('editDrawerOverlay');
-        const editDrawerClose  = document.getElementById('editDrawerCloseBtn');
-
-        const openEdit  = () => { editDrawer.classList.add('active'); editOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
-        const closeEdit = () => { editDrawer.classList.remove('active'); editOverlay.classList.remove('active'); document.body.style.overflow = ''; };
-
-        if (editBtn)         editBtn.addEventListener('click', openEdit);
-        if (editOverlay)     editOverlay.addEventListener('click', closeEdit);
-        if (editDrawerClose) editDrawerClose.addEventListener('click', closeEdit);
-
-        /* Change Password Drawer */
-        const pwdBtn      = document.getElementById('changePasswordBtn');
-        const pwdDrawer   = document.getElementById('pwdDrawer');
-        const pwdOverlay  = document.getElementById('pwdDrawerOverlay');
-        const pwdClose    = document.getElementById('pwdDrawerCloseBtn');
-
-        if (pwdBtn && pwdDrawer) {
-            const openPwd  = e => { e.preventDefault(); pwdDrawer.classList.add('active'); if (pwdOverlay) pwdOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; };
-            const closePwd = () => { pwdDrawer.classList.remove('active'); if (pwdOverlay) pwdOverlay.classList.remove('active'); document.body.style.overflow = ''; };
-
-            pwdBtn.addEventListener('click', openPwd);
-            if (pwdOverlay) pwdOverlay.addEventListener('click', closePwd);
-            if (pwdClose)   pwdClose.addEventListener('click', closePwd);
-        }
-
-        /* FIX 2: Photo Upload with spinner */
-        const photoInput  = document.getElementById('photoFileInput');
-        const avatarImg   = document.getElementById('profileAvatar');
-        const avatarSpinner = document.getElementById('avatarSpinner');
-        const addPhotoBtn = document.getElementById('addPhotoBtn');
-
-        if (photoInput && avatarImg) {
-            photoInput.addEventListener('change', () => {
-                const file = photoInput.files[0];
-                if (!file) return;
-                const fd = new FormData();
-                fd.append('profile_photo', file);
-
-                // Show spinner
-                if (avatarSpinner) avatarSpinner.classList.add('active');
-
-                fetch(`/add-profile-pic/{{ user.id }}/`, {
-                    method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') },
-                    body: fd
-                })
-                .then(r => { if (!r.ok) throw new Error(); return r.json(); })
-                .then(data => {
-                    avatarImg.src = data.image_url;
-                    if (avatarSpinner) avatarSpinner.classList.remove('active');
-                    if (addPhotoBtn) addPhotoBtn.style.display = 'none';
-                    showProfileToast('Photo updated', 'success');
-                    // Inject trash icon overlay if not already present
-                    let overlay = document.getElementById('avatarRemoveOverlay');
-                    if (!overlay) {
-                        overlay = document.createElement('div');
-                        overlay.className = 'avatar-remove-overlay';
-                        overlay.id = 'avatarRemoveOverlay';
-                        overlay.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px;color:#fff;">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                            <path d="M10 11v6"></path><path d="M14 11v6"></path>
-                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
-                        </svg>`;
-                        document.getElementById('avatarWrapper').appendChild(overlay);
-                        bindRemoveBtn();
+            if (drawerToggle) {
+                drawerToggle.addEventListener('click', function () {
+                    this.classList.toggle('is-active');
+                    mobileDrawer.classList.toggle('is-active');
+                    drawerOverlay.classList.toggle('is-active');
+                    if (mobileDrawer.classList.contains('is-active')) {
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        document.body.style.overflow = '';
                     }
-                })
-                .catch(() => {
-                    if (avatarSpinner) avatarSpinner.classList.remove('active');
-                    showProfileToast('Upload failed. Try again.', 'error');
                 });
-            });
-        }
+            }
 
-        /* Bind trash icon click to delete photo */
-        function bindRemoveBtn() {
-            const overlay = document.getElementById('avatarRemoveOverlay');
-            if (!overlay) return;
-            overlay.addEventListener('click', () => {
-                fetch(`/delete-profile-pic/{{ user.id }}/`, {
-                    method: 'GET',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                }).then(() => window.location.reload());
-            });
-        }
-        bindRemoveBtn();
+            if (drawerOverlay) {
+                drawerOverlay.addEventListener('click', function () {
+                    drawerToggle.classList.remove('is-active');
+                    mobileDrawer.classList.remove('is-active');
+                    this.classList.remove('is-active');
+                    document.body.style.overflow = '';
+                });
+            }
 
-        /* Render Django messages as toasts */
-        {% if messages %}
-            {% for message in messages %}
-                showProfileToast("{{ message|escapejs }}", "{% if message.tags == 'error' %}error{% else %}success{% endif %}");
-            {% endfor %}
-        {% endif %}
-    });
+            // Wallet Counter & Progress Animation
+            const walletCard = document.querySelector('.wallet-card');
+            if (walletCard) {
+                const targetBalance = parseFloat(walletCard.getAttribute('data-balance')) || 0;
+                const targetPercent = parseInt(walletCard.getAttribute('data-percent')) || 0;
+
+                setTimeout(() => {
+                    animateValue("wallet-balance", 0, targetBalance, 1500, true);
+                    animateValue("progress-percent", 0, targetPercent, 1500, false, "%");
+                    const fill = document.getElementById('progress-fill');
+                    if (fill) fill.style.width = targetPercent + "%";
+
+                    const footer = document.getElementById('progress-footer');
+                    if (footer) {
+                        if (targetPercent < 100) {
+                            footer.textContent = "Complete your profile to unlock premium features.";
+                        } else {
+                            footer.textContent = "Your profile is fully optimized.";
+                        }
+                    }
+                }, 400);
+            }
+
+            function animateValue(id, start, end, duration, isCurrency, suffix = "") {
+                const obj = document.getElementById(id);
+                if (!obj) return;
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const current = progress * (end - start) + start;
+                    if (isCurrency) {
+                        obj.innerHTML = "₹" + current.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    } else {
+                        obj.innerHTML = Math.floor(current) + suffix;
+                    }
+                    if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                    }
+                };
+                window.requestAnimationFrame(step);
+            }
+
+            // Photo Upload
+            const fileInput = document.getElementById('photoFileInput');
+            const avatarImg = document.getElementById('profileAvatar');
+            const spinner = document.getElementById('avatarSpinner');
+
+            if (fileInput) {
+                fileInput.addEventListener('change', function () {
+                    const file = this.files[0];
+                    if (!file) return;
+
+                    const formData = new FormData();
+                    formData.append('profile_photo', file);
+
+                    if (spinner) spinner.classList.add('active');
+
+                    fetch("{% url 'add-profile-pic' user.id %}", {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.image_url) {
+                            if (avatarImg) avatarImg.src = data.image_url;
+                            window.location.reload(); // Reload to update all instances
+                        } else {
+                            alert(data.error || "Upload failed");
+                        }
+                    })
+                    .catch(err => console.error(err))
+                    .finally(() => {
+                        if (spinner) spinner.classList.remove('active');
+                    });
+                });
+            }
+
+            // Delete Photo
+            const removeOverlay = document.getElementById('avatarRemoveOverlay');
+            if (removeOverlay) {
+                removeOverlay.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!confirm("Remove profile photo?")) return;
+
+                    fetch("{% url 'delete-profile-pic' user.id %}", {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    }).then(() => window.location.reload());
+                });
+            }
+
+        });
     </script>
-
-</body>
-</html>
+{% endblock %}
