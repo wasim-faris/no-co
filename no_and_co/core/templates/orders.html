@@ -152,10 +152,7 @@
 
         /* Order Card Styling */
         .order-card { background: #fff; border: 1px solid #000; margin-bottom: 24px; transition: all 0.3s ease; }
-        @media (min-width: 1024px) {
-            .order-card { border: 0.5px solid var(--border-color); }
-        }
-        .order-card:hover { border-color: var(--primary); box-shadow: 0 12px 24px rgba(0,0,0,0.03); }
+        .order-card:hover { box-shadow: 0 12px 24px rgba(0,0,0,0.03); }
         .order-card-top { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-bottom: 0.5px solid var(--border-color); background: #fbfbfb; }
         .order-id-value { font-size: 13px; font-weight: 500; color: var(--primary); letter-spacing: 0.05em; }
         .order-date { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
@@ -178,7 +175,7 @@
 
         .order-arrow { 
             width: 44px; height: 44px; border: 1px solid #000; 
-            background: #000; color: #fff; 
+            background: #fff; color: #000; 
             display: flex; align-items: center; justify-content: center; 
             cursor: pointer; transition: all 0.3s ease; text-decoration: none; 
         }
