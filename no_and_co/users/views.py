@@ -52,6 +52,8 @@ def user_profile(request, id):
 
     from accounts.models import ReferralRecord
     from wallet.models import Wallet
+    from core.models import Order
+    from wishlist.models import Wishlist
 
     referrals = ReferralRecord.objects.filter(referrer=user).order_by('-created_at')
     total_referrals = referrals.count()
@@ -59,6 +61,10 @@ def user_profile(request, id):
 
     wallet, _ = Wallet.objects.get_or_create(user=user)
     wallet_balance = wallet.balance
+
+    order_count = Order.objects.filter(user=user).count()
+    wishlist_count = Wishlist.objects.filter(user=user).count()
+    address_count = Addresses.objects.filter(user=user).count()
 
     return render(
         request,
@@ -72,6 +78,9 @@ def user_profile(request, id):
             "total_referrals": total_referrals,
             "total_rewards": total_rewards,
             "wallet_balance": wallet_balance,
+            "order_count": order_count,
+            "wishlist_count": wishlist_count,
+            "address_count": address_count,
         },
     )
 
