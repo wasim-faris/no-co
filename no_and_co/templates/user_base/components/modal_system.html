@@ -9,26 +9,30 @@
         top: 0; left: 0; width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.4);
         backdrop-filter: blur(4px);
-        z-index: 10000;
+        z-index: 9998; /* Hierarchy Step 1 */
         visibility: hidden;
         opacity: 0;
-        transition: all 0.3s ease;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+        pointer-events: none;
+        will-change: opacity;
     }
     .uni-modal-overlay.active {
         visibility: visible;
         opacity: 1;
+        pointer-events: auto;
     }
 
     /* 2. Modal Base (Desktop Default: Centered) */
     .uni-modal {
         position: fixed;
-        z-index: 10001;
+        z-index: 9999; /* Hierarchy Step 2 */
         background: #fff;
         display: flex;
         flex-direction: column;
-        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.3s ease;
         box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         border: 0.5px solid rgba(0,0,0,0.1);
+        will-change: transform;
     }
 
     /* Desktop Viewports (> 768px) */
@@ -71,20 +75,32 @@
             top: auto !important;
             right: 0 !important;
             left: 0 !important;
-            bottom: -100% !important;
+            bottom: 0 !important;
             width: 100% !important;
             max-width: 100% !important;
             height: auto !important;
             max-height: 85vh !important;
             border-radius: 16px 16px 0 0 !important;
-            transform: none !important;
+            
+            /* Animation Fix: Use translate for GPU acceleration */
+            transform: translateY(100%) !important; 
             visibility: visible !important;
             opacity: 1 !important;
             border: none;
             box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
+            
+            /* Performance: Short duration, specific properties */
+            transition: transform 0.28s cubic-bezier(0.32, 1, 0.23, 1) !important;
         }
+        
         .uni-modal.active {
-            bottom: 0 !important;
+            transform: translateY(0) !important;
+        }
+
+        /* Mobile Performance: Opt-out of heavy effects if needed */
+        .uni-modal-overlay {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
         }
     }
 
@@ -117,13 +133,23 @@
         font-size: 24px;
         line-height: 1;
         cursor: pointer;
-        padding: 8px;
+        padding: 12px; /* Larger hit area */
         color: #000;
+        z-index: 10000; /* Hierarchy Step 3: Highest */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.2s;
     }
+    .uni-modal-close:active {
+        opacity: 0.5;
+    }
+    
     .uni-modal-body {
         padding: 24px;
         overflow-y: auto;
         flex: 1;
+        -webkit-overflow-scrolling: touch; /* iOS scroll fix */
     }
     .uni-modal-subtitle {
         font-family: 'Inter', sans-serif;
@@ -174,10 +200,51 @@
         border-color: #000;
     }
 
-    /* Stack buttons vertically on mobile always as per request */
+    /* Stack buttons vertically on mobile always */
     @media (max-width: 768px) {
         .uni-modal-footer {
             flex-direction: column; 
         }
     }
 </style>
+
+<script>
+    /**
+     * UNIFIED MODAL INTERACTIONS
+     * Handles global behaviors like "Click Outside to Close"
+     */
+    document.addEventListener('click', function(e) {
+        // 1. CLICK OUTSIDE TO CLOSE
+        if (e.target.classList.contains('uni-modal-overlay')) {
+            const overlay = e.target;
+            
+            // Search for active modals
+            const activeModal = document.querySelector('.uni-modal.active');
+
+            if (activeModal) {
+                // Look for the page's specific close function if it exists
+                // We try to trigger the existing close UI buttons to ensure logic (like overflow reset) is preserved
+                const closeBtn = activeModal.querySelector('.uni-modal-close') || activeModal.querySelector('.uni-modal-btn-secondary');
+                if (closeBtn) {
+                    closeBtn.click();
+                } else {
+                    // Force close if no button found
+                    activeModal.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+    });
+
+    // Handle global escape key just in case it's missing in some templates
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const activeModal = document.querySelector('.uni-modal.active');
+            if (activeModal) {
+                const closeBtn = activeModal.querySelector('.uni-modal-close') || activeModal.querySelector('.uni-modal-btn-secondary');
+                if (closeBtn) closeBtn.click();
+            }
+        }
+    });
+</script>
