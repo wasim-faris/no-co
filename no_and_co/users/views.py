@@ -411,6 +411,14 @@ def address(request):
             Addresses.objects.filter(user=user, is_default=True).update(
                 is_default=False
             )
+        else:
+            # If no addresses exist, this must be the default
+            if not Addresses.objects.filter(user=user).exists():
+                is_default = True
+            # If addresses exist but none is default (safety check)
+            elif not Addresses.objects.filter(user=user, is_default=True).exists():
+                is_default = True
+
 
         Addresses.objects.create(
             user=user,
@@ -448,9 +456,19 @@ def address(request):
 
 def delete_address(request, id):
     address = get_object_or_404(Addresses, id=id, user=request.user)
+    was_default = address.is_default
     address.delete()
+
+    if was_default:
+        remaining_addresses = Addresses.objects.filter(user=request.user)
+        if remaining_addresses.exists():
+            new_default = remaining_addresses.first()
+            new_default.is_default = True
+            new_default.save()
+
     messages.success(request, "Address deleted successfully.")
     return redirect("address")
+
 
 
 def edit_address(request, id):
@@ -517,12 +535,30 @@ def edit_address(request, id):
             print(f"PIN API unavailable (edit): {e}")
 
         if is_default:
-            Addresses.objects.filter(user=request.user).exclude(id=id).update(
-                is_default=False
-            )
+            # Set all other addresses to not default
+            Addresses.objects.filter(user=request.user, is_default=True).update(is_default=False)
             address.is_default = True
         else:
-            address.is_default = False
+            # If we are unsetting default, check if any other is default
+            other_default = Addresses.objects.filter(user=request.user, is_default=True).exclude(id=id).exists()
+            if not other_default:
+                # If this was default and we have other addresses, pick a new one
+                if address.is_default:
+                    remaining = Addresses.objects.filter(user=request.user).exclude(id=id)
+                    if remaining.exists():
+                        address.is_default = False
+                        new_def = remaining.first()
+                        new_def.is_default = True
+                        new_def.save()
+                    else:
+                        # Only one address, must stay default
+                        address.is_default = True
+                else:
+                    # No default exists at all, this must be it
+                    address.is_default = True
+            else:
+                address.is_default = False
+
 
         address.first_name = first_name
         address.last_name = last_name

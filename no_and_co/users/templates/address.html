@@ -179,25 +179,11 @@
     .spinner { width: 14px; height: 14px; border: 1.5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── TOAST ── */
-    #toast-container { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 100000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-    .custom-pill-toast { width: max-content; max-width: 90vw; padding: 12px 24px; border-radius: 4px; display: flex; align-items: center; box-shadow: 0 12px 24px rgba(0,0,0,0.12); opacity: 0; transform: translateY(-20px); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: auto; background: var(--primary); color: #fff; font-family: var(--font-ui); }
-    .custom-pill-toast.show { opacity: 1; transform: translateY(0); }
-    .toast-left-content { display: flex; align-items: center; gap: 12px; }
-    .toast-icon-circle { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; background: rgba(255,255,255,0.1); }
-    .toast-success .toast-icon-circle { color: #4ade80; }
-    .toast-error .toast-icon-circle { color: #f87171; }
-    .toast-message-wrapper { display: flex; flex-direction: column; margin-right: 16px; }
-    .toast-main-text { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; }
-    .toast-close-btn { cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 4px; }
-    .toast-close-btn:hover { opacity: 1; }
 
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- Toast -->
-<div id="toast-container"></div>
 
 {% include 'user_base/components/mobile_drawer.html' %}
 
@@ -488,9 +474,6 @@
     </div>
 </div>
 
-<script id="django-messages" type="application/json">
-[{% if messages %}{% for message in messages %}{"message":"{{ message|escapejs }}","tags":"{{ message.tags }}"}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}]
-</script>
 
 <script>
 /* ── Country cache ── */
@@ -761,35 +744,12 @@ function closeEditModal() {
 function confirmDelete(id) { const o = document.getElementById(`delete-overlay-${id}`); if (o) o.classList.add('visible'); }
 function cancelDelete(id)  { const o = document.getElementById(`delete-overlay-${id}`); if (o) o.classList.remove('visible'); }
 
-/* ── Toast ── */
-function showPillToast(message, tag) {
-    const container = document.getElementById('toast-container');
-    if (!container) return;
-    const isError = tag && tag.includes('error');
-    const toast = document.createElement('div');
-    toast.className = `custom-pill-toast ${isError ? 'toast-error' : 'toast-success'}`;
-    toast.innerHTML = `
-        <div class="toast-left-content">
-            <div class="toast-icon-circle">${isError ? '✕' : '✓'}</div>
-            <div class="toast-message-wrapper">
-                <div class="toast-main-text">${message}</div>
-            </div>
-        </div>
-        <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>`;
-    container.appendChild(toast);
-    setTimeout(() => toast.classList.add('show'), 10);
-    setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 4000);
-}
 
 /* ── DOMContentLoaded ── */
 document.addEventListener('DOMContentLoaded', function () {
     fetchCountries();
     ensureEditErrorSpans();
 
-    try {
-        const msgs = JSON.parse(document.getElementById('django-messages').textContent || '[]');
-        msgs.forEach(m => showPillToast(m.message, m.tags));
-    } catch (e) {}
 
     /* ADD — PIN */
     const addPin = document.getElementById('f-postal');
