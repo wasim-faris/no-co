@@ -134,25 +134,15 @@
 
     /* ─── Status badge ───────────────────────────────────────── */
     .status-badge {
-        font-family: 'Basteleur', serif !important;
-        font-size: 8px; font-weight: 700; text-transform: uppercase;
-        letter-spacing: 0.18em; padding: 5px 12px; border: 1px solid;
-        display: inline-flex; align-items: center; gap: 7px;
-        -webkit-text-stroke: 0.1px currentColor;
-        text-shadow: 0.2px 0 currentColor;
+        font-family: inherit;
+        font-size: 9px;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: #111111;
+        display: inline-flex;
+        align-items: center;
     }
-    .status-badge::before {
-        content: ''; width: 4px; height: 4px; border-radius: 50%;
-        background: currentColor; flex-shrink: 0;
-    }
-    .badge-pending           { color: #92400E; border-color: #FDE68A; background: #FFFBEB; }
-    .badge-delivered         { color: #14532D; border-color: #BBF7D0; background: #F0FDF4; }
-    .badge-cancelled         { color: #7F1D1D; border-color: #FECACA; background: #FEF2F2; }
-    .badge-return-requested   { color: #C2410C; border-color: #FFEDD5; background: #FFF7ED; }
-    .badge-return-approved    { color: #854D0E; border-color: #FEF3C7; background: #FFFBEB; }
-    .badge-return-completed   { color: #065F46; border-color: #A7F3D0; background: #ECFDF5; }
-    .badge-return-rejected    { color: #991B1B; border-color: #FECACA; background: #FEF2F2; }
-    .badge-refunded          { color: #0F766E; border-color: #99F6E4; background: #F0FDFA; }
 
     /* ─── Detail layout ──────────────────────────────────────── */
     .detail-grid { display: grid; grid-template-columns: 1fr 320px; gap: 24px; }
@@ -435,40 +425,40 @@
                         {% with return_request=order.returns.first %}
                             {% if return_request %}
                                 {% if return_request.status == "REFUNDED" %}
-                                    <span class="status-badge badge-refunded" id="order-status-badge">Refund Completed</span>
+                                    <span class="status-badge" id="order-status-badge">Status: Refund Completed</span>
                                 {% elif return_request.status == "REFUND_INITIATED" %}
-                                    <span class="status-badge" style="color: #1e40af; border-color: #bfdbfe; background: #eff6ff;" id="order-status-badge">Refund Initiated</span>
+                                    <span class="status-badge" id="order-status-badge">Status: Refund Initiated</span>
                                 {% elif return_request.status == "INSPECTED" %}
-                                    <span class="status-badge" style="color: #4338ca; border-color: #e0e7ff; background: #f5f3ff;" id="order-status-badge">Return Inspected</span>
+                                    <span class="status-badge" id="order-status-badge">Status: Return Inspected</span>
                                 {% elif return_request.status == "RECEIVED" %}
-                                    <span class="status-badge" style="color: #3730a3; border-color: #e0e7ff; background: #eef2ff;" id="order-status-badge">Return Received</span>
+                                    <span class="status-badge" id="order-status-badge">Status: Return Received</span>
                                 {% elif return_request.status == "PICKED_UP" %}
-                                    <span class="status-badge" style="color: #854d0e; border-color: #fef3c7; background: #fffbeb;" id="order-status-badge">Return Picked Up</span>
+                                    <span class="status-badge" id="order-status-badge">Status: Return Picked Up</span>
                                 {% elif return_request.status == "PICKUP_SCHEDULED" %}
-                                    <span class="status-badge" style="color: #1e40af; border-color: #bfdbfe; background: #eff6ff;" id="order-status-badge">Pickup Scheduled</span>
+                                    <span class="status-badge" id="order-status-badge">Status: Pickup Scheduled</span>
                                 {% elif return_request.status == "APPROVED" %}
-                                    <span class="status-badge badge-return-approved" id="order-status-badge">Return Approved</span>
+                                    <span class="status-badge" id="order-status-badge">Status: Return Approved</span>
                                 {% elif return_request.status == "REJECTED" %}
-                                    <span class="status-badge badge-return-rejected" id="order-status-badge">Return Rejected</span>
+                                    <span class="status-badge" id="order-status-badge">Status: Return Rejected</span>
                                 {% elif return_request.status == "REQUESTED" %}
-                                    <span class="status-badge badge-return-requested" id="order-status-badge">Return Requested</span>
+                                    <span class="status-badge" id="order-status-badge">Status: Return Requested</span>
                                 {% endif %}
                             {% else %}
                                 {% with status=order.status %}
                                     {% if status == 'DELIVERED' or order.delivered_date %}
-                                        <span class="status-badge badge-delivered" id="order-status-badge">Delivered</span>
+                                        <span class="status-badge" id="order-status-badge">Status: Delivered</span>
                                     {% elif status == 'SHIPPED' %}
-                                        <span class="status-badge" style="color: #1a3a3a; border-color: #bee5eb; background: #e3f2fd;" id="order-status-badge">Shipped</span>
+                                        <span class="status-badge" id="order-status-badge">Status: Shipped</span>
                                     {% elif status == 'OUT_FOR_DELIVERY' %}
-                                        <span class="status-badge" style="color: #065F46; border-color: #A7F3D0; background: #ECFDF5;" id="order-status-badge">Out for Delivery</span>
+                                        <span class="status-badge" id="order-status-badge">Status: Out for Delivery</span>
                                     {% elif status == 'CANCELLED' %}
-                                        <span class="status-badge badge-cancelled" id="order-status-badge">Cancelled</span>
+                                        <span class="status-badge" id="order-status-badge">Status: Cancelled</span>
                                     {% elif status == 'PARTIAL_CANCELLED' %}
-                                        <span class="status-badge" style="color: #92400E; border-color: #FDE68A; background: #FFFBEB;" id="order-status-badge">Partial Cancelled</span>
+                                        <span class="status-badge" id="order-status-badge">Status: Partial Cancelled</span>
                                     {% elif status == 'RETURN_COMPLETED' %}
-                                        <span class="status-badge badge-return-completed" id="order-status-badge">Return Completed</span>
+                                        <span class="status-badge" id="order-status-badge">Status: Return Completed</span>
                                     {% else %}
-                                        <span class="status-badge badge-pending" id="order-status-badge">{{ order.get_status_display|default:"Order Placed" }}</span>
+                                        <span class="status-badge" id="order-status-badge">Status: {{ order.get_status_display|default:"Order Placed" }}</span>
                                     {% endif %}
                                 {% endwith %}
                             {% endif %}
@@ -507,25 +497,25 @@
                                     {% with return_request=item.returns.first %}
                                         {% if return_request %}
                                             {% if return_request.status == "REFUNDED" %}
-                                                <span style="color: #155724; font-weight: 500;">Refunded</span>
+                                                <span class="prod-meta" style="color: #111;">Status: Refunded</span>
                                             {% elif return_request.status == "REFUND_INITIATED" %}
-                                                <span style="color: #004085;">Refund Initiated</span>
+                                                <span class="prod-meta" style="color: #111;">Status: Refund Initiated</span>
                                             {% elif return_request.status == "INSPECTED" %}
-                                                <span style="color: #383d41;">Item Inspected</span>
+                                                <span class="prod-meta" style="color: #111;">Status: Item Inspected</span>
                                             {% elif return_request.status == "RECEIVED" %}
-                                                <span style="color: #383d41;">Item Received</span>
+                                                <span class="prod-meta" style="color: #111;">Status: Item Received</span>
                                             {% elif return_request.status == "APPROVED" %}
-                                                <span style="color: #856404; font-weight: 600;">Return Approved</span>
+                                                <span class="prod-meta" style="color: #111;">Status: Return Approved</span>
                                             {% elif return_request.status == "REQUESTED" %}
-                                                <span style="color: #0c5460;">Return Requested</span>
+                                                <span class="prod-meta" style="color: #111;">Status: Return Requested</span>
                                             {% elif return_request.status == "REJECTED" %}
-                                                <span style="color: #7F1D1D; font-weight: 600;">Return Rejected</span>
+                                                <span class="prod-meta" style="color: #111;">Status: Return Rejected</span>
                                             {% endif %}
                                         {% else %}
                                             {% if item.item_status == 'DELIVERED' or order.delivered_date %}
-                                                <span class="prod-meta">Status: Delivered</span>
+                                                <span class="prod-meta" style="color: #111;">Status: Delivered</span>
                                             {% else %}
-                                                <span class="prod-meta">Status: {{ item.item_status|title }}</span>
+                                                <span class="prod-meta" style="color: #111;">Status: {{ item.item_status|title }}</span>
                                             {% endif %}
                                         {% endif %}
                                     {% endwith %}

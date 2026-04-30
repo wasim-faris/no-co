@@ -158,12 +158,10 @@
         .order-date { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; }
 
         .status-badge {
-            font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em;
-            padding: 6px 12px; border: 0.5px solid transparent; display: inline-flex; align-items: center; gap: 6px;
+            font-family: inherit;
+            font-size: 10px; font-weight: 400; text-transform: uppercase; letter-spacing: 0.1em;
+            color: #111111; display: inline-flex; align-items: center;
         }
-        .badge-pending { color: #854d0e; border-color: #fef08a; background: #fefce8; }
-        .badge-delivered { color: #166534; border-color: #bbf7d0; background: #f0fdf4; }
-        .badge-cancelled { color: #991b1b; border-color: #fecaca; background: #fef2f2; }
 
         .order-card-body { display: flex; align-items: center; gap: 32px; padding: 32px; }
         .order-thumb { width: 70px; height: 95px; background: #f5f5f5; flex-shrink: 0; overflow: hidden; }
@@ -248,16 +246,11 @@
             const orderStatePrefix = 'ecom_order_state_';
 
             function statusBadgeClass(status) {
-                const normalized = (status || '').toUpperCase();
-                if (normalized === 'DELIVERED') return 'status-badge badge-delivered';
-                if (normalized === 'CANCELLED' || normalized === 'RETURNED' || normalized === 'REFUNDED') {
-                    return 'status-badge badge-cancelled';
-                }
-                return 'status-badge badge-pending';
+                return 'status-badge order-status-badge';
             }
 
             function titleStatus(status) {
-                return (status || '')
+                return 'Status: ' + (status || '')
                     .toLowerCase()
                     .replace(/_/g, ' ')
                     .replace(/\b\w/g, function (ch) { return ch.toUpperCase(); });
