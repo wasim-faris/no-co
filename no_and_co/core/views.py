@@ -886,7 +886,6 @@ def cancel_order(request, order_id):
             messages.error(request, "This order cannot be cancelled as it has already been shipped.")
             return redirect("order_details", id=order_id)
 
-        total_refund = Decimal('0.00')
         items_to_cancel = order.items.select_related("variant").exclude(item_status="CANCELLED")
         
         for item in items_to_cancel:
@@ -895,12 +894,8 @@ def cancel_order(request, order_id):
             variant.stock += item.quantity
             variant.save()
             
-            # Calculate refund for this item
-            total_refund += Decimal(item.final_price) * item.quantity
-
-        # If all items are now cancelled, add delivery charge back to refund
-        if not order.items.exclude(item_status="CANCELLED").exclude(id__in=[i.id for i in items_to_cancel]).exists():
-             total_refund += Decimal(order.delivery_charge)
+        # Refund the full amount paid including GST
+        total_refund = order.total_amount
 
         order.items.update(item_status="CANCELLED")
         order.status = "CANCELLED"
@@ -965,7 +960,12 @@ def cancel_order_item(request, item_id):
     # 3. Handle Refund
     if order.payment_status == "PAID" or order.payment_method == "wallet":
         wallet, _ = Wallet.objects.get_or_create(user=order.user)
-        refund_amount = Decimal(item.final_price) * item.quantity
+        # Calculate proportional tax for the item
+        item_base = Decimal(item.final_price) * item.quantity
+        tax_rate = order.tax_amount / order.subtotal if order.subtotal > 0 else Decimal('0.00')
+        item_tax = (item_base * tax_rate).quantize(Decimal('0.01'))
+        
+        refund_amount = item_base + item_tax
         
         # Check if this is the last item to be cancelled
         if not order.items.exclude(id=item.id).exclude(item_status="CANCELLED").exists():
