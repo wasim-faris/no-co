@@ -352,23 +352,23 @@
         padding: 40px 16px;
         min-height: 70vh; /* Takes up most of the viewport when empty */
     }
-    .empty-text { 
-        font-size: 15px; 
-        color: #666; 
-        margin-bottom: 32px; 
-        font-weight: 300; 
-        letter-spacing: 0.02em; 
+    .empty-text {
+        font-size: 15px;
+        color: #666;
+        margin-bottom: 32px;
+        font-weight: 300;
+        letter-spacing: 0.02em;
     }
     .btn-explore {
-        display: inline-block; 
+        display: inline-block;
         padding: 18px 40px;
-        background: #000; 
+        background: #000;
         color: #fff;
-        font-size: 13px; 
+        font-size: 13px;
         font-weight: 600;
-        text-transform: uppercase; 
+        text-transform: uppercase;
         letter-spacing: 0.1em;
-        text-decoration: none; 
+        text-decoration: none;
         transition: 0.3s;
     }
     .btn-explore:hover { background: #333; }
@@ -625,15 +625,15 @@
                 <div class="fav-img-wrapper">
                     {% with product=item.variant.product %}
                     {% if item.variant.primary_images.all %}
-                        <img src="{{ item.variant.primary_images.all.0.image.url }}" 
+                        <img src="{{ item.variant.primary_images.all.0.image.url }}"
                              alt="{{ product.product_name }}"
                              onerror="this.src='https://placehold.co/400x600?text={{ product.product_name|urlencode }}'">
                     {% elif item.variant.images.all %}
-                        <img src="{{ item.variant.images.all.0.image.url }}" 
+                        <img src="{{ item.variant.images.all.0.image.url }}"
                              alt="{{ product.product_name }}"
                              onerror="this.src='https://placehold.co/400x600?text={{ product.product_name|urlencode }}'">
                     {% else %}
-                        <img src="https://placehold.co/400x600?text={{ product.product_name|urlencode }}" 
+                        <img src="https://placehold.co/400x600?text={{ product.product_name|urlencode }}"
                              alt="{{ product.product_name }}">
                     {% endif %}
                     {% endwith %}
@@ -691,108 +691,119 @@
         <p class="empty-text">Tap the heart icon on items to save them here.</p>
         <a href="{% url 'home' %}" class="btn-explore">EXPLORE OUR COLLECTION</a>
     </div>
-
-    <!-- RECOMMENDATIONS (ONLY ON EMPTY) -->
-    <div class="wishlist-recommendations">
-        <!-- SIMILAR ITEMS SECTION -->
-        <section class="similar-items-section">
-            <div class="similar-header">
-                <h2 class="similar-title">Similar Items</h2>
-                <div class="similar-nav">
-                    <button id="simPrev">&#10094;</button>
-                    <button id="simNext">&#10095;</button>
-                </div>
-            </div>
-            <div class="similar-carousel" id="similarCarousel">
-                {% for item in similar_items|slice:":8" %}
-                <a href="{% url 'product-details' item.product.id %}?variant={{ item.id }}" class="similar-card group">
-                    <div class="similar-img-wrapper relative skeleton-wrapper block">
-                        <div class="skeleton skeleton-img"></div>
-                        {% with all_imgs=item.images.all %}
-                        {% if all_imgs|length > 1 %}
-                            <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
-                            <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
-                        {% else %}
-                            <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
-                        {% endif %}
-                        {% endwith %}
-                    </div>
-                    <div style="padding: 0 10px;">
-                        <p class="similar-label" style="margin: 0 0 1px;">{% if item.product.is_new %}NEW ARRIVAL{% else %}{{ item.product.category.category_name }}{% endif %}</p>
-                        <p class="similar-name">{{ item.product.product_name }}</p>
-                        <div style="display: flex; align-items: baseline; gap: 5px; margin: 0;">
-                            {% if item.has_discount %}
-                            <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.final_price }}</span>
-                            <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
-                            {% else %}
-                            <span class="similar-price">Rs.{{ item.price }}</span>
-                            {% endif %}
-                        </div>
-                        <div class="similar-swatches">
-                            {% regroup item.product.variants.all by color as color_list %}
-                            {% for col_item in color_list|slice:":4" %}
-                                {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
-                            {% endfor %}
-                            {% if color_list|length > 4 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-4" }}</span>{% endif %}
-                        </div>
-                    </div>
-                </a>
-                {% endfor %}
-            </div>
-        </section>
-
-        <!-- OTHERS ALSO BOUGHT SECTION -->
-        <section class="similar-items-section" style="border-top: none; padding-top: 0;">
-            <div class="similar-header">
-                <h2 class="similar-title">Others Also Bought</h2>
-                <div class="similar-nav">
-                    <button id="othersPrev">&#10094;</button>
-                    <button id="othersNext">&#10095;</button>
-                </div>
-            </div>
-            <div class="similar-carousel" id="othersCarousel">
-                {% for item in similar_items reversed %}
-                {% if forloop.counter <= 8 %}
-                <a href="{% url 'product-details' item.product.id %}?variant={{ item.id }}" class="similar-card group">
-                    <div class="similar-img-wrapper relative skeleton-wrapper block">
-                        <div class="skeleton skeleton-img"></div>
-                        {% with all_imgs=item.images.all %}
-                        {% if all_imgs|length > 1 %}
-                            <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
-                            <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
-                        {% else %}
-                            <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
-                        {% endif %}
-                        {% endwith %}
-                    </div>
-                    <div style="padding: 0 10px;">
-                        <p class="similar-label" style="margin: 0 0 1px;">{% if item.product.is_new %}NEW ARRIVAL{% else %}{{ item.product.category.category_name }}{% endif %}</p>
-                        <p class="similar-name">{{ item.product.product_name }}</p>
-                        <div style="display: flex; align-items: baseline; gap: 5px; margin: 0;">
-                            {% if item.has_discount %}
-                            <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.final_price }}</span>
-                            <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
-                            {% else %}
-                            <span class="similar-price">Rs.{{ item.price }}</span>
-                            {% endif %}
-                        </div>
-                        <div class="similar-swatches">
-                            {% regroup item.product.variants.all by color as color_list %}
-                            {% for col_item in color_list|slice:":4" %}
-                                {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
-                            {% endfor %}
-                            {% if color_list|length > 4 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-4" }}</span>{% endif %}
-                        </div>
-                    </div>
-                </a>
-                {% endif %}
-                {% endfor %}
-            </div>
-        </section>
-    </div>
     {% endif %}
 
+    <!-- RECOMMENDATIONS (ALWAYS SHOWN) -->
+
+<!-- ADD THIS BELOW -->
+<div class="max-w-7xl mx-auto w-full">
+    <!-- SIMILAR ITEMS SECTION -->
+    <section class="similar-items-section">
+        <div class="similar-header">
+            <h2 class="similar-title">Similar Items</h2>
+            <div class="similar-nav">
+                <button id="simPrev">&#10094;</button>
+                <button id="simNext">&#10095;</button>
+            </div>
+        </div>
+        <div class="similar-carousel" id="similarCarousel">
+            {% for item in similar_items|slice:":6" %}
+            <a href="{% url 'product-details' item.product.id %}?variant={{ item.id }}" class="similar-card group">
+                <div class="similar-img-wrapper relative skeleton-wrapper block">
+                    <div class="skeleton skeleton-img"></div>
+                    {% with all_imgs=item.images.all %}
+                    {% if all_imgs|length > 1 %}
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
+                    {% else %}
+                        <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
+                    {% endif %}
+                    {% endwith %}
+                    <button class="similar-heart" aria-label="Add to Wishlist">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+                <p class="similar-label" style="padding: 0 10px; margin: 6px 0 1px;">{% if item.product.is_new %}NEW ARRIVAL{% elif item.product.is_premium %}H&M Premium Selection{% else %}{{ item.product.category.category_name }}{% endif %}</p>
+                <div style="padding: 0 10px; overflow: hidden;">
+                  <p class="similar-name" style="padding:0; margin-bottom:2px;">{{ item.product.product_name }}</p>
+                  <div style="display: flex; align-items: baseline; gap: 5px; margin: 0;">
+                    {% if item.has_discount %}
+                      <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.final_price }}</span>
+                      <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
+                      <span style="font-size: 9px; font-weight: 500; color: #767676;">-{{ item.discount_percent|floatformat:"-2" }}%</span>
+                    {% else %}
+                      <span class="similar-price" style="padding:0;">Rs.{{ item.price }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="similar-swatches" style="padding: 0 10px; margin-top: 5px;">
+                    {% regroup item.product.variants.all by color as color_list %}
+                    {% for col_item in color_list|slice:":4" %}
+                        {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                    {% endfor %}
+                    {% if color_list|length > 4 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-4" }}</span>{% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <!-- Show nothing or fallback if empty -->
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- OTHERS ALSO BOUGHT SECTION -->
+    <section class="similar-items-section" style="border-top: none; padding-top: 0;">
+        <div class="similar-header">
+            <h2 class="similar-title">Others Also Bought</h2>
+            <div class="similar-nav">
+                <button id="othersPrev">&#10094;</button>
+                <button id="othersNext">&#10095;</button>
+            </div>
+        </div>
+        <div class="similar-carousel" id="othersCarousel">
+            {% for item in similar_items reversed %}
+            <a href="{% url 'product-details' item.product.id %}?variant={{ item.id }}" class="similar-card group">
+                <div class="similar-img-wrapper relative skeleton-wrapper block">
+                    <div class="skeleton skeleton-img"></div>
+                    {% with all_imgs=item.images.all %}
+                    {% if all_imgs|length > 1 %}
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
+                    {% else %}
+                        <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
+                    {% endif %}
+                    {% endwith %}
+                    <button class="similar-heart" aria-label="Add to Wishlist">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+                <p class="similar-label" style="padding: 0 10px; margin: 6px 0 1px;">{% if item.product.is_new %}NEW ARRIVAL{% elif item.product.is_premium %}H&M Premium Selection{% else %}{{ item.product.category.category_name }}{% endif %}</p>
+                <div style="padding: 0 10px; overflow: hidden;">
+                  <p class="similar-name" style="padding:0; margin-bottom:2px;">{{ item.product.product_name }}</p>
+                  <div style="display: flex; align-items: baseline; gap: 5px; margin: 0;">
+                    {% if item.has_discount %}
+                      <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.final_price }}</span>
+                      <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
+                      <span style="font-size: 9px; font-weight: 500; color: #767676;">-{{ item.discount_percent|floatformat:"-2" }}%</span>
+                    {% else %}
+                      <span class="similar-price" style="padding:0;">Rs.{{ item.price }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="similar-swatches" style="padding: 0 10px; margin-top: 5px;">
+                    {% regroup item.product.variants.all by color as color_list %}
+                    {% for col_item in color_list|slice:":4" %}
+                        {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                    {% endfor %}
+                    {% if color_list|length > 4 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-4" }}</span>{% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <!-- Show nothing or fallback if empty -->
+            {% endfor %}
+        </div>
+    </section>
 </div>
+
 
 {% include 'user_base/components/footer.html' %}
 
@@ -1160,7 +1171,7 @@
                                 const header = document.querySelector('.wishlist-header');
                                 if (grid) grid.remove();
                                 if (header) header.remove();
-                                
+
                                 // Insert the full empty state structure
                                 const main = document.querySelector('.wishlist-wrapper');
                                 if (main) {
@@ -1175,10 +1186,10 @@
                                         <a href="/" class="btn-explore">EXPLORE OUR COLLECTION</a>
                                     `;
                                     main.appendChild(emptyDiv);
-                                    
-                                    // Optionally trigger a reload to show recommendations if desired, 
+
+                                    // Optionally trigger a reload to show recommendations if desired,
                                     // or just keep it simple as the user might be browsing.
-                                    // location.reload(); 
+                                    // location.reload();
                                 }
                             }
                         }, 300);
@@ -1205,7 +1216,7 @@
                 btnConfirmATC.disabled = false;
             });
         });
-        
+
         // ─── CAROUSEL LOGIC ───
         function setupCarousel(carouselId, prevBtnId, nextBtnId) {
             const carousel = document.getElementById(carouselId);
