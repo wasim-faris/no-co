@@ -22,6 +22,7 @@
         padding: 0;
         display: flex;
         flex-direction: column;
+        min-height: 100vh; /* Fills viewport */
     }
 
     /* ─── Header: contained with side padding ─── */
@@ -341,21 +342,170 @@
         border-color: #000;
     }
 /* ─── Empty State ─── */
-    .wishlist-empty { text-align: center; padding: 40px 16px; }
-    .empty-text { font-size: 15px; color: #666; margin-bottom: 32px; }
+    .wishlist-empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 16px;
+        min-height: 70vh; /* Takes up most of the viewport when empty */
+    }
+    .empty-text { 
+        font-size: 15px; 
+        color: #666; 
+        margin-bottom: 32px; 
+        font-weight: 300; 
+        letter-spacing: 0.02em; 
+    }
     .btn-explore {
-        display: inline-block; padding: 18px 40px;
-        background: #000; color: #fff;
-        font-size: 13px; font-weight: 600;
-        text-transform: uppercase; letter-spacing: 0.1em;
-        text-decoration: none; transition: 0.3s;
+        display: inline-block; 
+        padding: 18px 40px;
+        background: #000; 
+        color: #fff;
+        font-size: 13px; 
+        font-weight: 600;
+        text-transform: uppercase; 
+        letter-spacing: 0.1em;
+        text-decoration: none; 
+        transition: 0.3s;
     }
     .btn-explore:hover { background: #333; }
+
+    /* ─── Recommendation Sections (From Cart) ─── */
+    .similar-items-section {
+        padding: 60px 0 80px;
+        border-top: 1px solid #f0f0f0;
+        overflow: hidden;
+    }
+    .similar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 40px;
+        margin-bottom: 30px;
+    }
+    .similar-title {
+        font-size: 18px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #000;
+    }
+    .similar-nav { display: flex; gap: 10px; }
+    .similar-nav button {
+        width: 32px;
+        height: 32px;
+        border: 1px solid #e5e5e5;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s;
+    }
+    .similar-nav button:hover { border-color: #000; }
+    .similar-carousel {
+        display: flex;
+        gap: 0;
+        overflow-x: auto;
+        padding-bottom: 20px;
+        scroll-behavior: smooth;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+    .similar-carousel::-webkit-scrollbar { display: none; }
+    .similar-card {
+        flex: 0 0 25%;
+        min-width: 280px;
+        text-decoration: none;
+        color: inherit;
+        border-right: 1px solid #f0f0f0;
+        display: flex;
+        flex-direction: column;
+    }
+    .similar-card:last-child { border-right: none; }
+    .similar-img-wrapper {
+        aspect-ratio: 2/3;
+        background: #f9f9f9;
+        margin-bottom: 12px;
+        overflow: hidden;
+    }
+    .similar-img-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .similar-label {
+        font-size: 10px;
+        color: #767676;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+    .similar-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #111;
+        text-transform: uppercase;
+        margin: 4px 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .similar-price { font-size: 13px; color: #111; }
+    .similar-swatches {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        flex-wrap: wrap;
+        margin-top: 5px;
+    }
+    .similar-swatch {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #e5e5e5;
+        display: inline-block;
+    }
+    .similar-swatch-more {
+        font-size: 9px;
+        color: #767676;
+        font-weight: 500;
+    }
+
+    @media (max-width: 900px) {
+        .similar-items-section { padding: 40px 0 60px; }
+        .similar-header { padding: 0 20px; }
+        .similar-card { flex: 0 0 50%; min-width: 200px; }
+    }
+
+    /* ─── ATC Drawer Fixes ─── */
+    .atc-drawer .mini-img {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    @media (max-width: 768px) {
+        .atc-drawer {
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            z-index: 10001 !important; /* Above bottom nav (1000) */
+            border-radius: 16px 16px 0 0 !important;
+        }
+        #atcDrawerOverlay {
+            z-index: 10000 !important;
+        }
+    }
 
     /* ─── MOBILE RESPONSIVE FIXES (600px and below) ─── */
     @media (max-width: 600px) {
         .wishlist-wrapper {
-            min-height: auto;
+            min-height: 100vh;
         }
         .wishlist-header {
             padding: 20px 12px 16px;
@@ -376,18 +526,22 @@
             width: 100%;
         }
         .fav-details {
-            padding: 6px 8px 10px;
+            padding: 10px 8px 12px;
+            gap: 4px;
         }
         .fav-name {
-            font-size: 10px;
-            line-height: 1.3;
+            font-size: 11px;
+            line-height: 1.4;
+            margin-bottom: 2px;
         }
         .fav-price {
             font-size: 12px;
+            margin-bottom: 8px;
         }
         .btn-add-fav {
-            padding: 8px 0;
+            padding: 10px 0;
             font-size: 10px;
+            margin-top: 4px;
         }
         .size-btn {
             height: 44px;
@@ -469,13 +623,20 @@
             <!-- Image (edge-to-edge) + heart overlay -->
             <a href="{% url 'product-details' item.variant.product.id %}?variant={{ item.variant.id }}" class="fav-card-link">
                 <div class="fav-img-wrapper">
-                    {% if item.variant.primary_images %}
-                        <img src="{{ item.variant.primary_images.0.image.url }}" alt="{{ item.variant.product.product_name }}">
+                    {% with product=item.variant.product %}
+                    {% if item.variant.primary_images.all %}
+                        <img src="{{ item.variant.primary_images.all.0.image.url }}" 
+                             alt="{{ product.product_name }}"
+                             onerror="this.src='https://placehold.co/400x600?text={{ product.product_name|urlencode }}'">
                     {% elif item.variant.images.all %}
-                        <img src="{{ item.variant.images.all.0.image.url }}" alt="{{ item.variant.product.product_name }}">
+                        <img src="{{ item.variant.images.all.0.image.url }}" 
+                             alt="{{ product.product_name }}"
+                             onerror="this.src='https://placehold.co/400x600?text={{ product.product_name|urlencode }}'">
                     {% else %}
-                        <img src="/media/products/linen-shirt.png" alt="{{ item.variant.product.product_name }}">
+                        <img src="https://placehold.co/400x600?text={{ product.product_name|urlencode }}" 
+                             alt="{{ product.product_name }}">
                     {% endif %}
+                    {% endwith %}
 
                     <!-- Heart overlays image bottom-right -->
                     <div class="fav-heart like-btn {% for w in whishlist_items %}{% if w.variant.id == item.variant.id %}liked{% endif %}{% endfor %}" data-variant-id="{{ item.variant.id }}">
@@ -523,8 +684,111 @@
     {% else %}
     <!-- EMPTY STATE -->
     <div class="wishlist-empty">
+        <div class="mb-6 opacity-20">
+            <i class="ri-heart-line text-6xl font-thin"></i>
+        </div>
+        <h2 class="text-xl font-medium uppercase tracking-widest mb-3">Your wishlist is empty</h2>
         <p class="empty-text">Tap the heart icon on items to save them here.</p>
         <a href="{% url 'home' %}" class="btn-explore">EXPLORE OUR COLLECTION</a>
+    </div>
+
+    <!-- RECOMMENDATIONS (ONLY ON EMPTY) -->
+    <div class="wishlist-recommendations">
+        <!-- SIMILAR ITEMS SECTION -->
+        <section class="similar-items-section">
+            <div class="similar-header">
+                <h2 class="similar-title">Similar Items</h2>
+                <div class="similar-nav">
+                    <button id="simPrev">&#10094;</button>
+                    <button id="simNext">&#10095;</button>
+                </div>
+            </div>
+            <div class="similar-carousel" id="similarCarousel">
+                {% for item in similar_items|slice:":8" %}
+                <a href="{% url 'product-details' item.product.id %}?variant={{ item.id }}" class="similar-card group">
+                    <div class="similar-img-wrapper relative skeleton-wrapper block">
+                        <div class="skeleton skeleton-img"></div>
+                        {% with all_imgs=item.images.all %}
+                        {% if all_imgs|length > 1 %}
+                            <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                            <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
+                        {% else %}
+                            <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                    <div style="padding: 0 10px;">
+                        <p class="similar-label" style="margin: 0 0 1px;">{% if item.product.is_new %}NEW ARRIVAL{% else %}{{ item.product.category.category_name }}{% endif %}</p>
+                        <p class="similar-name">{{ item.product.product_name }}</p>
+                        <div style="display: flex; align-items: baseline; gap: 5px; margin: 0;">
+                            {% if item.has_discount %}
+                            <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.final_price }}</span>
+                            <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
+                            {% else %}
+                            <span class="similar-price">Rs.{{ item.price }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="similar-swatches">
+                            {% regroup item.product.variants.all by color as color_list %}
+                            {% for col_item in color_list|slice:":4" %}
+                                {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                            {% endfor %}
+                            {% if color_list|length > 4 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-4" }}</span>{% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- OTHERS ALSO BOUGHT SECTION -->
+        <section class="similar-items-section" style="border-top: none; padding-top: 0;">
+            <div class="similar-header">
+                <h2 class="similar-title">Others Also Bought</h2>
+                <div class="similar-nav">
+                    <button id="othersPrev">&#10094;</button>
+                    <button id="othersNext">&#10095;</button>
+                </div>
+            </div>
+            <div class="similar-carousel" id="othersCarousel">
+                {% for item in similar_items reversed %}
+                {% if forloop.counter <= 8 %}
+                <a href="{% url 'product-details' item.product.id %}?variant={{ item.id }}" class="similar-card group">
+                    <div class="similar-img-wrapper relative skeleton-wrapper block">
+                        <div class="skeleton skeleton-img"></div>
+                        {% with all_imgs=item.images.all %}
+                        {% if all_imgs|length > 1 %}
+                            <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                            <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
+                        {% else %}
+                            <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
+                        {% endif %}
+                        {% endwith %}
+                    </div>
+                    <div style="padding: 0 10px;">
+                        <p class="similar-label" style="margin: 0 0 1px;">{% if item.product.is_new %}NEW ARRIVAL{% else %}{{ item.product.category.category_name }}{% endif %}</p>
+                        <p class="similar-name">{{ item.product.product_name }}</p>
+                        <div style="display: flex; align-items: baseline; gap: 5px; margin: 0;">
+                            {% if item.has_discount %}
+                            <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.final_price }}</span>
+                            <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
+                            {% else %}
+                            <span class="similar-price">Rs.{{ item.price }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="similar-swatches">
+                            {% regroup item.product.variants.all by color as color_list %}
+                            {% for col_item in color_list|slice:":4" %}
+                                {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                            {% endfor %}
+                            {% if color_list|length > 4 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-4" }}</span>{% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </section>
     </div>
     {% endif %}
 
@@ -746,7 +1010,12 @@
                     document.getElementById('drawerProductName').textContent = data.product_name;
                     document.getElementById('drawerProductPrice').textContent = 'Rs. ' + data.price;
                     document.getElementById('drawerProductVariant').textContent = 'Selected colour: ' + data.color;
-                    document.getElementById('drawerProductImg').src = data.image_url;
+                    const dImg = document.getElementById('drawerProductImg');
+                    if (dImg) {
+                        dImg.src = data.image_url || 'https://placehold.co/400x600?text=No+Image';
+                        dImg.onerror = function() { this.src = 'https://placehold.co/400x600?text=No+Image'; };
+                        dImg.style.display = 'block';
+                    }
                     document.getElementById('linkDrawerPDP').href = `/product-details/${data.product_id}/`;
 
                     // Populate Sizes
@@ -888,13 +1157,28 @@
                             // Show Empty State if needed
                             if (remainingItems === 0) {
                                 const grid = document.querySelector('.wishlist-grid');
-                                if (grid) {
-                                    grid.innerHTML = `
-                                        <div class="wishlist-empty" style="grid-column: 1 / -1; width: 100%;">
-                                            <p class="empty-text">Tap the heart icon on items to save them here.</p>
-                                            <a href="/" class="btn-explore">EXPLORE OUR COLLECTION</a>
+                                const header = document.querySelector('.wishlist-header');
+                                if (grid) grid.remove();
+                                if (header) header.remove();
+                                
+                                // Insert the full empty state structure
+                                const main = document.querySelector('.wishlist-wrapper');
+                                if (main) {
+                                    const emptyDiv = document.createElement('div');
+                                    emptyDiv.className = 'wishlist-empty';
+                                    emptyDiv.innerHTML = `
+                                        <div class="mb-6 opacity-20">
+                                            <i class="ri-heart-line text-6xl font-thin"></i>
                                         </div>
+                                        <h2 class="text-xl font-medium uppercase tracking-widest mb-3">Your wishlist is empty</h2>
+                                        <p class="empty-text">Tap the heart icon on items to save them here.</p>
+                                        <a href="/" class="btn-explore">EXPLORE OUR COLLECTION</a>
                                     `;
+                                    main.appendChild(emptyDiv);
+                                    
+                                    // Optionally trigger a reload to show recommendations if desired, 
+                                    // or just keep it simple as the user might be browsing.
+                                    // location.reload(); 
                                 }
                             }
                         }, 300);
@@ -920,6 +1204,41 @@
                 btnConfirmATC.textContent = 'ADD';
                 btnConfirmATC.disabled = false;
             });
+        });
+        
+        // ─── CAROUSEL LOGIC ───
+        function setupCarousel(carouselId, prevBtnId, nextBtnId) {
+            const carousel = document.getElementById(carouselId);
+            const prevBtn = document.getElementById(prevBtnId);
+            const nextBtn = document.getElementById(nextBtnId);
+
+            if (!carousel || !prevBtn || !nextBtn) return;
+
+            prevBtn.addEventListener('click', () => {
+                carousel.scrollBy({ left: -300, behavior: 'smooth' });
+            });
+
+            nextBtn.addEventListener('click', () => {
+                carousel.scrollBy({ left: 300, behavior: 'smooth' });
+            });
+
+            const toggleButtons = () => {
+                const isAtStart = carousel.scrollLeft <= 5;
+                const isAtEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 5;
+                prevBtn.style.opacity = isAtStart ? '0.3' : '1';
+                prevBtn.style.pointerEvents = isAtStart ? 'none' : 'auto';
+                nextBtn.style.opacity = isAtEnd ? '0.3' : '1';
+                nextBtn.style.pointerEvents = isAtEnd ? 'none' : 'auto';
+            };
+
+            carousel.addEventListener('scroll', toggleButtons);
+            window.addEventListener('resize', toggleButtons);
+            setTimeout(toggleButtons, 100);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupCarousel('similarCarousel', 'simPrev', 'simNext');
+            setupCarousel('othersCarousel', 'othersPrev', 'othersNext');
         });
     })();
 </script>
