@@ -145,6 +145,58 @@
     @keyframes btn-spin {
         to { transform: rotate(360deg); }
     }
+
+    /* ── MODAL UI ENHANCEMENTS ── */
+    .uni-modal { border: none !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; overflow: hidden; }
+    .uni-modal-body { padding: 32px !important; overflow-x: hidden; }
+    .uni-modal-header { padding: 24px 32px !important; border-bottom: 0.5px solid #eee !important; justify-content: flex-start !important; }
+    .uni-modal-footer { padding: 24px 32px !important; border-top: 0.5px solid #eee !important; }
+    .uni-modal-title { font-size: 16px !important; font-weight: 600 !important; font-family: var(--font-display) !important; letter-spacing: 0.02em !important; text-transform: none !important; }
+    .uni-modal-close { font-size: 20px !important; right: 16px !important; opacity: 0.4; transition: opacity 0.2s; }
+    .uni-modal-close:hover { opacity: 1; }
+
+    .form-field { margin-bottom: 24px; position: relative; }
+    .form-label { display: block; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 8px; font-family: var(--font-ui); }
+    .form-input { width: 100%; border: none; border-bottom: 0.5px solid var(--border); padding: 10px 0; font-family: var(--font-ui); font-size: 14px; color: var(--primary); background: transparent; outline: none; transition: border-color 0.3s ease; border-radius: 0; -webkit-appearance: none; }
+    .form-input:focus { border-color: var(--primary); }
+    .form-input.error { border-color: var(--danger); }
+    
+    .error-msg { font-size: 10px; color: var(--danger); margin-top: 4px; display: none; }
+    .error-msg.show { display: block; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    
+    @media (max-width: 768px) {
+        .form-row { grid-template-columns: 1fr !important; gap: 0; }
+        .uni-modal-body { padding: 24px !important; }
+        .uni-modal-header, .uni-modal-footer { padding: 20px 24px !important; }
+        .uni-modal { max-width: 100% !important; width: 100% !important; border-radius: 20px 20px 0 0 !important; }
+    }
+
+    /* Fix for phone row */
+    .phone-row { display: flex; border-bottom: 0.5px solid var(--border); transition: border-color 0.3s; }
+    .phone-row.focus { border-color: var(--primary); }
+    .phone-row.error { border-color: var(--danger); }
+    .phone-code-select { border: none !important; border-right: 0.5px solid var(--border) !important; background: transparent !important; padding: 10px 8px 10px 0 !important; font-size: 14px !important; font-family: var(--font-ui) !important; color: var(--primary) !important; outline: none !important; cursor: pointer; width: 80px; }
+    .phone-number-input { border: none !important; flex: 1; padding: 10px !important; background: transparent !important; font-size: 14px !important; font-family: var(--font-ui) !important; color: var(--primary) !important; outline: none !important; }
+
+    /* Custom Radio & Checkbox */
+    .radio-group { display: flex; gap: 24px; margin-top: 12px; }
+    .radio-item, .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-family: var(--font-ui); color: var(--primary); font-weight: 300; }
+    .radio-item input, .check-item input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; margin: 0; }
+    .check-label, .radio-label { line-height: 1; }
+
+    /* Select Styling */
+    select.form-input { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888' stroke-width='1' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0 center; padding-right: 20px; }
+
+    /* Close Button Polish */
+    .uni-modal-close { 
+        width: 32px !important; height: 32px !important; 
+        background: #f5f5f5 !important; border-radius: 50% !important; 
+        font-size: 18px !important; display: flex !important; 
+        align-items: center !important; justify-content: center !important; 
+        right: 24px !important; top: 24px !important;
+    }
 </style>
 {% endblock %}
 
@@ -257,7 +309,7 @@
 
 <!-- ADD ADDRESS MODAL -->
 <div class="uni-modal-overlay" id="addressModalOverlay"></div>
-<div class="uni-modal drawer-right" id="addressModal">
+<div class="uni-modal" id="addressModal" style="max-width: 600px;">
     <div class="uni-modal-header">
         <div>
             <span class="modal-micro-label" style="font-size: 9px; text-transform: uppercase; color: #888; display: block; margin-bottom: 4px;">Account / Addresses</span>
@@ -269,7 +321,7 @@
         <form id="addressForm" method="POST" action="" novalidate>
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.GET.next }}">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="form-row">
                 <div class="form-field">
                     <label class="form-label">First Name *</label>
                     <input type="text" id="f-first-name" name="first_name" class="form-input" placeholder="First name" autocomplete="given-name">
@@ -283,9 +335,9 @@
             </div>
             <div class="form-field">
                 <label class="form-label">Phone *</label>
-                <div class="phone-row" id="phone-row" style="display: flex; border-bottom: 1px solid #eee;">
-                    <select id="f-phone-code" name="phone_code" class="phone-code-select" style="border: none; border-right: 1px solid #eee; background: none; padding: 10px 5px;"><option value="">Loading…</option></select>
-                    <input type="tel" id="f-phone" name="phone" class="phone-number-input" placeholder="Phone number" maxlength="15" autocomplete="tel-national" style="border: none; flex: 1; padding: 10px; background: none;">
+                <div class="phone-row" id="phone-row-add">
+                    <select id="f-phone-code" name="phone_code" class="phone-code-select"><option value="">Loading…</option></select>
+                    <input type="tel" id="f-phone" name="phone" class="phone-number-input" placeholder="Phone number" maxlength="15" autocomplete="tel-national">
                 </div>
                 <span class="error-msg" id="err-phone">Please enter a valid phone number (7–15 digits)</span>
             </div>
@@ -298,7 +350,7 @@
                 <label class="form-label">Address Line 2 <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
                 <input type="text" id="f-addr2" name="address_line_2" class="form-input" placeholder="Apartment, landmark…" autocomplete="address-line2">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="form-row">
                 <div class="form-field">
                     <label class="form-label">City *</label>
                     <input type="text" id="f-city" name="city" class="form-input" placeholder="City" autocomplete="address-level2">
@@ -310,7 +362,7 @@
                     <span class="error-msg" id="err-state">Please enter your state</span>
                 </div>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="form-row">
                 <div class="form-field">
                     <label class="form-label">Postal Code *</label>
                     <input type="text" id="f-postal" name="postal_code" class="form-input" placeholder="Postal code" maxlength="10" autocomplete="postal-code">
@@ -349,7 +401,7 @@
 
 <!-- EDIT ADDRESS MODAL -->
 <div class="uni-modal-overlay" id="EditaddressModalOverlay"></div>
-<div class="uni-modal drawer-right" id="EditaddressModal">
+<div class="uni-modal" id="EditaddressModal" style="max-width: 600px;">
     <div class="uni-modal-header">
         <div>
             <span class="modal-micro-label" style="font-size: 9px; text-transform: uppercase; color: #888; display: block; margin-bottom: 4px;">Account / Addresses</span>
@@ -361,7 +413,7 @@
         <form id="editAddressForm" method="POST">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.GET.next }}">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="form-row">
                 <div class="form-field">
                     <label class="form-label">First Name *</label>
                     <input type="text" name="first_name" id="edit-first-name" class="form-input" placeholder="First name">
@@ -375,7 +427,9 @@
             </div>
             <div class="form-field">
                 <label class="form-label">Phone Number *</label>
-                <input type="tel" name="phone_number" id="edit-phone" class="form-input" placeholder="10-digit phone number">
+                <div class="phone-row" id="phone-row-edit">
+                    <input type="tel" name="phone_number" id="edit-phone" class="phone-number-input" placeholder="10-digit phone number" style="padding-left: 0 !important;">
+                </div>
                 <span id="err-edit-phone" class="error-msg"></span>
             </div>
             <div class="form-field">
@@ -387,7 +441,7 @@
                 <label class="form-label">Address Line 2 <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
                 <input type="text" name="address_line2" id="edit-addr2" class="form-input" placeholder="Apartment, landmark…">
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+            <div class="form-row">
                 <div class="form-field">
                     <label class="form-label">City *</label>
                     <input type="text" name="city" id="edit-city" class="form-input" placeholder="City">
@@ -398,16 +452,18 @@
                     <input type="text" name="state" id="edit-state" class="form-input" placeholder="State">
                     <span id="err-edit-state" class="error-msg"></span>
                 </div>
+            </div>
+            <div class="form-row">
                 <div class="form-field">
                     <label class="form-label">Pin Code *</label>
                     <input type="text" name="pin_code" id="edit-pin" class="form-input" placeholder="6-digit PIN">
                     <span id="err-edit-pin" class="error-msg"></span>
                 </div>
-            </div>
-            <div class="form-field">
-                <label class="form-label">Country *</label>
-                <select id="edit-country" name="country" class="form-input"><option value="">Select country…</option></select>
-                <span id="err-edit-country" class="error-msg"></span>
+                <div class="form-field">
+                    <label class="form-label">Country *</label>
+                    <select id="edit-country" name="country" class="form-input"><option value="">Select country…</option></select>
+                    <span id="err-edit-country" class="error-msg"></span>
+                </div>
             </div>
             <div class="form-field">
                 <label class="form-label">Type</label>
@@ -721,9 +777,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const addPin = document.getElementById('f-postal');
     if (addPin) addPin.addEventListener('input', () => verifyPin('add', { pin:'f-postal', city:'f-city', state:'f-state', country:'f-country', errPin:'err-postal' }));
 
-    /* ADD — phone digits only */
+    /* ADD — phone focus & digits only */
     const addPhone = document.getElementById('f-phone');
-    if (addPhone) addPhone.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); clearFieldError(this, document.getElementById('err-phone')); });
+    if (addPhone) {
+        addPhone.addEventListener('focus', () => addPhone.closest('.phone-row').classList.add('focus'));
+        addPhone.addEventListener('blur', () => addPhone.closest('.phone-row').classList.remove('focus'));
+        addPhone.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); clearFieldError(this, document.getElementById('err-phone')); });
+    }
 
     /* ADD — country change */
     const addCountry = document.getElementById('f-country');
@@ -767,9 +827,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const editPin = document.getElementById('edit-pin');
     if (editPin) editPin.addEventListener('input', () => verifyPin('edit', { pin:'edit-pin', city:'edit-city', state:'edit-state', country:'edit-country', errPin:'err-edit-pin' }));
 
-    /* EDIT — phone digits only */
+    /* EDIT — phone focus & digits only */
     const editPhone = document.getElementById('edit-phone');
-    if (editPhone) editPhone.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); clearFieldError(this, document.getElementById('err-edit-phone')); });
+    if (editPhone) {
+        editPhone.addEventListener('focus', () => editPhone.closest('.phone-row').classList.add('focus'));
+        editPhone.addEventListener('blur', () => editPhone.closest('.phone-row').classList.remove('focus'));
+        editPhone.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); clearFieldError(this, document.getElementById('err-edit-phone')); });
+    }
 
     /* EDIT — country change */
     const editCountry = document.getElementById('edit-country');
