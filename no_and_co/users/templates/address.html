@@ -142,9 +142,9 @@
     @media (max-width: 1023px) { .mobile-sidebar-toggle { display: flex; } .mobile-drawer { display: flex; } .desktop-sidebar { display: none !important; } }
     @media (min-width: 1024px) { .mobile-sidebar-toggle, .mobile-drawer, .sidebar-overlay { display: none !important; } }
 
-
-
-
+    @keyframes btn-spin {
+        to { transform: rotate(360deg); }
+    }
 </style>
 {% endblock %}
 
@@ -747,7 +747,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 const existing = addForm.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
                 if (existing) { existing.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); addForm.appendChild(h); }
             });
-            if (!validateAddress('add', ADD_IDS)) { e.preventDefault(); const firstErr = addForm.querySelector('.error, .error-msg.show'); if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' }); }
+            if (!validateAddress('add', ADD_IDS)) { 
+                e.preventDefault(); 
+                const firstErr = addForm.querySelector('.error, .error-msg.show'); 
+                if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' }); 
+            } else {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.style.color = 'transparent';
+                    submitBtn.style.position = 'relative';
+                    submitBtn.insertAdjacentHTML('beforeend', '<div class="inline-spinner" style="position:absolute; top:50%; left:50%; margin-left:-8px; margin-top:-8px; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:btn-spin 1s linear infinite;"></div>');
+                }
+            }
         });
     }
 
@@ -781,7 +793,19 @@ document.addEventListener('DOMContentLoaded', function () {
                 const existing = editForm.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
                 if (existing) { existing.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); editForm.appendChild(h); }
             });
-            if (!validateAddress('edit', EDIT_IDS)) { e.preventDefault(); const firstErr = editForm.querySelector('.error, [id^="err-edit-"]:not(.hidden)'); if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' }); }
+            if (!validateAddress('edit', EDIT_IDS)) { 
+                e.preventDefault(); 
+                const firstErr = editForm.querySelector('.error, [id^="err-edit-"]:not(.hidden)'); 
+                if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' }); 
+            } else {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.style.color = 'transparent';
+                    submitBtn.style.position = 'relative';
+                    submitBtn.insertAdjacentHTML('beforeend', '<div class="inline-spinner" style="position:absolute; top:50%; left:50%; margin-left:-8px; margin-top:-8px; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:btn-spin 1s linear infinite;"></div>');
+                }
+            }
         });
     }
 

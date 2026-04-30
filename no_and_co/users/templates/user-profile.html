@@ -70,7 +70,11 @@
     .avatar-wrapper { position: relative; display: inline-block; margin-bottom: 52px; border-radius: 50%; }
     .avatar-ring { position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px; border: 1px solid transparent; border-radius: 50%; transition: border-color 0.4s ease; pointer-events: none; z-index: 3; }
     .avatar-wrapper:hover .avatar-ring { border-color: var(--accent); }
-    .avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; z-index: 1; }
+    .avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; z-index: 1; transition: filter 0.3s ease; }
+    .avatar-camera-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; z-index: 2; pointer-events: none; }
+    .avatar-camera-overlay svg { width: 20px; height: 20px; color: #fff; }
+    label[for="photoFileInput"]:hover .avatar-camera-overlay { opacity: 1; }
+    label[for="photoFileInput"]:hover .avatar { filter: brightness(0.8); }
     .member-badge { position: absolute; bottom: -32px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 6px 14px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; white-space: nowrap; border-radius: 2px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 4; }
     
     .user-name { font-family: var(--font-display); font-size: 40px; line-height: 1.1; margin-bottom: 12px; color: var(--primary); }
@@ -196,13 +200,22 @@
     .drawer-nav-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
     .drawer-nav-item.active { border-left: 3px solid #C9A96E; color: #C9A96E; background: rgba(201,169,110,0.07); }
 
+    /* ── RESPONSIVE TWEAKS ── */
+    .profile-action-btns { display: flex; gap: 12px; margin-top: 8px; width: 100%; justify-content: center; }
+    .referral-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; gap: 16px; }
+    
     @media (max-width: 1023px) {
         .mobile-sidebar-toggle { display: flex; }
         .mobile-drawer { display: flex; }
         .desktop-sidebar { display: none !important; }
-        .profile-header { width: 100%; }
+        .profile-header { width: 100%; padding: 0 16px; }
         .user-contact { flex-direction: column; align-items: center; text-align: center; }
         .avatar-remove-overlay { opacity: 1; }
+        .profile-action-btns { flex-direction: column; width: 100%; }
+        .profile-action-btns .btn-outline { width: 100%; text-align: center; }
+        .referral-header { flex-direction: column; align-items: stretch; gap: 20px; }
+        .referral-header .btn-outline { width: 100%; text-align: center; }
+        .stat-card { padding: 24px 16px; }
     }
     @media (min-width: 768px) {
         .profile-container { padding: 64px 48px; }
@@ -210,6 +223,10 @@
         .user-name { font-size: 48px; }
         .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
         .user-contact { flex-direction: row; gap: 16px; justify-content: center; }
+        .profile-action-btns { flex-direction: row; width: auto; }
+        .profile-action-btns .btn-outline { width: auto; }
+        .referral-header { flex-direction: row; align-items: flex-start; }
+        .referral-header .btn-outline { width: auto; }
     }
     @media (min-width: 1200px) {
         .profile-container { padding: 80px 64px; }
@@ -218,6 +235,9 @@
     }
     @media (min-width: 1024px) {
         .mobile-sidebar-toggle, .mobile-drawer, .sidebar-overlay { display: none !important; }
+    }
+    @keyframes btn-spin {
+        to { transform: rotate(360deg); }
     }
 </style>
 {% endblock %}
@@ -268,11 +288,16 @@
                         <!-- Profile Header -->
                         <div class="profile-header">
                             <div class="avatar-wrapper">
-                                <div class="avatar-ring"></div>
-                                <img id="profileAvatar" src="{{ user.profile_photo.url }}" alt="{{ user.username }}" class="avatar">
-                                <div class="avatar-upload-spinner" id="avatarSpinner">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
-                                </div>
+                                <label for="photoFileInput" style="cursor: pointer; position: relative; display: block;">
+                                    <div class="avatar-ring"></div>
+                                    <img id="profileAvatar" src="{{ user.profile_photo.url }}" alt="{{ user.username }}" class="avatar">
+                                    <div class="avatar-camera-overlay">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                    </div>
+                                    <div class="avatar-upload-spinner" id="avatarSpinner">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
+                                    </div>
+                                </label>
                                 {% if has_profile_photo %}
                                 <div class="avatar-remove-overlay" id="avatarRemoveOverlay">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
@@ -281,7 +306,7 @@
                                 <div class="member-badge">MEMBER SINCE {{ user.date_joined|date:"M Y"|upper }}</div>
                             </div>
 
-                            <input type="file" id="photoFileInput" accept="image/jpeg,image/png,image/webp" style="display:none">
+                            <input type="file" id="photoFileInput" accept="image/*" style="display:none">
                             
                             <h1 class="user-name display-text">{{request.user.username}}</h1>
                             <div class="user-contact">
@@ -289,7 +314,7 @@
                                 {% if user.phone_number %}<span>{{ user.phone_number }}</span>{% endif %}
                             </div>
 
-                            <div style="display:flex; gap:12px; margin-top:8px;">
+                            <div class="profile-action-btns">
                                 <button class="btn-outline btn-filled" id="editProfileBtn">Edit Profile</button>
                                 {% if user.has_usable_password %}
                                 <a href="{% url 'change-password' %}" class="btn-outline" style="text-decoration:none;">Password</a>
@@ -303,7 +328,7 @@
                                 <h2 class="section-title">Refer & Earn</h2>
                             </div>
                             <div class="stat-card" style="cursor: default; transform: none; box-shadow: none; border-color: var(--border);">
-                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px;">
+                                <div class="referral-header">
                                     <div>
                                         <div class="label" style="margin-bottom: 12px;">Your Referral Code</div>
                                         <div class="display-text" style="font-size: 32px; letter-spacing: 0.15em; color: var(--primary);">{{ user.referral_code }}</div>
@@ -489,6 +514,14 @@
                 fileInput.addEventListener('change', function () {
                     const file = this.files[0];
                     if (!file) return;
+
+                    // Preview immediately
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        if (avatarImg) avatarImg.src = e.target.result;
+                    }
+                    reader.readAsDataURL(file);
+
                     const formData = new FormData();
                     formData.append('profile_photo', file);
                     if (spinner) spinner.classList.add('active');
@@ -502,13 +535,38 @@
                     .then(data => {
                         if (data.image_url) {
                             if (avatarImg) avatarImg.src = data.image_url;
-                            window.location.reload();
+                            if (typeof showProfileToast === 'function') {
+                                showProfileToast("Profile photo updated successfully", "success");
+                            }
                         } else {
-                            alert(data.error || "Upload failed");
+                            if (typeof showProfileToast === 'function') {
+                                showProfileToast(data.error || "Upload failed", "error");
+                            } else {
+                                alert(data.error || "Upload failed");
+                            }
                         }
                     })
-                    .catch(err => console.error(err))
+                    .catch(err => {
+                        console.error(err);
+                        if (typeof showProfileToast === 'function') {
+                            showProfileToast("Upload failed", "error");
+                        }
+                    })
                     .finally(() => { if (spinner) spinner.classList.remove('active'); });
+                });
+            }
+
+            // Edit Profile Form Submit Loader
+            const editForm = document.getElementById('editProfileForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function() {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if (submitBtn && !submitBtn.disabled) {
+                        submitBtn.disabled = true;
+                        submitBtn.style.color = 'transparent';
+                        submitBtn.style.position = 'relative';
+                        submitBtn.insertAdjacentHTML('beforeend', '<div class="inline-spinner" style="position:absolute; top:50%; left:50%; margin-left:-8px; margin-top:-8px; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:btn-spin 1s linear infinite;"></div>');
+                    }
                 });
             }
 

@@ -1042,7 +1042,7 @@
         modal.classList.add('active');
         if (overlay) overlay.classList.add('active');
         document.body.style.overflow = 'hidden';
-        
+
         // clear modal error
         const err = document.getElementById('modalError');
         if (err) { err.textContent = ''; err.classList.add('hidden'); }
@@ -1163,7 +1163,7 @@
             const btnLoadingText = checkoutBtn.querySelector('.btn-loading-text');
             if (btnText) btnText.style.display = 'none';
             if (btnLoadingText) btnLoadingText.style.display = 'inline-block';
-            
+
             // Allow a tiny delay for the animation to be seen before the browser starts unloading the page
             // (Standard behavior for premium UX)
         }
