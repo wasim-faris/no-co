@@ -657,7 +657,7 @@
                     <span class="toast-sub-text">Notification</span>
                 </div>
             </div>
-            <div class="toast-close-btn" onclick="this.parentElement.classList.remove('show')">✕</div>
+            <div class="toast-close-btn" onclick="closeDjangoToast(this)">✕</div>
         </div>
         {% endfor %}
     </div>
@@ -812,10 +812,21 @@
                 });
 
                 // Auto-hide after 3 seconds
-                setTimeout(function() {
+                window.djangoToastTimer = setTimeout(function() {
                     toastContainer.classList.remove('show');
+                    setTimeout(() => toastContainer.remove(), 300);
                 }, 3000);
             }
+
+            // Global close function
+            window.closeDjangoToast = function(btn) {
+                if (window.djangoToastTimer) clearTimeout(window.djangoToastTimer);
+                const container = btn.closest('#djangoToast');
+                if (container) {
+                    container.classList.remove('show');
+                    setTimeout(() => container.remove(), 300);
+                }
+            };
         })();
     </script>
     <script>

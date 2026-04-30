@@ -887,9 +887,15 @@ document.addEventListener('submit', async function(e) {
                     setTimeout(() => newToast.classList.add('show'), 10);
                 }
 
-                /* Wait 500ms so user sees the feedback, then perform a clean reload */
+                /* Wait 500ms so user sees the feedback, then navigate or reload */
                 setTimeout(() => {
-                    window.location.reload();
+                    const finalUrl = new URL(response.url);
+                    const currentUrl = new URL(window.location.href);
+                    if (finalUrl.pathname !== currentUrl.pathname) {
+                        window.location.href = response.url;
+                    } else {
+                        window.location.reload();
+                    }
                 }, 500);
 
             } else {
