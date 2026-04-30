@@ -497,8 +497,10 @@
                                         {% endif %}
                                     {% endif %}
                                     
-                                    {% if item.item_status == 'DELIVERED' %}
-                                    <button type="button" class="order-action-mini return-item-btn" data-item-index="{{ forloop.counter0 }}" data-order-item-id="{{ item.id }}">Return Item</button>
+                                    {% if order.items.all|length > 1 %}
+                                        {% if item.item_status == 'DELIVERED' %}
+                                        <button type="button" class="order-action-mini return-item-btn" data-item-index="{{ forloop.counter0 }}" data-order-item-id="{{ item.id }}">Return Item</button>
+                                        {% endif %}
                                     {% endif %}
                                 </div>
                                 <div class="item-state-note" data-role="item-state-note">
@@ -905,18 +907,8 @@
         <div class="manage-modal-subtitle">Submit a request to return this product.</div>
 
         <!-- Product Information -->
-        <div class="return-product-info">
-            <div class="return-product-thumb">
-                <img id="return-product-image" src="" alt="Product" class="return-product-img">
-            </div>
-            <div class="return-product-details">
-                <h4 class="return-product-name" id="return-product-name">Product Name</h4>
-                <p class="return-product-order">Order ID: #<span id="return-product-order-id">{{ order.order_number }}</span></p>
-                <div class="return-product-meta">
-                    <span class="return-product-badge" id="return-product-size">Size: M</span>
-                    <span class="return-product-badge" id="return-product-color">Color: Black</span>
-                </div>
-            </div>
+        <div id="return-products-container">
+            <!-- Dynamically populated via JS -->
         </div>
 
         <!-- Return Form -->
@@ -1044,6 +1036,42 @@
     const returnOrderItemIdInput = document.getElementById('return-order-item-id');
     const returnSubmitBtn = document.getElementById('return-modal-submit');
 
+    function populateReturnProducts(rows) {
+        const container = document.getElementById('return-products-container');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        rows.forEach(row => {
+            const name = row.querySelector('.prod-name')?.textContent || 'Product Name';
+            const img = row.querySelector('.prod-thumb img');
+            const meta = row.querySelector('.prod-meta')?.textContent || '';
+            
+            const sizeMatch = meta.match(/Size:\s*([^·]+)/i);
+            const colorMatch = meta.match(/Colour:\s*([^·]+)/i);
+            const qtyMatch = meta.match(/Qty:\s*([0-9]+)/i);
+
+            const imgSrc = img ? img.getAttribute('src') : '';
+            
+            const div = document.createElement('div');
+            div.className = 'return-product-info';
+            div.innerHTML = `
+                <div class="return-product-thumb">
+                    <img src="${imgSrc}" alt="${name}" class="return-product-img" onerror="this.src=''; this.style.background='#F5F3F0'">
+                </div>
+                <div class="return-product-details">
+                    <h4 class="return-product-name">${name}</h4>
+                    <p class="return-product-order">Order ID: #${'{{ order.order_number }}'}</p>
+                    <div class="return-product-meta">
+                        ${sizeMatch ? `<span class="return-product-badge">Size: ${sizeMatch[1].trim()}</span>` : ''}
+                        ${colorMatch ? `<span class="return-product-badge">Color: ${colorMatch[1].trim()}</span>` : ''}
+                        ${qtyMatch ? `<span class="return-product-badge">Qty: ${qtyMatch[1].trim()}</span>` : ''}
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+        });
+    }
+
     function openReturnModal(row) {
         if (!returnModal || !row) return;
 
@@ -1063,17 +1091,7 @@
         returnReason.style.borderColor = '#E5E5E5';
         returnDescription.style.borderColor = '#E5E5E5';
 
-        const name = row.querySelector('.prod-name')?.textContent || 'Product Name';
-        const img = row.querySelector('.prod-thumb img');
-        const meta = row.querySelector('.prod-meta')?.textContent || '';
-
-        const sizeMatch = meta.match(/Size:\s*([^·]+)/i);
-        const colorMatch = meta.match(/Colour:\s*([^·]+)/i);
-        
-        document.getElementById('return-product-name').textContent = name;
-        if (img) document.getElementById('return-product-image').src = img.src;
-        document.getElementById('return-product-size').textContent = sizeMatch ? sizeMatch[1].trim() : 'N/A';
-        document.getElementById('return-product-color').textContent = colorMatch ? colorMatch[1].trim() : 'N/A';
+        populateReturnProducts([row]);
     }
 
     function closeReturnModal() {
@@ -1143,13 +1161,9 @@
             returnReason.style.borderColor = '#E5E5E5';
             returnDescription.style.borderColor = '#E5E5E5';
 
-            document.getElementById('return-product-name').textContent = 'Entire Order';
-            const returnImg = document.getElementById('return-product-image');
-            if (returnImg) returnImg.src = '';
-            const sizeBadge = document.getElementById('return-product-size');
-            if (sizeBadge) sizeBadge.textContent = 'All Items';
-            const colorBadge = document.getElementById('return-product-color');
-            if (colorBadge) colorBadge.textContent = 'All Items';
+            const deliveredRows = Array.from(document.querySelectorAll('.product-row'))
+                .filter(row => row.getAttribute('data-item-status') === 'DELIVERED');
+            populateReturnProducts(deliveredRows);
         });
     }
 
