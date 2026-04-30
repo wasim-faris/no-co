@@ -29,13 +29,13 @@
             <div class="card-footer">
                 <div class="footer-main-actions">
                     <button class="btn-text" onclick="openEditModal('{{ addr.id }}')">Edit</button>
-                    <form method="POST" action="{% url 'delete-user-address' addr.id %}" style="display:inline;">
+                    <form method="POST" action="{% url 'delete-address' addr.id %}" style="display:inline;">
                         {% csrf_token %}
                         <button type="submit" class="btn-text btn-danger">Delete</button>
                     </form>
                 </div>
                 {% if not addr.is_default %}
-                <form method="POST" action="{% url 'user-address-set-default' addr.id %}">
+                <form method="POST" action="{% url 'address-set-default' addr.id %}">
                     {% csrf_token %}
                     <button type="submit" class="btn-outline-sm">Set as Default</button>
                 </form>
@@ -56,7 +56,7 @@
                 <h2 class="modal-title">New Address</h2>
                 <button id="hideAddressForm" class="btn-close">&times;</button>
             </div>
-            <form method="POST" class="minimal-form" action="{% url 'user-address' %}">
+            <form method="POST" class="minimal-form" action="{% url 'address' %}">
                 {% csrf_token %}
                 <div class="form-grid">
                     <div class="input-group">

@@ -32,7 +32,7 @@ def user_profile(request, id):
         return redirect("login")
 
     user = request.user
-    
+
     if not user.referral_code:
         user.save()
 
@@ -233,10 +233,10 @@ def add_profile_pic(request, id):
 
         user.profile_photo = new_photo
         user.save()
-        
+
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({"image_url": user.profile_photo.url})
-            
+
         messages.success(request, "profile uploadded succesfully")
         return redirect("user-profile", id=id)
 
@@ -340,7 +340,7 @@ def cancel_email_verification(request, id):
 
 @block_check
 @never_cache
-def user_address(request):
+def address(request):
 
     if not request.user.is_authenticated:
         return redirect("login")
@@ -364,7 +364,7 @@ def user_address(request):
 
         if Addresses.objects.filter(user=request.user, type=address_type).exists():
             messages.error(request, "Only One Address For Each Place")
-            return redirect("user-address")
+            return redirect("address")
 
         if not all(
             [
@@ -379,15 +379,15 @@ def user_address(request):
             ]
         ):
             messages.error(request, "Please fill all required fields.")
-            return redirect("user-address")
+            return redirect("address")
 
         if not re.fullmatch(r"\d{10}", phone_number):
             messages.error(request, "Phone number must be exactly 10 digits.")
-            return redirect("user-address")
+            return redirect("address")
 
         if not re.fullmatch(r"\d{6}", pin_code):
             messages.error(request, "PIN code must be exactly 6 digits.")
-            return redirect("user-address")
+            return redirect("address")
         try:
             response = requests.get(
                 f"https://api.postalpincode.in/pincode/{pin_code}", timeout=5
@@ -400,7 +400,7 @@ def user_address(request):
                         request,
                         f"State mismatch. PIN {pin_code} belongs to {api_state}.",
                     )
-                    return redirect("user-address")
+                    return redirect("address")
         except Exception as e:
             print(f"PIN API unavailable (add): {e}")
 
@@ -434,11 +434,11 @@ def user_address(request):
         if next_url == "checkout":
             return redirect("checkout")
         else:
-            return redirect("user-address")
+            return redirect("address")
 
     return render(
         request,
-        "user-address.html",
+        "address.html",
         {
             "user": user,
             "addresses": addresses,
@@ -446,14 +446,14 @@ def user_address(request):
     )
 
 
-def delete_user_address(request, id):
+def delete_address(request, id):
     address = get_object_or_404(Addresses, id=id, user=request.user)
     address.delete()
     messages.success(request, "Address deleted successfully.")
-    return redirect("user-address")
+    return redirect("address")
 
 
-def edit_user_address(request, id):
+def edit_address(request, id):
     address = get_object_or_404(Addresses, id=id, user=request.user)
 
     if request.method == "POST":
@@ -475,7 +475,7 @@ def edit_user_address(request, id):
             .exists()
         ):
             messages.error(request, f"{address_type} Already exists")
-            return redirect("user-address")
+            return redirect("address")
 
         if not all(
             [
@@ -490,15 +490,15 @@ def edit_user_address(request, id):
             ]
         ):
             messages.error(request, "Please fill all required fields.")
-            return redirect("user-address")
+            return redirect("address")
 
         if not re.fullmatch(r"\d{10}", phone_number):
             messages.error(request, "Phone number must be exactly 10 digits.")
-            return redirect("user-address")
+            return redirect("address")
 
         if not re.fullmatch(r"\d{6}", pin_code):
             messages.error(request, "PIN code must be exactly 6 digits.")
-            return redirect("user-address")
+            return redirect("address")
 
         try:
             response = requests.get(
@@ -512,7 +512,7 @@ def edit_user_address(request, id):
                         messages.error(
                             request, f"PIN {pin_code} belongs to {api_state}."
                         )
-                        return redirect("user-address")
+                        return redirect("address")
         except Exception as e:
             print(f"PIN API unavailable (edit): {e}")
 
@@ -543,12 +543,12 @@ def edit_user_address(request, id):
         if next_url == "checkout":
             return redirect("checkout")
         else:
-            return redirect("user-address")
+            return redirect("address")
 
-    return redirect("user-address")
+    return redirect("address")
 
 
-def user_address_set_default(request, id):
+def address_set_default(request, id):
     if request.method == "POST":
 
         address = get_object_or_404(Addresses, id=id, user=request.user)
@@ -561,4 +561,4 @@ def user_address_set_default(request, id):
         address.save()
 
         messages.success(request, "address set as default")
-        return redirect("user-address")
+        return redirect("address")

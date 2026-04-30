@@ -925,7 +925,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="{% url 'user-address' %}" class="nav-link active">
+                <a href="{% url 'address' %}" class="nav-link active">
                     <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
                     Addresses
                 </a>
@@ -1004,7 +1004,7 @@
                     <button class="btn-text btn-text-danger" onclick="confirmDelete({{ address.id }})">Delete</button>
                     {% if not address.is_default %}
                     <span class="dot-sep"></span>
-                    <form method="POST" action="{% url 'user-address-set-default' address.id %}" style="display:inline;">
+                    <form method="POST" action="{% url 'address-set-default' address.id %}" style="display:inline;">
                         {% csrf_token %}
                         <button type="submit" class="btn-text">Set Default</button>
                     </form>
@@ -1017,7 +1017,7 @@
                     </div>
                     <div class="delete-overlay-actions">
                         <button onclick="cancelDelete({{ address.id }})" class="btn btn-outline" style="padding:10px 20px;">Cancel</button>
-                        <form method="POST" action="{% url 'delete-user-address' address.id %}">
+                        <form method="POST" action="{% url 'delete-address' address.id %}">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-dark" style="padding:10px 20px;background:var(--danger);border-color:var(--danger);">Remove</button>
                         </form>
@@ -1518,7 +1518,7 @@ async function openEditModal(data) {
     const stateEl   = document.getElementById('edit-state');
     formState.edit = { pinVerified: false, officialCity: '', officialState: '', pinFetching: false };
     clearAllErrors(formEl);
-    formEl.action = `/edit-user-address/${data.id}/`;
+    formEl.action = `/edit-address/${data.id}/`;
     document.getElementById('edit-first-name').value = data.first_name || '';
     document.getElementById('edit-last-name').value  = data.last_name  || '';
     document.getElementById('edit-phone').value      = data.phone      || '';

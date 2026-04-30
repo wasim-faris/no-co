@@ -400,7 +400,7 @@
                         <h3 class="text-xs font-bold uppercase tracking-widest text-gray-400">
                             Saved Addresses
                         </h3>
-                        <a href="{% url 'user-address' %}?next=checkout"
+                        <a href="{% url 'address' %}?next=checkout"
                            class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">
                             Add New Address
                         </a>
@@ -425,7 +425,7 @@
 
                                     <div class="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                                         <div class="flex gap-4">
-                                        <a href="{% url 'user-address' %}?next=checkout" class="btn-action">
+                                        <a href="{% url 'address' %}?next=checkout" class="btn-action">
                                             Edit Address
                                         </a>
                                         </div>
@@ -455,7 +455,7 @@
                                 </div>
                                 <h3 class="text-[13px] font-bold uppercase tracking-widest mb-2">No saved addresses found</h3>
                                 <p class="text-gray-400 text-xs mb-8">Add a delivery address to continue checkout</p>
-                                <a href="{% url 'user-address' %}?next=checkout" class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">
+                                <a href="{% url 'address' %}?next=checkout" class="px-8 py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">
                                     Add New Address
                                 </a>
                             </div>
@@ -569,7 +569,7 @@
                         </div>
                     </form>
                     {% else %}
-                    <a href="{% url 'user-address' %}?next=checkout"
+                    <a href="{% url 'address' %}?next=checkout"
                        class="w-full block text-center bg-black text-white text-[11px] font-bold uppercase tracking-[0.2em] py-5 hover:bg-gray-900 transition-all duration-300">
                         Add Address to Continue
                     </a>
@@ -726,7 +726,7 @@
                             </div>
                         </form>
                         {% else %}
-                        <a href="{% url 'user-address' %}?next=checkout"
+                        <a href="{% url 'address' %}?next=checkout"
                            class="w-full block text-center bg-black text-white text-[12px] font-bold uppercase tracking-[0.25em] py-5 hover:bg-gray-900 transition-all duration-300 shadow-xl shadow-black/5">
                             Add Address to Continue
                         </a>
