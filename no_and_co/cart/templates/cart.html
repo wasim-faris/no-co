@@ -768,7 +768,7 @@
 <div class="uni-modal" id="removeModal" aria-hidden="true">
     <div class="uni-modal-header">
         <h2 class="uni-modal-title">Remove an item</h2>
-        <button class="uni-modal-close" onclick="closeRemoveModal()">&times;</button>
+        <button class="uni-modal-close" id="closeRemoveModalBtn" onclick="closeRemoveModal()">&times;</button>
     </div>
     <div class="uni-modal-body">
         <p class="text-[1rem] font-normal text-black mb-6 leading-relaxed">
@@ -1110,9 +1110,10 @@
 
         // Close modal (overlay / close button / cancel)
         if (
-            e.target.id === 'modalOverlay' ||
+            e.target.id === 'removeModalOverlay' ||
             e.target.closest('#closeRemoveModalBtn') ||
-            e.target.closest('#cancelRemoveBtn')
+            e.target.closest('#cancelRemoveBtn') ||
+            e.target.closest('.uni-modal-close')
         ) {
             closeRemoveModal();
             return;
