@@ -118,7 +118,10 @@
     /* ── MOBILE DRAWER/HAMBURGER (from profile_base/user-profile) ── */
     .mobile-sidebar-toggle { display: none; position: fixed; top: 60px; right: 16px; z-index: 9999; width: 44px; height: 44px; background: #fff; border: 0.5px solid rgba(0,0,0,0.18); border-radius: 50%; cursor: pointer; flex-direction: column; justify-content: center; align-items: center; padding: 0; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
     .hamburger-icon { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; width: 20px; }
-    .hamburger-icon span { display: block; height: 1px; background: #111111; transition: all 0.3s ease; }
+    .hamburger-icon span {
+        display: block; height: 1px; background: #111111; transform-origin: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1), background 0.2s ease;
+    }
     .mobile-sidebar-toggle.is-active { background: rgba(13,13,13,0.85); border-color: rgba(255,255,255,0.15); }
     .mobile-sidebar-toggle.is-active .hamburger-icon span { background: #ffffff; }
     .hamburger-icon span:nth-child(1) { width: 18px; }
@@ -128,7 +131,7 @@
     .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(2) { opacity: 0; transform: scaleX(0); }
     .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(3) { width: 18px; transform: translateY(-6px) rotate(-45deg); }
     /* ── MOBILE DRAWER ── */
-    .mobile-drawer { display: none; flex-direction: column; position: fixed; top: 0; right: 0; width: 280px; height: 100%; background: #0D0D0D; z-index: 100001; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1); padding-top: 80px; box-shadow: -10px 0 30px rgba(0,0,0,0.2); }
+    .mobile-drawer { display: none; flex-direction: column; position: fixed; top: 0; right: 0; width: 260px; height: 100%; background: #0D0D0D; z-index: 9998; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding-top: 80px; }
     .mobile-drawer.is-active { transform: translateX(0); }
     .drawer-header { padding: 0 24px 24px; }
     .drawer-title { font-family: 'Inter', sans-serif; font-size: 10px; color: #C9A96E; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 500; margin: 0; }
@@ -137,7 +140,7 @@
     .drawer-nav-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
     .drawer-nav-item.active { border-left: 3px solid #C9A96E; color: #C9A96E; background: rgba(201,169,110,0.07); }
 
-    .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 100000; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; backdrop-filter: blur(4px); }
+    .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 9997; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
     .sidebar-overlay.is-active { display: block; opacity: 1; visibility: visible; pointer-events: auto; }
     @media (max-width: 1023px) { .mobile-sidebar-toggle { display: flex; } .mobile-drawer { display: flex; } .desktop-sidebar { display: none !important; } }
     @media (min-width: 1024px) { .mobile-sidebar-toggle, .mobile-drawer, .sidebar-overlay { display: none !important; } }
