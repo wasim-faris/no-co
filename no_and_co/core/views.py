@@ -1021,34 +1021,46 @@ def return_order(request, order_id):
         reason = request.POST.get("return_reason", "").strip()
         description = request.POST.get("return_description", "").strip()
         order_item_id = request.POST.get("order_item_id", "").strip()
+        return_all = request.POST.get("return_all") == "true"
 
-        if not all([reason, description, order_item_id]):
+        if not all([reason, description]) or (not order_item_id and not return_all):
             messages.error(request, "All fields are required")
             return redirect("order_details", id=order.id)
 
-        order_item = get_object_or_404(OrderItem, id=order_item_id, order=order)
-
-        if order_item.item_status != "DELIVERED":
-            messages.error(request, "Only delivered items can be returned")
-            return redirect("order_details", id=order.id)
+        items_to_return = []
+        if return_all:
+            items_to_return = list(order.items.filter(item_status="DELIVERED"))
+            if not items_to_return:
+                messages.error(request, "No delivered items available to return")
+                return redirect("order_details", id=order.id)
+        else:
+            order_item = get_object_or_404(OrderItem, id=order_item_id, order=order)
+            if order_item.item_status != "DELIVERED":
+                messages.error(request, "Only delivered items can be returned")
+                return redirect("order_details", id=order.id)
+            items_to_return = [order_item]
 
         with transaction.atomic():
-            ReturnRequest.objects.create(
-                order=order,
-                order_item=order_item,
-                customer=request.user,
-                reason=reason,
-                description=description,
-                status="REQUESTED",
-                requested_at=timezone.now()
-            )
+            for item in items_to_return:
+                ReturnRequest.objects.create(
+                    order=order,
+                    order_item=item,
+                    customer=request.user,
+                    reason=reason,
+                    description=description,
+                    status="REQUESTED",
+                    requested_at=timezone.now()
+                )
+                item.item_status = "RETURN_REQUESTED"
+                item.save()
 
-            order_item.item_status = "RETURN_REQUESTED"
-            order_item.save()
-
+            order.status = "RETURN_REQUESTED"
+            order.save()
+            
             OrderStatusHistory.objects.create(
                 order=order,
-                status="RETURN_REQUESTED"
+                status="RETURN_REQUESTED",
+                updated_at=timezone.now()
             )
 
         messages.success(request, "Return request submitted successfully")

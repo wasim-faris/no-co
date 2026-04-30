@@ -397,12 +397,20 @@
                 </p>
             </div>
             <div class="header-actions">
-                {% if order.status != 'CANCELLED' and order.status != 'DELIVERED' and order.status != 'SHIPPED' %}
+                {% if order.status == 'PLACED' or order.status == 'PENDING' %}
                     <button class="btn btn-hm-secondary" id="cancel-order-btn" style="color: #7F1D1D; border-color: #FECACA; background: #FEF2F2;">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                         Cancel Order
+                    </button>
+                {% endif %}
+                {% if order.status == 'DELIVERED' %}
+                    <button class="btn btn-hm-secondary" id="return-order-btn" style="color: #7F1D1D; border-color: #FECACA; background: #FEF2F2;">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/>
+                        </svg>
+                        Return Order
                     </button>
                 {% endif %}
                 <a href="{% url 'download_invoice' order.id %}" target="_blank" class="btn btn-dark" id="download-invoice-btn">
@@ -483,7 +491,7 @@
                                 <div class="prod-name">{{ item.variant.product.product_name }}</div>
                                 <div class="prod-meta">Colour: {{ item.variant.color }} &nbsp;·&nbsp; Size: {{ item.variant.size.name }} &nbsp;·&nbsp; Qty: {{ item.quantity }}</div>
                                 <div class="prod-actions">
-                                    {% if item.item_status == 'PENDING' or item.item_status == 'CONFIRMED' or item.item_status == 'PROCESSING' or item.item_status == 'PACKED' %}
+                                    {% if item.item_status == 'PLACED' or item.item_status == 'PENDING' %}
                                     <button type="button" class="order-action-mini cancel-item-btn" data-item-index="{{ forloop.counter0 }}">Cancel Item</button>
                                     {% endif %}
                                     
@@ -942,6 +950,9 @@
             <!-- Hidden field for unique order item ID -->
             <input type="hidden" id="return-order-item-id" name="order_item_id" value="">
 
+            <!-- Hidden field for full order return -->
+            <input type="hidden" id="return-all-flag" name="return_all" value="false">
+
             <div class="manage-modal-actions return-modal-actions">
                 <button type="button" class="btn btn-hm-secondary" id="return-modal-cancel">Cancel</button>
                 <button type="submit" class="btn btn-dark" id="return-modal-submit">Submit Return Request</button>
@@ -1042,6 +1053,8 @@
         
         const orderItemId = row.getAttribute('data-order-item-id');
         if (returnOrderItemIdInput) returnOrderItemIdInput.value = orderItemId;
+        const returnAllFlagInput = document.getElementById('return-all-flag');
+        if (returnAllFlagInput) returnAllFlagInput.value = 'false';
 
         returnReasonError.classList.remove('show');
         returnDescriptionError.classList.remove('show');
@@ -1106,6 +1119,37 @@
             openReturnModal(row);
         });
     });
+
+    // Trigger for full order return
+    const returnOrderBtn = document.getElementById('return-order-btn');
+    if (returnOrderBtn) {
+        returnOrderBtn.addEventListener('click', function() {
+            if (!returnModal) return;
+
+            returnModal.classList.add('open');
+            returnModal.setAttribute('aria-hidden', 'false');
+            document.body.style.overflow = 'hidden';
+
+            returnOrderForm.reset();
+            
+            if (returnOrderItemIdInput) returnOrderItemIdInput.value = '';
+            const returnAllFlagInput = document.getElementById('return-all-flag');
+            if (returnAllFlagInput) returnAllFlagInput.value = 'true';
+
+            returnReasonError.classList.remove('show');
+            returnDescriptionError.classList.remove('show');
+            returnReason.style.borderColor = '#E5E5E5';
+            returnDescription.style.borderColor = '#E5E5E5';
+
+            document.getElementById('return-product-name').textContent = 'Entire Order';
+            const returnImg = document.getElementById('return-product-image');
+            if (returnImg) returnImg.src = '';
+            const sizeBadge = document.getElementById('return-product-size');
+            if (sizeBadge) sizeBadge.textContent = 'All Items';
+            const colorBadge = document.getElementById('return-product-color');
+            if (colorBadge) colorBadge.textContent = 'All Items';
+        });
+    }
 
     // Individual item cancellation trigger
     document.querySelectorAll('.cancel-item-btn').forEach(btn => {
