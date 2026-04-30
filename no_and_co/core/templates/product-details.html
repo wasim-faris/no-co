@@ -219,20 +219,28 @@
     @media (max-width: 768px) {
         .size-row {
             grid-template-columns: repeat(4, 1fr);
-            border-top: none; /* BUG 2: Remove unwanted top line above size area on mobile */
-            border-left: 1px solid #dcdcdc; /* Match desktop thin border color */
+            gap: 0;
+            padding: 0;
+            border-top: 1px solid #dcdcdc;
+            border-left: 1px solid #dcdcdc;
+            width: 100%;
+            overflow: visible;
         }
         .size-box {
-            border-right: 1px solid #dcdcdc; /* Match desktop thin border color */
-            border-bottom: 1px solid #dcdcdc; /* Match desktop thin border color */
-            font-weight: 400; /* Match desktop font-weight */
+            margin: 0;
+            border: none;
+            border-right: 1px solid #dcdcdc;
+            border-bottom: 1px solid #dcdcdc;
+            font-weight: 400;
+            background: #fff;
+            box-sizing: border-box;
         }
         .size-box.active {
-            background: #fff !important;
-            color: #000 !important;
-            outline: 1px solid #000 !important;
-            outline-offset: -1px;
+            background: #000 !important;
+            color: #fff !important;
+            border: 1px solid #000 !important;
             z-index: 2;
+            text-decoration: none !important;
         }
     }
 
