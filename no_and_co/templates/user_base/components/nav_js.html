@@ -1,30 +1,48 @@
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Mobile sidebar toggle
-        const drawerToggle = document.getElementById('drawerToggle');
-        const mobileDrawer = document.getElementById('mobileDrawer');
-        const drawerOverlay = document.getElementById('drawerOverlay');
+    /* ── Drawer: event delegation so it survives any DOM update ── */
+    function openDrawer() {
+        const toggle  = document.getElementById('drawerToggle');
+        const drawer  = document.getElementById('mobileDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+        if (!drawer) return;
+        if (toggle)  toggle.classList.add('is-active');
+        drawer.classList.add('is-active');
+        if (overlay) overlay.classList.add('is-active');
+        document.body.style.overflow = 'hidden';
+    }
 
-        if (drawerToggle) {
-            drawerToggle.addEventListener('click', function () {
-                this.classList.toggle('is-active');
-                mobileDrawer.classList.toggle('is-active');
-                drawerOverlay.classList.toggle('is-active');
-                if (mobileDrawer.classList.contains('is-active')) {
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    document.body.style.overflow = '';
-                }
-            });
+    function closeDrawer() {
+        const toggle  = document.getElementById('drawerToggle');
+        const drawer  = document.getElementById('mobileDrawer');
+        const overlay = document.getElementById('drawerOverlay');
+        if (!drawer) return;
+        if (toggle)  toggle.classList.remove('is-active');
+        drawer.classList.remove('is-active');
+        if (overlay) overlay.classList.remove('is-active');
+        document.body.style.overflow = '';
+    }
+
+    /* Single delegated listener — works after any DOM change */
+    document.addEventListener('click', function(e) {
+        /* Hamburger open button */
+        if (e.target.closest('#drawerToggle')) {
+            const drawer = document.getElementById('mobileDrawer');
+            if (drawer && drawer.classList.contains('is-active')) {
+                closeDrawer();
+            } else {
+                openDrawer();
+            }
+            return;
         }
-
-        if (drawerOverlay) {
-            drawerOverlay.addEventListener('click', function () {
-                drawerToggle.classList.remove('is-active');
-                mobileDrawer.classList.remove('is-active');
-                this.classList.remove('is-active');
-                document.body.style.overflow = '';
-            });
+        /* Close (X) button inside drawer */
+        if (e.target.closest('#drawerClose')) {
+            closeDrawer();
+            return;
+        }
+        /* Overlay click */
+        if (e.target.id === 'drawerOverlay') {
+            closeDrawer();
+            return;
         }
     });
 </script>
