@@ -887,7 +887,7 @@ document.addEventListener('submit', async function(e) {
                     setTimeout(() => newToast.classList.add('show'), 10);
                 }
 
-                /* Wait 500ms so user sees the feedback, then navigate or reload */
+                /* Wait 3000ms (standard toast duration) so user sees the feedback, then navigate or reload */
                 setTimeout(() => {
                     const finalUrl = new URL(response.url);
                     const currentUrl = new URL(window.location.href);
@@ -896,7 +896,7 @@ document.addEventListener('submit', async function(e) {
                     } else {
                         window.location.reload();
                     }
-                }, 500);
+                }, 3000);
 
             } else {
                 if (submitBtn) { 
