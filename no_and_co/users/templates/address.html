@@ -1,1091 +1,306 @@
 {% extends 'user_base/base.html' %}
-{% block django_messages %}{% endblock %}
-{% block body_class %}address-page{% endblock %}
+{% load static %}
 
-{% block content %}
+{% block title %}NØ&CO | Addresses{% endblock %}
 
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-    /* ============================================================
-       CRITICAL FIX: Scope ALL resets and styles to .shell only
-       Never use bare * or body selectors in child templates
-    ============================================================ */
-
-    .nav-link.active {
-    background-color: #000; /* Matches your dark theme */
-    color: #ffffff !important;
-}
-
-.nav-link.active .nav-icon,
-.nav-link.active svg {
-    color: #ffffff !important;
-    stroke: #ffffff !important;
-}
-    .shell *, .shell *::before, .shell *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
+    :root {
+        --primary: #111111;
+        --accent: #C9A96E;
+        --bg: #FAFAF8;
+        --card-bg: #FFFFFF;
+        --border: #E8E6E1;
+        --muted: #888888;
+        --danger: #B5291C;
+        --font-display: 'Cormorant Garamond', serif;
+        --font-ui: 'Inter', sans-serif;
     }
 
-    /* CSS variables on .shell — never on :root */
-    .shell {
-        --ink:        #0A0A0A;
-        --ink-mid:    #4A4444;
-        --ink-soft:   #9A9494;
-        --ink-faint:  #E4E0DC;
-        --ink-ghost:  #F5F3F0;
-        --warm-white: #FDFCFA;
-        --pure-white: #FFFFFF;
-        --danger:     #B5291C;
+    .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); font-weight: 500; }
+    .display-text { font-family: var(--font-display); font-weight: 400; }
 
-        --border:     1px solid var(--ink-faint);
-        --radius-sm:  2px;
-        --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    /* ── PAGE WRAPPER ── */
+    .profile-page-wrapper { display: flex; min-height: 100vh; background: var(--bg); }
 
-        max-width: 1440px;
-        margin: 0 auto;
-        display: flex;
-        min-height: 100vh;
-        background: var(--warm-white);
-        font-family: 'Figtree', sans-serif;
-        color: var(--ink);
-        font-size: 14px;
-        line-height: 1.6;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
+    /* ── DESKTOP SIDEBAR ── */
+    .desktop-sidebar { display: none; }
+    @media (min-width: 1024px) {
+        .profile-page-wrapper { display: grid; grid-template-columns: 260px 1fr; }
+        .desktop-sidebar {
+            display: flex; flex-direction: column;
+            width: 260px; background: #FFFFFF;
+            border-right: 0.5px solid #E8E6E1;
+            position: sticky; top: 52px; height: calc(100vh - 52px);
+            overflow-y: auto; padding: 48px 0 32px; flex-shrink: 0;
+        }
+        .sidebar-label {
+            font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.15em; color: #000000;
+            padding: 0 24px; margin-bottom: 32px;
+        }
+        .sidebar-nav { display: flex; flex-direction: column; }
+        .sidebar-nav-item {
+            display: flex; align-items: center; gap: 12px; height: 48px;
+            padding: 0 24px; font-family: 'Inter', sans-serif; font-size: 13px;
+            font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em;
+            color: #000000; text-decoration: none; border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .sidebar-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 1; transition: opacity 0.2s ease; }
+        .sidebar-nav-item:hover { color: #111111; background: rgba(0,0,0,0.03); }
+        .sidebar-nav-item.active { color: #FFFFFF; border-left: 3px solid #000000; background: #000000; }
+        .sidebar-nav-item.active svg { color: #FFFFFF; }
+        .sidebar-logout .sidebar-nav-item:hover { color: #DC2626 !important; background: rgba(220, 38, 38, 0.04) !important; }
+        .sidebar-logout .sidebar-nav-item:hover svg { color: #DC2626 !important; }
     }
 
-    .shell .display { font-family: 'Playfair Display', serif; }
-
-    .shell .micro {
-        font-size: 9px;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        font-weight: 600;
-    }
-
-    .shell .label {
-        font-size: 10px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        font-weight: 500;
-        color: var(--ink-soft);
-    }
-
-    /* ── Sidebar ── */
-    .shell .sidebar {
-        width: 280px;
-        flex-shrink: 0;
-        border-right: var(--border);
-        background: var(--pure-white);
-        padding: 56px 40px;
-        position: sticky;
-        top: 0;
-        height: 100vh;
-        overflow-y: auto;
-    }
-
-    .shell .sidebar-section-label {
-        font-size: 8px;
-        letter-spacing: 0.3em;
-        text-transform: uppercase;
-        color: var(--ink-soft);
-        font-weight: 600;
-        margin-bottom: 32px;
-        display: block;
-    }
-
-    .shell .nav-list  { list-style: none; }
-    .shell .nav-item + .nav-item { margin-top: 2px; }
-
-    .shell .nav-link {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 11px 16px;
-        font-size: 10px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        font-weight: 500;
-        color: var(--ink-mid);
-        text-decoration: none;
-        border-radius: 2px;
-        transition: var(--transition);
-        border: 1px solid transparent;
-    }
-
-    .shell .nav-link:hover { color: var(--ink); background: var(--ink-ghost); }
-    .shell .nav-link.active { background: var(--ink); color: white; }
-
-    .shell .nav-icon { width: 14px; height: 14px; opacity: 0.5; flex-shrink: 0; }
-    .shell .nav-link.active .nav-icon { opacity: 1; filter: invert(1); }
-    .shell .nav-link:hover .nav-icon  { opacity: 1; }
-
-    /* ── Main ── */
-    .shell .main {
-        flex: 1;
-        min-width: 0;
-        padding: 56px 64px 80px;
-        background: var(--warm-white);
-    }
-
-    /* ── Page header ── */
-    .shell .page-header {
-        margin-bottom: 48px;
-    }
-
-    .shell .breadcrumb-nav {
-        display: flex;
-        align-items: center;
-        margin-bottom: 28px;
-    }
-
-    .shell .breadcrumb-nav .sep {
-        margin: 0 14px;
-        opacity: 0.3;
-        font-size: 10px;
-    }
-
-    .shell .page-title {
-        /* Inherits minimal Basteleur from base.html */
-        line-height: 1.3 !important; /* Increased for better legibility */
-        margin-bottom: 12px;
-        margin-top: 8px;
-    }
-
-    .shell .page-sub {
-        font-size: 11px;
-        color: var(--ink-soft);
-        font-weight: 300;
-        letter-spacing: 0.02em;
-        margin-top: 16px;
-    }
-
-    /* ── Section divider ── */
-    .shell .section-head {
-        display: flex;
-        align-items: center;
-        gap: 16px;
-        border-bottom: var(--border);
-        padding-bottom: 14px;
-        margin-bottom: 28px;
-    }
-
-    .shell .count-chip {
-        font-size: 8px;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        font-weight: 700;
-        padding: 4px 10px;
-        background: var(--ink-ghost);
-        color: var(--ink-soft);
-        border: var(--border);
-    }
-
-    .back-to-checkout {
-        display: inline-flex;
-        align-items: center;
-        margin-top: -12px;
-        margin-bottom: 8px;
-    }
-
-    /* ── Buttons ── */
-    .shell .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        font-size: 9px;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        font-weight: 600;
-        font-family: 'Figtree', sans-serif;
-        padding: 13px 28px;
-        cursor: pointer;
-        transition: var(--transition);
-        border: none;
-        outline: none;
-        text-decoration: none;
-        border-radius: 0;
-    }
-
-    .shell .btn-dark    { background: var(--ink); color: white; border: 1px solid var(--ink); }
-    .shell .btn-dark:hover { background: #222; }
-    .shell .btn-outline { background: transparent; color: var(--ink); border: 1px solid var(--ink-faint); }
-    .shell .btn-outline:hover { border-color: var(--ink); }
-
-    .shell .btn-text {
-        background: none;
-        border: none;
-        padding: 0;
-        font-size: 9px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        font-weight: 500;
-        font-family: 'Figtree', sans-serif;
-        color: var(--ink-soft);
-        cursor: pointer;
-        text-decoration: underline;
-        text-underline-offset: 3px;
-        text-decoration-color: var(--ink-faint);
-        transition: var(--transition);
-    }
-    .shell .btn-text:hover { color: var(--ink); text-decoration-color: var(--ink); }
-    .shell .btn-text-danger { color: var(--danger); text-decoration-color: rgba(181,41,28,0.25); }
-    .shell .btn-text-danger:hover { color: var(--danger); text-decoration-color: var(--danger); }
-
-    .shell .dot-sep {
-        width: 3px; height: 3px;
-        border-radius: 50%;
-        background: var(--ink-faint);
-        display: inline-block;
-        flex-shrink: 0;
-    }
-
-    /* ── Address Grid ── */
-    .shell .address-grid {
-        display: flex;
-        flex-wrap: wrap;
-        border-top: var(--border);
-        border-left: var(--border);
-        margin-bottom: 48px;
-    }
-
-    .shell .address-tile {
-        background: var(--pure-white);
-        padding: 32px;
-        position: relative;
-        overflow: hidden;
-        transition: background 0.25s ease;
-        border-right: var(--border);
-        border-bottom: var(--border);
-        flex: 1 1 320px;
-        min-width: 280px;
-        max-width: 50%;
-    }
-
-    .shell .address-tile:hover { background: var(--ink-ghost); }
-
-    .shell .address-tile.is-default { background: var(--ink-ghost); }
-
-    .shell .address-tile.is-default::before {
-        content: '';
-        position: absolute;
-        left: 0; top: 0; bottom: 0;
-        width: 2px;
-        background: var(--ink);
-    }
-
-    .shell .tile-head {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 24px;
-    }
-
-    .shell .type-badge {
-        font-size: 8px;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        font-weight: 700;
-        padding: 4px 10px;
-        border: var(--border);
-        color: var(--ink-mid);
-    }
-
-    .shell .default-badge {
-        font-size: 8px;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        font-weight: 700;
-        padding: 4px 10px;
-        background: var(--ink);
-        color: white;
-    }
-
-    .shell .tile-name {
-        font-size: 13px;
-        font-weight: 600;
-        color: var(--ink);
-        margin-bottom: 4px;
-        letter-spacing: 0.01em;
-    }
-
-    .shell .tile-phone {
-        font-size: 11px;
-        color: var(--ink-soft);
-        font-weight: 300;
-        margin-bottom: 14px;
-    }
-
-    .shell .tile-address {
-        font-size: 12px;
-        color: var(--ink-mid);
-        font-weight: 300;
-        line-height: 1.8;
-    }
-
-    .shell .tile-actions {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        margin-top: 24px;
-        padding-top: 20px;
-        border-top: var(--border);
-    }
-
-    /* ── Delete overlay ── */
-    .shell .delete-overlay {
-        position: absolute;
-        inset: 0;
-        background: rgba(253,252,250,0.97);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 20px;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s ease;
-        z-index: 10;
-        padding: 24px;
-        text-align: center;
-    }
-
-    .shell .delete-overlay.visible { opacity: 1; pointer-events: all; }
-
-    .shell .delete-overlay-text {
-        font-size: 12px;
-        color: var(--ink);
-        font-weight: 400;
-        line-height: 1.6;
-    }
-
-    .shell .delete-overlay-sub {
-        font-size: 11px;
-        color: var(--ink-soft);
-        font-weight: 300;
-        margin-top: 4px;
-    }
-
-    .shell .delete-overlay-actions { display: flex; align-items: center; gap: 12px; }
-
-    /* ── Empty state ── */
-    .shell .empty-state {
-        padding: 80px 32px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        gap: 28px;
-        background: var(--pure-white);
-        border: var(--border);
-    }
-
-    .shell .empty-icon {
-        width: 56px; height: 56px;
-        border: var(--border);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .shell .empty-icon svg { width: 20px; height: 20px; color: var(--ink-soft); }
-
-    .shell .empty-title {
-        font-family: 'Playfair Display', serif;
-        font-size: 22px;
-        font-weight: 400;
-        letter-spacing: -0.01em;
-        color: var(--ink);
-        line-height: 1.2;
-    }
-
-    .shell .empty-sub {
-        font-size: 11px;
-        color: var(--ink-soft);
-        font-weight: 300;
-        max-width: 280px;
-        margin: 0 auto;
-        line-height: 1.7;
-    }
-
-    @keyframes pinBob {
-        0%, 100% { transform: translateY(0); }
-        50%       { transform: translateY(-5px); }
-    }
-    .shell .empty-pin { animation: pinBob 3s ease-in-out infinite; }
-
-    /* ── Profile completion ── */
-    .shell .completion-module {
-        border: var(--border);
-        background: var(--pure-white);
-        margin-top: 48px;
-    }
-
-    .shell .completion-top {
-        padding: 28px 32px 24px;
-        border-bottom: var(--border);
-    }
-
-    .shell .completion-header-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 12px;
-    }
-
-    .shell .completion-badge {
-        font-size: 8px;
-        letter-spacing: 0.22em;
-        text-transform: uppercase;
-        font-weight: 600;
-        padding: 4px 10px;
-        border: var(--border);
-        color: var(--ink-soft);
-        transition: var(--transition);
-    }
-
-    .shell .progress-rail {
-        height: 1px;
-        background: var(--ink-faint);
-        position: relative;
-        margin-bottom: 10px;
-    }
-
-    .shell .progress-bar {
-        height: 1px;
-        background: var(--ink);
-        width: 0%;
-        transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1);
-        position: relative;
-    }
-
-    .shell .progress-bar::after {
-        content: '';
-        position: absolute;
-        right: -2px; top: -2px;
-        width: 5px; height: 5px;
-        background: var(--ink);
-        border-radius: 50%;
-    }
-
-    .shell .progress-sub {
-        font-size: 10px;
-        color: var(--ink-soft);
-        font-weight: 300;
-        margin-top: 10px;
-    }
-
-    .shell .completion-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-    }
-
-    .shell .completion-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 18px 32px;
-        border-right: var(--border);
-        border-bottom: var(--border);
-        transition: background 0.2s;
-    }
-
-    .shell .completion-item:nth-child(2n) { border-right: none; }
-    .shell .completion-item:nth-child(3),
-    .shell .completion-item:nth-child(4)  { border-bottom: none; }
-    .shell .completion-item:hover { background: var(--ink-ghost); }
-
-    .shell .completion-dot {
-        width: 5px; height: 5px;
-        border-radius: 50%;
-        border: 1px solid var(--ink-faint);
-        flex-shrink: 0;
-        transition: var(--transition);
-    }
-
-    .shell .completion-item.done .completion-dot { background: var(--ink); border-color: var(--ink); }
-
-    .shell .ci-title {
-        font-size: 11px;
-        font-weight: 500;
-        color: var(--ink-soft);
-        letter-spacing: 0.01em;
-    }
-
-    .shell .completion-item.done .ci-title { color: var(--ink); }
-
-    .shell .ci-sub {
-        font-size: 10px;
-        color: var(--ink-soft);
-        font-weight: 300;
-        margin-top: 2px;
-    }
-
-    .shell .ci-check svg { width: 11px; height: 11px; color: var(--ink-faint); }
-
-    /* ── Animate in ── */
-    @keyframes fadeUp {
-        from { opacity: 0; transform: translateY(8px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-    .shell .animate-in { animation: fadeUp 0.5s ease forwards; }
-
-    /* ── Responsive ── */
-    @media (max-width: 900px) {
-        .shell .main    { padding: 40px 32px 64px; }
-        .shell .sidebar { display: none; }
-    }
-
-    @media (max-width: 700px) {
-        .shell .address-tile { max-width: 100%; flex: 1 1 100%; }
-    }
-
-    @media (max-width: 640px) {
-        .shell .completion-grid { grid-template-columns: 1fr; }
-        .shell .completion-item { border-right: none !important; }
-        .shell .page-header     { flex-direction: column; align-items: flex-start; }
-    }
-
-    /* ============================================================
-       MODAL — outside .shell so it can cover full viewport
-    ============================================================ */
-    #addressModal, #EditaddressModal {
-        position: fixed;
-        inset: 0;
-        z-index: 200;
-        display: none;
-        align-items: stretch;
-        font-family: 'Figtree', sans-serif;
-    }
-
+    /* ── MAIN CONTENT ── */
+    .profile-main-content { flex: 1; min-width: 0; }
+    .profile-container { max-width: 1440px; margin: 0 auto; padding: 24px; }
+    
+    @media (min-width: 768px) { .profile-container { padding: 64px 48px; } }
+    @media (min-width: 1200px) { .profile-container { padding: 80px 64px; } }
+
+    .user-name { font-family: var(--font-display); font-size: 40px; line-height: 1.1; margin-bottom: 12px; color: var(--primary); }
+    @media (min-width: 768px) { .user-name { font-size: 48px; } }
+    
+    .user-contact { font-size: 13px; color: var(--muted); font-weight: 300; margin-bottom: 32px; font-family: var(--font-ui); }
+
+    .btn-outline { display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--primary); padding: 14px 32px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; background: transparent; cursor: pointer; transition: all 0.3s ease; color: var(--primary); border-radius: 0; font-weight: 500; text-decoration: none; font-family: var(--font-ui); }
+    .btn-outline:hover { background: var(--primary); color: white; }
+    .btn-filled { background: var(--primary) !important; color: white !important; }
+    .btn-filled:hover { background: #333 !important; }
+
+    .btn-text { background: none; border: none; padding: 0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 500; font-family: var(--font-ui); color: var(--primary); cursor: pointer; border-bottom: 1px solid transparent; transition: all 0.3s ease; display: inline-flex; align-items: center; }
+    .btn-text:hover { color: var(--accent); border-color: var(--accent); }
+    
+    .btn-text-danger { color: var(--danger); }
+    .btn-text-danger:hover { color: #8a1d13; border-color: #8a1d13; }
+
+    .section-header { margin-bottom: 48px; padding-bottom: 24px; border-bottom: 0.5px solid var(--border); }
+    .section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--primary); font-weight: 500; font-family: var(--font-ui); display: flex; justify-content: space-between; align-items: center; }
+
+    /* ── ADDRESS GRID ── */
+    .address-grid { display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 48px; }
+    @media (min-width: 768px) { .address-grid { grid-template-columns: repeat(2, 1fr); gap: 32px; } }
+
+    .address-tile { background: var(--card-bg); border: 0.5px solid var(--border); padding: 40px 32px; position: relative; overflow: hidden; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease; border-radius: 2px; display: flex; flex-direction: column; }
+    .address-tile:hover { transform: translateY(-4px); box-shadow: 0 24px 48px rgba(0,0,0,0.06); border-color: var(--accent); }
+    .address-tile.is-default { border-color: var(--primary); }
+
+    .tile-head { display: flex; align-items: center; gap: 8px; margin-bottom: 24px; }
+    .type-badge { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500; border: 0.5px solid var(--border); padding: 4px 10px; color: var(--primary); border-radius: 2px; }
+    .default-badge { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500; background: var(--primary); color: white; padding: 4px 10px; border-radius: 2px; }
+
+    .tile-name { font-size: 24px; color: var(--primary); margin-bottom: 8px; line-height: 1.2; font-family: var(--font-display); }
+    .tile-phone { font-size: 13px; color: var(--muted); margin-bottom: 20px; font-family: var(--font-ui); font-weight: 300; }
+    .tile-address { font-size: 13px; color: var(--muted); line-height: 1.6; font-family: var(--font-ui); flex: 1; font-weight: 300; }
+
+    .tile-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 16px; margin-top: 32px; padding-top: 24px; border-top: 0.5px solid var(--border); }
+    .dot-sep { width: 3px; height: 3px; border-radius: 50%; background: var(--border); display: inline-block; flex-shrink: 0; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { padding: 80px 32px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 24px; background: var(--card-bg); border: 0.5px solid var(--border); border-radius: 2px; }
+    .empty-title { font-family: var(--font-display); font-size: 28px; color: var(--primary); }
+    .empty-sub { font-size: 13px; color: var(--muted); font-family: var(--font-ui); font-weight: 300; max-width: 320px; line-height: 1.6; }
+
+    /* ── DELETE OVERLAY ── */
+    .delete-overlay { position: absolute; inset: 0; background: rgba(255,255,255,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; z-index: 10; padding: 32px; text-align: center; }
+    .delete-overlay.visible { opacity: 1; pointer-events: all; }
+    .delete-overlay-text { font-family: var(--font-display); font-size: 24px; color: var(--primary); }
+    .delete-overlay-sub { font-size: 13px; color: var(--muted); font-family: var(--font-ui); font-weight: 300; }
+    .delete-overlay-actions { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+
+    /* ── MOBILE DRAWER/HAMBURGER (from profile_base/user-profile) ── */
+    .mobile-sidebar-toggle { display: none; position: fixed; top: 60px; right: 16px; z-index: 9999; width: 44px; height: 44px; background: #fff; border: 0.5px solid rgba(0,0,0,0.18); border-radius: 50%; cursor: pointer; flex-direction: column; justify-content: center; align-items: center; padding: 0; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .hamburger-icon { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; width: 20px; }
+    .hamburger-icon span { display: block; height: 1px; background: #111111; transition: all 0.3s ease; }
+    .mobile-sidebar-toggle.is-active { background: rgba(13,13,13,0.85); border-color: rgba(255,255,255,0.15); }
+    .mobile-sidebar-toggle.is-active .hamburger-icon span { background: #ffffff; }
+    .hamburger-icon span:nth-child(1) { width: 18px; }
+    .hamburger-icon span:nth-child(2) { width: 12px; }
+    .hamburger-icon span:nth-child(3) { width: 15px; }
+    .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(1) { width: 18px; transform: translateY(6px) rotate(45deg); }
+    .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(3) { width: 18px; transform: translateY(-6px) rotate(-45deg); }
+    .mobile-drawer { display: none; flex-direction: column; position: fixed; top: 0; right: 0; width: 260px; height: 100%; background: #0D0D0D; z-index: 9998; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding-top: 80px; }
+    .mobile-drawer.is-active { transform: translateX(0); }
+    .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 9997; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
+    .sidebar-overlay.is-active { display: block; opacity: 1; visibility: visible; pointer-events: auto; }
+    @media (max-width: 1023px) { .mobile-sidebar-toggle { display: flex; } .mobile-drawer { display: flex; } .desktop-sidebar { display: none !important; } }
+    @media (min-width: 1024px) { .mobile-sidebar-toggle, .mobile-drawer, .sidebar-overlay { display: none !important; } }
+
+    /* ── MODALS (Adapted from address.html) ── */
+    #addressModal, #EditaddressModal { position: fixed; inset: 0; z-index: 10000; display: none; font-family: var(--font-ui); }
     #addressModal.open, #EditaddressModal.open { display: flex; }
+    .modal-backdrop-side { flex: 1; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); cursor: pointer; }
+    .modal-panel { width: 100%; max-width: 480px; background: var(--bg); height: 100%; overflow-y: auto; transform: translateX(100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; }
+    #addressModal.open .modal-panel, #EditaddressModal.open .modal-panel { transform: translateX(0); }
+    .modal-top { padding: 40px 40px 24px; border-bottom: 0.5px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0; background: var(--card-bg); }
+    .modal-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 0.5px solid var(--border); cursor: pointer; transition: all 0.3s ease; background: transparent; border-radius: 0; }
+    .modal-close:hover { border-color: var(--primary); background: var(--primary); color: white; }
+    .modal-close svg { width: 12px; height: 12px; }
+    .modal-body { padding: 40px; flex: 1; overflow-y: auto; background: var(--bg); }
+    .modal-footer { padding: 24px 40px; border-top: 0.5px solid var(--border); flex-shrink: 0; background: var(--card-bg); display: flex; flex-direction: column; gap: 12px; }
+    
+    .modal-micro-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500; color: var(--muted); margin-bottom: 8px; display: block; }
+    .modal-title { font-family: var(--font-display); font-size: 28px; font-weight: 400; color: var(--primary); }
 
-    .modal-backdrop-side {
-        flex: 1;
-        background: rgba(10,10,10,0.25);
-        backdrop-filter: blur(2px);
-    }
+    .form-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
+    .form-label { font-size: 10px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .form-input { width: 100%; border: none; border-bottom: 0.5px solid var(--border); padding: 12px 0; font-size: 14px; font-family: var(--font-ui); color: var(--primary); background: transparent; outline: none; transition: border-color 0.25s ease; border-radius: 0; }
+    .form-input:focus { border-bottom-color: var(--primary); }
+    .form-input.error { border-bottom-color: var(--danger) !important; }
+    .form-input::placeholder { color: #A0A0A0; font-weight: 300; }
+    .form-input[readonly] { color: var(--muted); border-bottom-style: dashed; cursor: default; }
 
-    .modal-panel {
-        width: 100%;
-        max-width: 480px;
-        background: #FFFFFF;
-        height: 100%;
-        overflow-y: auto;
-        transform: translateX(100%);
-        transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        display: flex;
-        flex-direction: column;
-        color: #0A0A0A;
-        font-size: 14px;
-        line-height: 1.6;
-    }
-
-    #addressModal.open    .modal-panel,
-    #EditaddressModal.open .modal-panel { transform: translateX(0); }
-
-    .modal-panel *, .modal-panel *::before, .modal-panel *::after {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
-
-    .modal-top {
-        padding: 40px 40px 28px;
-        border-bottom: 1px solid #E4E0DC;
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        flex-shrink: 0;
-    }
-
-    .modal-close {
-        width: 32px; height: 32px;
-        display: flex; align-items: center; justify-content: center;
-        border: 1px solid #E4E0DC;
-        cursor: pointer;
-        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        background: none;
-        flex-shrink: 0;
-    }
-
-    .modal-close:hover { border-color: #0A0A0A; background: #0A0A0A; color: white; }
-    .modal-close svg { width: 13px; height: 13px; }
-
-    .modal-body { padding: 36px 40px; flex: 1; overflow-y: auto; }
-
-    .modal-footer {
-        padding: 24px 40px 40px;
-        border-top: 1px solid #E4E0DC;
-        flex-shrink: 0;
-    }
-
-    .modal-btn-dark {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        background: #0A0A0A;
-        color: white;
-        border: 1px solid #0A0A0A;
-        padding: 13px 28px;
-        font-size: 9px;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        font-weight: 600;
-        font-family: 'Figtree', sans-serif;
-        cursor: pointer;
-        transition: background 0.2s;
-        border-radius: 0;
-    }
-
-    .modal-btn-dark:hover { background: #222; }
-
-    .modal-btn-cancel {
-        display: block;
-        width: 100%;
-        margin-top: 12px;
-        font-size: 9px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        font-weight: 500;
-        color: #9A9494;
-        background: none;
-        border: none;
-        cursor: pointer;
-        font-family: 'Figtree', sans-serif;
-        padding: 10px;
-        text-align: center;
-    }
-
-    /* Modal label */
-    .modal-micro-label {
-        font-size: 10px;
-        letter-spacing: 0.18em;
-        text-transform: uppercase;
-        font-weight: 500;
-        color: #9A9494;
-        margin-bottom: 8px;
-        display: block;
-    }
-
-    .modal-title {
-        font-family: 'Playfair Display', serif;
-        font-size: 22px;
-        font-weight: 400;
-        letter-spacing: -0.01em;
-        color: #0A0A0A;
-    }
-
-    /* Form fields */
-    .form-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 28px; }
-
-    .form-label {
-        font-size: 8px;
-        font-weight: 700;
-        letter-spacing: 0.26em;
-        text-transform: uppercase;
-        color: #9A9494;
-    }
-
-    .form-input {
-        width: 100%;
-        border: none;
-        border-bottom: 1px solid #E4E0DC;
-        padding: 10px 0;
-        font-size: 13px;
-        font-family: 'Figtree', sans-serif;
-        font-weight: 300;
-        color: #0A0A0A;
-        background: transparent;
-        outline: none;
-        transition: border-color 0.25s ease;
-        appearance: none;
-        -webkit-appearance: none;
-    }
-
-    .form-input:focus { border-bottom-color: #0A0A0A; }
-    .form-input.error { border-bottom-color: #B5291C !important; }
-    .form-input::placeholder { color: #9A9494; font-weight: 300; }
-    select.form-input { cursor: pointer; }
-
-    .form-input[readonly] {
-        color: #9A9494;
-        border-bottom-style: dashed;
-        cursor: default;
-    }
-
-    .error-msg {
-        font-size: 9px;
-        color: #B5291C;
-        letter-spacing: 0.05em;
-        font-weight: 500;
-        display: none;
-        margin-top: 3px;
-    }
-
+    .error-msg { font-size: 10px; color: var(--danger); font-weight: 500; display: none; margin-top: 4px; }
     .error-msg.show { display: block; }
 
-    .phone-row {
-        display: flex;
-        gap: 0;
-        border-bottom: 1px solid #E4E0DC;
-        transition: border-color 0.25s ease;
-    }
-
-    .phone-row:focus-within { border-bottom-color: #0A0A0A; }
-    .phone-row.error { border-bottom-color: #B5291C; }
-
-    .phone-code-select {
-        width: 130px;
-        flex-shrink: 0;
-        border: none;
-        border-right: 1px solid #E4E0DC;
-        padding: 10px 8px 10px 0;
-        font-size: 12px;
-        font-family: 'Figtree', sans-serif;
-        color: #0A0A0A;
-        background: transparent;
-        outline: none;
-        cursor: pointer;
-        appearance: none;
-    }
-
-    .phone-number-input {
-        flex: 1;
-        border: none;
-        padding: 10px 0 10px 12px;
-        font-size: 13px;
-        font-family: 'Figtree', sans-serif;
-        font-weight: 300;
-        color: #0A0A0A;
-        background: transparent;
-        outline: none;
-    }
-
-    .phone-number-input::placeholder { color: #9A9494; font-weight: 300; }
-
-    .radio-group, .check-group { display: flex; gap: 20px; align-items: center; }
-    .radio-item, .check-item   { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-
-    .radio-item input[type="radio"],
-    .check-item input[type="checkbox"] {
-        appearance: none;
-        -webkit-appearance: none;
-        width: 13px; height: 13px;
-        border: 1.5px solid #E4E0DC;
-        border-radius: 50%;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        position: relative;
-        flex-shrink: 0;
-    }
-
+    .phone-row { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); transition: border-color 0.25s ease; }
+    .phone-row:focus-within { border-bottom-color: var(--primary); }
+    .phone-row.error { border-bottom-color: var(--danger); }
+    .phone-code-select { width: 130px; flex-shrink: 0; border: none; border-right: 0.5px solid var(--border); padding: 12px 8px 12px 0; font-size: 13px; font-family: var(--font-ui); color: var(--primary); background: transparent; outline: none; cursor: pointer; border-radius: 0; }
+    .phone-number-input { flex: 1; border: none; padding: 12px 0 12px 16px; font-size: 14px; font-family: var(--font-ui); color: var(--primary); background: transparent; outline: none; }
+    
+    .radio-group, .check-group { display: flex; gap: 24px; align-items: center; margin-top: 8px; }
+    .radio-item, .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .radio-item input[type="radio"], .check-item input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; border: 1px solid var(--border); border-radius: 50%; cursor: pointer; transition: all 0.2s ease; position: relative; flex-shrink: 0; margin: 0; }
     .check-item input[type="checkbox"] { border-radius: 2px; }
+    .radio-item input[type="radio"]:checked, .check-item input[type="checkbox"]:checked { background: var(--primary); border-color: var(--primary); }
+    .radio-item input[type="radio"]:checked::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; border-radius: 50%; background: white; }
+    .check-item input[type="checkbox"]:checked::after { content: ''; position: absolute; top: 2px; left: 5px; width: 4px; height: 8px; border: 1.5px solid white; border-top: none; border-left: none; transform: rotate(45deg); }
+    .radio-label, .check-label { font-size: 13px; font-weight: 400; color: var(--primary); }
 
-    .radio-item input[type="radio"]:checked,
-    .check-item input[type="checkbox"]:checked {
-        background: #0A0A0A;
-        border-color: #0A0A0A;
-    }
-
-    .radio-item input[type="radio"]:checked::after {
-        content: '';
-        position: absolute;
-        top: 50%; left: 50%;
-        transform: translate(-50%, -50%);
-        width: 4px; height: 4px;
-        border-radius: 50%;
-        background: white;
-    }
-
-    .check-item input[type="checkbox"]:checked::after {
-        content: '';
-        position: absolute;
-        top: 1px; left: 3px;
-        width: 4px; height: 7px;
-        border: 1.5px solid white;
-        border-top: none; border-left: none;
-        transform: rotate(45deg);
-    }
-
-    .radio-label, .check-label {
-        font-size: 11px;
-        font-weight: 400;
-        color: #4A4444;
-        letter-spacing: 0.04em;
-        user-select: none;
-    }
-
+    .spinner { width: 14px; height: 14px; border: 1.5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .spinner {
-        width: 12px; height: 12px;
-        border: 1.5px solid #E4E0DC;
-        border-top-color: #0A0A0A;
-        border-radius: 50%;
-        animation: spin 0.7s linear infinite;
-        display: inline-block;
-    }
 
-    @media (max-width: 640px) {
-        .modal-panel { max-width: 100%; }
-    }
-
-    /* ── Toast ── */
-    #toast-container {
-        position: fixed;
-        top: 30px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 10000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        pointer-events: none;
-    }
-
-    .custom-pill-toast {
-        width: max-content;
-        max-width: 90vw;
-        padding: 10px 22px 10px 14px;
-        border-radius: 50px;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        opacity: 0;
-        transform: translateY(-20px);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        pointer-events: auto;
-        background: #000;
-        color: #fff;
-    }
-
+    /* ── TOAST ── */
+    #toast-container { position: fixed; top: 30px; left: 50%; transform: translateX(-50%); z-index: 100000; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
+    .custom-pill-toast { width: max-content; max-width: 90vw; padding: 12px 24px; border-radius: 4px; display: flex; align-items: center; box-shadow: 0 12px 24px rgba(0,0,0,0.12); opacity: 0; transform: translateY(-20px); transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: auto; background: var(--primary); color: #fff; font-family: var(--font-ui); }
     .custom-pill-toast.show { opacity: 1; transform: translateY(0); }
     .toast-left-content { display: flex; align-items: center; gap: 12px; }
-
-    .toast-icon-circle {
-        width: 28px; height: 28px;
-        border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 14px;
-        flex-shrink: 0;
-    }
-
-    .toast-success .toast-icon-circle { background: #2F8D46; }
-    .toast-error   .toast-icon-circle { background: #E03B2A; }
-
-    .toast-message-wrapper {
-        display: flex;
-        flex-direction: column;
-        white-space: nowrap;
-        margin-right: 15px;
-    }
-
-    .toast-main-text {
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        line-height: 1.2;
-    }
-
-    .toast-sub-text { font-size: 9px; opacity: 0.7; margin-top: 1px; }
-    .toast-close-btn { cursor: pointer; font-size: 16px; opacity: 0.6; transition: opacity 0.2s; }
+    .toast-icon-circle { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; background: rgba(255,255,255,0.1); }
+    .toast-success .toast-icon-circle { color: #4ade80; }
+    .toast-error .toast-icon-circle { color: #f87171; }
+    .toast-message-wrapper { display: flex; flex-direction: column; margin-right: 16px; }
+    .toast-main-text { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em; }
+    .toast-close-btn { cursor: pointer; font-size: 14px; opacity: 0.6; transition: opacity 0.2s; padding: 4px; }
     .toast-close-btn:hover { opacity: 1; }
+
 </style>
+{% endblock %}
 
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+{% block content %}
 <!-- Toast -->
 <div id="toast-container"></div>
 
-<div class="shell">
+{% include 'user_base/components/mobile_drawer.html' %}
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <span class="sidebar-section-label">Account</span>
-        <ul class="nav-list">
-            <li class="nav-item">
-                <a href="{% url 'user-profile' request.user.id %}" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h10M4 18h16"/></svg>
-                    Overview
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'orders' %}" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                    Orders
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'wishlist' %}" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                    Wishlist
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'address' %}" class="nav-link active">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
-                    Addresses
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                    Settings
-                </a>
-            </li>
-        </ul>
-    </aside>
+<div class="profile-page-wrapper">
+    <!-- Desktop Sidebar -->
+    {% include 'user_base/components/desktop_sidebar.html' %}
 
-    <!-- MAIN CONTENT -->
-    <main class="main animate-in">
+    <!-- Main Content -->
+    <main class="profile-main-content">
+        <div class="profile-container">
 
-        <header class="page-header">
-            <nav class="breadcrumb-nav text-[9px] text-gray-400 uppercase tracking-[0.2em]">
-                <a href="{% url 'user-profile' request.user.id %}" class="hover:text-black transition-colors">Account</a>
-                <span class="sep">•</span>
-                <span class="text-black font-semibold">Addresses</span>
-            </nav>
-
-            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-[#E4E0DC]">
-                <div>
-                    <h1 class="page-title">Saved Addresses</h1>
-                    <p class="page-sub">Manage delivery addresses for faster checkout.</p>
+            <div class="section-header" style="display: flex; flex-direction: column; gap: 24px;">
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <h1 class="user-name">Saved Addresses</h1>
+                    <p class="user-contact" style="margin-bottom: 0;">Manage delivery addresses for faster checkout.</p>
                 </div>
-                <button onclick="openModal()" class="btn btn-dark">
-                    <svg width="11" height="11" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                <div>
+                    <button onclick="openModal()" class="btn-outline btn-filled" style="padding: 14px 32px;">
+                        Add Address
+                    </button>
+                </div>
+            </div>
+
+            <div class="section-title" style="margin-bottom: 24px; padding-bottom: 0; border: none;">
+                <span>Your Addresses</span>
+                <span style="color: var(--muted); font-weight: 400;">{{ addresses.count }} saved</span>
+            </div>
+
+            {% if addresses %}
+            <div id="address-list" class="address-grid">
+                {% for address in addresses %}
+                <div class="address-tile {% if address.is_default %}is-default{% endif %}">
+                    <div class="tile-head">
+                        <span class="type-badge">{{ address.get_type_display }}</span>
+                        {% if address.is_default %}<span class="default-badge">Default</span>{% endif %}
+                    </div>
+                    <p class="tile-name">{{ address.first_name }} {{ address.last_name }}</p>
+                    <p class="tile-phone">+91 {{ address.phone_number }}</p>
+                    <div class="tile-address">
+                        <p>{{ address.address_line1 }}</p>
+                        {% if address.address_line2 %}<p>{{ address.address_line2 }}</p>{% endif %}
+                        <p>{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p>
+                        <p>{{ address.country }}</p>
+                    </div>
+                    <div class="tile-actions">
+                        <button class="btn-text"
+                            onclick='openEditModal({
+                                "id":         "{{ address.id }}",
+                                "first_name": "{{ address.first_name|escapejs }}",
+                                "last_name":  "{{ address.last_name|escapejs }}",
+                                "phone":      "{{ address.phone_number|escapejs }}",
+                                "addr1":      "{{ address.address_line1|escapejs }}",
+                                "addr2":      "{{ address.address_line2|default:""|escapejs }}",
+                                "city":       "{{ address.city|escapejs }}",
+                                "state":      "{{ address.state|escapejs }}",
+                                "postal":     "{{ address.pin_code|escapejs }}",
+                                "country":    "{{ address.country|escapejs }}",
+                                "type":       "{{ address.type|escapejs }}",
+                                "is_default": {{ address.is_default|yesno:"true,false" }}
+                            })'>
+                            Edit
+                        </button>
+                        <span class="dot-sep"></span>
+                        <button class="btn-text btn-text-danger" onclick="confirmDelete({{ address.id }})">Remove</button>
+                        {% if not address.is_default %}
+                        <span class="dot-sep"></span>
+                        <form method="POST" action="{% url 'address-set-default' address.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-text">Set Default</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Delete Overlay inside tile -->
+                    <div class="delete-overlay" id="delete-overlay-{{ address.id }}">
+                        <div>
+                            <p class="delete-overlay-text">Remove address?</p>
+                            <p class="delete-overlay-sub">This action cannot be undone.</p>
+                        </div>
+                        <div class="delete-overlay-actions">
+                            <button onclick="cancelDelete({{ address.id }})" class="btn-outline" style="padding: 10px 24px;">Cancel</button>
+                            <form method="POST" action="{% url 'delete-address' address.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-outline btn-filled" style="padding: 10px 24px; background: var(--danger) !important; border-color: var(--danger) !important;">Remove</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div>
+                    <h2 class="empty-title">No saved addresses</h2>
+                    <p class="empty-sub">Add your first address to enable faster checkout across all your orders.</p>
+                </div>
+                <button onclick="openModal()" class="btn-outline btn-filled">
                     Add Address
                 </button>
             </div>
-        </header>
+            {% endif %}
 
-        <div class="section-head mt-12">
-            <span class="label" style="color:var(--ink);">Your Addresses</span>
-            <span class="count-chip">{{ addresses.count }} saved</span>
         </div>
-
-        {% if addresses %}
-        <div id="address-list" class="address-grid">
-            {% for address in addresses %}
-            <div class="address-tile {% if address.is_default %}is-default{% endif %}">
-                <div class="tile-head">
-                    <span class="type-badge">{{ address.get_type_display }}</span>
-                    {% if address.is_default %}<span class="default-badge">Default</span>{% endif %}
-                </div>
-                <p class="tile-name">{{ address.first_name }} {{ address.last_name }}</p>
-                <p class="tile-phone">+91 {{ address.phone_number }}</p>
-                <div class="tile-address">
-                    <p>{{ address.address_line1 }}</p>
-                    {% if address.address_line2 %}<p>{{ address.address_line2 }}</p>{% endif %}
-                    <p>{{ address.city }}, {{ address.state }} {{ address.postal_code }}</p>
-                    <p>{{ address.country }}</p>
-                </div>
-                <div class="tile-actions">
-                    <button class="btn-text"
-                        onclick='openEditModal({
-                            "id":         "{{ address.id }}",
-                            "first_name": "{{ address.first_name|escapejs }}",
-                            "last_name":  "{{ address.last_name|escapejs }}",
-                            "phone":      "{{ address.phone_number|escapejs }}",
-                            "addr1":      "{{ address.address_line1|escapejs }}",
-                            "addr2":      "{{ address.address_line2|default:""|escapejs }}",
-                            "city":       "{{ address.city|escapejs }}",
-                            "state":      "{{ address.state|escapejs }}",
-                            "postal":     "{{ address.pin_code|escapejs }}",
-                            "country":    "{{ address.country|escapejs }}",
-                            "type":       "{{ address.type|escapejs }}",
-                            "is_default": {{ address.is_default|yesno:"true,false" }}
-                        })'>
-                        Edit
-                    </button>
-                    <span class="dot-sep"></span>
-                    <button class="btn-text btn-text-danger" onclick="confirmDelete({{ address.id }})">Delete</button>
-                    {% if not address.is_default %}
-                    <span class="dot-sep"></span>
-                    <form method="POST" action="{% url 'address-set-default' address.id %}" style="display:inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-text">Set Default</button>
-                    </form>
-                    {% endif %}
-                </div>
-                <div class="delete-overlay" id="delete-overlay-{{ address.id }}">
-                    <div>
-                        <p class="delete-overlay-text">Remove this address?</p>
-                        <p class="delete-overlay-sub">This action cannot be undone.</p>
-                    </div>
-                    <div class="delete-overlay-actions">
-                        <button onclick="cancelDelete({{ address.id }})" class="btn btn-outline" style="padding:10px 20px;">Cancel</button>
-                        <form method="POST" action="{% url 'delete-address' address.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-dark" style="padding:10px 20px;background:var(--danger);border-color:var(--danger);">Remove</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="empty-state">
-            <div class="empty-icon empty-pin">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                </svg>
-            </div>
-            <div>
-                <h2 class="empty-title">No saved addresses</h2>
-                <p class="empty-sub">Add your first address to enable faster checkout across all your orders.</p>
-            </div>
-            <button onclick="openModal()" class="btn btn-dark">
-                <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-                Add Address
-            </button>
-        </div>
-        {% endif %}
-
-        <!-- Profile Completion -->
-        <section class="completion-module" id="profile-completion-section" data-pct="75">
-            <div class="completion-top">
-                <div class="completion-header-row">
-                    <span class="label" style="color:var(--ink);">Profile Completion</span>
-                    <span class="completion-badge" id="pc-badge">Almost There</span>
-                </div>
-                <div class="progress-rail">
-                    <div class="progress-bar" id="pc-progress-fill"></div>
-                </div>
-                <p class="progress-sub">
-                    <span id="pc-counter" style="font-weight:500;color:var(--ink);">0%</span>
-                    &nbsp;— Complete your profile to unlock faster checkout.
-                </p>
-            </div>
-            <div class="completion-grid">
-                <div class="completion-item done">
-                    <div class="completion-dot"></div>
-                    <div style="flex:1;min-width:0;"><p class="ci-title">Username added</p></div>
-                    <div class="ci-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
-                </div>
-                <div class="completion-item done">
-                    <div class="completion-dot"></div>
-                    <div style="flex:1;min-width:0;"><p class="ci-title">Phone number added</p></div>
-                    <div class="ci-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
-                </div>
-                <div class="completion-item done">
-                    <div class="completion-dot"></div>
-                    <div style="flex:1;min-width:0;"><p class="ci-title">Profile photo uploaded</p></div>
-                    <div class="ci-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
-                </div>
-                <div class="completion-item">
-                    <div class="completion-dot"></div>
-                    <div style="flex:1;min-width:0;">
-                        <p class="ci-title">Add shipping address</p>
-                        <p class="ci-sub">For faster checkout</p>
-                    </div>
-                    <button onclick="openModal()" class="btn-text">Add</button>
-                </div>
-            </div>
-        </section>
-
     </main>
 </div>
 
@@ -1108,18 +323,18 @@
                 <input type="hidden" name="next" value="{{ request.GET.next }}">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                     <div class="form-field">
-                        <label class="form-label">First Name <span style="color:#B5291C;">*</span></label>
+                        <label class="form-label">First Name *</label>
                         <input type="text" id="f-first-name" name="first_name" class="form-input" placeholder="First name" autocomplete="given-name">
                         <span class="error-msg" id="err-first-name">Please enter your first name</span>
                     </div>
                     <div class="form-field">
-                        <label class="form-label">Last Name <span style="color:#B5291C;">*</span></label>
+                        <label class="form-label">Last Name *</label>
                         <input type="text" id="f-last-name" name="last_name" class="form-input" placeholder="Last name" autocomplete="family-name">
                         <span class="error-msg" id="err-last-name">Please enter your last name</span>
                     </div>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Phone <span style="color:#B5291C;">*</span></label>
+                    <label class="form-label">Phone *</label>
                     <div class="phone-row" id="phone-row">
                         <select id="f-phone-code" name="phone_code" class="phone-code-select"><option value="">Loading…</option></select>
                         <input type="tel" id="f-phone" name="phone" class="phone-number-input" placeholder="Phone number" maxlength="15" autocomplete="tel-national">
@@ -1127,34 +342,34 @@
                     <span class="error-msg" id="err-phone">Please enter a valid phone number (7–15 digits)</span>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Address Line 1 <span style="color:#B5291C;">*</span></label>
+                    <label class="form-label">Address Line 1 *</label>
                     <input type="text" id="f-addr1" name="address_line_1" class="form-input" placeholder="House / flat, street name" autocomplete="address-line1">
                     <span class="error-msg" id="err-addr1">Please enter your address</span>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Address Line 2 <span style="font-size:8px;color:#9A9494;font-weight:300;text-transform:none;letter-spacing:0;">optional</span></label>
+                    <label class="form-label">Address Line 2 <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
                     <input type="text" id="f-addr2" name="address_line_2" class="form-input" placeholder="Apartment, landmark…" autocomplete="address-line2">
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                     <div class="form-field">
-                        <label class="form-label">City <span style="color:#B5291C;">*</span></label>
+                        <label class="form-label">City *</label>
                         <input type="text" id="f-city" name="city" class="form-input" placeholder="City" autocomplete="address-level2">
                         <span class="error-msg" id="err-city">Please enter your city</span>
                     </div>
                     <div class="form-field">
-                        <label class="form-label">State <span style="color:#B5291C;">*</span></label>
+                        <label class="form-label">State *</label>
                         <input type="text" id="f-state" name="state" class="form-input" placeholder="State" autocomplete="address-level1">
                         <span class="error-msg" id="err-state">Please enter your state</span>
                     </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                     <div class="form-field">
-                        <label class="form-label">Postal Code <span style="color:#B5291C;">*</span></label>
+                        <label class="form-label">Postal Code *</label>
                         <input type="text" id="f-postal" name="postal_code" class="form-input" placeholder="Postal code" maxlength="10" autocomplete="postal-code">
                         <span class="error-msg" id="err-postal">Please enter a valid postal code</span>
                     </div>
                     <div class="form-field">
-                        <label class="form-label">Country <span style="color:#B5291C;">*</span></label>
+                        <label class="form-label">Country *</label>
                         <div style="position:relative;display:flex;align-items:center;">
                             <select id="f-country" name="country" class="form-input" style="padding-right:24px;"><option value="">Select country…</option></select>
                             <span id="country-loading" class="spinner" style="position:absolute;right:0;display:none;"></span>
@@ -1164,14 +379,14 @@
                 </div>
                 <div class="form-field">
                     <label class="form-label">Address Type</label>
-                    <div class="radio-group" style="margin-top:6px;">
+                    <div class="radio-group">
                         <label class="radio-item"><input type="radio" name="address_type" value="Home" checked><span class="radio-label">Home</span></label>
                         <label class="radio-item"><input type="radio" name="address_type" value="Work"><span class="radio-label">Work</span></label>
                         <label class="radio-item"><input type="radio" name="address_type" value="Other"><span class="radio-label">Other</span></label>
                     </div>
                 </div>
                 <div class="form-field">
-                    <label class="check-item" style="gap:12px;">
+                    <label class="check-item">
                         <input type="checkbox" id="f-default" name="is_default" value="true">
                         <span class="check-label">Set as default address</span>
                     </label>
@@ -1179,8 +394,8 @@
             </form>
         </div>
         <div class="modal-footer">
-            <button type="submit" form="addressForm" id="submit-btn" class="modal-btn-dark">Save Address</button>
-            <button type="button" onclick="closeModal()" class="modal-btn-cancel">Cancel</button>
+            <button type="submit" form="addressForm" id="submit-btn" class="btn-outline btn-filled" style="width: 100%;">Save Address</button>
+            <button type="button" onclick="closeModal()" class="btn-text" style="width: 100%; justify-content: center; padding: 12px 0;">Cancel</button>
         </div>
     </div>
 </div>
@@ -1204,62 +419,62 @@
                 <input type="hidden" name="next" value="{{ request.GET.next }}">
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
                     <div class="form-field">
-                        <label class="form-label">First Name</label>
+                        <label class="form-label">First Name *</label>
                         <input type="text" name="first_name" id="edit-first-name" class="form-input" placeholder="First name">
                         <span id="err-edit-first-name" class="error-msg"></span>
                     </div>
                     <div class="form-field">
-                        <label class="form-label">Last Name</label>
+                        <label class="form-label">Last Name *</label>
                         <input type="text" name="last_name" id="edit-last-name" class="form-input" placeholder="Last name">
                         <span id="err-edit-last-name" class="error-msg"></span>
                     </div>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Phone Number</label>
+                    <label class="form-label">Phone Number *</label>
                     <input type="tel" name="phone_number" id="edit-phone" class="form-input" placeholder="10-digit phone number">
                     <span id="err-edit-phone" class="error-msg"></span>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Address Line 1</label>
+                    <label class="form-label">Address Line 1 *</label>
                     <input type="text" name="address_line1" id="edit-addr1" class="form-input" placeholder="House / flat, street name">
                     <span id="err-edit-addr1" class="error-msg"></span>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Address Line 2 <span style="font-size:8px;color:#9A9494;font-weight:300;text-transform:none;letter-spacing:0;">optional</span></label>
+                    <label class="form-label">Address Line 2 <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
                     <input type="text" name="address_line2" id="edit-addr2" class="form-input" placeholder="Apartment, landmark…">
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
                     <div class="form-field">
-                        <label class="form-label">City</label>
+                        <label class="form-label">City *</label>
                         <input type="text" name="city" id="edit-city" class="form-input" placeholder="City">
                         <span id="err-edit-city" class="error-msg"></span>
                     </div>
                     <div class="form-field">
-                        <label class="form-label">State</label>
+                        <label class="form-label">State *</label>
                         <input type="text" name="state" id="edit-state" class="form-input" placeholder="State">
                         <span id="err-edit-state" class="error-msg"></span>
                     </div>
                     <div class="form-field">
-                        <label class="form-label">Pin Code</label>
+                        <label class="form-label">Pin Code *</label>
                         <input type="text" name="pin_code" id="edit-pin" class="form-input" placeholder="6-digit PIN">
                         <span id="err-edit-pin" class="error-msg"></span>
                     </div>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Country</label>
+                    <label class="form-label">Country *</label>
                     <select id="edit-country" name="country" class="form-input"><option value="">Select country…</option></select>
                     <span id="err-edit-country" class="error-msg"></span>
                 </div>
                 <div class="form-field">
                     <label class="form-label">Type</label>
-                    <div class="radio-group" style="margin-top:6px;">
+                    <div class="radio-group">
                         <label class="radio-item"><input type="radio" name="type" value="home" id="edit-type-home"><span class="radio-label">Home</span></label>
                         <label class="radio-item"><input type="radio" name="type" value="work" id="edit-type-work"><span class="radio-label">Work</span></label>
                         <label class="radio-item"><input type="radio" name="type" value="other" id="edit-type-other"><span class="radio-label">Other</span></label>
                     </div>
                 </div>
                 <div class="form-field">
-                    <label class="check-item" style="gap:12px;">
+                    <label class="check-item">
                         <input type="checkbox" name="is_default" id="edit-default">
                         <span class="check-label">Set as default address</span>
                     </label>
@@ -1267,8 +482,8 @@
             </form>
         </div>
         <div class="modal-footer">
-            <button type="submit" form="editAddressForm" class="modal-btn-dark">Update Address</button>
-            <button type="button" onclick="closeEditModal()" class="modal-btn-cancel">Cancel</button>
+            <button type="submit" form="editAddressForm" class="btn-outline btn-filled" style="width: 100%;">Update Address</button>
+            <button type="button" onclick="closeEditModal()" class="btn-text" style="width: 100%; justify-content: center; padding: 12px 0;">Cancel</button>
         </div>
     </div>
 </div>
@@ -1311,32 +526,22 @@ function clearAllErrors(formEl) {
 function lockField(el) {
     if (!el) return;
     el.readOnly = true;
-    el.style.color = '#9A9494';
-    el.style.borderBottomStyle = 'dashed';
-    el.style.cursor = 'default';
 }
 
 function unlockField(el) {
     if (!el) return;
     el.readOnly = false;
-    el.style.color = '';
-    el.style.borderBottomStyle = '';
-    el.style.cursor = '';
 }
 
 function lockSelect(el) {
     if (!el) return;
     el.disabled = true;
-    el.style.color = '#9A9494';
-    el.style.cursor = 'default';
     el.setAttribute('data-locked-value', el.value);
 }
 
 function unlockSelect(el) {
     if (!el) return;
     el.disabled = false;
-    el.style.color = '';
-    el.style.cursor = '';
 }
 
 function setSelectValue(selectEl, value) {
@@ -1411,7 +616,7 @@ async function verifyPin(ctx, ids) {
     }
     if (state.pinFetching) return;
     state.pinFetching = true;
-    if (errPinEl) { errPinEl.textContent = 'Verifying PIN…'; errPinEl.classList.remove('hidden'); errPinEl.style.display = ''; errPinEl.style.color = '#888'; }
+    if (errPinEl) { errPinEl.textContent = 'Verifying PIN…'; errPinEl.classList.remove('hidden'); errPinEl.style.display = ''; errPinEl.style.color = 'var(--muted)'; }
     try {
         const res  = await fetch(`https://api.postalpincode.in/pincode/${pin}`);
         const data = await res.json();
@@ -1431,7 +636,7 @@ async function verifyPin(ctx, ids) {
     } catch (e) {
         state.pinVerified = false; state.officialCity = ''; state.officialState = '';
         unlockField(cityEl); unlockField(stateEl); unlockSelect(countryEl);
-        if (errPinEl) { errPinEl.textContent = 'Could not verify PIN. You may continue manually.'; errPinEl.style.color = '#B5291C'; errPinEl.classList.remove('hidden'); errPinEl.style.display = ''; }
+        if (errPinEl) { errPinEl.textContent = 'Could not verify PIN. You may continue manually.'; errPinEl.style.color = 'var(--danger)'; errPinEl.classList.remove('hidden'); errPinEl.style.display = ''; }
     } finally {
         state.pinFetching = false;
         if (errPinEl) errPinEl.style.color = '';
@@ -1556,33 +761,6 @@ function closeEditModal() {
 function confirmDelete(id) { const o = document.getElementById(`delete-overlay-${id}`); if (o) o.classList.add('visible'); }
 function cancelDelete(id)  { const o = document.getElementById(`delete-overlay-${id}`); if (o) o.classList.remove('visible'); }
 
-/* ── Profile completion animation ── */
-function animateProfileCompletion() {
-    const section = document.getElementById('profile-completion-section');
-    if (!section) return;
-    const pct  = parseInt(section.getAttribute('data-pct'), 10) || 0;
-    const fill = document.getElementById('pc-progress-fill');
-    const ctr  = document.getElementById('pc-counter');
-    const badge = document.getElementById('pc-badge');
-    if (!fill || !ctr || !badge) return;
-    requestAnimationFrame(() => { fill.style.width = pct + '%'; });
-    let t0 = null;
-    function countUp(ts) {
-        if (!t0) t0 = ts;
-        const p = Math.min((ts - t0) / 1300, 1);
-        const e = 1 - Math.pow(1 - p, 3);
-        ctr.textContent = Math.round(e * pct) + '%';
-        if (p < 1) { requestAnimationFrame(countUp); }
-        else {
-            if      (pct === 100) { badge.textContent = 'Complete';     badge.style.borderColor = '#0A0A0A'; badge.style.color = '#0A0A0A'; }
-            else if (pct >= 75)   { badge.textContent = 'Almost There'; }
-            else if (pct >= 50)   { badge.textContent = 'Half Way'; }
-            else                  { badge.textContent = 'In Progress'; }
-        }
-    }
-    requestAnimationFrame(countUp);
-}
-
 /* ── Toast ── */
 function showPillToast(message, tag) {
     const container = document.getElementById('toast-container');
@@ -1595,7 +773,6 @@ function showPillToast(message, tag) {
             <div class="toast-icon-circle">${isError ? '✕' : '✓'}</div>
             <div class="toast-message-wrapper">
                 <div class="toast-main-text">${message}</div>
-                <div class="toast-sub-text">${isError ? 'Error' : 'Success'}</div>
             </div>
         </div>
         <div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>`;
@@ -1608,7 +785,6 @@ function showPillToast(message, tag) {
 document.addEventListener('DOMContentLoaded', function () {
     fetchCountries();
     ensureEditErrorSpans();
-    setTimeout(animateProfileCompletion, 400);
 
     try {
         const msgs = JSON.parse(document.getElementById('django-messages').textContent || '[]');
@@ -1688,4 +864,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
+{% include 'user_base/components/nav_js.html' %}
 {% endblock %}
