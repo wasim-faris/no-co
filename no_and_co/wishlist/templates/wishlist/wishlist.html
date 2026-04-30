@@ -112,7 +112,9 @@
         align-items: center;
         justify-content: center;
     }
-    .fav-heart:hover { transform: scale(1.15); }
+    @media (hover: hover) {
+        .fav-heart:hover { transform: scale(1.15); }
+    }
     /* unfilled by default */
     .fav-heart .fav-heart-fill   { display: none;   color: #e8192c; }
     .fav-heart .fav-heart-empty  { display: inline; color: #555; }
@@ -171,9 +173,11 @@
         transition: all 0.2s ease;
         margin-top: auto;
     }
-    .btn-add-fav:hover {
-        background-color: #000;
-        color: #fff;
+    @media (hover: hover) {
+        .btn-add-fav:hover {
+            background-color: #000;
+            color: #fff;
+        }
     }
 
     .close-drawer {
@@ -254,8 +258,10 @@
         cursor: pointer;
         transition: all 0.1s ease;
     }
-    .size-btn:hover:not(.disabled) {
-        background: #f5f5f5;
+    @media (hover: hover) {
+        .size-btn:hover:not(.disabled) {
+            background: #f5f5f5;
+        }
     }
     .size-btn.active {
         background: #000 !important;
@@ -321,8 +327,10 @@
         letter-spacing: 1px;
         cursor: pointer;
     }
-    .btn-atc-main:hover {
-        background: #333;
+    @media (hover: hover) {
+        .btn-atc-main:hover {
+            background: #333;
+        }
     }
     .btn-go-pdp {
         width: 100%;
@@ -338,8 +346,10 @@
         text-align: center;
         text-decoration: none;
     }
-    .btn-go-pdp:hover {
-        border-color: #000;
+    @media (hover: hover) {
+        .btn-go-pdp:hover {
+            border-color: #000;
+        }
     }
 /* ─── Empty State ─── */
     .wishlist-empty {
@@ -371,7 +381,9 @@
         text-decoration: none;
         transition: 0.3s;
     }
-    .btn-explore:hover { background: #333; }
+    @media (hover: hover) {
+        .btn-explore:hover { background: #333; }
+    }
 
     /* ─── Recommendation Sections (Copied from Cart) ─── */
     .similar-items-section {
@@ -405,7 +417,9 @@
         padding: 0 5px;
         transition: opacity 0.2s;
     }
-    .similar-nav button:hover { opacity: 0.6; }
+    @media (hover: hover) {
+        .similar-nav button:hover { opacity: 0.6; }
+    }
 
     .similar-carousel {
         display: flex;
@@ -472,7 +486,9 @@
         stroke-width: 1.5;
         transition: transform 0.1s;
     }
-    .similar-heart:hover svg { transform: scale(1.15); fill: #eee; }
+    @media (hover: hover) {
+        .similar-heart:hover svg { transform: scale(1.15); fill: #eee; }
+    }
 
     .similar-label {
         font-size: 9px;
@@ -658,6 +674,12 @@
         .similar-card:hover .product-img:first-of-type {
             opacity: 0;
         }
+    }
+
+    /* Disable Tailwind hover utilities on mobile to prevent stuck states */
+    @media (max-width: 768px) {
+        .hover\:opacity-100:hover { opacity: inherit !important; }
+        .hover\:bg-white:hover { background-color: transparent !important; }
     }
 </style>
 {% endblock %}

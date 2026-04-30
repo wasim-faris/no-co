@@ -59,7 +59,9 @@
         outline: none;
         color: #111;
     }
-    .qty-btn:hover:not(:disabled) { opacity: 1; transform: scale(1.15); }
+    @media (hover: hover) {
+        .qty-btn:hover:not(:disabled) { opacity: 1; transform: scale(1.15); }
+    }
     .qty-btn:disabled  { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     .qty-limit-warning {
         font-size: 0.6rem;
@@ -139,7 +141,9 @@
         border: none;
         cursor: pointer;
     }
-    .btn-checkout:hover { background-color: #333; }
+    @media (hover: hover) {
+        .btn-checkout:hover { background-color: #333; }
+    }
     .btn-checkout.is-loading {
         background-color: #333;
         pointer-events: none;
@@ -186,7 +190,9 @@
         display: block;
         text-align: center;
     }
-    .btn-signin:hover { background-color: #fafafa; }
+    @media (hover: hover) {
+        .btn-signin:hover { background-color: #fafafa; }
+    }
 
     /* ─── Payment / Info ─────────────────────────────────────── */
     .payment-icons {
@@ -251,13 +257,17 @@
         cursor: pointer; font-size: 14px; opacity: 0.4;
         transition: opacity 0.2s; padding: 4px; line-height: 1;
     }
-    .toast-close-btn:hover { opacity: 1; }
+    @media (hover: hover) {
+        .toast-close-btn:hover { opacity: 1; }
+    }
 
     /* ─── Wishlist heart toggle ──────────────────────────────── */
     .like-btn .filled-heart { display: none; color: #e02b2b !important; }
     .like-btn.liked .filled-heart { display: inline-block; }
     .like-btn.liked .unfilled-heart { display: none; }
-    .like-btn:hover i { transform: scale(1.15); transition: transform 0.2s ease; }
+    @media (hover: hover) {
+        .like-btn:hover i { transform: scale(1.15); transition: transform 0.2s ease; }
+    }
 
     /* ─── Responsive ─────────────────────────────────────────── */
     @media (max-width: 1024px) {
@@ -298,7 +308,9 @@
         padding: 0 5px;
         transition: opacity 0.2s;
     }
-    .similar-nav button:hover { opacity: 0.6; }
+    @media (hover: hover) {
+        .similar-nav button:hover { opacity: 0.6; }
+    }
 
     .similar-carousel {
         display: flex;
@@ -365,7 +377,9 @@
         stroke-width: 1.5;
         transition: transform 0.1s;
     }
-    .similar-heart:hover svg { transform: scale(1.15); fill: #eee; }
+    @media (hover: hover) {
+        .similar-heart:hover svg { transform: scale(1.15); fill: #eee; }
+    }
 
     .similar-label {
         font-size: 9px;
@@ -464,12 +478,17 @@
             overflow: hidden;
         }
     }
-    }
 
     @media (hover: hover) and (pointer: fine) {
         .similar-card:hover .product-img:first-of-type {
             opacity: 0;
         }
+    }
+
+    /* Disable Tailwind hover utilities on mobile to prevent stuck states */
+    @media (max-width: 768px) {
+        .hover\:opacity-100:hover { opacity: inherit !important; }
+        .hover\:bg-white:hover { background-color: transparent !important; }
     }
 </style>
 {% endblock %}
