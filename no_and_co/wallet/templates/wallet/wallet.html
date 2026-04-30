@@ -304,24 +304,32 @@
         <button class="uni-modal-close" onclick="closeAddMoneyModal()">&times;</button>
     </div>
     
-    <div class="uni-modal-body">
-        <p style="font-family: var(--font-ui); font-size: 13px; color: var(--muted); margin-bottom: 24px;">Funds will be available instantly after payment.</p>
-        
-        <div style="margin-bottom: 24px;">
-            <label style="font-family: var(--font-ui); font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--primary); font-weight: 500; display: block; margin-bottom: 8px;">Enter Amount (₹)</label>
-            <input type="number" id="chargeAmount" class="form-input" placeholder="0.00" min="1">
-            <div id="amountError" style="font-family: var(--font-ui); font-size: 10px; color: var(--danger); font-weight: 500; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.1em; display: none;">Please enter an amount of at least ₹1</div>
+    <div class="uni-modal-body" style="position: relative;">
+        <!-- Loader Spinner -->
+        <div id="walletModalLoader" style="display: flex; justify-content: center; align-items: center; padding: 60px 0;">
+            <div style="width: 24px; height: 24px; border: 2px solid rgba(0,0,0,0.1); border-top-color: #000; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
         </div>
         
-        <div style="display: flex; gap: 12px; margin-bottom: 32px;">
-            <button class="btn-outline" style="flex:1; padding: 12px;" onclick="setAmount(500)">₹500</button>
-            <button class="btn-outline" style="flex:1; padding: 12px;" onclick="setAmount(1000)">₹1000</button>
-            <button class="btn-outline" style="flex:1; padding: 12px;" onclick="setAmount(2000)">₹2000</button>
+        <!-- Modal Content -->
+        <div id="walletModalContent" style="display: none;">
+            <p style="font-family: var(--font-ui); font-size: 13px; color: var(--muted); margin-bottom: 24px;">Funds will be available instantly after payment.</p>
+            
+            <div style="margin-bottom: 24px;">
+                <label style="font-family: var(--font-ui); font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--primary); font-weight: 500; display: block; margin-bottom: 8px;">Enter Amount (₹)</label>
+                <input type="number" id="chargeAmount" class="form-input" placeholder="0.00" min="1">
+                <div id="amountError" style="font-family: var(--font-ui); font-size: 10px; color: var(--danger); font-weight: 500; margin-top: 8px; text-transform: uppercase; letter-spacing: 0.1em; display: none;">Please enter an amount of at least ₹1</div>
+            </div>
+            
+            <div style="display: flex; gap: 12px; margin-bottom: 32px;">
+                <button class="btn-outline" style="flex:1; padding: 12px;" onclick="setAmount(500)">₹500</button>
+                <button class="btn-outline" style="flex:1; padding: 12px;" onclick="setAmount(1000)">₹1000</button>
+                <button class="btn-outline" style="flex:1; padding: 12px;" onclick="setAmount(2000)">₹2000</button>
+            </div>
+            
+            <div id="paymentError" style="font-family: var(--font-ui); font-size: 10px; color: var(--danger); font-weight: 500; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.1em; display: none;"></div>
         </div>
-        
-        <div id="paymentError" style="font-family: var(--font-ui); font-size: 10px; color: var(--danger); font-weight: 500; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.1em; display: none;"></div>
     </div>
-    <div class="uni-modal-footer">
+    <div class="uni-modal-footer" id="walletModalFooter" style="display: none;">
         <button id="payBtn" class="uni-modal-btn uni-modal-btn-primary" onclick="startPayment()">Proceed to Pay</button>
     </div>
 </div>
@@ -339,11 +347,27 @@
     function openAddMoneyModal() {
         const modal = document.getElementById('addMoneyModal');
         const overlay = document.getElementById('addMoneyModalOverlay');
+        const loader = document.getElementById('walletModalLoader');
+        const content = document.getElementById('walletModalContent');
+        const footer = document.getElementById('walletModalFooter');
+        
         modal.classList.add('active');
         if (overlay) overlay.classList.add('active');
         amountInput.value = '';
         resetErrors();
         document.body.style.overflow = 'hidden';
+        
+        // Show loader initially
+        loader.style.display = 'flex';
+        content.style.display = 'none';
+        footer.style.display = 'none';
+        
+        // Simulate data fetch delay
+        setTimeout(() => {
+            loader.style.display = 'none';
+            content.style.display = 'block';
+            footer.style.display = 'flex';
+        }, 500);
     }
 
     function closeAddMoneyModal() {

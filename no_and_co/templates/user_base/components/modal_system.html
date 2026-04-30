@@ -213,6 +213,37 @@
             flex: none;
         }
     }
+    /* 4. Global Button Loader System */
+    @keyframes global-btn-spin {
+        to { transform: rotate(360deg); }
+    }
+    .btn-loading-state {
+        color: transparent !important;
+        position: relative;
+        pointer-events: none !important;
+    }
+    .btn-loading-state::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 16px;
+        height: 16px;
+        margin-top: -8px;
+        margin-left: -8px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: global-btn-spin 0.8s linear infinite;
+        visibility: visible;
+    }
+    /* For buttons with white/light backgrounds */
+    .btn-outline.btn-loading-state::after,
+    .btn-secondary.btn-loading-state::after,
+    .uni-modal-btn-secondary.btn-loading-state::after {
+        border: 2px solid rgba(0,0,0,0.1);
+        border-top-color: #000;
+    }
 </style>
 
 <script>
@@ -253,5 +284,49 @@
                 if (closeBtn) closeBtn.click();
             }
         }
+    });
+
+    // GLOBAL BUTTON LOADER SYSTEM
+    document.addEventListener('DOMContentLoaded', () => {
+        // Intercept all form submissions
+        document.addEventListener('submit', (e) => {
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('input[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.classList.add('btn-loading-state');
+                // We use pointer-events:none in CSS, but let's also disable after a tick to allow submit
+                setTimeout(() => { submitBtn.disabled = true; }, 10);
+                
+                // Safety timeout to restore button if page doesn't reload
+                setTimeout(() => {
+                    if (submitBtn) {
+                        submitBtn.classList.remove('btn-loading-state');
+                        submitBtn.disabled = false;
+                    }
+                }, 8000);
+            }
+        });
+
+        // Intercept specific async buttons (add to cart, place order, wallet pay, etc.)
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-add, .checkout-btn, #payBtn, #place-order-btn, #add-to-cart-btn, .btn-async');
+            if (btn && !btn.disabled && !btn.classList.contains('btn-loading-state')) {
+                // Skip if it's a submit button inside a form (already handled above)
+                if (btn.type === 'submit' && btn.closest('form')) return;
+                
+                btn.classList.add('btn-loading-state');
+                
+                // Allow current click event to finish propagating before disabling
+                setTimeout(() => { btn.disabled = true; }, 10);
+
+                // Auto-restore after a few seconds (assuming async call finishes or fails)
+                setTimeout(() => {
+                    if (btn) {
+                        btn.classList.remove('btn-loading-state');
+                        btn.disabled = false;
+                    }
+                }, 5000);
+            }
+        });
     });
 </script>
