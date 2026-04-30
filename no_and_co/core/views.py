@@ -531,8 +531,10 @@ def place_order(request):
         address_id = request.POST.get("address_id")
         address = get_object_or_404(Addresses, id=address_id, user=user)
 
-        payment_status = "PENDING" if payment_method == "COD" else "PAID"
-
+        if payment_method == "wallet":
+            payment_status = "PAID"
+        else:
+            payment_status = "PENDING"
         if not address_id:
             messages.error(request, "Add address to place order")
             return redirect("checkout")
