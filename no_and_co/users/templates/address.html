@@ -145,9 +145,22 @@
     @media (max-width: 1023px) { .mobile-sidebar-toggle { display: flex; } .mobile-drawer { display: flex; } .desktop-sidebar { display: none !important; } }
     @media (min-width: 1024px) { .mobile-sidebar-toggle, .mobile-drawer, .sidebar-overlay { display: none !important; } }
 
-    @keyframes btn-spin {
+    @keyframes spin {
         to { transform: rotate(360deg); }
     }
+
+    .btn-loader {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255, 255, 255, 0.4);
+        border-top-color: #fff;
+        border-radius: 50%;
+        display: inline-block;
+        vertical-align: middle;
+        animation: spin 0.7s linear infinite;
+        margin: 0 auto;
+    }
+
 
     /* ── MODAL: DESKTOP RIGHT-SIDE DRAWER ── */
     @media (min-width: 769px) {
@@ -841,10 +854,15 @@ document.addEventListener('submit', async function(e) {
 
         /* 2. Convert to AJAX POST */
         e.preventDefault();
-        const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('input[type="submit"]');
+        const submitBtn = document.querySelector(`button[type="submit"][form="${form.id}"]`) || 
+                          form.querySelector('button[type="submit"]') || 
+                          form.querySelector('input[type="submit"]');
+
         if (submitBtn) {
-            submitBtn.classList.add('btn-loading-state');
-            setTimeout(() => { submitBtn.disabled = true; }, 10);
+            submitBtn.dataset.originalText = submitBtn.innerHTML;
+            const loadingText = isAddressForm ? 'Saving...' : (isEditForm ? 'Updating...' : 'Processing...');
+            submitBtn.innerHTML = `<span class="btn-loader" style="margin-right: 8px;"></span> ${loadingText}`;
+            submitBtn.disabled = true;
         }
 
         try {
@@ -875,11 +893,17 @@ document.addEventListener('submit', async function(e) {
                 }, 500);
 
             } else {
-                if (submitBtn) { submitBtn.classList.remove('btn-loading-state'); submitBtn.disabled = false; }
+                if (submitBtn) { 
+                    submitBtn.innerHTML = submitBtn.dataset.originalText;
+                    submitBtn.disabled = false; 
+                }
             }
         } catch (error) {
             console.error('AJAX Submit Error:', error);
-            if (submitBtn) { submitBtn.classList.remove('btn-loading-state'); submitBtn.disabled = false; }
+            if (submitBtn) { 
+                submitBtn.innerHTML = submitBtn.dataset.originalText;
+                submitBtn.disabled = false; 
+            }
         }
     }
 });
