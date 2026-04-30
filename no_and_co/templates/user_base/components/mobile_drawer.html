@@ -19,6 +19,7 @@
         <a href="{% url 'user-profile' user.id %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'user-profile' %}active{% endif %}">Overview</a>
         <a href="{% url 'orders' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'orders' or request.resolver_match.url_name == 'order_details' %}active{% endif %}">Orders</a>
         <a href="{% url 'wishlist' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">Wishlist</a>
+        <a href="{% url 'wallet' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">Wallet</a>
         <a href="{% url 'address' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'address' %}active{% endif %}">Addresses</a>
         {% if user.has_usable_password %}
         <a href="{% url 'change-password' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'change-password' %}active{% endif %}">Change Password</a>
