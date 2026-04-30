@@ -319,6 +319,232 @@
         .header-actions { flex-direction: column; }
         .header-actions .btn { width: 100%; }
     }
+
+    /* ═══════════════════════════════════════════════════════════════════════════
+       RETURN MODAL — Product Card, Form, Layout
+       ═══════════════════════════════════════════════════════════════════════════ */
+
+    /* -- Product Info Card (horizontal on desktop) -- */
+    .return-product-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px;
+        background: #FAFAF8;
+        border: 0.5px solid #E8E6E1;
+        border-radius: 2px;
+        margin-bottom: 8px;
+    }
+    .return-product-info:last-child { margin-bottom: 0; }
+
+    .return-product-thumb {
+        width: 72px;
+        height: 96px;
+        flex-shrink: 0;
+        overflow: hidden;
+        background: #F0EEEB;
+        border-radius: 2px;
+    }
+    .return-product-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .return-product-details {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .return-product-name {
+        font-family: var(--font-ui);
+        font-size: 13px;
+        font-weight: 600;
+        color: #111;
+        margin: 0;
+        line-height: 1.3;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .return-product-order {
+        font-family: var(--font-ui);
+        font-size: 10px;
+        color: var(--muted);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        margin: 0;
+    }
+    .return-product-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 2px;
+    }
+    .return-product-badge {
+        font-family: var(--font-ui);
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #555;
+        background: #fff;
+        border: 0.5px solid #E0E0E0;
+        padding: 3px 8px;
+        border-radius: 1px;
+        white-space: nowrap;
+    }
+
+    /* -- Products Container (scrollable if multiple items) -- */
+    #return-products-container {
+        max-height: 200px;
+        overflow-y: auto;
+        margin-bottom: 24px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* -- Form Elements -- */
+    .return-form-group {
+        margin-bottom: 20px;
+    }
+    .return-form-label {
+        display: block;
+        font-family: var(--font-ui);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #333;
+        margin-bottom: 8px;
+    }
+    .return-required {
+        color: #DC2626;
+        font-weight: 700;
+    }
+
+    .return-form-select {
+        width: 100%;
+        padding: 12px 14px;
+        font-family: var(--font-ui);
+        font-size: 13px;
+        font-weight: 400;
+        color: #111;
+        background: #fff;
+        border: 1px solid #E5E5E5;
+        border-radius: 2px;
+        outline: none;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        transition: border-color 0.2s ease;
+    }
+    .return-form-select:focus {
+        border-color: #111;
+    }
+
+    .return-textarea,
+    .manage-modal-textarea {
+        width: 100%;
+        padding: 12px 14px;
+        font-family: var(--font-ui);
+        font-size: 13px;
+        font-weight: 400;
+        color: #111;
+        background: #fff;
+        border: 1px solid #E5E5E5;
+        border-radius: 2px;
+        outline: none;
+        resize: vertical;
+        min-height: 80px;
+        transition: border-color 0.2s ease;
+        box-sizing: border-box;
+    }
+    .return-textarea:focus,
+    .manage-modal-textarea:focus {
+        border-color: #111;
+    }
+
+    /* -- Validation Errors -- */
+    .return-form-error {
+        display: none;
+        font-family: var(--font-ui);
+        font-size: 11px;
+        color: #DC2626;
+        margin-top: 6px;
+        font-weight: 400;
+    }
+    .return-form-error.show {
+        display: block;
+    }
+
+    /* -- Return Modal: Desktop max-width -- */
+    @media (min-width: 769px) {
+        .return-modal {
+            max-width: 520px;
+        }
+    }
+
+    /* -- Return Modal: Button Actions -- */
+    .return-modal-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 28px;
+        padding-top: 20px;
+        border-top: 0.5px solid #f0f0f0;
+    }
+
+    /* -- Mobile-specific tweaks for return modal -- */
+    @media (max-width: 768px) {
+        #return-modal .uni-modal-body {
+            padding: 20px 16px;
+        }
+        #return-modal .uni-modal-subtitle {
+            font-size: 12px;
+            margin-bottom: 16px;
+        }
+
+        .return-product-info {
+            gap: 12px;
+            padding: 12px;
+        }
+        .return-product-thumb {
+            width: 56px;
+            height: 74px;
+        }
+        .return-product-name {
+            font-size: 12px;
+        }
+        .return-product-badge {
+            font-size: 8px;
+            padding: 2px 6px;
+        }
+
+        #return-products-container {
+            max-height: 160px;
+            margin-bottom: 20px;
+        }
+
+        .return-form-group {
+            margin-bottom: 16px;
+        }
+        .return-form-select,
+        .return-textarea {
+            padding: 10px 12px;
+            font-size: 13px;
+        }
+
+        .return-modal-actions {
+            margin-top: 20px;
+            padding-top: 16px;
+        }
+    }
 </style>
 
 {% include 'user_base/components/mobile_drawer.html' %}
@@ -851,13 +1077,13 @@
 
 <!-- Return Order Modal -->
 <div class="uni-modal-overlay" id="return-modal-overlay"></div>
-<div class="uni-modal" id="return-modal" aria-hidden="true" style="max-width: 560px;">
+<div class="uni-modal return-modal" id="return-modal" aria-hidden="true">
     <div class="uni-modal-header">
-        <h2 class="uni-modal-title" id="return-modal-title">Return Item</h2>
+        <h2 class="uni-modal-title" id="return-modal-title">Return Request</h2>
         <button type="button" class="uni-modal-close" id="return-modal-close" aria-label="Close modal">&times;</button>
     </div>
     <div class="uni-modal-body">
-        <p class="uni-modal-subtitle">Submit a request to return this product.</p>
+        <p class="uni-modal-subtitle">Select a reason and provide details for your return.</p>
 
         <!-- Product Information -->
         <div id="return-products-container">
@@ -885,9 +1111,9 @@
             <!-- Additional Details Textarea -->
             <div class="return-form-group">
                 <label for="return-description" class="return-form-label">Additional Details <span class="return-required">*</span></label>
-                <textarea id="return-description" name="return_description" class="manage-modal-textarea return-textarea"
-                    placeholder="Please describe the reason for your return."
-                    rows="4" required></textarea>
+                <textarea id="return-description" name="return_description" class="return-textarea"
+                    placeholder="Describe why you're returning this item..."
+                    rows="3" required></textarea>
                 <span class="return-form-error" id="return-description-error">Please provide additional details</span>
             </div>
 
@@ -896,7 +1122,7 @@
             <input type="hidden" id="return-order-item-id" name="order_item_id" value="">
             <input type="hidden" id="return-all-flag" name="return_all" value="false">
 
-            <div class="uni-modal-footer" style="padding: 0; border-top: none; margin-top: 32px;">
+            <div class="return-modal-actions">
                 <button type="submit" class="uni-modal-btn uni-modal-btn-primary" id="return-modal-submit">Submit Return Request</button>
                 <button type="button" class="uni-modal-btn uni-modal-btn-secondary" id="return-modal-cancel">Cancel</button>
             </div>
@@ -1030,14 +1256,18 @@
     }
 
     function openReturnModal(row) {
-        if (!returnModal || !row) return;
+        console.log("Opening Return Modal for row:", row);
+        if (!returnModal || !row) {
+            console.error("Return modal or row missing", { returnModal, row });
+            return;
+        }
 
         returnModal.classList.add('active');
         if (returnModalOverlay) returnModalOverlay.classList.add('active');
         returnModal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
-        returnOrderForm.reset();
+        if (returnOrderForm) returnOrderForm.reset();
         
         const orderItemId = row.getAttribute('data-order-item-id');
         if (returnOrderItemIdInput) returnOrderItemIdInput.value = orderItemId;
@@ -1091,8 +1321,13 @@
     // Bind return buttons in product rows
     document.querySelectorAll('.return-item-btn').forEach(btn => {
         btn.addEventListener('click', function() {
+            console.log("Return Item button clicked - ID:", this.getAttribute('data-order-item-id'));
             const row = this.closest('.product-row');
-            openReturnModal(row);
+            if (row) {
+                openReturnModal(row);
+            } else {
+                console.error("Could not find product-row for return button");
+            }
         });
     });
 
@@ -1100,25 +1335,31 @@
     const returnOrderBtn = document.getElementById('return-order-btn');
     if (returnOrderBtn) {
         returnOrderBtn.addEventListener('click', function() {
-            if (!returnModal) return;
+            console.log("Full Return Order button clicked");
+            if (!returnModal) {
+                console.error("returnModal element not found in DOM");
+                return;
+            }
 
-            returnModal.classList.add('open');
+            returnModal.classList.add('active');
+            if (returnModalOverlay) returnModalOverlay.classList.add('active');
             returnModal.setAttribute('aria-hidden', 'false');
             document.body.style.overflow = 'hidden';
 
-            returnOrderForm.reset();
+            if (returnOrderForm) returnOrderForm.reset();
             
             if (returnOrderItemIdInput) returnOrderItemIdInput.value = '';
             const returnAllFlagInput = document.getElementById('return-all-flag');
             if (returnAllFlagInput) returnAllFlagInput.value = 'true';
 
-            returnReasonError.classList.remove('show');
-            returnDescriptionError.classList.remove('show');
-            returnReason.style.borderColor = '#E5E5E5';
-            returnDescription.style.borderColor = '#E5E5E5';
+            if (returnReasonError) returnReasonError.classList.remove('show');
+            if (returnDescriptionError) returnDescriptionError.classList.remove('show');
+            if (returnReason) returnReason.style.borderColor = '#E5E5E5';
+            if (returnDescription) returnDescription.style.borderColor = '#E5E5E5';
 
             const deliveredRows = Array.from(document.querySelectorAll('.product-row'))
-                .filter(row => row.getAttribute('data-item-status') === 'DELIVERED');
+                .filter(row => row.getAttribute('data-item-status').toUpperCase() === 'DELIVERED');
+            console.log("Populating return modal with delivered rows:", deliveredRows.length);
             populateReturnProducts(deliveredRows);
         });
     }
