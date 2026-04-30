@@ -653,6 +653,12 @@
         transition: opacity 0.2s; padding: 4px;
     }
     .toast-close-btn:hover { opacity: 1; }
+
+    @media (hover: hover) and (pointer: fine) {
+        .similar-card:hover .product-img:first-of-type {
+            opacity: 0;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -764,7 +770,7 @@
                     <div class="skeleton skeleton-img"></div>
                     {% with all_imgs=item.images.all %}
                     {% if all_imgs|length > 1 %}
-                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 lazy-image" alt="{{ item.color }}">
                         <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
                     {% else %}
                         <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
@@ -817,7 +823,7 @@
                     <div class="skeleton skeleton-img"></div>
                     {% with all_imgs=item.images.all %}
                     {% if all_imgs|length > 1 %}
-                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 lazy-image" alt="{{ item.color }}">
                         <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
                     {% else %}
                         <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
