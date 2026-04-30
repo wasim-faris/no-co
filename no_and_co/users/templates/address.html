@@ -808,34 +808,79 @@ document.addEventListener('change', function(e) {
     }
 });
 
-document.addEventListener('submit', function(e) {
-    if (e.target.id === 'addressForm') {
+document.addEventListener('submit', async function(e) {
+    const isAddressForm = e.target.id === 'addressForm';
+    const isEditForm = e.target.id === 'editAddressForm';
+    const actionStr = e.target.action || '';
+    const isDeleteOrDefault = actionStr.includes('/delete-address/') || actionStr.includes('/address-set-default/');
+
+    if (isAddressForm || isEditForm || isDeleteOrDefault) {
         const form = e.target;
-        form.querySelectorAll('select[disabled]').forEach(sel => {
-            const val = sel.getAttribute('data-locked-value') || sel.value;
-            const ex = form.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
-            if (ex) { ex.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); form.appendChild(h); }
-        });
-        if (!validateAddress('add', ADD_IDS)) {
-            e.preventDefault();
-            const firstErr = form.querySelector('.error, .error-msg.show');
-            if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+        
+        /* 1. Validation for Add / Edit forms */
+        if (isAddressForm || isEditForm) {
+            form.querySelectorAll('select[disabled]').forEach(sel => {
+                const val = sel.getAttribute('data-locked-value') || sel.value;
+                const ex = form.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
+                if (ex) { ex.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); form.appendChild(h); }
+            });
+
+            if (isAddressForm && !validateAddress('add', ADD_IDS)) {
+                e.preventDefault();
+                const firstErr = form.querySelector('.error, .error-msg.show');
+                if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+                return;
+            }
+            if (isEditForm && !validateAddress('edit', EDIT_IDS)) {
+                e.preventDefault();
+                const firstErr = form.querySelector('.error, [id^="err-edit-"]:not(.hidden)');
+                if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+                return;
+            }
         }
-        // Valid submit: global btn-loading-state in modal_system.html handles the button spinner
-    }
-    if (e.target.id === 'editAddressForm') {
-        const form = e.target;
-        form.querySelectorAll('select[disabled]').forEach(sel => {
-            const val = sel.getAttribute('data-locked-value') || sel.value;
-            const ex = form.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
-            if (ex) { ex.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); form.appendChild(h); }
-        });
-        if (!validateAddress('edit', EDIT_IDS)) {
-            e.preventDefault();
-            const firstErr = form.querySelector('.error, [id^="err-edit-"]:not(.hidden)');
-            if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+
+        /* 2. Convert to AJAX POST */
+        e.preventDefault();
+        const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('input[type="submit"]');
+        if (submitBtn) {
+            submitBtn.classList.add('btn-loading-state');
+            setTimeout(() => { submitBtn.disabled = true; }, 10);
         }
-        // Valid submit: global btn-loading-state in modal_system.html handles the button spinner
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch(form.action || window.location.href, {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            if (response.ok) {
+                /* Extract toast from the redirect response HTML */
+                const htmlText = await response.text();
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
+                
+                const newToast = doc.getElementById('djangoToast');
+                if (newToast) {
+                    const existingToast = document.getElementById('djangoToast');
+                    if (existingToast) existingToast.remove();
+                    document.body.appendChild(newToast);
+                    setTimeout(() => newToast.classList.add('show'), 10);
+                }
+
+                /* Wait 500ms so user sees the feedback, then perform a clean reload */
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
+
+            } else {
+                if (submitBtn) { submitBtn.classList.remove('btn-loading-state'); submitBtn.disabled = false; }
+            }
+        } catch (error) {
+            console.error('AJAX Submit Error:', error);
+            if (submitBtn) { submitBtn.classList.remove('btn-loading-state'); submitBtn.disabled = false; }
+        }
     }
 });
 

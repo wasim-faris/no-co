@@ -1,9 +1,14 @@
 <script>
-    /* ── Drawer: event delegation so it survives any DOM update ── */
+(function() {
+    /* Guard: prevent duplicate attachment if script runs more than once */
+    if (window.__drawerInitialized) return;
+    window.__drawerInitialized = true;
+
+    /* ── Named helper functions ── */
     function openDrawer() {
-        const toggle  = document.getElementById('drawerToggle');
-        const drawer  = document.getElementById('mobileDrawer');
-        const overlay = document.getElementById('drawerOverlay');
+        var toggle  = document.getElementById('drawerToggle');
+        var drawer  = document.getElementById('mobileDrawer');
+        var overlay = document.getElementById('drawerOverlay');
         if (!drawer) return;
         if (toggle)  toggle.classList.add('is-active');
         drawer.classList.add('is-active');
@@ -12,9 +17,9 @@
     }
 
     function closeDrawer() {
-        const toggle  = document.getElementById('drawerToggle');
-        const drawer  = document.getElementById('mobileDrawer');
-        const overlay = document.getElementById('drawerOverlay');
+        var toggle  = document.getElementById('drawerToggle');
+        var drawer  = document.getElementById('mobileDrawer');
+        var overlay = document.getElementById('drawerOverlay');
         if (!drawer) return;
         if (toggle)  toggle.classList.remove('is-active');
         drawer.classList.remove('is-active');
@@ -22,11 +27,15 @@
         document.body.style.overflow = '';
     }
 
-    /* Single delegated listener — works after any DOM change */
-    document.addEventListener('click', function(e) {
-        /* Hamburger open button */
+    /* Expose globally so other scripts can call them if needed */
+    window.openDrawer  = openDrawer;
+    window.closeDrawer = closeDrawer;
+
+    /* ── Single delegated click handler (named, attached once) ── */
+    function handleDrawerClick(e) {
+        /* Hamburger toggle */
         if (e.target.closest('#drawerToggle')) {
-            const drawer = document.getElementById('mobileDrawer');
+            var drawer = document.getElementById('mobileDrawer');
             if (drawer && drawer.classList.contains('is-active')) {
                 closeDrawer();
             } else {
@@ -34,10 +43,27 @@
             }
             return;
         }
-        /* Overlay click */
+        /* Overlay click to close */
         if (e.target.id === 'drawerOverlay') {
             closeDrawer();
             return;
         }
-    });
+    }
+    document.addEventListener('click', handleDrawerClick);
+
+    /* ── Reset stale state on page load / bfcache restore ── */
+    function resetDrawerState() {
+        var toggle  = document.getElementById('drawerToggle');
+        var drawer  = document.getElementById('mobileDrawer');
+        var overlay = document.getElementById('drawerOverlay');
+        if (toggle)  toggle.classList.remove('is-active');
+        if (drawer)  drawer.classList.remove('is-active');
+        if (overlay) overlay.classList.remove('is-active');
+        if (!document.querySelector('.uni-modal.active')) {
+            document.body.style.overflow = '';
+        }
+    }
+    window.addEventListener('pageshow', resetDrawerState);
+    document.addEventListener('DOMContentLoaded', resetDrawerState);
+})();
 </script>
