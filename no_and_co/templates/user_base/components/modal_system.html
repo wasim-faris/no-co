@@ -1,0 +1,183 @@
+<style>
+    /* ─────────────────────────────────────────────────────────────────────────────
+       UNIFIED MODAL SYSTEM (NØ&CO)
+       ───────────────────────────────────────────────────────────────────────────── */
+
+    /* 1. Modal Overlay */
+    .uni-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 10000;
+        visibility: hidden;
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    .uni-modal-overlay.active {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    /* 2. Modal Base (Desktop Default: Centered) */
+    .uni-modal {
+        position: fixed;
+        z-index: 10001;
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        border: 0.5px solid rgba(0,0,0,0.1);
+    }
+
+    /* Desktop Viewports (> 768px) */
+    @media (min-width: 769px) {
+        /* Default: Centered Modal */
+        .uni-modal:not(.drawer-right) {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -45%);
+            width: 100%;
+            max-width: 480px;
+            border-radius: 2px;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .uni-modal:not(.drawer-right).active {
+            transform: translate(-50%, -50%);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Drawer Variant: Right Side (Wishlist/Address) */
+        .uni-modal.drawer-right {
+            top: 0;
+            right: -500px;
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            border-radius: 0;
+            border-left: 0.5px solid rgba(0,0,0,0.1);
+        }
+        .uni-modal.drawer-right.active {
+            right: 0;
+        }
+    }
+
+    /* Mobile Viewports (<= 768px): ALL become Bottom Sheets */
+    @media (max-width: 768px) {
+        .uni-modal {
+            top: auto !important;
+            right: 0 !important;
+            left: 0 !important;
+            bottom: -100% !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: 85vh !important;
+            border-radius: 16px 16px 0 0 !important;
+            transform: none !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            border: none;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
+        }
+        .uni-modal.active {
+            bottom: 0 !important;
+        }
+    }
+
+    /* 3. Modal Inner Components */
+    .uni-modal-header {
+        padding: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-bottom: 0.5px solid #f0f0f0;
+        position: relative;
+        flex-shrink: 0;
+    }
+    .uni-modal-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 0;
+        color: #000;
+    }
+    .uni-modal-close {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        font-size: 24px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 8px;
+        color: #000;
+    }
+    .uni-modal-body {
+        padding: 24px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    .uni-modal-subtitle {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 24px;
+        line-height: 1.5;
+        font-weight: 400;
+        text-align: center;
+    }
+    .uni-modal-footer {
+        padding: 24px;
+        border-top: 0.5px solid #f0f0f0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+
+    /* Standardized Buttons for Modals */
+    .uni-modal-btn {
+        width: 100%;
+        padding: 16px;
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        border-radius: 0;
+    }
+    .uni-modal-btn-primary {
+        background: #000;
+        color: #fff;
+        border: none;
+    }
+    .uni-modal-btn-primary:hover {
+        background: #333;
+    }
+    .uni-modal-btn-secondary {
+        background: #fff;
+        color: #000;
+        border: 0.5px solid #ccc;
+    }
+    .uni-modal-btn-secondary:hover {
+        border-color: #000;
+    }
+
+    /* Stack buttons vertically on mobile always as per request */
+    @media (max-width: 768px) {
+        .uni-modal-footer {
+            flex-direction: column; 
+        }
+    }
+</style>

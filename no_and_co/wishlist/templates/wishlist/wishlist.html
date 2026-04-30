@@ -175,58 +175,6 @@
         color: #fff;
     }
 
-    /* ─── ADD TO CART DRAWER (H&M STYLE) ─── */
-    .drawer-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 999;
-        visibility: hidden;
-        opacity: 0;
-        transition: all 0.3s ease;
-    }
-    .drawer-overlay.active {
-        visibility: visible;
-        opacity: 1;
-    }
-
-    .atc-drawer {
-        position: fixed;
-        top: 0;
-        right: -450px;
-        width: 100%;
-        max-width: 420px;
-        height: 100%;
-        background: #fff;
-        z-index: 1000;
-        box-shadow: -4px 0 15px rgba(0,0,0,0.1);
-        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        flex-direction: column;
-        padding: 0;
-    }
-    .atc-drawer.active {
-        right: 0;
-    }
-
-    .drawer-header {
-        padding: 20px 24px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-bottom: 1px solid #f0f0f0;
-        position: relative;
-    }
-    .drawer-header h3 {
-        font-size: 14px;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin: 0;
-    }
     .close-drawer {
         position: absolute;
         right: 20px;
@@ -237,6 +185,7 @@
         line-height: 1;
         color: #000;
     }
+
 
     .drawer-content {
         flex: 1;
@@ -358,6 +307,7 @@
         flex-direction: column;
         gap: 12px;
     }
+
     .btn-atc-main {
         width: 100%;
         background: #000;
@@ -443,80 +393,11 @@
             height: 44px;
         }
 
-        /* ─── DRAWER MOBILE BOTTOM-SHEET REFACTOR ─── */
-        .atc-drawer {
-            top: auto !important;
-            right: 0 !important;
-            left: 0 !important;
-            bottom: -100% !important;
-            height: auto !important;
-            max-height: 85vh !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            border-radius: 16px 16px 0 0;
-            box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
-            transition: bottom 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
-            display: flex;
-            flex-direction: column;
-        }
-        .atc-drawer.active {
-            bottom: 80px !important; /* Clear bottom nav with slight gap */
-        }
-        .drawer-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 24px;
-            /* Remove fixed padding from previous turn if any */
-        }
-        .drawer-footer {
-            position: static !important;
-            padding: 16px 24px 24px;
-            background: #fff;
-            border-top: 1px solid #f0f0f0;
-            width: 100%;
-        }
-        .size-grid {
-            gap: 0;
-            border: 1px solid #e0e0e0;
-        }
-        .size-btn {
-            height: 42px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .mini-product {
-            gap: 12px;
-            flex-direction: row; /* ensure row on mobile */
-            align-items: flex-start;
-        }
         .mini-img {
             width: 80px;
         }
-
-        /* --- SKELETON LOADING --- */
-        .size-skeleton {
-            height: 42px;
-            background: #f0f0f0;
-            position: relative;
-            overflow: hidden;
-        }
-        .size-skeleton::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shimmer 1.5s infinite;
-        }
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
     }
+
 
     /* --- DYNAMIC BLACK PILL TOAST --- */
     #toast-container {
@@ -652,13 +533,13 @@
 {% include 'user_base/components/footer.html' %}
 
 <!-- ADD TO CART DRAWER UI -->
-<div class="drawer-overlay" id="atcDrawerOverlay"></div>
-<aside class="atc-drawer" id="atcDrawer">
-    <div class="drawer-header">
-        <h3>ADD</h3>
-        <span class="close-drawer" id="closeDrawer">&times;</span>
+<div class="uni-modal-overlay" id="atcDrawerOverlay"></div>
+<aside class="uni-modal drawer-right atc-drawer" id="atcDrawer">
+    <div class="uni-modal-header">
+        <h3 class="uni-modal-title">ADD</h3>
+        <button class="uni-modal-close" id="closeDrawer">&times;</button>
     </div>
-    <div class="drawer-content">
+    <div class="uni-modal-body">
         <div class="mini-product">
             <img src="" alt="" class="mini-img" id="drawerProductImg">
             <div class="mini-info">
@@ -675,11 +556,12 @@
         <p id="stockHint" class="low-stock-hint">Only few left</p>
         <p id="sizeError" class="size-error">Please select a size</p>
     </div>
-    <div class="drawer-footer">
-        <button class="btn-atc-main" id="btnConfirmATC">ADD</button>
-        <a href="" class="btn-go-pdp" id="linkDrawerPDP">GO TO PRODUCT</a>
+    <div class="uni-modal-footer">
+        <button class="uni-modal-btn uni-modal-btn-primary" id="btnConfirmATC">ADD</button>
+        <a href="" class="uni-modal-btn uni-modal-btn-secondary" id="linkDrawerPDP">GO TO PRODUCT</a>
     </div>
 </aside>
+
 
 <!-- TOAST CONTAINER -->
 <div id="toast-container"></div>

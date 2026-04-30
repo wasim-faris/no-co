@@ -141,117 +141,7 @@
     .amount-credit { color: var(--hm-green); }
     .amount-debit { color: var(--hm-red); }
 
-    /* ─── Modals (Sharp H&M Style) ─────────────────────────────────── */
-    .hm-modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.5);
-        backdrop-blur: 2px;
-        z-index: 9999;
-        display: none;
-        align-items: center;
-        justify-content: center;
-    }
 
-    .hm-modal {
-        background: var(--hm-white);
-        width: 100%;
-        max-width: 480px;
-        padding: 48px;
-        position: relative;
-        border-radius: 0 !important;
-    }
-
-    .hm-modal-close {
-        position: absolute;
-        top: 24px;
-        right: 24px;
-        cursor: pointer;
-        opacity: 0.6;
-        transition: opacity 0.2s;
-    }
-    .hm-modal-close:hover { opacity: 1; }
-
-    .hm-modal-title {
-        font-family: 'Basteleur', serif !important;
-        font-size: 24px;
-        font-weight: 700;
-        text-transform: uppercase;
-        margin-bottom: 8px;
-    }
-
-    .hm-modal-subtitle {
-        font-size: 10px;
-        text-transform: uppercase;
-        color: var(--hm-gray-dark);
-        letter-spacing: 0.05em;
-        margin-bottom: 32px;
-    }
-
-    .hm-input-group {
-        margin-bottom: 24px;
-    }
-
-    .hm-input-label {
-        display: block;
-        font-size: 9px;
-        text-transform: uppercase;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-
-    .hm-input {
-        width: 100%;
-        border: var(--hm-border-thin);
-        padding: 16px;
-        font-size: 14px;
-        font-weight: 500;
-        border-radius: 0;
-        outline: none;
-    }
-    .hm-input:focus { border-color: var(--hm-black); }
-
-    .quick-select {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 32px;
-    }
-
-    .quick-btn {
-        flex: 1;
-        background: transparent;
-        border: var(--hm-border-thin);
-        padding: 12px;
-        font-size: 10px;
-        font-weight: 700;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    .quick-btn:hover { border-color: var(--hm-black); background: var(--hm-gray-faint); }
-
-    .btn-primary-hm {
-        width: 100%;
-        background: var(--hm-black);
-        color: var(--hm-white);
-        border: none;
-        padding: 18px;
-        font-size: 11px;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        cursor: pointer;
-        border-radius: 0;
-    }
-    .btn-primary-hm:disabled { opacity: 0.6; cursor: not-allowed; }
-
-    .inline-error {
-        font-size: 10px;
-        color: var(--hm-red);
-        font-weight: 600;
-        margin-top: 8px;
-        text-transform: uppercase;
-        display: none;
-    }
 
     /* ─── Pagination ─────────────────────────────────────────────── */
     .pagination-wrapper {
@@ -419,31 +309,33 @@
 </div>
 
 <!-- Add Money Modal -->
-<div id="addMoneyModal" class="hm-modal-overlay">
-    <div class="hm-modal">
-        <div class="hm-modal-close" onclick="closeAddMoneyModal()">
-            <i class="ri-close-line text-2xl"></i>
+<div class="uni-modal-overlay" id="addMoneyModalOverlay"></div>
+<div id="addMoneyModal" class="uni-modal" aria-hidden="true">
+    <div class="uni-modal-header">
+        <h3 class="uni-modal-title">Add Money to Wallet</h3>
+        <button class="uni-modal-close" onclick="closeAddMoneyModal()">&times;</button>
+    </div>
+    
+    <div class="uni-modal-body">
+        <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-8">Funds will be available instantly after payment</p>
+        
+        <div class="hm-input-group mb-6">
+            <label class="block text-[9px] uppercase font-bold mb-2">Enter Amount (₹)</label>
+            <input type="number" id="chargeAmount" class="w-full border border-gray-200 p-4 outline-none focus:border-black" placeholder="0.00" min="1">
+            <div id="amountError" class="text-[10px] text-red-600 font-bold mt-2 uppercase hidden">Please enter an amount of at least ₹1</div>
         </div>
         
-        <h3 class="hm-modal-title">Add Money to Wallet</h3>
-        <p class="hm-modal-subtitle">Funds will be available instantly after payment</p>
-        
-        <div class="hm-input-group">
-            <label class="hm-input-label">Enter Amount (₹)</label>
-            <input type="number" id="chargeAmount" class="hm-input" placeholder="0.00" min="1">
-            <div id="amountError" class="inline-error">Please enter an amount of at least ₹1</div>
+        <div class="quick-select flex gap-2 mb-8">
+            <button class="flex-1 border border-gray-200 p-3 text-[10px] font-bold hover:border-black hover:bg-gray-50 transition-all" onclick="setAmount(500)">₹500</button>
+            <button class="flex-1 border border-gray-200 p-3 text-[10px] font-bold hover:border-black hover:bg-gray-50 transition-all" onclick="setAmount(1000)">₹1000</button>
+            <button class="flex-1 border border-gray-200 p-3 text-[10px] font-bold hover:border-black hover:bg-gray-50 transition-all" onclick="setAmount(2000)">₹2000</button>
         </div>
         
-        <div class="quick-select">
-            <button class="quick-btn" onclick="setAmount(500)">₹500</button>
-            <button class="quick-btn" onclick="setAmount(1000)">₹1000</button>
-            <button class="quick-btn" onclick="setAmount(2000)">₹2000</button>
-        </div>
-        
-        <button id="payBtn" class="btn-primary-hm" onclick="startPayment()">Proceed to Pay</button>
-        <div id="paymentError" class="inline-error" style="text-align: center; margin-top: 16px;"></div>
+        <button id="payBtn" class="uni-modal-btn uni-modal-btn-primary" onclick="startPayment()">Proceed to Pay</button>
+        <div id="paymentError" class="text-[10px] text-red-600 font-bold mt-4 text-center uppercase hidden"></div>
     </div>
 </div>
+
 
 <!-- CSRF Token -->
 {% csrf_token %}
@@ -457,15 +349,24 @@
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
     function openAddMoneyModal() {
-        modal.style.display = 'flex';
+        const modal = document.getElementById('addMoneyModal');
+        const overlay = document.getElementById('addMoneyModalOverlay');
+        modal.classList.add('active');
+        if (overlay) overlay.classList.add('active');
         amountInput.value = '';
         resetErrors();
+        document.body.style.overflow = 'hidden';
     }
 
     function closeAddMoneyModal() {
-        modal.style.display = 'none';
+        const modal = document.getElementById('addMoneyModal');
+        const overlay = document.getElementById('addMoneyModalOverlay');
+        modal.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
         resetErrors();
+        document.body.style.overflow = '';
     }
+
 
     function setAmount(val) {
         amountInput.value = val;
@@ -473,19 +374,21 @@
     }
 
     function resetErrors() {
-        amountError.style.display = 'none';
-        paymentError.style.display = 'none';
+        amountError.classList.add('hidden');
+        paymentError.classList.add('hidden');
         payBtn.disabled = false;
         payBtn.innerText = 'Proceed to Pay';
     }
+
 
     function startPayment() {
         const amount = parseFloat(amountInput.value);
         
         if (!amount || amount < 1) {
-            amountError.style.display = 'block';
+            amountError.classList.remove('hidden');
             return;
         }
+
 
         payBtn.disabled = true;
         payBtn.innerText = 'Initializing...';
@@ -548,11 +451,12 @@
         })
         .catch(err => {
             paymentError.innerText = 'Could not initialize payment. Please try again.';
-            paymentError.style.display = 'block';
+            paymentError.classList.remove('hidden');
             payBtn.disabled = false;
             payBtn.innerText = 'Proceed to Pay';
         });
     }
+
 
     function verifyPayment(rzpResponse, amount) {
         payBtn.disabled = true;

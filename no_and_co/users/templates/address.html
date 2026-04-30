@@ -142,50 +142,7 @@
     @media (max-width: 1023px) { .mobile-sidebar-toggle { display: flex; } .mobile-drawer { display: flex; } .desktop-sidebar { display: none !important; } }
     @media (min-width: 1024px) { .mobile-sidebar-toggle, .mobile-drawer, .sidebar-overlay { display: none !important; } }
 
-    /* ── MODALS (Adapted from address.html) ── */
-    #addressModal, #EditaddressModal { position: fixed; inset: 0; z-index: 10000; display: none; font-family: var(--font-ui); }
-    #addressModal.open, #EditaddressModal.open { display: flex; }
-    .modal-backdrop-side { flex: 1; background: rgba(0,0,0,0.4); backdrop-filter: blur(2px); cursor: pointer; }
-    .modal-panel { width: 100%; max-width: 480px; background: var(--bg); height: 100%; overflow-y: auto; transform: translateX(100%); transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; }
-    #addressModal.open .modal-panel, #EditaddressModal.open .modal-panel { transform: translateX(0); }
-    .modal-top { padding: 40px 40px 24px; border-bottom: 0.5px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0; background: var(--card-bg); }
-    .modal-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border: 0.5px solid var(--border); cursor: pointer; transition: all 0.3s ease; background: transparent; border-radius: 0; }
-    .modal-close:hover { border-color: var(--primary); background: var(--primary); color: white; }
-    .modal-close svg { width: 12px; height: 12px; }
-    .modal-body { padding: 40px; flex: 1; overflow-y: auto; background: var(--bg); }
-    .modal-footer { padding: 24px 40px; border-top: 0.5px solid var(--border); flex-shrink: 0; background: var(--card-bg); display: flex; flex-direction: column; gap: 12px; }
-    
-    .modal-micro-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500; color: var(--muted); margin-bottom: 8px; display: block; }
-    .modal-title { font-family: var(--font-display); font-size: 28px; font-weight: 400; color: var(--primary); }
 
-    .form-field { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; }
-    .form-label { font-size: 10px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
-    .form-input { width: 100%; border: none; border-bottom: 0.5px solid var(--border); padding: 12px 0; font-size: 14px; font-family: var(--font-ui); color: var(--primary); background: transparent; outline: none; transition: border-color 0.25s ease; border-radius: 0; }
-    .form-input:focus { border-bottom-color: var(--primary); }
-    .form-input.error { border-bottom-color: var(--danger) !important; }
-    .form-input::placeholder { color: #A0A0A0; font-weight: 300; }
-    .form-input[readonly] { color: var(--muted); border-bottom-style: dashed; cursor: default; }
-
-    .error-msg { font-size: 10px; color: var(--danger); font-weight: 500; display: none; margin-top: 4px; }
-    .error-msg.show { display: block; }
-
-    .phone-row { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); transition: border-color 0.25s ease; }
-    .phone-row:focus-within { border-bottom-color: var(--primary); }
-    .phone-row.error { border-bottom-color: var(--danger); }
-    .phone-code-select { width: 130px; flex-shrink: 0; border: none; border-right: 0.5px solid var(--border); padding: 12px 8px 12px 0; font-size: 13px; font-family: var(--font-ui); color: var(--primary); background: transparent; outline: none; cursor: pointer; border-radius: 0; }
-    .phone-number-input { flex: 1; border: none; padding: 12px 0 12px 16px; font-size: 14px; font-family: var(--font-ui); color: var(--primary); background: transparent; outline: none; }
-    
-    .radio-group, .check-group { display: flex; gap: 24px; align-items: center; margin-top: 8px; }
-    .radio-item, .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-    .radio-item input[type="radio"], .check-item input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; border: 1px solid var(--border); border-radius: 50%; cursor: pointer; transition: all 0.2s ease; position: relative; flex-shrink: 0; margin: 0; }
-    .check-item input[type="checkbox"] { border-radius: 2px; }
-    .radio-item input[type="radio"]:checked, .check-item input[type="checkbox"]:checked { background: var(--primary); border-color: var(--primary); }
-    .radio-item input[type="radio"]:checked::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 6px; height: 6px; border-radius: 50%; background: white; }
-    .check-item input[type="checkbox"]:checked::after { content: ''; position: absolute; top: 2px; left: 5px; width: 4px; height: 8px; border: 1.5px solid white; border-top: none; border-left: none; transform: rotate(45deg); }
-    .radio-label, .check-label { font-size: 13px; font-weight: 400; color: var(--primary); }
-
-    .spinner { width: 14px; height: 14px; border: 1.5px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block; }
-    @keyframes spin { to { transform: rotate(360deg); } }
 
 
 </style>
@@ -299,188 +256,181 @@
 </div>
 
 <!-- ADD ADDRESS MODAL -->
-<div id="addressModal">
-    <div class="modal-backdrop-side" onclick="closeModal()"></div>
-    <div class="modal-panel">
-        <div class="modal-top">
-            <div>
-                <span class="modal-micro-label">Account / Addresses</span>
-                <h2 class="modal-title" id="modal-title">Add New Address</h2>
+<div class="uni-modal-overlay" id="addressModalOverlay"></div>
+<div class="uni-modal drawer-right" id="addressModal">
+    <div class="uni-modal-header">
+        <div>
+            <span class="modal-micro-label" style="font-size: 9px; text-transform: uppercase; color: #888; display: block; margin-bottom: 4px;">Account / Addresses</span>
+            <h2 class="uni-modal-title" id="modal-title">Add New Address</h2>
+        </div>
+        <button onclick="closeModal()" class="uni-modal-close">&times;</button>
+    </div>
+    <div class="uni-modal-body">
+        <form id="addressForm" method="POST" action="" novalidate>
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div class="form-field">
+                    <label class="form-label">First Name *</label>
+                    <input type="text" id="f-first-name" name="first_name" class="form-input" placeholder="First name" autocomplete="given-name">
+                    <span class="error-msg" id="err-first-name">Please enter your first name</span>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Last Name *</label>
+                    <input type="text" id="f-last-name" name="last_name" class="form-input" placeholder="Last name" autocomplete="family-name">
+                    <span class="error-msg" id="err-last-name">Please enter your last name</span>
+                </div>
             </div>
-            <button onclick="closeModal()" class="modal-close">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <div class="modal-body">
-            <form id="addressForm" method="POST" action="" novalidate>
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{{ request.GET.next }}">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                    <div class="form-field">
-                        <label class="form-label">First Name *</label>
-                        <input type="text" id="f-first-name" name="first_name" class="form-input" placeholder="First name" autocomplete="given-name">
-                        <span class="error-msg" id="err-first-name">Please enter your first name</span>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label">Last Name *</label>
-                        <input type="text" id="f-last-name" name="last_name" class="form-input" placeholder="Last name" autocomplete="family-name">
-                        <span class="error-msg" id="err-last-name">Please enter your last name</span>
-                    </div>
+            <div class="form-field">
+                <label class="form-label">Phone *</label>
+                <div class="phone-row" id="phone-row" style="display: flex; border-bottom: 1px solid #eee;">
+                    <select id="f-phone-code" name="phone_code" class="phone-code-select" style="border: none; border-right: 1px solid #eee; background: none; padding: 10px 5px;"><option value="">Loading…</option></select>
+                    <input type="tel" id="f-phone" name="phone" class="phone-number-input" placeholder="Phone number" maxlength="15" autocomplete="tel-national" style="border: none; flex: 1; padding: 10px; background: none;">
+                </div>
+                <span class="error-msg" id="err-phone">Please enter a valid phone number (7–15 digits)</span>
+            </div>
+            <div class="form-field">
+                <label class="form-label">Address Line 1 *</label>
+                <input type="text" id="f-addr1" name="address_line_1" class="form-input" placeholder="House / flat, street name" autocomplete="address-line1">
+                <span class="error-msg" id="err-addr1">Please enter your address</span>
+            </div>
+            <div class="form-field">
+                <label class="form-label">Address Line 2 <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
+                <input type="text" id="f-addr2" name="address_line_2" class="form-input" placeholder="Apartment, landmark…" autocomplete="address-line2">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div class="form-field">
+                    <label class="form-label">City *</label>
+                    <input type="text" id="f-city" name="city" class="form-input" placeholder="City" autocomplete="address-level2">
+                    <span class="error-msg" id="err-city">Please enter your city</span>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Phone *</label>
-                    <div class="phone-row" id="phone-row">
-                        <select id="f-phone-code" name="phone_code" class="phone-code-select"><option value="">Loading…</option></select>
-                        <input type="tel" id="f-phone" name="phone" class="phone-number-input" placeholder="Phone number" maxlength="15" autocomplete="tel-national">
-                    </div>
-                    <span class="error-msg" id="err-phone">Please enter a valid phone number (7–15 digits)</span>
+                    <label class="form-label">State *</label>
+                    <input type="text" id="f-state" name="state" class="form-input" placeholder="State" autocomplete="address-level1">
+                    <span class="error-msg" id="err-state">Please enter your state</span>
+                </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div class="form-field">
+                    <label class="form-label">Postal Code *</label>
+                    <input type="text" id="f-postal" name="postal_code" class="form-input" placeholder="Postal code" maxlength="10" autocomplete="postal-code">
+                    <span class="error-msg" id="err-postal">Please enter a valid postal code</span>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Address Line 1 *</label>
-                    <input type="text" id="f-addr1" name="address_line_1" class="form-input" placeholder="House / flat, street name" autocomplete="address-line1">
-                    <span class="error-msg" id="err-addr1">Please enter your address</span>
-                </div>
-                <div class="form-field">
-                    <label class="form-label">Address Line 2 <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
-                    <input type="text" id="f-addr2" name="address_line_2" class="form-input" placeholder="Apartment, landmark…" autocomplete="address-line2">
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                    <div class="form-field">
-                        <label class="form-label">City *</label>
-                        <input type="text" id="f-city" name="city" class="form-input" placeholder="City" autocomplete="address-level2">
-                        <span class="error-msg" id="err-city">Please enter your city</span>
+                    <label class="form-label">Country *</label>
+                    <div style="position:relative;display:flex;align-items:center;">
+                        <select id="f-country" name="country" class="form-input" style="padding-right:24px;"><option value="">Select country…</option></select>
+                        <span id="country-loading" class="spinner" style="position:absolute;right:0;display:none;"></span>
                     </div>
-                    <div class="form-field">
-                        <label class="form-label">State *</label>
-                        <input type="text" id="f-state" name="state" class="form-input" placeholder="State" autocomplete="address-level1">
-                        <span class="error-msg" id="err-state">Please enter your state</span>
-                    </div>
+                    <span class="error-msg" id="err-country">Please select a country</span>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                    <div class="form-field">
-                        <label class="form-label">Postal Code *</label>
-                        <input type="text" id="f-postal" name="postal_code" class="form-input" placeholder="Postal code" maxlength="10" autocomplete="postal-code">
-                        <span class="error-msg" id="err-postal">Please enter a valid postal code</span>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label">Country *</label>
-                        <div style="position:relative;display:flex;align-items:center;">
-                            <select id="f-country" name="country" class="form-input" style="padding-right:24px;"><option value="">Select country…</option></select>
-                            <span id="country-loading" class="spinner" style="position:absolute;right:0;display:none;"></span>
-                        </div>
-                        <span class="error-msg" id="err-country">Please select a country</span>
-                    </div>
+            </div>
+            <div class="form-field">
+                <label class="form-label">Address Type</label>
+                <div class="radio-group" style="display: flex; gap: 20px; margin-top: 10px;">
+                    <label class="radio-item"><input type="radio" name="address_type" value="Home" checked><span class="radio-label">Home</span></label>
+                    <label class="radio-item"><input type="radio" name="address_type" value="Work"><span class="radio-label">Work</span></label>
+                    <label class="radio-item"><input type="radio" name="address_type" value="Other"><span class="radio-label">Other</span></label>
                 </div>
-                <div class="form-field">
-                    <label class="form-label">Address Type</label>
-                    <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="address_type" value="Home" checked><span class="radio-label">Home</span></label>
-                        <label class="radio-item"><input type="radio" name="address_type" value="Work"><span class="radio-label">Work</span></label>
-                        <label class="radio-item"><input type="radio" name="address_type" value="Other"><span class="radio-label">Other</span></label>
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label class="check-item">
-                        <input type="checkbox" id="f-default" name="is_default" value="true">
-                        <span class="check-label">Set as default address</span>
-                    </label>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="submit" form="addressForm" id="submit-btn" class="btn-outline btn-filled" style="width: 100%;">Save Address</button>
-            <button type="button" onclick="closeModal()" class="btn-text" style="width: 100%; justify-content: center; padding: 12px 0;">Cancel</button>
-        </div>
+            </div>
+            <div class="form-field">
+                <label class="check-item" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                    <input type="checkbox" id="f-default" name="is_default" value="true">
+                    <span class="check-label">Set as default address</span>
+                </label>
+            </div>
+        </form>
+    </div>
+    <div class="uni-modal-footer">
+        <button type="submit" form="addressForm" id="submit-btn" class="uni-modal-btn uni-modal-btn-primary">Save Address</button>
+        <button type="button" onclick="closeModal()" class="uni-modal-btn uni-modal-btn-secondary">Cancel</button>
     </div>
 </div>
 
 <!-- EDIT ADDRESS MODAL -->
-<div id="EditaddressModal">
-    <div class="modal-backdrop-side" onclick="closeEditModal()"></div>
-    <div class="modal-panel">
-        <div class="modal-top">
-            <div>
-                <span class="modal-micro-label">Account / Addresses</span>
-                <h2 class="modal-title">Edit Address</h2>
+<div class="uni-modal-overlay" id="EditaddressModalOverlay"></div>
+<div class="uni-modal drawer-right" id="EditaddressModal">
+    <div class="uni-modal-header">
+        <div>
+            <span class="modal-micro-label" style="font-size: 9px; text-transform: uppercase; color: #888; display: block; margin-bottom: 4px;">Account / Addresses</span>
+            <h2 class="uni-modal-title">Edit Address</h2>
+        </div>
+        <button onclick="closeEditModal()" class="uni-modal-close">&times;</button>
+    </div>
+    <div class="uni-modal-body">
+        <form id="editAddressForm" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                <div class="form-field">
+                    <label class="form-label">First Name *</label>
+                    <input type="text" name="first_name" id="edit-first-name" class="form-input" placeholder="First name">
+                    <span id="err-edit-first-name" class="error-msg"></span>
+                </div>
+                <div class="form-field">
+                    <label class="form-label">Last Name *</label>
+                    <input type="text" name="last_name" id="edit-last-name" class="form-input" placeholder="Last name">
+                    <span id="err-edit-last-name" class="error-msg"></span>
+                </div>
             </div>
-            <button onclick="closeEditModal()" class="modal-close">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-        <div class="modal-body">
-            <form id="editAddressForm" method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="next" value="{{ request.GET.next }}">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-                    <div class="form-field">
-                        <label class="form-label">First Name *</label>
-                        <input type="text" name="first_name" id="edit-first-name" class="form-input" placeholder="First name">
-                        <span id="err-edit-first-name" class="error-msg"></span>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label">Last Name *</label>
-                        <input type="text" name="last_name" id="edit-last-name" class="form-input" placeholder="Last name">
-                        <span id="err-edit-last-name" class="error-msg"></span>
-                    </div>
+            <div class="form-field">
+                <label class="form-label">Phone Number *</label>
+                <input type="tel" name="phone_number" id="edit-phone" class="form-input" placeholder="10-digit phone number">
+                <span id="err-edit-phone" class="error-msg"></span>
+            </div>
+            <div class="form-field">
+                <label class="form-label">Address Line 1 *</label>
+                <input type="text" name="address_line1" id="edit-addr1" class="form-input" placeholder="House / flat, street name">
+                <span id="err-edit-addr1" class="error-msg"></span>
+            </div>
+            <div class="form-field">
+                <label class="form-label">Address Line 2 <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
+                <input type="text" name="address_line2" id="edit-addr2" class="form-input" placeholder="Apartment, landmark…">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+                <div class="form-field">
+                    <label class="form-label">City *</label>
+                    <input type="text" name="city" id="edit-city" class="form-input" placeholder="City">
+                    <span id="err-edit-city" class="error-msg"></span>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Phone Number *</label>
-                    <input type="tel" name="phone_number" id="edit-phone" class="form-input" placeholder="10-digit phone number">
-                    <span id="err-edit-phone" class="error-msg"></span>
+                    <label class="form-label">State *</label>
+                    <input type="text" name="state" id="edit-state" class="form-input" placeholder="State">
+                    <span id="err-edit-state" class="error-msg"></span>
                 </div>
                 <div class="form-field">
-                    <label class="form-label">Address Line 1 *</label>
-                    <input type="text" name="address_line1" id="edit-addr1" class="form-input" placeholder="House / flat, street name">
-                    <span id="err-edit-addr1" class="error-msg"></span>
+                    <label class="form-label">Pin Code *</label>
+                    <input type="text" name="pin_code" id="edit-pin" class="form-input" placeholder="6-digit PIN">
+                    <span id="err-edit-pin" class="error-msg"></span>
                 </div>
-                <div class="form-field">
-                    <label class="form-label">Address Line 2 <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
-                    <input type="text" name="address_line2" id="edit-addr2" class="form-input" placeholder="Apartment, landmark…">
+            </div>
+            <div class="form-field">
+                <label class="form-label">Country *</label>
+                <select id="edit-country" name="country" class="form-input"><option value="">Select country…</option></select>
+                <span id="err-edit-country" class="error-msg"></span>
+            </div>
+            <div class="form-field">
+                <label class="form-label">Type</label>
+                <div class="radio-group" style="display: flex; gap: 20px; margin-top: 10px;">
+                    <label class="radio-item"><input type="radio" name="type" value="home" id="edit-type-home"><span class="radio-label">Home</span></label>
+                    <label class="radio-item"><input type="radio" name="type" value="work" id="edit-type-work"><span class="radio-label">Work</span></label>
+                    <label class="radio-item"><input type="radio" name="type" value="other" id="edit-type-other"><span class="radio-label">Other</span></label>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
-                    <div class="form-field">
-                        <label class="form-label">City *</label>
-                        <input type="text" name="city" id="edit-city" class="form-input" placeholder="City">
-                        <span id="err-edit-city" class="error-msg"></span>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label">State *</label>
-                        <input type="text" name="state" id="edit-state" class="form-input" placeholder="State">
-                        <span id="err-edit-state" class="error-msg"></span>
-                    </div>
-                    <div class="form-field">
-                        <label class="form-label">Pin Code *</label>
-                        <input type="text" name="pin_code" id="edit-pin" class="form-input" placeholder="6-digit PIN">
-                        <span id="err-edit-pin" class="error-msg"></span>
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label class="form-label">Country *</label>
-                    <select id="edit-country" name="country" class="form-input"><option value="">Select country…</option></select>
-                    <span id="err-edit-country" class="error-msg"></span>
-                </div>
-                <div class="form-field">
-                    <label class="form-label">Type</label>
-                    <div class="radio-group">
-                        <label class="radio-item"><input type="radio" name="type" value="home" id="edit-type-home"><span class="radio-label">Home</span></label>
-                        <label class="radio-item"><input type="radio" name="type" value="work" id="edit-type-work"><span class="radio-label">Work</span></label>
-                        <label class="radio-item"><input type="radio" name="type" value="other" id="edit-type-other"><span class="radio-label">Other</span></label>
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label class="check-item">
-                        <input type="checkbox" name="is_default" id="edit-default">
-                        <span class="check-label">Set as default address</span>
-                    </label>
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="submit" form="editAddressForm" class="btn-outline btn-filled" style="width: 100%;">Update Address</button>
-            <button type="button" onclick="closeEditModal()" class="btn-text" style="width: 100%; justify-content: center; padding: 12px 0;">Cancel</button>
-        </div>
+            </div>
+            <div class="form-field">
+                <label class="check-item" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                    <input type="checkbox" name="is_default" id="edit-default">
+                    <span class="check-label">Set as default address</span>
+                </label>
+            </div>
+        </form>
+    </div>
+    <div class="uni-modal-footer">
+        <button type="submit" form="editAddressForm" class="uni-modal-btn uni-modal-btn-primary">Update Address</button>
+        <button type="button" onclick="closeEditModal()" class="uni-modal-btn uni-modal-btn-secondary">Cancel</button>
     </div>
 </div>
+
 
 
 <script>
@@ -696,19 +646,23 @@ function openModal() {
     unlockSelect(document.getElementById('f-country'));
     const countryEl = document.getElementById('f-country');
     if (countryEl) setSelectValue(countryEl, 'India');
-    document.getElementById('addressModal').classList.add('open');
+    document.getElementById('addressModal').classList.add('active');
+    document.getElementById('addressModalOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
-    document.getElementById('addressModal').classList.remove('open');
+    document.getElementById('addressModal').classList.remove('active');
+    document.getElementById('addressModalOverlay').classList.remove('active');
     document.body.style.overflow = '';
 }
 
 async function openEditModal(data) {
     ensureEditErrorSpans();
     const modal = document.getElementById('EditaddressModal');
+    const overlay = document.getElementById('EditaddressModalOverlay');
     const formEl = document.getElementById('editAddressForm');
+
     const countryEl = document.getElementById('edit-country');
     const cityEl    = document.getElementById('edit-city');
     const stateEl   = document.getElementById('edit-state');
@@ -738,15 +692,19 @@ async function openEditModal(data) {
     if (!anyChecked) { const r = document.getElementById('edit-type-home'); if (r) r.checked = true; }
     const defCb = document.getElementById('edit-default');
     if (defCb) defCb.checked = !!data.is_default;
-    modal.classList.add('open');
+    modal.classList.add('active');
+    if (overlay) overlay.classList.add('active');
     document.body.style.overflow = 'hidden';
 }
 
 function closeEditModal() {
     const modal = document.getElementById('EditaddressModal');
-    if (modal) modal.classList.remove('open');
+    const overlay = document.getElementById('EditaddressModalOverlay');
+    if (modal) modal.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
     document.body.style.overflow = '';
 }
+
 
 /* ── Delete overlays ── */
 function confirmDelete(id) { const o = document.getElementById(`delete-overlay-${id}`); if (o) o.classList.add('visible'); }

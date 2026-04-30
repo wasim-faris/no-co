@@ -226,34 +226,36 @@
     </div>
 </div>
 
-<!-- EDIT MODAL (Slide-in) -->
-<div id="editModal" class="luxury-modal-panel">
-    <div class="modal-blur-overlay" onclick="closeEditModal()"></div>
-    <div class="modal-slide-content">
-        <div class="modal-head-editorial">
-            <h2 class="modal-title-serif">Update Profile</h2>
-            <button onclick="closeEditModal()" class="btn-close-x">&times;</button>
-        </div>
-        <form action="{% url 'update-profile' user.id %}" method="POST" class="luxury-form-flow">
+<!-- EDIT MODAL -->
+<div class="uni-modal-overlay" id="editModalOverlay"></div>
+<div id="editModal" class="uni-modal" aria-hidden="true">
+    <div class="uni-modal-header">
+        <h2 class="uni-modal-title">Update Profile</h2>
+        <button onclick="closeEditModal()" class="uni-modal-close">&times;</button>
+    </div>
+    <div class="uni-modal-body">
+        <form action="{% url 'update-profile' user.id %}" method="POST" id="editProfileForm">
             {% csrf_token %}
-            <div class="luxury-input-group">
-                <label class="label-tiny-caps">Username</label>
-                <input type="text" name="username" value="{{ user.username }}" placeholder="janedoe">
+            <div class="luxury-input-group mb-6">
+                <label class="label-tiny-caps block mb-2">Username</label>
+                <input type="text" name="username" value="{{ user.username }}" placeholder="janedoe" class="w-full border-b border-gray-200 py-3 outline-none focus:border-black transition-all">
             </div>
-            <div class="luxury-input-group">
-                <label class="label-tiny-caps">Email</label>
-                <input type="email" name="email" value="{{ user.email }}" placeholder="jane@example.com">
+            <div class="luxury-input-group mb-6">
+                <label class="label-tiny-caps block mb-2">Email</label>
+                <input type="email" name="email" value="{{ user.email }}" placeholder="jane@example.com" class="w-full border-b border-gray-200 py-3 outline-none focus:border-black transition-all">
             </div>
-            <div class="luxury-input-group">
-                <label class="label-tiny-caps">Phone</label>
-                <input type="text" name="phone" value="{{ user.phone_number|default:'' }}" placeholder="+91 98765 43210">
-            </div>
-            <div class="modal-foot-editorial">
-                <button type="submit" class="btn-full-black">Save Changes</button>
+            <div class="luxury-input-group mb-8">
+                <label class="label-tiny-caps block mb-2">Phone</label>
+                <input type="text" name="phone" value="{{ user.phone_number|default:'' }}" placeholder="+91 98765 43210" class="w-full border-b border-gray-200 py-3 outline-none focus:border-black transition-all">
             </div>
         </form>
     </div>
+    <div class="uni-modal-footer">
+        <button type="submit" form="editProfileForm" class="uni-modal-btn uni-modal-btn-primary">Save Changes</button>
+        <button type="button" onclick="closeEditModal()" class="uni-modal-btn uni-modal-btn-secondary">Cancel</button>
+    </div>
 </div>
+
 
 <style>
 /* PREMIUM THEME CONFIG */
@@ -618,33 +620,7 @@ body {
 .drawer-link.active { color: #000; font-weight: 700; }
 .logout-link-luxury { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--luxury-muted); }
 
-/* MODAL PANEL */
-.luxury-modal-panel { position: fixed; inset: 0; z-index: 11000; visibility: hidden; }
-.luxury-modal-panel.active { visibility: visible; }
-.modal-blur-overlay { position: absolute; inset: 0; background: rgba(13,13,13,0.4); backdrop-filter: blur(6px); opacity: 0; transition: 0.5s; }
-.luxury-modal-panel.active .modal-blur-overlay { opacity: 1; }
-.modal-slide-content { position: absolute; right: 0; top: 0; width: 480px; height: 100%; background: #fff; transform: translateX(100%); transition: transform 0.7s cubic-bezier(0.165, 0.84, 0.44, 1); padding: 80px 60px; display: flex; flex-direction: column; }
-.luxury-modal-panel.active .modal-slide-content { transform: translateX(0); }
 
-.modal-head-editorial { display: flex; justify-content: space-between; align-items: center; margin-bottom: 60px; }
-.modal-title-serif { font-family: var(--font-serif); font-size: 36px; font-weight: 300; }
-.btn-close-x { 
-    position: absolute;
-    top: 24px;
-    right: 24px;
-    font-size: 32px;
-    font-weight: 200;
-    background: none;
-    border: none;
-    z-index: 12000;
-    cursor: pointer;
-}
-
-.luxury-input-group { display: flex; flex-direction: column; gap: 12px; margin-bottom: 40px; }
-.luxury-input-group input { border: none; border-bottom: 1px solid var(--luxury-border); padding: 12px 0; font-size: 15px; outline: none; transition: 0.3s; }
-.luxury-input-group input:focus { border-bottom-color: #000; }
-
-.btn-full-black { width: 100%; background: #000; color: #fff; border: none; padding: 22px; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; cursor: pointer; }
 
 /* RESPONSIVE BREAKS */
 @media (max-width: 1024px) {
@@ -764,15 +740,26 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // MODAL CONTROLS
 function openEditModal() { 
-    document.getElementById('editModal').classList.add('active'); 
+    const modal = document.getElementById('editModal');
+    const overlay = document.getElementById('editModalOverlay');
+    modal.classList.add('active');
+    if (overlay) overlay.classList.add('active');
+    
     const hamb = document.getElementById('hamburger-btn');
     if (hamb) hamb.style.display = 'none';
+    document.body.style.overflow = 'hidden';
 }
 function closeEditModal() { 
-    document.getElementById('editModal').classList.remove('active'); 
+    const modal = document.getElementById('editModal');
+    const overlay = document.getElementById('editModalOverlay');
+    modal.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
+    
     const hamb = document.getElementById('hamburger-btn');
     if (hamb && window.innerWidth <= 1024) hamb.style.display = 'flex';
+    document.body.style.overflow = '';
 }
+
 
 // AJAX AVATAR UPLOAD
 document.getElementById('photo_upload_input').addEventListener('change', async function() {

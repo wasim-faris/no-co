@@ -763,62 +763,25 @@
     </section>
 </div>
 
-<!-- ─── Remove Confirmation Modal ──────────────────────────────── -->
-<style>
-    #removeModal {
-        transition: opacity 0.3s ease;
-    }
-    #modalOverlay {
-        transition: opacity 0.3s ease;
-    }
-    #removeModalContent {
-        transform: translateY(3rem);
-        transition: transform 0.3s ease;
-    }
-    #removeModalContent.modal-open {
-        transform: translateY(0);
-    }
-    @media (max-width: 768px) {
-        #removeModal {
-            align-items: flex-end;
-        }
-        #removeModalContent {
-            margin: 0;
-            max-width: 100%;
-            width: 100%;
-            border-radius: 20px 20px 0 0;
-            padding-bottom: 40px;
-            transform: translateY(100%);
-        }
-        #removeModalContent.modal-open {
-            transform: translateY(0);
-        }
-    }
-</style>
-<div id="removeModal" class="fixed inset-0 z-[9999] flex items-center justify-center opacity-0 pointer-events-none">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" id="modalOverlay"></div>
 
-    <div id="removeModalContent" class="relative bg-white w-full max-w-lg mx-4 px-8 py-10 pt-12 shadow-2xl">
-        <div class="flex justify-between items-start mb-8">
-            <h3 class="text-[0.95rem] font-normal uppercase tracking-wide text-black">Remove an item</h3>
-            <button id="closeRemoveModalBtn" class="absolute top-6 right-6 text-2xl leading-none font-thin text-black hover:opacity-60 transition-opacity outline-none">
-                <i class="ri-close-line font-light"></i>
-            </button>
-        </div>
-        <p class="text-[1rem] font-normal text-black mb-10 pr-4 leading-relaxed">
+<div class="uni-modal-overlay" id="removeModalOverlay"></div>
+<div class="uni-modal" id="removeModal" aria-hidden="true">
+    <div class="uni-modal-header">
+        <h2 class="uni-modal-title">Remove an item</h2>
+        <button class="uni-modal-close" onclick="closeRemoveModal()">&times;</button>
+    </div>
+    <div class="uni-modal-body">
+        <p class="text-[1rem] font-normal text-black mb-6 leading-relaxed">
             Are you sure you would like to remove this item from your shopping bag?
         </p>
-        <div class="flex flex-row gap-4 mb-2">
-            <button type="button" id="cancelRemoveBtn" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
-                Cancel
-            </button>
-            <button type="button" id="confirmRemoveBtn" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
-                Remove from bag
-            </button>
-        </div>
         <p class="modal-error text-[0.6rem] text-red-500 text-center mt-2 hidden" id="modalError"></p>
     </div>
+    <div class="uni-modal-footer">
+        <button type="button" id="confirmRemoveBtn" class="uni-modal-btn uni-modal-btn-primary">Remove from bag</button>
+        <button type="button" id="cancelRemoveBtn" class="uni-modal-btn uni-modal-btn-secondary" onclick="closeRemoveModal()">Cancel</button>
+    </div>
 </div>
+
 
 <!-- ─── Inline Toast ─────────────────────────────────────────────── -->
 <div id="inlineToast" class="inline-toast" role="alert" aria-live="polite"></div>
@@ -1050,10 +1013,11 @@
     function openRemoveModal(id) {
         pendingRemoveId = id;
         const modal   = document.getElementById('removeModal');
-        const content = document.getElementById('removeModalContent');
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-        modal.classList.add('opacity-100', 'pointer-events-auto');
-        content.classList.add('modal-open');
+        const overlay = document.getElementById('removeModalOverlay');
+        modal.classList.add('active');
+        if (overlay) overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        
         // clear modal error
         const err = document.getElementById('modalError');
         if (err) { err.textContent = ''; err.classList.add('hidden'); }
@@ -1061,12 +1025,13 @@
 
     function closeRemoveModal() {
         const modal   = document.getElementById('removeModal');
-        const content = document.getElementById('removeModalContent');
-        content.classList.remove('modal-open');
-        modal.classList.remove('opacity-100', 'pointer-events-auto');
-        modal.classList.add('opacity-0', 'pointer-events-none');
+        const overlay = document.getElementById('removeModalOverlay');
+        modal.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
+        document.body.style.overflow = '';
         pendingRemoveId = null;
     }
+
 
     function confirmRemove() {
         if (!pendingRemoveId) return;

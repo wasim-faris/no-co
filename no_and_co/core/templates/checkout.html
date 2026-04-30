@@ -769,96 +769,56 @@
         </span>
     </div>
 
-    <!-- Modal Overlay -->
-    <div id="modalOverlay" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-200 ease-out flex items-center justify-center p-4 sm:p-6" onclick="closeModal(event)">
+      <!-- Coupon Modal -->
+    <div class="uni-modal-overlay" id="modalOverlay"></div>
+    <div class="uni-modal" id="modalContent" aria-hidden="true">
+        <div class="uni-modal-header">
+            <h2 class="uni-modal-title">Apply Coupon</h2>
+            <button onclick="closeModal()" class="uni-modal-close">&times;</button>
+        </div>
+        <div class="uni-modal-body">
+            {% if not applied_coupon %}
+            <form id="coupon-form" method="POST" action="{% url "apply-coupon" %}">
+                {% csrf_token %}
+                <input type="hidden" name="source" value="modal">
 
-        <!-- Modal Content -->
-        <div id="modalContent" class="bg-white w-full max-w-[500px] rounded-none shadow-md border border-[#e5e5e5] relative transform scale-[0.98] opacity-0 transition-[transform,opacity] duration-200 ease-out will-change-[transform,opacity] flex flex-col max-h-[90vh] overflow-hidden" onclick="event.stopPropagation()">
+                <!-- Input Section -->
+                <div class="flex flex-col gap-4 mt-4">
+                    <input type="text" id="coupon-code" name="code" placeholder="Enter coupon code" required class="w-full h-12 border border-gray-300 px-4 text-sm focus:outline-none focus:border-black uppercase">
+                    <button type="submit" class="uni-modal-btn uni-modal-btn-primary">APPLY</button>
+                </div>
+            </form>
+            {% endif %}
 
-            <!-- Header -->
-            <div class="p-[20px] border-b border-[#eee] flex justify-between items-center bg-white z-10 w-full shrink-0">
-                <h2 class="text-[16px] font-medium text-gray-900 tracking-wide">Apply Coupon</h2>
-                <button onclick="closeModal()" class="text-gray-400 hover:text-black transition-colors focus:outline-none" aria-label="Close">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
+            <!-- Available Coupons -->
+            <div class="mt-8">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-6">Available Coupons</h3>
+                <div class="space-y-4" id="available-coupons">
+                    {% if coupons %}
+                        {% for coupon in coupons %}
+                            <div class="p-6 border border-gray-200 bg-gray-50/50 group hover:border-black transition-all cursor-pointer" onclick="selectCoupon('{{ coupon.code }}')">
+                                <div class="flex justify-between items-start mb-3">
+                                    <span class="px-3 py-1 bg-white border border-black text-[11px] font-black tracking-widest">{{ coupon.code }}</span>
+                                    <span class="text-[11px] font-bold text-green-600">SAVE ₹{{ coupon.discount_value }}</span>
+                                </div>
+                                <p class="text-[10px] text-gray-500 uppercase tracking-tight leading-relaxed">{{ coupon.description|default:"Exclusive NØ&CO Discount" }}</p>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="py-8 text-center bg-gray-50 border border-dashed border-gray-200">
+                            <p class="text-[10px] text-gray-400 uppercase tracking-widest">No active coupons available</p>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-
-            <!-- Body -->
-            <div class="px-[20px] pb-[20px] overflow-y-auto custom-scrollbar min-h-[350px]">
-                {% if not applied_coupon %}
-                <form id="coupon-form" method="POST" action="{% url "apply-coupon" %}">
-                    {% csrf_token %}
-                    <input type="hidden" name="source" value="modal">
-
-                    <!-- Input Section -->
-                    <div class="flex flex-col sm:flex-row gap-[8px] mt-[20px] mb-[12px]">
-                        <input type="text" id="coupon-code" name="code" placeholder="Enter coupon code" required class="flex-1 w-full h-[46px] border border-[#dcdcdc] rounded-none px-4 text-[13px] focus:outline-none focus:border-black transition-colors uppercase placeholder:normal-case placeholder:text-gray-400">
-                        <button type="submit" class="h-[46px] bg-black text-white px-8 text-[13px] font-medium rounded-none hover:opacity-90 transition-opacity uppercase tracking-widest whitespace-nowrap w-full sm:w-auto flex items-center justify-center gap-2">
-                            <span id="btn-text">APPLY</span>
-                            <svg id="btn-spinner" class="animate-spin h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    
+        </div>
+    </div>
+  
                     <!-- Reserved Message Space to prevent layout shift -->
                     <div class="h-[20px] mt-[6px] overflow-hidden">
                         <p id="coupon-error" class="text-red-600 text-[12px] hidden m-0"></p>
                         <p id="coupon-success" class="text-green-600 text-[12px] hidden m-0"></p>
                     </div>
-
-                    <div class="border-t border-[#eee] my-[20px]"></div>
-
-                    <div class="mb-[12px]">
-                        <h3 class="text-[#888] text-[11px] font-medium uppercase tracking-[0.15em]">Available Coupons</h3>
-                    </div>
-
-                    <!-- Coupons List -->
-                    <div class="space-y-[16px]">
-                        {% for coupon in coupons %}
-                        <div class="border border-[#e5e5e5] rounded-none p-[16px] hover:bg-[#fafafa] transition-colors bg-white flex justify-between items-center gap-4">
-                            <div class="flex-1 pr-2">
-                                <span class="inline-block text-[13px] font-bold text-black uppercase tracking-[0.05em] mb-1">{{ coupon.code }}</span>
-                                <p class="text-[#888] text-[12px] leading-relaxed">
-                                    {% if coupon.discount_type == "percentage" %}
-                                        {{ coupon.discount_value }}% off
-                                    {% else %}
-                                        ₹{{ coupon.discount_value }} off
-                                    {% endif %}
-                                </p>
-                                {% if coupon.min_purchase %}
-                                <p class="text-[#a0a0a0] text-[11px] mt-1">
-                                    Min order ₹{{ coupon.min_purchase }}
-                                </p>
-                                {% endif %}
-                            </div>
-                            <button type="button" class="text-[12px] font-medium text-black underline underline-offset-4 hover:text-gray-600 transition-colors whitespace-nowrap bg-transparent px-0 border-0 cursor-pointer" onclick="applyCoupon('{{ coupon.code }}')">
-                                Apply
-                            </button>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </form>
-                {% else %}
-                <div class="mt-[20px]">
-                    <div class="border border-black p-4 flex justify-between items-center rounded-none bg-white">
-                        <div>
-                            <p class="font-medium text-[13px] uppercase tracking-wide text-black">Coupon Applied</p>
-                            <p class="text-[12px] text-gray-500 mt-1 font-bold tracking-[0.05em]" id="applied-coupon-code">{{ applied_coupon.code }}</p>
-                        </div>
-                        <button onclick="removeCoupon()" class="text-[12px] font-medium underline underline-offset-4 text-red-600 hover:text-red-800 transition-colors whitespace-nowrap bg-transparent px-0 border-0 cursor-pointer">
-                            Remove
-                        </button>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
 
 <script>
     // Modal functions
@@ -873,11 +833,6 @@
     function openModal() {
         const overlay = document.getElementById('modalOverlay');
         const content = document.getElementById('modalContent');
-        overlay.classList.remove('hidden', 'pointer-events-none');
-        toggleBodyScroll(true);
-        void overlay.offsetWidth;
-        overlay.classList.remove('opacity-0');
-        content.classList.remove('opacity-0', 'scale-[0.98]');
         content.classList.add('opacity-100', 'scale-100');
     }
 

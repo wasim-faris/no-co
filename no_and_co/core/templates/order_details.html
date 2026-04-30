@@ -253,51 +253,6 @@
         .map-external-btn { width: 100%; }
     }
 
-    /* ─── MODAL ─── */
-    .manage-modal {
-        display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center;
-        opacity: 0; transition: opacity 0.3s ease;
-    }
-    .manage-modal.open { display: flex; opacity: 1; }
-    .manage-modal-card {
-        background: white; width: 100%; max-width: 480px; padding: 40px; border-radius: 2px;
-        position: relative; transform: translateY(20px); transition: transform 0.3s ease;
-    }
-    .manage-modal.open .manage-modal-card { transform: translateY(0); }
-    .manage-modal-title { font-family: var(--font-ui); font-size: 24px; font-weight: 500; margin-bottom: 12px; color: var(--primary); letter-spacing: -0.02em; }
-    .manage-modal-subtitle { font-family: var(--font-ui); font-size: 13px; color: var(--muted); margin-bottom: 32px; line-height: 1.6; font-weight: 300; letter-spacing: 0.01em; }
-    .manage-modal-actions { display: flex; gap: 16px; margin-top: 40px; }
-    .manage-modal-actions .btn { flex: 1; }
-
-    .modal-close-x {
-        position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; z-index: 10;
-        transition: color 0.2s;
-    }
-    .modal-close-x:hover { color: var(--primary); }
-
-
-    /* Return Modal Specifics */
-    .return-modal-card { max-width: 560px; }
-    .return-product-info { display: flex; gap: 20px; padding: 20px; background: var(--bg); border-radius: 2px; margin-bottom: 24px; }
-    .return-product-thumb { width: 70px; height: 90px; flex-shrink: 0; overflow: hidden; background: white; border: 1px solid var(--border); }
-    .return-product-img { width: 100%; height: 100%; object-fit: cover; }
-    .return-product-details { flex: 1; }
-    .return-product-name { font-size: 14px; font-weight: 500; margin: 0 0 4px; }
-    .return-product-order { font-size: 11px; color: var(--muted); margin: 0 0 10px; }
-    .return-product-meta { display: flex; gap: 8px; flex-wrap: wrap; }
-    .return-product-badge { font-size: 9px; padding: 4px 8px; background: white; border: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.05em; }
-    
-    .return-form-group { margin-bottom: 20px; }
-    .return-form-label { display: block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; color: var(--primary); }
-    .return-form-select, .manage-modal-textarea { width: 100%; padding: 12px; border: 1px solid var(--border); font-family: inherit; font-size: 13px; border-radius: 2px; transition: border-color 0.2s; }
-    .return-form-select:focus, .manage-modal-textarea:focus { outline: none; border-color: var(--primary); }
-    .return-form-error { display: none; font-size: 11px; color: #DC2626; margin-top: 4px; }
-    .return-form-error.show { display: block; }
-    .return-required { color: #DC2626; }
-    .return-modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; }
-    .return-modal-close:hover { color: var(--primary); }
-
     /* ─── MINI ACTIONS & ITEM STATUS ─── */
     .order-action-mini {
         display: inline-block;
@@ -354,30 +309,10 @@
         .price-total-label { font-size: 9px; }
         .price-total-value { font-size: 18px; }
 
-        .timeline-step { padding-bottom: 20px; }
-        .timeline-dot { width: 20px; height: 20px; font-size: 9px; }
-        .timeline-step:not(:last-child)::before { left: 10px; top: 20px; }
         .timeline-title { font-size: 11px; }
         .timeline-date { font-size: 9px; }
-
-        /* Bottom Sheet Modal */
-        .manage-modal { align-items: flex-end; }
-        .manage-modal-card {
-            max-width: 100%; width: 100%; border-radius: 16px 16px 0 0; padding: 40px 24px 32px;
-            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        }
-        .manage-modal.open .manage-modal-card { transform: translateY(0); }
-        .manage-modal-title { font-size: 20px; font-weight: 700; margin-bottom: 12px; text-align: center; }
-        .manage-modal-subtitle { font-size: 14px; text-align: center; margin-bottom: 32px; color: #666; }
-        .manage-modal-actions { flex-direction: column-reverse; gap: 12px; margin-top: 0; }
-        .manage-modal-actions .btn { width: 100%; padding: 16px; font-size: 10px; }
-        .modal-close-x { top: 16px; right: 16px; }
-
-        /* Return Modal Adjustments */
-        .return-product-info { padding: 12px; gap: 12px; margin-bottom: 20px; }
-        .return-product-thumb { width: 60px; height: 80px; }
-        .return-product-name { font-size: 13px; }
     }
+
 
 
     @media (max-width: 480px) {
@@ -895,38 +830,34 @@
 <!-- Client-side toast for local state actions -->
 <div id="inlineToast" class="inline-toast" role="alert" aria-live="polite"></div>
 
-<div class="manage-modal" id="manage-modal" aria-hidden="true">
-    <div class="manage-modal-card" role="dialog" aria-modal="true" aria-labelledby="manage-modal-title">
-        <button type="button" class="modal-close-x" id="manage-modal-x" aria-label="Close modal">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-        <div class="manage-modal-title" id="manage-modal-title">Confirm Action</div>
-        <div class="manage-modal-subtitle" id="manage-modal-subtitle"></div>
-
+<!-- Cancel Order Modal -->
+<div class="uni-modal-overlay" id="manage-modal-overlay"></div>
+<div class="uni-modal" id="manage-modal" aria-hidden="true">
+    <div class="uni-modal-header">
+        <h2 class="uni-modal-title" id="manage-modal-title">Confirm Action</h2>
+        <button type="button" class="uni-modal-close" id="manage-modal-x" aria-label="Close modal">&times;</button>
+    </div>
+    <div class="uni-modal-body">
+        <p class="uni-modal-subtitle" id="manage-modal-subtitle"></p>
         <form id="cancelOrderForm" method="POST" action="{% url 'cancel-order' order.id %}">
             {% csrf_token %}
-            <div class="manage-modal-actions">
-                <button type="button" class="btn btn-hm-secondary" id="manage-modal-cancel">Keep Order</button>
-                <button type="submit" class="btn btn-dark" id="manage-modal-confirm">Confirm Cancellation</button>
+            <div class="uni-modal-footer" style="padding: 0; border-top: none; margin-top: 24px;">
+                <button type="submit" class="uni-modal-btn uni-modal-btn-primary" id="manage-modal-confirm">Confirm Cancellation</button>
+                <button type="button" class="uni-modal-btn uni-modal-btn-secondary" id="manage-modal-cancel">Keep Order</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Return Order Modal -->
-<div class="manage-modal" id="return-modal" aria-hidden="true">
-    <div class="manage-modal-card return-modal-card" role="dialog" aria-modal="true" aria-labelledby="return-modal-title">
-        <!-- Close Button -->
-        <button type="button" class="return-modal-close" id="return-modal-close" aria-label="Close modal">
-            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-
-        <div class="manage-modal-title" id="return-modal-title">Return Item</div>
-        <div class="manage-modal-subtitle">Submit a request to return this product.</div>
+<div class="uni-modal-overlay" id="return-modal-overlay"></div>
+<div class="uni-modal" id="return-modal" aria-hidden="true" style="max-width: 560px;">
+    <div class="uni-modal-header">
+        <h2 class="uni-modal-title" id="return-modal-title">Return Item</h2>
+        <button type="button" class="uni-modal-close" id="return-modal-close" aria-label="Close modal">&times;</button>
+    </div>
+    <div class="uni-modal-body">
+        <p class="uni-modal-subtitle">Submit a request to return this product.</p>
 
         <!-- Product Information -->
         <div id="return-products-container">
@@ -960,22 +891,19 @@
                 <span class="return-form-error" id="return-description-error">Please provide additional details</span>
             </div>
 
-            <!-- Hidden field for item index -->
+            <!-- Hidden fields -->
             <input type="hidden" id="return-item-index" name="item_index" value="">
-            
-            <!-- Hidden field for unique order item ID -->
             <input type="hidden" id="return-order-item-id" name="order_item_id" value="">
-
-            <!-- Hidden field for full order return -->
             <input type="hidden" id="return-all-flag" name="return_all" value="false">
 
-            <div class="manage-modal-actions return-modal-actions">
-                <button type="button" class="btn btn-hm-secondary" id="return-modal-cancel">Cancel</button>
-                <button type="submit" class="btn btn-dark" id="return-modal-submit">Submit Return Request</button>
+            <div class="uni-modal-footer" style="padding: 0; border-top: none; margin-top: 32px;">
+                <button type="submit" class="uni-modal-btn uni-modal-btn-primary" id="return-modal-submit">Submit Return Request</button>
+                <button type="button" class="uni-modal-btn uni-modal-btn-secondary" id="return-modal-cancel">Cancel</button>
             </div>
         </form>
     </div>
 </div>
+
 
 <script>
 (function() {
@@ -983,6 +911,7 @@
     if (!shell) return;
 
     const modal = document.getElementById('manage-modal');
+    const modalOverlay = document.getElementById('manage-modal-overlay');
     const modalTitle = document.getElementById('manage-modal-title');
     const modalSubtitle = document.getElementById('manage-modal-subtitle');
     const modalConfirm = document.getElementById('manage-modal-confirm');
@@ -1000,13 +929,15 @@
             cancelOrderForm.action = actionUrl;
         }
 
-        modal.classList.add('open');
+        modal.classList.add('active');
+        if (modalOverlay) modalOverlay.classList.add('active');
         modal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
     }
 
     function closeModal() {
-        modal.classList.remove('open');
+        modal.classList.remove('active');
+        if (modalOverlay) modalOverlay.classList.remove('active');
         modal.setAttribute('aria-hidden', 'true');
         document.body.style.overflow = '';
     }
@@ -1015,13 +946,12 @@
     const modalX = document.getElementById('manage-modal-x');
     if (modalX) modalX.addEventListener('click', closeModal);
 
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) closeModal();
-    });
-
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', closeModal);
+    }
     
     document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal.classList.contains('open')) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
             closeModal();
         }
     });
@@ -1051,6 +981,7 @@
        RETURN REQUEST MODAL LOGIC
        ───────────────────────────────────────────────────────────────────────────── */
     const returnModal = document.getElementById('return-modal');
+    const returnModalOverlay = document.getElementById('return-modal-overlay');
     const returnModalClose = document.getElementById('return-modal-close');
     const returnModalCancel = document.getElementById('return-modal-cancel');
     const returnOrderForm = document.getElementById('returnOrderForm');
@@ -1101,7 +1032,8 @@
     function openReturnModal(row) {
         if (!returnModal || !row) return;
 
-        returnModal.classList.add('open');
+        returnModal.classList.add('active');
+        if (returnModalOverlay) returnModalOverlay.classList.add('active');
         returnModal.setAttribute('aria-hidden', 'false');
         document.body.style.overflow = 'hidden';
 
@@ -1122,7 +1054,8 @@
 
     function closeReturnModal() {
         if (returnModal) {
-            returnModal.classList.remove('open');
+            returnModal.classList.remove('active');
+            if (returnModalOverlay) returnModalOverlay.classList.remove('active');
             returnModal.setAttribute('aria-hidden', 'true');
             document.body.style.overflow = '';
         }
@@ -1130,11 +1063,8 @@
 
     if (returnModalClose) returnModalClose.addEventListener('click', closeReturnModal);
     if (returnModalCancel) returnModalCancel.addEventListener('click', closeReturnModal);
-    if (returnModal) {
-        returnModal.addEventListener('click', function(e) {
-            if (e.target === returnModal) closeReturnModal();
-        });
-    }
+    if (returnModalOverlay) returnModalOverlay.addEventListener('click', closeReturnModal);
+
 
     if (returnOrderForm) {
         returnOrderForm.addEventListener('submit', function(e) {
