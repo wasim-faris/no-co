@@ -1,0 +1,352 @@
+{% autoescape off %}<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <meta name="supported-color-schemes" content="dark light">
+  <title>Your Verification Code — NO &amp; CO</title>
+  <style type="text/css">
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap');
+    :root { color-scheme: dark; }
+    * { -webkit-text-size-adjust: none; box-sizing: border-box; margin: 0; padding: 0; }
+    body { background-color: #0a0a0a !important; margin: 0 !important; padding: 0 !important; }
+    table { border-collapse: collapse !important; }
+
+    @keyframes fadeSlideUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes glowPulse {
+      0%,100% { box-shadow: 0 8px 16px rgba(0,0,0,.7), 0 24px 48px rgba(212,175,55,.10), 0 2px 4px rgba(212,175,55,.20); }
+      50%      { box-shadow: 0 8px 24px rgba(0,0,0,.8), 0 32px 64px rgba(212,175,55,.28), 0 2px 8px rgba(212,175,55,.45); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position:  200% center; }
+    }
+    @keyframes drift {
+      0%   { transform:translateY(0) scale(1);      opacity:0; }
+      15%  { opacity:.6; }
+      85%  { opacity:.3; }
+      100% { transform:translateY(-90px) scale(.5); opacity:0; }
+    }
+    @keyframes radialGlow {
+      0%,100% { opacity:.5; transform:translateX(-50%) scale(1); }
+      50%      { opacity:.9; transform:translateX(-50%) scale(1.08); }
+    }
+
+    .otp-box { animation: glowPulse 3s ease-in-out infinite; }
+    .otp-number {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 64px; font-weight: 600; letter-spacing: 14px;
+      background: linear-gradient(90deg,#a0822a 0%,#d4af37 30%,#f5e27a 50%,#d4af37 70%,#a0822a 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 3s linear infinite;
+      filter: drop-shadow(0 6px 20px rgba(212,175,55,.35));
+    }
+    .header-glow {
+      position: absolute; top: -40px; left: 50%;
+      transform: translateX(-50%);
+      width: 340px; height: 200px;
+      background: radial-gradient(ellipse at center, rgba(212,175,55,.18) 0%, transparent 70%);
+      animation: radialGlow 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .particle { position: absolute; border-radius: 50%; background: #d4af37; opacity: 0; animation: drift linear infinite; }
+    .p1 { width:3px;height:3px;left:10%;bottom:0;animation-duration:7s;animation-delay:0s }
+    .p2 { width:2px;height:2px;left:28%;bottom:0;animation-duration:9s;animation-delay:1.5s }
+    .p3 { width:4px;height:4px;left:52%;bottom:0;animation-duration:8s;animation-delay:.8s }
+    .p4 { width:2px;height:2px;left:70%;bottom:0;animation-duration:10s;animation-delay:2.2s }
+    .p5 { width:3px;height:3px;left:84%;bottom:0;animation-duration:6.5s;animation-delay:.4s }
+    .p6 { width:2px;height:2px;left:42%;bottom:0;animation-duration:11s;animation-delay:3s }
+
+    @media only screen and (max-width: 600px) {
+      body, table, .wrapper { background-color: #0a0a0a !important; }
+      .inner-td { padding: 32px 20px !important; }
+      .otp-number { font-size: 44px !important; letter-spacing: 8px !important; }
+      .headline-text { font-size: 26px !important; }
+      .otp-box { padding: 24px 16px !important; }
+      .copy-btn { padding: 12px 28px !important; }
+    }
+  </style>
+</head>
+<body bgcolor="#0a0a0a" style="background-color:#0a0a0a !important; margin:0; padding:0;">
+
+<!-- Outer wrapper table — forces dark bg in ALL clients -->
+<table width="100%" bgcolor="#0a0a0a" cellpadding="0" cellspacing="0" border="0"
+       style="background-color:#0a0a0a !important; min-height:100vh; width:100%;">
+  <tr>
+    <td align="center" bgcolor="#0a0a0a" style="background-color:#0a0a0a !important; padding:40px 0;">
+
+      <!-- Main content table -->
+      <table width="600" cellpadding="0" cellspacing="0" border="0" align="center"
+             style="background-color:#0a0a0a; max-width:600px; width:100%; position:relative;">
+
+        <!-- GOLD TOP BAR -->
+        <tr>
+          <td style="height:2px; background: linear-gradient(90deg, transparent, #d4af37, transparent); font-size:0; line-height:0;">&nbsp;</td>
+        </tr>
+
+        <!-- HEADER -->
+        <tr>
+          <td bgcolor="#0a0a0a" align="center"
+              style="background-color:#0a0a0a; padding:48px 40px 32px; border-bottom:1px solid rgba(212,175,55,.12); position:relative;">
+            <div class="header-glow"></div>
+            <!-- Particles -->
+            <div class="particle p1"></div><div class="particle p2"></div><div class="particle p3"></div>
+            <div class="particle p4"></div><div class="particle p5"></div><div class="particle p6"></div>
+
+            <div style="font-family:'Cormorant Garamond',Georgia,serif; font-size:26px; font-weight:300;
+                        letter-spacing:10px; text-transform:uppercase; color:#d4af37; position:relative; z-index:1;">
+              NO &amp; CO
+            </div>
+            <div style="width:50px; height:1px; background:linear-gradient(90deg,transparent,#d4af37,transparent);
+                        margin:12px auto 0;"></div>
+          </td>
+        </tr>
+
+        <!-- BODY -->
+        <tr>
+          <td class="inner-td" bgcolor="#0a0a0a" align="center"
+              style="background-color:#0a0a0a; padding:48px 44px;">
+
+            <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="background-color:#0a0a0a;">
+              <!-- Eyebrow -->
+              <tr>
+                <td align="center" style="padding-bottom:16px;">
+                  <span style="font-family:'Montserrat',Arial,sans-serif; font-size:9px; font-weight:600;
+                               letter-spacing:4px; text-transform:uppercase; color:#d4af37;">
+                    Security Verification
+                  </span>
+                </td>
+              </tr>
+              <!-- Headline -->
+              <tr>
+                <td align="center" style="padding-bottom:16px;">
+                  <span class="headline-text"
+                        style="font-family:'Cormorant Garamond',Georgia,serif; font-size:34px;
+                               font-weight:300; line-height:1.2; color:#f0ece4; display:block;">
+                    Your&nbsp;<em>One-Time</em><br>Passcode
+                  </span>
+                </td>
+              </tr>
+              <!-- Subtext -->
+              <tr>
+                <td align="center" style="padding-bottom:36px;">
+                  <span style="font-family:'Montserrat',Arial,sans-serif; font-size:12px; font-weight:300;
+                               line-height:1.9; color:#6b6560; display:block;">
+                    Use the code below to complete your verification.<br>
+                    This code is unique to you and should not be shared.
+                  </span>
+                </td>
+              </tr>
+
+              <!-- OTP BOX -->
+              <tr>
+                <td align="center" style="padding-bottom:20px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0"
+                         class="otp-box"
+                         style="background-color:#161616; border:1px solid rgba(212,175,55,.22);
+                                padding:36px 20px; border-radius:2px; position:relative;
+                                box-shadow:0 8px 16px rgba(0,0,0,.7), 0 24px 48px rgba(212,175,55,.12), 0 2px 4px rgba(212,175,55,.25);">
+                    <!-- Corner brackets via Unicode approximation (CSS :before not in email) -->
+                    <tr>
+                      <td align="center">
+                        <!-- Top corners -->
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                          <tr>
+                            <td style="width:18px; height:18px; border-top:2px solid #d4af37; border-left:2px solid #d4af37; font-size:0; line-height:0;">&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td style="width:18px; height:18px; border-top:2px solid #d4af37; border-right:2px solid #d4af37; font-size:0; line-height:0;">&nbsp;</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td align="center" style="padding:20px 0 10px;">
+                        <!-- Fallback plain-text OTP for clients that strip CSS animations -->
+                        <div class="otp-number"
+                             style="font-family:'Cormorant Garamond',Georgia,serif; font-size:64px;
+                                    font-weight:600; letter-spacing:14px; color:#d4af37;
+                                    text-align:center;">
+                          {{ otp }}
+                        </div>
+                        <p style="font-family:'Montserrat',Arial,sans-serif; font-size:10px;
+                                  font-weight:500; letter-spacing:2.5px; text-transform:uppercase;
+                                  color:#6b6560; margin-top:14px;">
+                          Expires in <span style="color:#d4af37;">10 minutes</span>
+                        </p>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td align="center">
+                        <!-- Bottom corners -->
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                          <tr>
+                            <td style="width:18px; height:18px; border-bottom:2px solid #d4af37; border-left:2px solid #d4af37; font-size:0; line-height:0;">&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td style="width:18px; height:18px; border-bottom:2px solid #d4af37; border-right:2px solid #d4af37; font-size:0; line-height:0;">&nbsp;</td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+
+              <!-- COPY BUTTON -->
+              <tr>
+                <td align="center" style="padding-bottom:36px;">
+                  <span id="otp-value" style="display:none;">{{ otp }}</span>
+                  <a id="copy-btn" href="javascript:void(0)"
+                     class="copy-btn"
+                     style="display:inline-block; padding:14px 40px;
+                            background-color:#0a0a0a; border:1px solid #d4af37;
+                            color:#d4af37; font-family:'Montserrat',Arial,sans-serif;
+                            font-size:10px; font-weight:600; letter-spacing:4px;
+                            text-transform:uppercase; text-decoration:none;
+                            transition:all .3s ease; cursor:pointer;">
+                    COPY CODE
+                  </a>
+                </td>
+              </tr>
+
+              <!-- DIVIDER -->
+              <tr>
+                <td style="height:1px; background:linear-gradient(90deg,transparent,rgba(212,175,55,.20),transparent);
+                           font-size:0; line-height:0; padding-bottom:32px;">&nbsp;</td>
+              </tr>
+
+              <!-- SECURITY NOTE -->
+              <tr>
+                <td style="background-color:#0f0f0f; border-left:2px solid rgba(212,175,55,.35);
+                           padding:16px 20px;">
+                  <span style="font-family:'Montserrat',Arial,sans-serif; font-size:11px;
+                               line-height:1.8; color:#6b6560; display:block;">
+                    <strong style="color:#f0ece4; font-weight:500;">Did not request this?</strong><br>
+                    If you did not request a verification code, please ignore this email.
+                    Your account remains secure. For assistance, contact our support team.
+                  </span>
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+        <!-- FOOTER -->
+        <tr>
+          <td bgcolor="#0a0a0a" align="center"
+              style="background-color:#0a0a0a; border-top:1px solid rgba(212,175,55,.10);
+                     padding:28px 40px;">
+            <div style="font-family:'Cormorant Garamond',Georgia,serif; font-size:13px;
+                        letter-spacing:5px; text-transform:uppercase; color:rgba(212,175,55,.45);
+                        margin-bottom:10px;">
+              NO &amp; CO
+            </div>
+            <div style="font-family:'Montserrat',Arial,sans-serif; font-size:10px;
+                        color:#3d3a36; line-height:1.8;">
+              &copy; 2025 NO &amp; CO &nbsp;&middot;&nbsp;
+              <a href="#" style="color:#3d3a36; text-decoration:none;">Privacy Policy</a>
+              &nbsp;&middot;&nbsp;
+              <a href="#" style="color:#3d3a36; text-decoration:none;">Terms of Service</a>
+            </div>
+          </td>
+        </tr>
+
+        <!-- GOLD BOTTOM BAR -->
+        <tr>
+          <td style="height:2px; background:linear-gradient(90deg,transparent,#d4af37,transparent);
+                     font-size:0; line-height:0;">&nbsp;</td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  // OTP copy (only runs if element exists on this page)
+  var copyBtn = document.getElementById('copy-btn');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', function() {
+      var el = document.getElementById('otp-value');
+      var text = el ? (el.textContent || el.innerText || '').trim() : '';
+      copyToClipboard(text, copyBtn, 'COPY CODE');
+    });
+  }
+
+  // Reset link copy (only runs if element exists on this page)
+  var copyLinkBtn = document.getElementById('copy-link-btn');
+  if (copyLinkBtn) {
+    copyLinkBtn.addEventListener('click', function() {
+      var el = document.getElementById('reset-link-value');
+      var text = el ? (el.textContent || el.innerText || '').trim() : '';
+      copyToClipboard(text, copyLinkBtn, 'COPY LINK');
+    });
+  }
+
+  function copyToClipboard(text, btn, originalLabel) {
+    if (!text) return;
+
+    // Method 1: modern clipboard API (HTTPS only)
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(function() {
+        showCopied(btn, originalLabel);
+      }).catch(function() {
+        fallbackCopy(text, btn, originalLabel);
+      });
+    } else {
+      // Method 2: fallback for HTTP or older browsers
+      fallbackCopy(text, btn, originalLabel);
+    }
+  }
+
+  function fallbackCopy(text, btn, originalLabel) {
+    var textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.top = '-9999px';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand('copy');
+      showCopied(btn, originalLabel);
+    } catch (err) {
+      btn.textContent = 'FAILED — TRY MANUALLY';
+      btn.style.color = '#ff4444';
+      btn.style.borderColor = '#ff4444';
+      setTimeout(function() {
+        btn.textContent = originalLabel;
+        btn.style.color = '#d4af37';
+        btn.style.borderColor = '#d4af37';
+      }, 2000);
+    }
+    document.body.removeChild(textarea);
+  }
+
+  function showCopied(btn, originalLabel) {
+    btn.textContent = '✓ COPIED';
+    btn.style.color = '#4caf50';
+    btn.style.borderColor = '#4caf50';
+    setTimeout(function() {
+      btn.textContent = originalLabel;
+      btn.style.color = '#d4af37';
+      btn.style.borderColor = '#d4af37';
+    }, 2000);
+  }
+
+});
+</script>
+
+</body>
+</html>
+{% endautoescape %}

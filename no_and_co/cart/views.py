@@ -7,6 +7,7 @@ from django.db.models import F, Sum, Prefetch
 from django.http import JsonResponse
 
 
+
 def cart_view(request):
 
     if request.method == "POST":
@@ -112,10 +113,15 @@ def cart_view(request):
         # We need to know the current original price and the best offer 
         # to show the H&M style discount in the cart.
         original_price = item.variant.price
-        _, discount_amount = get_best_offer(item.variant.product, original_price)
+        
+        # Sync the cart price with the current best price if it changed
+        item.price = item.variant.product.get_discounted_price(original_price)
+        item.save()
+        
+        discount_amount = item.variant.product.get_discount_amount(original_price)
         
         item.original_price = original_price
-        item.final_price = original_price - discount_amount
+        item.final_price = item.price
         item.discount_amount = discount_amount
         item.has_discount = discount_amount > 0
         if original_price > 0:
@@ -238,9 +244,7 @@ def add_to_cart(request, variant_id):
 
     variant = get_object_or_404(Variant, id=variant_id)
 
-    from offers.utils import get_best_offer
-    _, discount_amount = get_best_offer(variant.product, variant.price)
-    final_price = variant.price - discount_amount
+    final_price = variant.product.get_discounted_price(variant.price)
 
     cart_item = Cart.objects.filter(
         user=user, session_key=session, variant=variant

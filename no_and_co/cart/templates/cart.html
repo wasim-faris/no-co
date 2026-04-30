@@ -59,7 +59,9 @@
         outline: none;
         color: #111;
     }
-    .qty-btn:hover:not(:disabled) { opacity: 1; transform: scale(1.15); }
+    @media (hover: hover) {
+        .qty-btn:hover:not(:disabled) { opacity: 1; transform: scale(1.15); }
+    }
     .qty-btn:disabled  { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
     .qty-limit-warning {
         font-size: 0.6rem;
@@ -139,7 +141,9 @@
         border: none;
         cursor: pointer;
     }
-    .btn-checkout:hover { background-color: #333; }
+    @media (hover: hover) {
+        .btn-checkout:hover { background-color: #333; }
+    }
     .btn-checkout.is-loading {
         background-color: #333;
         pointer-events: none;
@@ -186,7 +190,9 @@
         display: block;
         text-align: center;
     }
-    .btn-signin:hover { background-color: #fafafa; }
+    @media (hover: hover) {
+        .btn-signin:hover { background-color: #fafafa; }
+    }
 
     /* ─── Payment / Info ─────────────────────────────────────── */
     .payment-icons {
@@ -251,13 +257,17 @@
         cursor: pointer; font-size: 14px; opacity: 0.4;
         transition: opacity 0.2s; padding: 4px; line-height: 1;
     }
-    .toast-close-btn:hover { opacity: 1; }
+    @media (hover: hover) {
+        .toast-close-btn:hover { opacity: 1; }
+    }
 
     /* ─── Wishlist heart toggle ──────────────────────────────── */
     .like-btn .filled-heart { display: none; color: #e02b2b !important; }
     .like-btn.liked .filled-heart { display: inline-block; }
     .like-btn.liked .unfilled-heart { display: none; }
-    .like-btn:hover i { transform: scale(1.15); transition: transform 0.2s ease; }
+    @media (hover: hover) {
+        .like-btn:hover i { transform: scale(1.15); transition: transform 0.2s ease; }
+    }
 
     /* ─── Responsive ─────────────────────────────────────────── */
     @media (max-width: 1024px) {
@@ -298,7 +308,9 @@
         padding: 0 5px;
         transition: opacity 0.2s;
     }
-    .similar-nav button:hover { opacity: 0.6; }
+    @media (hover: hover) {
+        .similar-nav button:hover { opacity: 0.6; }
+    }
 
     .similar-carousel {
         display: flex;
@@ -365,7 +377,9 @@
         stroke-width: 1.5;
         transition: transform 0.1s;
     }
-    .similar-heart:hover svg { transform: scale(1.15); fill: #eee; }
+    @media (hover: hover) {
+        .similar-heart:hover svg { transform: scale(1.15); fill: #eee; }
+    }
 
     .similar-label {
         font-size: 9px;
@@ -464,6 +478,17 @@
             overflow: hidden;
         }
     }
+
+    @media (hover: hover) and (pointer: fine) {
+        .similar-card:hover .product-img:first-of-type {
+            opacity: 0;
+        }
+    }
+
+    /* Disable Tailwind hover utilities on mobile to prevent stuck states */
+    @media (max-width: 768px) {
+        .hover\:opacity-100:hover { opacity: inherit !important; }
+        .hover\:bg-white:hover { background-color: transparent !important; }
     }
 </style>
 {% endblock %}
@@ -672,7 +697,7 @@
                     <div class="skeleton skeleton-img"></div>
                     {% with all_imgs=item.images.all %}
                     {% if all_imgs|length > 1 %}
-                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 lazy-image" alt="{{ item.color }}">
                         <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
                     {% else %}
                         <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
@@ -725,7 +750,7 @@
                     <div class="skeleton skeleton-img"></div>
                     {% with all_imgs=item.images.all %}
                     {% if all_imgs|length > 1 %}
-                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 group-hover:opacity-0 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 lazy-image" alt="{{ item.color }}">
                         <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
                     {% else %}
                         <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
@@ -763,62 +788,25 @@
     </section>
 </div>
 
-<!-- ─── Remove Confirmation Modal ──────────────────────────────── -->
-<style>
-    #removeModal {
-        transition: opacity 0.3s ease;
-    }
-    #modalOverlay {
-        transition: opacity 0.3s ease;
-    }
-    #removeModalContent {
-        transform: translateY(3rem);
-        transition: transform 0.3s ease;
-    }
-    #removeModalContent.modal-open {
-        transform: translateY(0);
-    }
-    @media (max-width: 768px) {
-        #removeModal {
-            align-items: flex-end;
-        }
-        #removeModalContent {
-            margin: 0;
-            max-width: 100%;
-            width: 100%;
-            border-radius: 20px 20px 0 0;
-            padding-bottom: 40px;
-            transform: translateY(100%);
-        }
-        #removeModalContent.modal-open {
-            transform: translateY(0);
-        }
-    }
-</style>
-<div id="removeModal" class="fixed inset-0 z-[9999] flex items-center justify-center opacity-0 pointer-events-none">
-    <div class="absolute inset-0 bg-black/50 backdrop-blur-[1px]" id="modalOverlay"></div>
 
-    <div id="removeModalContent" class="relative bg-white w-full max-w-lg mx-4 px-8 py-10 pt-12 shadow-2xl">
-        <div class="flex justify-between items-start mb-8">
-            <h3 class="text-[0.95rem] font-normal uppercase tracking-wide text-black">Remove an item</h3>
-            <button id="closeRemoveModalBtn" class="absolute top-6 right-6 text-2xl leading-none font-thin text-black hover:opacity-60 transition-opacity outline-none">
-                <i class="ri-close-line font-light"></i>
-            </button>
-        </div>
-        <p class="text-[1rem] font-normal text-black mb-10 pr-4 leading-relaxed">
+<div class="uni-modal-overlay" id="removeModalOverlay"></div>
+<div class="uni-modal" id="removeModal" aria-hidden="true">
+    <div class="uni-modal-header">
+        <h2 class="uni-modal-title">Remove an item</h2>
+        <button class="uni-modal-close" id="closeRemoveModalBtn" onclick="closeRemoveModal()">&times;</button>
+    </div>
+    <div class="uni-modal-body">
+        <p class="text-[1rem] font-normal text-black mb-6 leading-relaxed">
             Are you sure you would like to remove this item from your shopping bag?
         </p>
-        <div class="flex flex-row gap-4 mb-2">
-            <button type="button" id="cancelRemoveBtn" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
-                Cancel
-            </button>
-            <button type="button" id="confirmRemoveBtn" class="flex-1 bg-black text-white uppercase text-[0.85rem] font-bold py-4 px-6 hover:bg-gray-800 transition-colors outline-none">
-                Remove from bag
-            </button>
-        </div>
         <p class="modal-error text-[0.6rem] text-red-500 text-center mt-2 hidden" id="modalError"></p>
     </div>
+    <div class="uni-modal-footer">
+        <button type="button" id="confirmRemoveBtn" class="uni-modal-btn uni-modal-btn-primary">Remove from bag</button>
+        <button type="button" id="cancelRemoveBtn" class="uni-modal-btn uni-modal-btn-secondary" onclick="closeRemoveModal()">Cancel</button>
+    </div>
 </div>
+
 
 <!-- ─── Inline Toast ─────────────────────────────────────────────── -->
 <div id="inlineToast" class="inline-toast" role="alert" aria-live="polite"></div>
@@ -1050,10 +1038,11 @@
     function openRemoveModal(id) {
         pendingRemoveId = id;
         const modal   = document.getElementById('removeModal');
-        const content = document.getElementById('removeModalContent');
-        modal.classList.remove('opacity-0', 'pointer-events-none');
-        modal.classList.add('opacity-100', 'pointer-events-auto');
-        content.classList.add('modal-open');
+        const overlay = document.getElementById('removeModalOverlay');
+        modal.classList.add('active');
+        if (overlay) overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+
         // clear modal error
         const err = document.getElementById('modalError');
         if (err) { err.textContent = ''; err.classList.add('hidden'); }
@@ -1061,12 +1050,13 @@
 
     function closeRemoveModal() {
         const modal   = document.getElementById('removeModal');
-        const content = document.getElementById('removeModalContent');
-        content.classList.remove('modal-open');
-        modal.classList.remove('opacity-100', 'pointer-events-auto');
-        modal.classList.add('opacity-0', 'pointer-events-none');
+        const overlay = document.getElementById('removeModalOverlay');
+        modal.classList.remove('active');
+        if (overlay) overlay.classList.remove('active');
+        document.body.style.overflow = '';
         pendingRemoveId = null;
     }
+
 
     function confirmRemove() {
         if (!pendingRemoveId) return;
@@ -1145,9 +1135,10 @@
 
         // Close modal (overlay / close button / cancel)
         if (
-            e.target.id === 'modalOverlay' ||
+            e.target.id === 'removeModalOverlay' ||
             e.target.closest('#closeRemoveModalBtn') ||
-            e.target.closest('#cancelRemoveBtn')
+            e.target.closest('#cancelRemoveBtn') ||
+            e.target.closest('.uni-modal-close')
         ) {
             closeRemoveModal();
             return;
@@ -1172,7 +1163,7 @@
             const btnLoadingText = checkoutBtn.querySelector('.btn-loading-text');
             if (btnText) btnText.style.display = 'none';
             if (btnLoadingText) btnLoadingText.style.display = 'inline-block';
-            
+
             // Allow a tiny delay for the animation to be seen before the browser starts unloading the page
             // (Standard behavior for premium UX)
         }

@@ -467,11 +467,8 @@ def checkout(request):
 
 
     for item in cart_items:
-        _, disc = get_best_offer(item.variant.product, item.variant.price)
-        item.final_price = item.variant.price - disc
-        if item.price != item.final_price:
-            item.price = item.final_price
-            item.save()
+        item.price = item.variant.product.get_discounted_price(item.variant.price)
+        item.save()
 
     GST_RATE = Decimal("0.12")
     sub_total = sum(item.price * item.quantity for item in cart_items)
@@ -534,13 +531,22 @@ def place_order(request):
         address_id = request.POST.get("address_id")
         address = get_object_or_404(Addresses, id=address_id, user=user)
 
-        payment_status = "PAID" if payment_method == "COD" else "PENDING"
-
+        if payment_method == "wallet":
+            payment_status = "PAID"
+        else:
+            payment_status = "PENDING"
         if not address_id:
             messages.error(request, "Add address to place order")
             return redirect("checkout")
 
         cart_items = Cart.objects.filter(user=user)
+
+        # Update cart prices to latest discounted price before calculation
+        for item in cart_items:
+            latest_price = item.variant.product.get_discounted_price(item.variant.price)
+            if item.price != latest_price:
+                item.price = latest_price
+                item.save()
 
         if not cart_items.exists():
             messages.error(request, "no products in the cart")
@@ -648,6 +654,12 @@ def place_order(request):
                             )
                     cart_items.delete()
                     request.session['last_order_id'] = order.id
+                    if order.user.email:
+                        try:
+                            from utils.email_utils import send_order_confirmation_email
+                            send_order_confirmation_email(order)
+                        except Exception as e:
+                            print(f"Order email error (COD): {e}")
                     return redirect("order-success")
 
                 if payment_method == "wallet":
@@ -686,6 +698,12 @@ def place_order(request):
                                 )
                             cart_items.delete()
                             request.session['last_order_id'] = order.id
+                            if order.user.email:
+                                try:
+                                    from utils.email_utils import send_order_confirmation_email
+                                    send_order_confirmation_email(order)
+                                except Exception as e:
+                                    print(f"Order email error (Wallet): {e}")
                             return redirect("order-success")
 
                     else:
@@ -707,6 +725,12 @@ def payment_success(request, order_id):
 
     if order.payment_status == "PAID":
         request.session['last_order_id'] = order.id
+        if order.user.email:
+            try:
+                from utils.email_utils import send_order_confirmation_email
+                send_order_confirmation_email(order)
+            except Exception as e:
+                print(f"Order email error (Payment Success): {e}")
         return redirect("order-success")
 
     with transaction.atomic():
@@ -809,10 +833,11 @@ def download_invoice(request, id):
 
     order = get_object_or_404(Order, user=request.user, id=id)
 
-    items = list(
-        order.items.select_related("variant__product", "variant__size").all()
-    )
+    # Use the entire item set to show both active and cancelled items
+    items = list(order.items.select_related("variant__product", "variant__size").all())
+    
     for item in items:
+        # line_total for each item (unit price * qty)
         item.line_total = item.price * item.quantity
 
     context = {
@@ -862,42 +887,132 @@ def cancel_order(request, order_id):
             return redirect("order_details", id=order_id)
 
         items_to_cancel = order.items.select_related("variant").exclude(item_status="CANCELLED")
+        
         for item in items_to_cancel:
+            # Restore stock
             variant = item.variant
-            print(variant.stock)
             variant.stock += item.quantity
-            print(variant.stock)
             variant.save()
+            
+        # Refund the full amount paid including GST
+        total_refund = order.total_amount
 
         order.items.update(item_status="CANCELLED")
+        order.status = "CANCELLED"
+        order.cancelled_at = timezone.now()
+        
         OrderStatusHistory.objects.create(
             order=order,
             status="CANCELLED",
             updated_at=timezone.now()
         )
-        order.cancelled_at = timezone.now()
 
-        if order.payment_method in ["ONLINE", "wallet"]:
+        if order.payment_method in ["ONLINE", "wallet"] and total_refund > 0:
             wallet, _ = Wallet.objects.get_or_create(user=order.user)
-            amount = Decimal(order.total_amount)
-
-            wallet.balance = F('balance') + amount
+            wallet.balance = F('balance') + total_refund
             wallet.save()
 
             WalletTransaction.objects.create(
                 wallet=wallet,
                 order_id=order.id,
-                amount=amount,
+                amount=total_refund,
                 payment_status="SUCCESS",
                 transaction_type="CREDIT",
-                description=f"Refund for cancelled Order #{order.id}"
+                description=f"Refund for cancelled items in Order #{order.order_number}"
             )
 
     if order.payment_method == "ONLINE" and order.payment_status == "PAID":
         order.payment_status = "REFUNDED"
         order.save()
         messages.success(request, "Order cancelled successfully and refund processed.")
+    elif order.payment_method == "COD":
+        order.payment_status = "VOIDED"
+        order.save()
+        messages.success(request, "Order cancelled successfully.")
+    else:
+        order.save()
+        messages.success(request, "Order cancelled successfully.")
     return redirect("order_details", id=order_id)
+
+@login_required(login_url="login")
+@transaction.atomic
+def cancel_order_item(request, item_id):
+    item = get_object_or_404(OrderItem, id=item_id, order__user=request.user)
+    order = item.order
+
+    if item.item_status == "CANCELLED":
+        messages.info(request, "This item is already cancelled.")
+        return redirect("order_details", id=order.id)
+
+    if item.item_status in ["SHIPPED", "DELIVERED"]:
+        messages.error(request, "This item cannot be cancelled as it has already been shipped.")
+        return redirect("order_details", id=order.id)
+
+    # 1. Restore stock
+    variant = item.variant
+    variant.stock += item.quantity
+    variant.save()
+
+    # 2. Update item status
+    item.item_status = "CANCELLED"
+    item.save()
+
+    # 3. Handle Refund
+    if order.payment_status == "PAID" or order.payment_method == "wallet":
+        wallet, _ = Wallet.objects.get_or_create(user=order.user)
+        # Calculate proportional tax for the item
+        item_base = Decimal(item.final_price) * item.quantity
+        tax_rate = order.tax_amount / order.subtotal if order.subtotal > 0 else Decimal('0.00')
+        item_tax = (item_base * tax_rate).quantize(Decimal('0.01'))
+        
+        refund_amount = item_base + item_tax
+        
+        # Check if this is the last item to be cancelled
+        if not order.items.exclude(id=item.id).exclude(item_status="CANCELLED").exists():
+            refund_amount += Decimal(order.delivery_charge)
+        
+        wallet.balance = F('balance') + refund_amount
+        wallet.save()
+
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            order_id=order.id,
+            amount=refund_amount,
+            payment_status="SUCCESS",
+            transaction_type="CREDIT",
+            description=f"Refund for cancelled item in Order #{order.order_number}"
+        )
+
+    # 4. Auto Update Order Status
+    all_items = order.items.all()
+    total_items = all_items.count()
+    cancelled_items = all_items.filter(item_status="CANCELLED").count()
+
+    if cancelled_items == total_items:
+        order.status = "CANCELLED"
+        order.cancelled_at = timezone.now()
+        if order.payment_method == "ONLINE" and order.payment_status == "PAID":
+            order.payment_status = "REFUNDED"
+        elif order.payment_method == "COD":
+            order.payment_status = "VOIDED"
+    elif cancelled_items > 0:
+        order.status = "PARTIAL_CANCELLED"
+        if order.payment_status == "PAID":
+            order.payment_status = "PARTIALLY_REFUNDED"
+    else:
+        order.status = "PENDING"
+    
+    order.save()
+
+    # Log history
+    OrderStatusHistory.objects.create(
+        order=order,
+        status=order.status,
+        updated_at=timezone.now()
+    )
+
+    messages.success(request, "Item cancelled successfully.")
+    return redirect("order_details", id=order.id)
 
 
 def return_order(request, order_id):
@@ -908,34 +1023,46 @@ def return_order(request, order_id):
         reason = request.POST.get("return_reason", "").strip()
         description = request.POST.get("return_description", "").strip()
         order_item_id = request.POST.get("order_item_id", "").strip()
+        return_all = request.POST.get("return_all") == "true"
 
-        if not all([reason, description, order_item_id]):
+        if not all([reason, description]) or (not order_item_id and not return_all):
             messages.error(request, "All fields are required")
             return redirect("order_details", id=order.id)
 
-        order_item = get_object_or_404(OrderItem, id=order_item_id, order=order)
-
-        if order_item.item_status != "DELIVERED":
-            messages.error(request, "Only delivered items can be returned")
-            return redirect("order_details", id=order.id)
+        items_to_return = []
+        if return_all:
+            items_to_return = list(order.items.filter(item_status="DELIVERED"))
+            if not items_to_return:
+                messages.error(request, "No delivered items available to return")
+                return redirect("order_details", id=order.id)
+        else:
+            order_item = get_object_or_404(OrderItem, id=order_item_id, order=order)
+            if order_item.item_status != "DELIVERED":
+                messages.error(request, "Only delivered items can be returned")
+                return redirect("order_details", id=order.id)
+            items_to_return = [order_item]
 
         with transaction.atomic():
-            ReturnRequest.objects.create(
-                order=order,
-                order_item=order_item,
-                customer=request.user,
-                reason=reason,
-                description=description,
-                status="REQUESTED",
-                requested_at=timezone.now()
-            )
+            for item in items_to_return:
+                ReturnRequest.objects.create(
+                    order=order,
+                    order_item=item,
+                    customer=request.user,
+                    reason=reason,
+                    description=description,
+                    status="REQUESTED",
+                    requested_at=timezone.now()
+                )
+                item.item_status = "RETURN_REQUESTED"
+                item.save()
 
-            order_item.item_status = "RETURN_REQUESTED"
-            order_item.save()
-
+            order.status = "RETURN_REQUESTED"
+            order.save()
+            
             OrderStatusHistory.objects.create(
                 order=order,
-                status="RETURN_REQUESTED"
+                status="RETURN_REQUESTED",
+                updated_at=timezone.now()
             )
 
         messages.success(request, "Return request submitted successfully")

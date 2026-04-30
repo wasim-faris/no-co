@@ -32,7 +32,7 @@ def user_profile(request, id):
         return redirect("login")
 
     user = request.user
-    
+
     if not user.referral_code:
         user.save()
 
@@ -52,6 +52,8 @@ def user_profile(request, id):
 
     from accounts.models import ReferralRecord
     from wallet.models import Wallet
+    from core.models import Order
+    from wishlist.models import Wishlist
 
     referrals = ReferralRecord.objects.filter(referrer=user).order_by('-created_at')
     total_referrals = referrals.count()
@@ -59,6 +61,11 @@ def user_profile(request, id):
 
     wallet, _ = Wallet.objects.get_or_create(user=user)
     wallet_balance = wallet.balance
+
+    order_count = Order.objects.filter(user=user).count()
+    wishlist_count = Wishlist.objects.filter(user=user).count()
+    address_count = Addresses.objects.filter(user=user).count()
+    recent_orders = Order.objects.filter(user=user).order_by('-created_at')[:2]
 
     return render(
         request,
@@ -72,6 +79,10 @@ def user_profile(request, id):
             "total_referrals": total_referrals,
             "total_rewards": total_rewards,
             "wallet_balance": wallet_balance,
+            "order_count": order_count,
+            "wishlist_count": wishlist_count,
+            "address_count": address_count,
+            "recent_orders": recent_orders,
         },
     )
 
@@ -82,8 +93,17 @@ def update_profile(request, id):
 
     if request.method == "POST":
 
+        phone_number = request.POST.get("phone", "").strip().replace(" ", "")
+
+        if phone_number:
+            if not phone_number.startswith("+91"):
+                if len(phone_number) == 10 and phone_number.isdigit():
+                    phone_number = "+91" + phone_number
+                else:
+                    messages.error(request, "Invalid phone number")
+                    return redirect("user-profile", id=id)
+
         username = request.POST.get("username", "").strip()
-        phone_number = request.POST.get("phone")
         email = request.POST.get("email")
         old_mail = request.user.email
         user = request.user
@@ -99,10 +119,8 @@ def update_profile(request, id):
             return redirect("user-profile", id=user.id)
 
         try:
-            parsed = phonenumbers.parse(phone_number, None)
-
-            if not phonenumbers.is_valid_number(parsed):
-                messages.error(request, "Invalid phone number")
+            if not phone_number:
+                messages.error(request, "Phone number is required")
                 return redirect("user-profile", id=id)
 
             if not username:
@@ -125,6 +143,8 @@ def update_profile(request, id):
             old_phone_number = user.phone_number
 
             user.phone_number = phone_number
+            print("Saved phone:", user.phone_number)
+            user.save()
 
             if phone_number != old_phone_number:
                 if (
@@ -191,10 +211,12 @@ def update_profile(request, id):
             messages.success(request, "User profile updated successfully")
             return redirect("user-profile", id=id)
 
-        except NumberParseException:
-            messages.error(request, "Invalid phone number")
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
             return redirect("user-profile", id=id)
 
+
+from django.http import JsonResponse
 
 def add_profile_pic(request, id):
 
@@ -204,11 +226,17 @@ def add_profile_pic(request, id):
         new_photo = request.FILES.get("profile_photo")
 
         if not new_photo:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({"error": "Please select a profile picture"}, status=400)
             messages.error(request, "Please select a profile picture")
             return redirect("user-profile", id=id)
 
         user.profile_photo = new_photo
-        user.save()
+        user.save(update_fields=['profile_photo'])
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({"image_url": user.profile_photo.url})
+
         messages.success(request, "profile uploadded succesfully")
         return redirect("user-profile", id=id)
 
@@ -257,6 +285,7 @@ def email_verificaton(request):
         if str(otp) == str(user_otp):
             phone_number = request.session.get("phone_number", None)
             user.phone_number = phone_number
+            print("PHONE SAVED (after email verify):", phone_number)
             user.email = new_mail
             user.save()
             request.session.pop("otp", None)
@@ -311,7 +340,7 @@ def cancel_email_verification(request, id):
 
 @block_check
 @never_cache
-def user_address(request):
+def address(request):
 
     if not request.user.is_authenticated:
         return redirect("login")
@@ -335,7 +364,7 @@ def user_address(request):
 
         if Addresses.objects.filter(user=request.user, type=address_type).exists():
             messages.error(request, "Only One Address For Each Place")
-            return redirect("user-address")
+            return redirect("address")
 
         if not all(
             [
@@ -350,15 +379,15 @@ def user_address(request):
             ]
         ):
             messages.error(request, "Please fill all required fields.")
-            return redirect("user-address")
+            return redirect("address")
 
         if not re.fullmatch(r"\d{10}", phone_number):
             messages.error(request, "Phone number must be exactly 10 digits.")
-            return redirect("user-address")
+            return redirect("address")
 
         if not re.fullmatch(r"\d{6}", pin_code):
             messages.error(request, "PIN code must be exactly 6 digits.")
-            return redirect("user-address")
+            return redirect("address")
         try:
             response = requests.get(
                 f"https://api.postalpincode.in/pincode/{pin_code}", timeout=5
@@ -371,7 +400,7 @@ def user_address(request):
                         request,
                         f"State mismatch. PIN {pin_code} belongs to {api_state}.",
                     )
-                    return redirect("user-address")
+                    return redirect("address")
         except Exception as e:
             print(f"PIN API unavailable (add): {e}")
 
@@ -382,6 +411,14 @@ def user_address(request):
             Addresses.objects.filter(user=user, is_default=True).update(
                 is_default=False
             )
+        else:
+            # If no addresses exist, this must be the default
+            if not Addresses.objects.filter(user=user).exists():
+                is_default = True
+            # If addresses exist but none is default (safety check)
+            elif not Addresses.objects.filter(user=user, is_default=True).exists():
+                is_default = True
+
 
         Addresses.objects.create(
             user=user,
@@ -405,11 +442,11 @@ def user_address(request):
         if next_url == "checkout":
             return redirect("checkout")
         else:
-            return redirect("user-address")
+            return redirect("address")
 
     return render(
         request,
-        "user-address.html",
+        "address.html",
         {
             "user": user,
             "addresses": addresses,
@@ -417,14 +454,24 @@ def user_address(request):
     )
 
 
-def delete_user_address(request, id):
+def delete_address(request, id):
     address = get_object_or_404(Addresses, id=id, user=request.user)
+    was_default = address.is_default
     address.delete()
+
+    if was_default:
+        remaining_addresses = Addresses.objects.filter(user=request.user)
+        if remaining_addresses.exists():
+            new_default = remaining_addresses.first()
+            new_default.is_default = True
+            new_default.save()
+
     messages.success(request, "Address deleted successfully.")
-    return redirect("user-address")
+    return redirect("address")
 
 
-def edit_user_address(request, id):
+
+def edit_address(request, id):
     address = get_object_or_404(Addresses, id=id, user=request.user)
 
     if request.method == "POST":
@@ -446,7 +493,7 @@ def edit_user_address(request, id):
             .exists()
         ):
             messages.error(request, f"{address_type} Already exists")
-            return redirect("user-address")
+            return redirect("address")
 
         if not all(
             [
@@ -461,15 +508,15 @@ def edit_user_address(request, id):
             ]
         ):
             messages.error(request, "Please fill all required fields.")
-            return redirect("user-address")
+            return redirect("address")
 
         if not re.fullmatch(r"\d{10}", phone_number):
             messages.error(request, "Phone number must be exactly 10 digits.")
-            return redirect("user-address")
+            return redirect("address")
 
         if not re.fullmatch(r"\d{6}", pin_code):
             messages.error(request, "PIN code must be exactly 6 digits.")
-            return redirect("user-address")
+            return redirect("address")
 
         try:
             response = requests.get(
@@ -483,17 +530,35 @@ def edit_user_address(request, id):
                         messages.error(
                             request, f"PIN {pin_code} belongs to {api_state}."
                         )
-                        return redirect("user-address")
+                        return redirect("address")
         except Exception as e:
             print(f"PIN API unavailable (edit): {e}")
 
         if is_default:
-            Addresses.objects.filter(user=request.user).exclude(id=id).update(
-                is_default=False
-            )
+            # Set all other addresses to not default
+            Addresses.objects.filter(user=request.user, is_default=True).update(is_default=False)
             address.is_default = True
         else:
-            address.is_default = False
+            # If we are unsetting default, check if any other is default
+            other_default = Addresses.objects.filter(user=request.user, is_default=True).exclude(id=id).exists()
+            if not other_default:
+                # If this was default and we have other addresses, pick a new one
+                if address.is_default:
+                    remaining = Addresses.objects.filter(user=request.user).exclude(id=id)
+                    if remaining.exists():
+                        address.is_default = False
+                        new_def = remaining.first()
+                        new_def.is_default = True
+                        new_def.save()
+                    else:
+                        # Only one address, must stay default
+                        address.is_default = True
+                else:
+                    # No default exists at all, this must be it
+                    address.is_default = True
+            else:
+                address.is_default = False
+
 
         address.first_name = first_name
         address.last_name = last_name
@@ -514,12 +579,12 @@ def edit_user_address(request, id):
         if next_url == "checkout":
             return redirect("checkout")
         else:
-            return redirect("user-address")
+            return redirect("address")
 
-    return redirect("user-address")
+    return redirect("address")
 
 
-def user_address_set_default(request, id):
+def address_set_default(request, id):
     if request.method == "POST":
 
         address = get_object_or_404(Addresses, id=id, user=request.user)
@@ -532,4 +597,4 @@ def user_address_set_default(request, id):
         address.save()
 
         messages.success(request, "address set as default")
-        return redirect("user-address")
+        return redirect("address")

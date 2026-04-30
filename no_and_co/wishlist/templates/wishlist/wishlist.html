@@ -22,6 +22,7 @@
         padding: 0;
         display: flex;
         flex-direction: column;
+        min-height: 100vh; /* Fills viewport */
     }
 
     /* ─── Header: contained with side padding ─── */
@@ -111,7 +112,9 @@
         align-items: center;
         justify-content: center;
     }
-    .fav-heart:hover { transform: scale(1.15); }
+    @media (hover: hover) {
+        .fav-heart:hover { transform: scale(1.15); }
+    }
     /* unfilled by default */
     .fav-heart .fav-heart-fill   { display: none;   color: #e8192c; }
     .fav-heart .fav-heart-empty  { display: inline; color: #555; }
@@ -170,63 +173,13 @@
         transition: all 0.2s ease;
         margin-top: auto;
     }
-    .btn-add-fav:hover {
-        background-color: #000;
-        color: #fff;
+    @media (hover: hover) {
+        .btn-add-fav:hover {
+            background-color: #000;
+            color: #fff;
+        }
     }
 
-    /* ─── ADD TO CART DRAWER (H&M STYLE) ─── */
-    .drawer-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 999;
-        visibility: hidden;
-        opacity: 0;
-        transition: all 0.3s ease;
-    }
-    .drawer-overlay.active {
-        visibility: visible;
-        opacity: 1;
-    }
-
-    .atc-drawer {
-        position: fixed;
-        top: 0;
-        right: -450px;
-        width: 100%;
-        max-width: 420px;
-        height: 100%;
-        background: #fff;
-        z-index: 1000;
-        box-shadow: -4px 0 15px rgba(0,0,0,0.1);
-        transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        display: flex;
-        flex-direction: column;
-        padding: 0;
-    }
-    .atc-drawer.active {
-        right: 0;
-    }
-
-    .drawer-header {
-        padding: 20px 24px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border-bottom: 1px solid #f0f0f0;
-        position: relative;
-    }
-    .drawer-header h3 {
-        font-size: 14px;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin: 0;
-    }
     .close-drawer {
         position: absolute;
         right: 20px;
@@ -237,6 +190,7 @@
         line-height: 1;
         color: #000;
     }
+
 
     .drawer-content {
         flex: 1;
@@ -304,8 +258,10 @@
         cursor: pointer;
         transition: all 0.1s ease;
     }
-    .size-btn:hover:not(.disabled) {
-        background: #f5f5f5;
+    @media (hover: hover) {
+        .size-btn:hover:not(.disabled) {
+            background: #f5f5f5;
+        }
     }
     .size-btn.active {
         background: #000 !important;
@@ -358,6 +314,7 @@
         flex-direction: column;
         gap: 12px;
     }
+
     .btn-atc-main {
         width: 100%;
         background: #000;
@@ -370,8 +327,10 @@
         letter-spacing: 1px;
         cursor: pointer;
     }
-    .btn-atc-main:hover {
-        background: #333;
+    @media (hover: hover) {
+        .btn-atc-main:hover {
+            background: #333;
+        }
     }
     .btn-go-pdp {
         width: 100%;
@@ -387,25 +346,233 @@
         text-align: center;
         text-decoration: none;
     }
-    .btn-go-pdp:hover {
-        border-color: #000;
+    @media (hover: hover) {
+        .btn-go-pdp:hover {
+            border-color: #000;
+        }
     }
 /* ─── Empty State ─── */
-    .wishlist-empty { text-align: center; padding: 40px 16px; }
-    .empty-text { font-size: 15px; color: #666; margin-bottom: 32px; }
-    .btn-explore {
-        display: inline-block; padding: 18px 40px;
-        background: #000; color: #fff;
-        font-size: 13px; font-weight: 600;
-        text-transform: uppercase; letter-spacing: 0.1em;
-        text-decoration: none; transition: 0.3s;
+    .wishlist-empty {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 40px 16px;
+        min-height: 70vh; /* Takes up most of the viewport when empty */
     }
-    .btn-explore:hover { background: #333; }
+    .empty-text {
+        font-size: 15px;
+        color: #666;
+        margin-bottom: 32px;
+        font-weight: 300;
+        letter-spacing: 0.02em;
+    }
+    .btn-explore {
+        display: inline-block;
+        padding: 18px 40px;
+        background: #000;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+    @media (hover: hover) {
+        .btn-explore:hover { background: #333; }
+    }
+
+    /* ─── Recommendation Sections (Copied from Cart) ─── */
+    .similar-items-section {
+        padding: 20px 0 60px 0;
+        border-top: 1px solid #e5e5e5;
+        background: #fff;
+    }
+    .similar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        padding: 0 20px;
+    }
+    @media (min-width: 768px) {
+        .similar-header { padding: 0 40px; }
+    }
+    .similar-title {
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+        margin: 0;
+    }
+    .similar-nav button {
+        background: none;
+        border: none;
+        font-size: 18px;
+        color: #333;
+        cursor: pointer;
+        padding: 0 5px;
+        transition: opacity 0.2s;
+    }
+    @media (hover: hover) {
+        .similar-nav button:hover { opacity: 0.6; }
+    }
+
+    .similar-carousel {
+        display: flex;
+        gap: 0;
+        overflow-x: auto;
+        scroll-behavior: smooth;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        padding: 0;
+        margin: 0;
+    }
+    .similar-carousel::-webkit-scrollbar {
+        display: none;
+    }
+
+    .similar-card {
+        flex: 0 0 32%;
+        min-width: 280px;
+        display: flex;
+        flex-direction: column;
+        text-decoration: none;
+        color: #000;
+        cursor: pointer;
+        margin: 0;
+        padding: 0;
+    }
+
+    .similar-img-wrapper {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 2 / 3;
+        background-color: #f4f4f4;
+        margin: 0;
+        overflow: hidden;
+    }
+
+    .similar-img-wrapper img.product-img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        top: 0;
+        left: 0;
+        position: absolute;
+        transition: opacity 0.4s ease-in-out;
+    }
+
+    .similar-heart {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        z-index: 10;
+    }
+    .similar-heart svg {
+        width: 18px;
+        height: 18px;
+        fill: none;
+        stroke: #000;
+        stroke-width: 1.5;
+        transition: transform 0.1s;
+    }
+    @media (hover: hover) {
+        .similar-heart:hover svg { transform: scale(1.15); fill: #eee; }
+    }
+
+    .similar-label {
+        font-size: 9px;
+        font-weight: 500;
+        letter-spacing: .07em;
+        text-transform: uppercase;
+        color: #767676;
+        margin: 6px 0 1px;
+        padding: 0 10px;
+        line-height: 1.2;
+    }
+    .similar-name {
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+        color: #111;
+        margin: 0 0 2px;
+        padding: 0 10px;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+    .similar-price {
+        font-size: 13px;
+        font-weight: 500;
+        color: #111;
+        margin: 0;
+        padding: 0 10px;
+    }
+    .similar-swatches {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        flex-wrap: wrap;
+        padding: 0 10px;
+        margin-top: 5px;
+    }
+    .similar-swatch {
+        width: 10px;
+        height: 10px;
+        border: 1px solid #e5e5e5;
+        display: inline-block;
+    }
+    .similar-swatch-more {
+        font-size: 9px;
+        color: #767676;
+        font-weight: 500;
+    }
+
+    @media (max-width: 900px) {
+        .similar-items-section { padding: 30px 0 40px 0; }
+        .similar-header { padding: 0 20px; }
+        .similar-card { flex: 0 0 50%; min-width: 200px; }
+    }
+
+    /* ─── ATC Drawer Fixes ─── */
+    .atc-drawer .mini-img {
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+    }
+
+    @media (max-width: 768px) {
+        .atc-drawer {
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            z-index: 10001 !important; /* Above bottom nav (1000) */
+            border-radius: 16px 16px 0 0 !important;
+        }
+        #atcDrawerOverlay {
+            z-index: 10000 !important;
+        }
+    }
 
     /* ─── MOBILE RESPONSIVE FIXES (600px and below) ─── */
     @media (max-width: 600px) {
         .wishlist-wrapper {
-            min-height: auto;
+            min-height: 100vh;
         }
         .wishlist-header {
             padding: 20px 12px 16px;
@@ -426,97 +593,32 @@
             width: 100%;
         }
         .fav-details {
-            padding: 6px 8px 10px;
+            padding: 10px 8px 12px;
+            gap: 4px;
         }
         .fav-name {
-            font-size: 10px;
-            line-height: 1.3;
+            font-size: 11px;
+            line-height: 1.4;
+            margin-bottom: 2px;
         }
         .fav-price {
             font-size: 12px;
+            margin-bottom: 8px;
         }
         .btn-add-fav {
-            padding: 8px 0;
+            padding: 10px 0;
             font-size: 10px;
+            margin-top: 4px;
         }
         .size-btn {
             height: 44px;
         }
 
-        /* ─── DRAWER MOBILE BOTTOM-SHEET REFACTOR ─── */
-        .atc-drawer {
-            top: auto !important;
-            right: 0 !important;
-            left: 0 !important;
-            bottom: -100% !important;
-            height: auto !important;
-            max-height: 85vh !important;
-            width: 100% !important;
-            max-width: 100% !important;
-            border-radius: 16px 16px 0 0;
-            box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
-            transition: bottom 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) !important;
-            display: flex;
-            flex-direction: column;
-        }
-        .atc-drawer.active {
-            bottom: 80px !important; /* Clear bottom nav with slight gap */
-        }
-        .drawer-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 24px;
-            /* Remove fixed padding from previous turn if any */
-        }
-        .drawer-footer {
-            position: static !important;
-            padding: 16px 24px 24px;
-            background: #fff;
-            border-top: 1px solid #f0f0f0;
-            width: 100%;
-        }
-        .size-grid {
-            gap: 0;
-            border: 1px solid #e0e0e0;
-        }
-        .size-btn {
-            height: 42px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .mini-product {
-            gap: 12px;
-            flex-direction: row; /* ensure row on mobile */
-            align-items: flex-start;
-        }
         .mini-img {
             width: 80px;
         }
-
-        /* --- SKELETON LOADING --- */
-        .size-skeleton {
-            height: 42px;
-            background: #f0f0f0;
-            position: relative;
-            overflow: hidden;
-        }
-        .size-skeleton::after {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shimmer 1.5s infinite;
-        }
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
     }
+
 
     /* --- DYNAMIC BLACK PILL TOAST --- */
     #toast-container {
@@ -567,6 +669,18 @@
         transition: opacity 0.2s; padding: 4px;
     }
     .toast-close-btn:hover { opacity: 1; }
+
+    @media (hover: hover) and (pointer: fine) {
+        .similar-card:hover .product-img:first-of-type {
+            opacity: 0;
+        }
+    }
+
+    /* Disable Tailwind hover utilities on mobile to prevent stuck states */
+    @media (max-width: 768px) {
+        .hover\:opacity-100:hover { opacity: inherit !important; }
+        .hover\:bg-white:hover { background-color: transparent !important; }
+    }
 </style>
 {% endblock %}
 
@@ -588,13 +702,20 @@
             <!-- Image (edge-to-edge) + heart overlay -->
             <a href="{% url 'product-details' item.variant.product.id %}?variant={{ item.variant.id }}" class="fav-card-link">
                 <div class="fav-img-wrapper">
-                    {% if item.variant.primary_images %}
-                        <img src="{{ item.variant.primary_images.0.image.url }}" alt="{{ item.variant.product.product_name }}">
+                    {% with product=item.variant.product %}
+                    {% if item.variant.primary_images.all %}
+                        <img src="{{ item.variant.primary_images.all.0.image.url }}"
+                             alt="{{ product.product_name }}"
+                             onerror="this.src='https://placehold.co/400x600?text={{ product.product_name|urlencode }}'">
                     {% elif item.variant.images.all %}
-                        <img src="{{ item.variant.images.all.0.image.url }}" alt="{{ item.variant.product.product_name }}">
+                        <img src="{{ item.variant.images.all.0.image.url }}"
+                             alt="{{ product.product_name }}"
+                             onerror="this.src='https://placehold.co/400x600?text={{ product.product_name|urlencode }}'">
                     {% else %}
-                        <img src="/media/products/linen-shirt.png" alt="{{ item.variant.product.product_name }}">
+                        <img src="https://placehold.co/400x600?text={{ product.product_name|urlencode }}"
+                             alt="{{ product.product_name }}">
                     {% endif %}
+                    {% endwith %}
 
                     <!-- Heart overlays image bottom-right -->
                     <div class="fav-heart like-btn {% for w in whishlist_items %}{% if w.variant.id == item.variant.id %}liked{% endif %}{% endfor %}" data-variant-id="{{ item.variant.id }}">
@@ -642,23 +763,137 @@
     {% else %}
     <!-- EMPTY STATE -->
     <div class="wishlist-empty">
+        <div class="mb-6 opacity-20">
+            <i class="ri-heart-line text-6xl font-thin"></i>
+        </div>
+        <h2 class="text-xl font-medium uppercase tracking-widest mb-3">Your wishlist is empty</h2>
         <p class="empty-text">Tap the heart icon on items to save them here.</p>
         <a href="{% url 'home' %}" class="btn-explore">EXPLORE OUR COLLECTION</a>
     </div>
     {% endif %}
 
+    <!-- RECOMMENDATIONS (ALWAYS SHOWN) -->
+
+<!-- ADD THIS BELOW -->
+<div class="max-w-7xl mx-auto w-full">
+    <!-- SIMILAR ITEMS SECTION -->
+    <section class="similar-items-section">
+        <div class="similar-header">
+            <h2 class="similar-title">Similar Items</h2>
+            <div class="similar-nav">
+                <button id="simPrev">&#10094;</button>
+                <button id="simNext">&#10095;</button>
+            </div>
+        </div>
+        <div class="similar-carousel" id="similarCarousel">
+            {% for item in similar_items|slice:":6" %}
+            <a href="{% url 'product-details' item.product.id %}?variant={{ item.id }}" class="similar-card group">
+                <div class="similar-img-wrapper relative skeleton-wrapper block">
+                    <div class="skeleton skeleton-img"></div>
+                    {% with all_imgs=item.images.all %}
+                    {% if all_imgs|length > 1 %}
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
+                    {% else %}
+                        <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
+                    {% endif %}
+                    {% endwith %}
+                    <button class="similar-heart" aria-label="Add to Wishlist">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+                <p class="similar-label" style="padding: 0 10px; margin: 6px 0 1px;">{% if item.product.is_new %}NEW ARRIVAL{% elif item.product.is_premium %}H&M Premium Selection{% else %}{{ item.product.category.category_name }}{% endif %}</p>
+                <div style="padding: 0 10px; overflow: hidden;">
+                  <p class="similar-name" style="padding:0; margin-bottom:2px;">{{ item.product.product_name }}</p>
+                  <div style="display: flex; align-items: baseline; gap: 5px; margin: 0;">
+                    {% if item.has_discount %}
+                      <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.final_price }}</span>
+                      <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
+                      <span style="font-size: 9px; font-weight: 500; color: #767676;">-{{ item.discount_percent|floatformat:"-2" }}%</span>
+                    {% else %}
+                      <span class="similar-price" style="padding:0;">Rs.{{ item.price }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="similar-swatches" style="padding: 0 10px; margin-top: 5px;">
+                    {% regroup item.product.variants.all by color as color_list %}
+                    {% for col_item in color_list|slice:":4" %}
+                        {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                    {% endfor %}
+                    {% if color_list|length > 4 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-4" }}</span>{% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <!-- Show nothing or fallback if empty -->
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- OTHERS ALSO BOUGHT SECTION -->
+    <section class="similar-items-section" style="border-top: none; padding-top: 0;">
+        <div class="similar-header">
+            <h2 class="similar-title">Others Also Bought</h2>
+            <div class="similar-nav">
+                <button id="othersPrev">&#10094;</button>
+                <button id="othersNext">&#10095;</button>
+            </div>
+        </div>
+        <div class="similar-carousel" id="othersCarousel">
+            {% for item in similar_items reversed %}
+            <a href="{% url 'product-details' item.product.id %}?variant={{ item.id }}" class="similar-card group">
+                <div class="similar-img-wrapper relative skeleton-wrapper block">
+                    <div class="skeleton skeleton-img"></div>
+                    {% with all_imgs=item.images.all %}
+                    {% if all_imgs|length > 1 %}
+                        <img data-src="{{ all_imgs.0.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-10 transition-opacity duration-400 lazy-image" alt="{{ item.color }}">
+                        <img data-src="{{ all_imgs.1.image.url }}" class="product-img absolute inset-0 w-full h-full object-cover z-0 lazy-image" alt="{{ item.color }}">
+                    {% else %}
+                        <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
+                    {% endif %}
+                    {% endwith %}
+                    <button class="similar-heart" aria-label="Add to Wishlist">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                </div>
+                <p class="similar-label" style="padding: 0 10px; margin: 6px 0 1px;">{% if item.product.is_new %}NEW ARRIVAL{% elif item.product.is_premium %}H&M Premium Selection{% else %}{{ item.product.category.category_name }}{% endif %}</p>
+                <div style="padding: 0 10px; overflow: hidden;">
+                  <p class="similar-name" style="padding:0; margin-bottom:2px;">{{ item.product.product_name }}</p>
+                  <div style="display: flex; align-items: baseline; gap: 5px; margin: 0;">
+                    {% if item.has_discount %}
+                      <span style="font-size: 13px; font-weight: 600; color: #b91c1c;">Rs.{{ item.final_price }}</span>
+                      <span style="font-size: 11px; font-weight: 400; color: #9ca3af; text-decoration: line-through;">Rs.{{ item.original_price }}</span>
+                      <span style="font-size: 9px; font-weight: 500; color: #767676;">-{{ item.discount_percent|floatformat:"-2" }}%</span>
+                    {% else %}
+                      <span class="similar-price" style="padding:0;">Rs.{{ item.price }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+                <div class="similar-swatches" style="padding: 0 10px; margin-top: 5px;">
+                    {% regroup item.product.variants.all by color as color_list %}
+                    {% for col_item in color_list|slice:":4" %}
+                        {% with first_v=col_item.list.0 %}<div class="similar-swatch" style="background-color:{{ first_v.color_hex|default:'#ccc' }};"></div>{% endwith %}
+                    {% endfor %}
+                    {% if color_list|length > 4 %}<span class="similar-swatch-more">+{{ color_list|length|add:"-4" }}</span>{% endif %}
+                </div>
+            </a>
+            {% empty %}
+            <!-- Show nothing or fallback if empty -->
+            {% endfor %}
+        </div>
+    </section>
 </div>
+
 
 {% include 'user_base/components/footer.html' %}
 
 <!-- ADD TO CART DRAWER UI -->
-<div class="drawer-overlay" id="atcDrawerOverlay"></div>
-<aside class="atc-drawer" id="atcDrawer">
-    <div class="drawer-header">
-        <h3>ADD</h3>
-        <span class="close-drawer" id="closeDrawer">&times;</span>
+<div class="uni-modal-overlay" id="atcDrawerOverlay"></div>
+<aside class="uni-modal drawer-right atc-drawer" id="atcDrawer">
+    <div class="uni-modal-header">
+        <h3 class="uni-modal-title">ADD</h3>
+        <button class="uni-modal-close" id="closeDrawer">&times;</button>
     </div>
-    <div class="drawer-content">
+    <div class="uni-modal-body">
         <div class="mini-product">
             <img src="" alt="" class="mini-img" id="drawerProductImg">
             <div class="mini-info">
@@ -675,11 +910,12 @@
         <p id="stockHint" class="low-stock-hint">Only few left</p>
         <p id="sizeError" class="size-error">Please select a size</p>
     </div>
-    <div class="drawer-footer">
-        <button class="btn-atc-main" id="btnConfirmATC">ADD</button>
-        <a href="" class="btn-go-pdp" id="linkDrawerPDP">GO TO PRODUCT</a>
+    <div class="uni-modal-footer">
+        <button class="uni-modal-btn uni-modal-btn-primary" id="btnConfirmATC">ADD</button>
+        <a href="" class="uni-modal-btn uni-modal-btn-secondary" id="linkDrawerPDP">GO TO PRODUCT</a>
     </div>
 </aside>
+
 
 <!-- TOAST CONTAINER -->
 <div id="toast-container"></div>
@@ -864,7 +1100,12 @@
                     document.getElementById('drawerProductName').textContent = data.product_name;
                     document.getElementById('drawerProductPrice').textContent = 'Rs. ' + data.price;
                     document.getElementById('drawerProductVariant').textContent = 'Selected colour: ' + data.color;
-                    document.getElementById('drawerProductImg').src = data.image_url;
+                    const dImg = document.getElementById('drawerProductImg');
+                    if (dImg) {
+                        dImg.src = data.image_url || 'https://placehold.co/400x600?text=No+Image';
+                        dImg.onerror = function() { this.src = 'https://placehold.co/400x600?text=No+Image'; };
+                        dImg.style.display = 'block';
+                    }
                     document.getElementById('linkDrawerPDP').href = `/product-details/${data.product_id}/`;
 
                     // Populate Sizes
@@ -1006,13 +1247,28 @@
                             // Show Empty State if needed
                             if (remainingItems === 0) {
                                 const grid = document.querySelector('.wishlist-grid');
-                                if (grid) {
-                                    grid.innerHTML = `
-                                        <div class="wishlist-empty" style="grid-column: 1 / -1; width: 100%;">
-                                            <p class="empty-text">Tap the heart icon on items to save them here.</p>
-                                            <a href="/" class="btn-explore">EXPLORE OUR COLLECTION</a>
+                                const header = document.querySelector('.wishlist-header');
+                                if (grid) grid.remove();
+                                if (header) header.remove();
+
+                                // Insert the full empty state structure
+                                const main = document.querySelector('.wishlist-wrapper');
+                                if (main) {
+                                    const emptyDiv = document.createElement('div');
+                                    emptyDiv.className = 'wishlist-empty';
+                                    emptyDiv.innerHTML = `
+                                        <div class="mb-6 opacity-20">
+                                            <i class="ri-heart-line text-6xl font-thin"></i>
                                         </div>
+                                        <h2 class="text-xl font-medium uppercase tracking-widest mb-3">Your wishlist is empty</h2>
+                                        <p class="empty-text">Tap the heart icon on items to save them here.</p>
+                                        <a href="/" class="btn-explore">EXPLORE OUR COLLECTION</a>
                                     `;
+                                    main.appendChild(emptyDiv);
+
+                                    // Optionally trigger a reload to show recommendations if desired,
+                                    // or just keep it simple as the user might be browsing.
+                                    // location.reload();
                                 }
                             }
                         }, 300);
@@ -1038,6 +1294,41 @@
                 btnConfirmATC.textContent = 'ADD';
                 btnConfirmATC.disabled = false;
             });
+        });
+
+        // ─── CAROUSEL LOGIC ───
+        function setupCarousel(carouselId, prevBtnId, nextBtnId) {
+            const carousel = document.getElementById(carouselId);
+            const prevBtn = document.getElementById(prevBtnId);
+            const nextBtn = document.getElementById(nextBtnId);
+
+            if (!carousel || !prevBtn || !nextBtn) return;
+
+            prevBtn.addEventListener('click', () => {
+                carousel.scrollBy({ left: -300, behavior: 'smooth' });
+            });
+
+            nextBtn.addEventListener('click', () => {
+                carousel.scrollBy({ left: 300, behavior: 'smooth' });
+            });
+
+            const toggleButtons = () => {
+                const isAtStart = carousel.scrollLeft <= 5;
+                const isAtEnd = carousel.scrollLeft + carousel.clientWidth >= carousel.scrollWidth - 5;
+                prevBtn.style.opacity = isAtStart ? '0.3' : '1';
+                prevBtn.style.pointerEvents = isAtStart ? 'none' : 'auto';
+                nextBtn.style.opacity = isAtEnd ? '0.3' : '1';
+                nextBtn.style.pointerEvents = isAtEnd ? 'none' : 'auto';
+            };
+
+            carousel.addEventListener('scroll', toggleButtons);
+            window.addEventListener('resize', toggleButtons);
+            setTimeout(toggleButtons, 100);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            setupCarousel('similarCarousel', 'simPrev', 'simNext');
+            setupCarousel('othersCarousel', 'othersPrev', 'othersNext');
         });
     })();
 </script>

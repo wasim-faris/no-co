@@ -1,0 +1,595 @@
+{% autoescape off %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Order Confirmed — NO &amp; CO</title>
+  <style>
+    /* ═══════════════════════════════════════════════════════
+       BRAND CUSTOMIZATION — change these variables
+    ═══════════════════════════════════════════════════════ */
+    :root {
+      --gold:           #d4af37;
+      --gold-dim:       #a0822a;
+      --gold-glow:      rgba(212,175,55,0.18);
+      --bg:             #0a0a0a;
+      --surface:        #111111;
+      --surface-raised: #161616;
+      --text-primary:   #f0ece4;
+      --text-muted:     #6b6560;
+      --border:         rgba(212,175,55,0.15);
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Montserrat:wght@300;400;500;600&display=swap');
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: #0a0a0a;
+      font-family: 'Montserrat', Arial, sans-serif;
+      color: #f0ece4;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── Keyframes ─── */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-7px); }
+    }
+    @keyframes ringPulse {
+      0%,100% { box-shadow: 0 0 0 0   rgba(212,175,55,0.5),
+                             0 0 0 10px rgba(212,175,55,0.0); }
+      50%      { box-shadow: 0 0 0 8px  rgba(212,175,55,0.2),
+                             0 0 0 18px rgba(212,175,55,0.05); }
+    }
+    @keyframes shimmer {
+      0%   { background-position: -200% center; }
+      100% { background-position:  200% center; }
+    }
+    @keyframes drift {
+      0%   { transform: translateY(0) scale(1);     opacity: 0; }
+      15%  { opacity: 0.6; }
+      85%  { opacity: 0.3; }
+      100% { transform: translateY(-100px) scale(0.4); opacity: 0; }
+    }
+    @keyframes radialGlow {
+      0%,100% { opacity: 0.5; transform: translateX(-50%) scale(1);    }
+      50%      { opacity: 0.9; transform: translateX(-50%) scale(1.08); }
+    }
+    @keyframes progressFill {
+      from { width: 0%; }
+      to   { width: 30%; }
+    }
+
+    /* ─── Wrapper ─── */
+    .email-wrapper {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #0a0a0a;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ─── Particles ─── */
+    .particle {
+      position: absolute;
+      border-radius: 50%;
+      background: #d4af37;
+      opacity: 0;
+      animation: drift linear infinite;
+    }
+    .p1 { width:3px; height:3px; left:8%;  top:85%; animation-duration:8s;  animation-delay:0s;   }
+    .p2 { width:2px; height:2px; left:22%; top:80%; animation-duration:10s; animation-delay:1.8s; }
+    .p3 { width:4px; height:4px; left:50%; top:88%; animation-duration:7s;  animation-delay:0.6s; }
+    .p4 { width:2px; height:2px; left:68%; top:83%; animation-duration:11s; animation-delay:2.5s; }
+    .p5 { width:3px; height:3px; left:80%; top:77%; animation-duration:6s;  animation-delay:0.3s; }
+    .p6 { width:2px; height:2px; left:38%; top:92%; animation-duration:9s;  animation-delay:3.2s; }
+
+    /* ─── Header ─── */
+    .header {
+      position: relative;
+      text-align: center;
+      padding: 52px 40px 36px;
+      border-bottom: 1px solid rgba(212,175,55,0.12);
+    }
+    .header-glow {
+      position: absolute;
+      top: -50px; left: 50%;
+      transform: translateX(-50%);
+      width: 360px; height: 230px;
+      background: radial-gradient(ellipse at center, rgba(212,175,55,0.16) 0%, transparent 70%);
+      animation: radialGlow 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .brand {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: 10px;
+      text-transform: uppercase;
+      color: #d4af37;
+      position: relative;
+      z-index: 1;
+    }
+    .brand-line {
+      width: 50px; height: 1px;
+      background: linear-gradient(90deg, transparent, #d4af37, transparent);
+      margin: 14px auto 0;
+    }
+
+    /* ─── Hero checkmark ─── */
+    .hero {
+      text-align: center;
+      padding: 52px 40px 36px;
+    }
+    .checkmark-wrap {
+      display: inline-block;
+      animation: float 4s ease-in-out infinite;
+    }
+    .checkmark-circle {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #161616, #0f0f0f);
+      border: 1.5px solid rgba(212,175,55,0.40);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto;
+      animation: ringPulse 3s ease-in-out infinite;
+      position: relative;
+    }
+    .checkmark-circle::before {
+      content: '';
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      border: 1px solid rgba(212,175,55,0.12);
+    }
+    .checkmark-svg {
+      width: 36px;
+      height: 36px;
+    }
+    .hero-label {
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #d4af37;
+      margin-top: 22px;
+    }
+    .hero-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 38px;
+      font-weight: 300;
+      line-height: 1.15;
+      color: #f0ece4;
+      margin-top: 10px;
+    }
+    .hero-subtitle {
+      font-size: 12px;
+      font-weight: 300;
+      line-height: 1.9;
+      color: #6b6560;
+      margin-top: 14px;
+    }
+
+    /* ─── Content ─── */
+    .content {
+      padding: 0 44px 48px;
+      animation: fadeSlideUp 0.8s ease-out 0.2s both;
+    }
+
+    /* ─── Divider ─── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,0.20), transparent);
+      margin: 36px 0;
+    }
+
+    /* ─── Section label ─── */
+    .section-label {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 3.5px;
+      text-transform: uppercase;
+      color: rgba(212,175,55,0.6);
+      margin-bottom: 18px;
+    }
+
+    /* ─── Info grid (order meta) ─── */
+    .info-grid {
+      display: table;
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .info-row {
+      display: table-row;
+    }
+    .info-label-cell {
+      display: table-cell;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: #6b6560;
+      text-transform: uppercase;
+      padding: 5px 0;
+      width: 40%;
+      vertical-align: top;
+    }
+    .info-value-cell {
+      display: table-cell;
+      font-size: 11px;
+      font-weight: 500;
+      color: #f0ece4;
+      padding: 5px 0;
+      vertical-align: top;
+      text-align: right;
+    }
+
+    /* ─── Items table ─── */
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .items-table th {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(212,175,55,0.55);
+      padding: 0 0 14px;
+      border-bottom: 1px solid rgba(212,175,55,0.12);
+    }
+    .items-table th:last-child { text-align: right; }
+    .items-table td {
+      padding: 15px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 12px;
+      vertical-align: top;
+    }
+    .item-alt {
+      background: rgba(255,255,255,0.015);
+    }
+    .item-name {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 15px;
+      font-weight: 400;
+      color: #f0ece4;
+      display: block;
+    }
+    .item-meta {
+      font-size: 10px;
+      color: #6b6560;
+      margin-top: 2px;
+      display: block;
+    }
+    .item-qty {
+      color: #6b6560;
+      font-size: 11px;
+      text-align: center;
+      padding-right: 8px;
+    }
+    .item-price {
+      text-align: right;
+      font-size: 12px;
+      font-weight: 500;
+      color: #f0ece4;
+      white-space: nowrap;
+    }
+
+    /* ─── Totals ─── */
+    .totals-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .totals-table td {
+      padding: 8px 0;
+      font-size: 11px;
+    }
+    .totals-label { color: #6b6560; letter-spacing: 0.5px; }
+    .totals-value { text-align: right; color: #f0ece4; font-weight: 500; }
+    .total-final-row td {
+      padding-top: 16px;
+      border-top: 1px solid rgba(212,175,55,0.20);
+    }
+    .total-final-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #d4af37 !important;
+      font-weight: 600;
+    }
+    .total-final-value {
+      text-align: right;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 24px !important;
+      font-weight: 600;
+      background: linear-gradient(90deg, #a0822a 0%, #d4af37 35%, #f5e27a 50%, #d4af37 65%, #a0822a 100%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: shimmer 3s linear infinite;
+    }
+
+    /* ─── Address box ─── */
+    .address-box {
+      background: #111111;
+      border: 1px solid rgba(212,175,55,0.12);
+      padding: 22px 24px;
+      position: relative;
+    }
+    .address-box::before,
+    .address-box::after {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      border-color: rgba(212,175,55,0.4);
+      border-style: solid;
+    }
+    .address-box::before { top:-1px; left:-1px; border-width: 2px 0 0 2px; }
+    .address-box::after  { top:-1px; right:-1px; border-width: 2px 2px 0 0; }
+    .address-text {
+      font-size: 12px;
+      line-height: 1.9;
+      color: #c8c4bc;
+    }
+
+    /* ─── Delivery progress ─── */
+    .delivery-section {
+      background: #111111;
+      border: 1px solid rgba(212,175,55,0.12);
+      padding: 24px;
+    }
+    .delivery-date {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: #d4af37;
+      margin-bottom: 16px;
+    }
+    .progress-bar-track {
+      height: 2px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 30%;
+      background: linear-gradient(90deg, #a0822a, #d4af37, #f5e27a);
+      border-radius: 2px;
+      animation: progressFill 1.5s ease-out 0.5s both;
+    }
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 10px;
+    }
+    .progress-step-label {
+      font-size: 8.5px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #3d3a36;
+    }
+    .progress-step-label.active {
+      color: rgba(212,175,55,0.7);
+    }
+
+    /* ─── CTA ─── */
+    .cta-wrap {
+      text-align: center;
+      margin-top: 40px;
+    }
+    .cta-btn {
+      display: inline-block;
+      padding: 14px 44px;
+      background: transparent;
+      border: 1.5px solid #d4af37;
+      color: #d4af37;
+      font-family: 'Montserrat', Arial, sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Shimmer hover fallback for email */
+    .cta-btn::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
+      animation: shimmer 2.5s ease-in-out 1.5s infinite;
+    }
+
+    /* ─── Footer ─── */
+    .footer {
+      border-top: 1px solid rgba(212,175,55,0.10);
+      padding: 32px 44px;
+      text-align: center;
+    }
+    .footer-brand {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 14px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      color: rgba(212,175,55,0.45);
+      margin-bottom: 10px;
+    }
+    .footer-note {
+      font-size: 10px;
+      line-height: 1.8;
+      color: #3d3a36;
+    }
+    .footer-note a { color: #3d3a36; text-decoration: none; }
+
+    @media (max-width: 480px) {
+      .content { padding: 0 24px 40px; }
+      .hero     { padding: 40px 24px 28px; }
+      .hero-title { font-size: 30px; }
+      .cta-btn { padding: 13px 32px; }
+      .footer   { padding: 28px 24px; }
+    }
+  </style>
+</head>
+<body>
+<div class="email-wrapper">
+
+  <!-- Particles -->
+  <div class="particle p1"></div>
+  <div class="particle p2"></div>
+  <div class="particle p3"></div>
+  <div class="particle p4"></div>
+  <div class="particle p5"></div>
+  <div class="particle p6"></div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-glow"></div>
+    <div class="brand">NO &amp; CO</div>
+    <div class="brand-line"></div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="checkmark-wrap">
+      <div class="checkmark-circle">
+        <svg class="checkmark-svg" viewBox="0 0 36 36" fill="none">
+          <polyline points="7,18 15,26 29,11"
+                    stroke="#d4af37" stroke-width="2.2"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+    </div>
+    <p class="hero-label">Order Confirmed</p>
+    <h1 class="hero-title">Thank You,<br><em>{{ customer_name }}</em></h1>
+    <p class="hero-subtitle">
+      Your order has been received and is being prepared<br>
+      with the utmost care. We will notify you once it ships.
+    </p>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Order meta -->
+    <p class="section-label">Order Details</p>
+    <div class="info-grid">
+      <div class="info-row">
+        <span class="info-label-cell">Order Number</span>
+        <span class="info-value-cell">#{{ order_id }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label-cell">Date Placed</span>
+        <span class="info-value-cell">{{ order_date }}</span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Items table -->
+    <p class="section-label">Your Items</p>
+    <table class="items-table" cellpadding="0" cellspacing="0">
+      <thead>
+        <tr>
+          <th style="text-align:left; width:55%;">Product</th>
+          <th style="text-align:center; width:15%;">Qty</th>
+          <th style="text-align:right; width:30%;">Price</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr {% if forloop.counter|divisibleby:2 %}class="item-alt"{% endif %}>
+          <td>
+            <span class="item-name">{{ item.name }}</span>
+            {% if item.variant %}<span class="item-meta">{{ item.variant }}</span>{% endif %}
+          </td>
+          <td class="item-qty">{{ item.quantity }}</td>
+          <td class="item-price">&#8377;{{ item.price }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="divider"></div>
+
+    <!-- Totals -->
+    <table class="totals-table" cellpadding="0" cellspacing="0">
+      <tr>
+        <td class="totals-label">Subtotal</td>
+        <td class="totals-value">&#8377;{{ subtotal }}</td>
+      </tr>
+      <tr>
+        <td class="totals-label">Shipping</td>
+        <td class="totals-value">{% if shipping == '0' or shipping == 0 %}Free{% else %}&#8377;{{ shipping }}{% endif %}</td>
+      </tr>
+      {% if discount and discount != '0' %}
+      <tr>
+        <td class="totals-label">Discount</td>
+        <td class="totals-value" style="color:#059669;">&ndash; &#8377;{{ discount }}</td>
+      </tr>
+      {% endif %}
+      <tr class="total-final-row">
+        <td class="total-final-label">Total Paid</td>
+        <td class="total-final-value">&#8377;{{ total }}</td>
+      </tr>
+    </table>
+
+    <div class="divider"></div>
+
+    <!-- Delivery address -->
+    <p class="section-label">Shipping Address</p>
+    <div class="address-box">
+      <p class="address-text">{{ shipping_address }}</p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Estimated delivery -->
+    <p class="section-label">Estimated Delivery</p>
+    <div class="delivery-section">
+      <div class="delivery-date">{{ estimated_delivery }}</div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill"></div>
+      </div>
+      <div class="progress-steps">
+        <span class="progress-step-label active">Confirmed</span>
+        <span class="progress-step-label">Processing</span>
+        <span class="progress-step-label">Shipped</span>
+        <span class="progress-step-label">Delivered</span>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-wrap">
+      <a href="#" class="cta-btn">Track Your Order</a>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-brand">NO &amp; CO</div>
+    <p class="footer-note">
+      &copy; 2025 NO &amp; CO &nbsp;&middot;&nbsp;
+      <a href="#">Privacy Policy</a> &nbsp;&middot;&nbsp;
+      <a href="#">Contact Support</a><br>
+      You received this email because an order was placed using your account.
+    </p>
+  </div>
+
+</div>
+</body>
+</html>
+{% endautoescape %}

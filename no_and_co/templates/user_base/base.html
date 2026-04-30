@@ -11,7 +11,9 @@
         href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap"
         rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
+    {% include 'user_base/components/modal_system.html' %}
     <style>
+
         /* --- FALLBACK TOAST STYLING (System 2) --- */
         .inline-toast {
             position: fixed;
@@ -655,7 +657,7 @@
                     <span class="toast-sub-text">Notification</span>
                 </div>
             </div>
-            <div class="toast-close-btn" onclick="this.parentElement.classList.remove('show')">✕</div>
+            <div class="toast-close-btn" onclick="closeDjangoToast(this)">✕</div>
         </div>
         {% endfor %}
     </div>
@@ -810,10 +812,21 @@
                 });
 
                 // Auto-hide after 3 seconds
-                setTimeout(function() {
+                window.djangoToastTimer = setTimeout(function() {
                     toastContainer.classList.remove('show');
+                    setTimeout(() => toastContainer.remove(), 300);
                 }, 3000);
             }
+
+            // Global close function
+            window.closeDjangoToast = function(btn) {
+                if (window.djangoToastTimer) clearTimeout(window.djangoToastTimer);
+                const container = btn.closest('#djangoToast');
+                if (container) {
+                    container.classList.remove('show');
+                    setTimeout(() => container.remove(), 300);
+                }
+            };
         })();
     </script>
     <script>

@@ -93,7 +93,7 @@ def admin_dashboard(request):
                 start_date, end_date = end_date, start_date
         except ValueError:
             is_custom = False
-    
+
     if not is_custom:
         # Default ranges based on chart_filter
         if chart_filter == 'yearly':
@@ -114,7 +114,7 @@ def admin_dashboard(request):
     ).values('id')
 
     valid_orders = Order.objects.filter(id__in=valid_order_ids)
-    
+
     # Filter by date range
     filtered_orders = valid_orders.filter(created_at__date__range=[start_date, end_date])
 
@@ -148,7 +148,7 @@ def admin_dashboard(request):
     labels = []
     data = []
     graph_json = []
-    
+
     if chart_filter == 'yearly':
         sales_dict = {item['date'].year: float(item['sales']) for item in graph_data if item['date']}
         for y in range(start_date.year, end_date.year + 1):
@@ -157,7 +157,7 @@ def admin_dashboard(request):
             labels.append(lbl)
             data.append(rev)
             graph_json.append({"label": lbl, "revenue": rev})
-            
+
     elif chart_filter == 'daily':
         sales_dict = {item['date'].strftime('%Y-%m-%d'): float(item['sales']) for item in graph_data if item['date']}
         curr = start_date
@@ -168,7 +168,7 @@ def admin_dashboard(request):
             data.append(rev)
             graph_json.append({"label": lbl, "revenue": rev})
             curr += datetime.timedelta(days=1)
-            
+
     else: # monthly
         sales_dict = {item['date'].strftime('%Y-%m'): float(item['sales']) for item in graph_data if item['date']}
         curr = start_date.replace(day=1)
@@ -192,11 +192,6 @@ def admin_dashboard(request):
         variant__product__isnull=False
     )
 
-    # Three-level price waterfall — guarantees revenue is never ₹0.00:
-    #   1. final_price  → actual purchase price after discount (ideal)
-    #   2. original_price → pre-discount price stored at order time
-    #   3. variant__price → live variant price (last resort for orders
-    #      placed when a bug saved both stored prices as 0)
     safe_unit_price = Case(
         When(final_price__gt=0, then=F('final_price')),
         When(original_price__gt=0, then=F('original_price')),
@@ -204,7 +199,6 @@ def admin_dashboard(request):
         output_field=DecimalField(max_digits=10, decimal_places=2)
     )
 
-    # Group by product ID + name so same-named products are never merged
     top_products = valid_revenue_items.values(
         'variant__product__id',
         'variant__product__product_name',
@@ -793,9 +787,9 @@ def admin_sales_report(request):
         ).values('month').annotate(
             revenue=Sum('total_amount')
         ).order_by('month')
-        
+
         revenue_dict = {item['month'].date() if item['month'] else None: float(item['revenue']) for item in revenue_data if item['month']}
-        
+
         # Build labels and values for all months from start_date to end_date
         curr = start_date.replace(day=1)
         while curr <= end_date:
@@ -814,7 +808,7 @@ def admin_sales_report(request):
         ).order_by('date')
 
         revenue_dict = {item['date']: float(item['revenue']) for item in revenue_data if item['date']}
-        
+
         curr = start_date
         while curr <= end_date:
             daily_labels.append(curr.strftime('%d %b'))
@@ -919,7 +913,7 @@ def admin_user_details(request, id):
     from django.shortcuts import get_object_or_404
 
     target_user = get_object_or_404(User, id=id)
-    
+
     # Ensure user has a referral code
     if not target_user.referral_code:
         target_user.save()
@@ -941,7 +935,7 @@ def admin_user_details(request, id):
 
     from accounts.models import ReferralRecord
     from wallet.models import Wallet
-    
+
     wallet, _ = Wallet.objects.get_or_create(user=target_user)
     referrals_made = ReferralRecord.objects.filter(referrer=target_user).order_by('-created_at')
 
@@ -965,18 +959,18 @@ def admin_adjust_wallet(request, id):
         from accounts.models import User
         from wallet.models import Wallet, WalletTransaction
         from decimal import Decimal
-        
+
         target_user = get_object_or_404(User, id=id)
         amount = Decimal(request.POST.get('amount', '0'))
         action = request.POST.get('action') # 'ADD' or 'DEDUCT'
         description = request.POST.get('description', 'Manual adjustment by admin')
-        
+
         if amount <= 0:
             messages.error(request, "Amount must be greater than zero")
             return redirect("admin-user-details", id=id)
-            
+
         wallet, _ = Wallet.objects.get_or_create(user=target_user)
-        
+
         if action == 'ADD':
             wallet.balance += amount
             transaction_type = 'CREDIT'
@@ -986,9 +980,9 @@ def admin_adjust_wallet(request, id):
                 return redirect("admin-user-details", id=id)
             wallet.balance -= amount
             transaction_type = 'DEBIT'
-            
+
         wallet.save()
-        
+
         WalletTransaction.objects.create(
             wallet=wallet,
             amount=amount,
@@ -996,8 +990,8 @@ def admin_adjust_wallet(request, id):
             payment_status='SUCCESS',
             description=description
         )
-        
+
         messages.success(request, f"Wallet balance updated for {target_user.username}")
         return redirect("admin-user-details", id=id)
-    
+
     return redirect("admin-user-management")

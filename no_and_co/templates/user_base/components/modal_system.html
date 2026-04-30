@@ -1,0 +1,332 @@
+<style>
+    /* ─────────────────────────────────────────────────────────────────────────────
+       UNIFIED MODAL SYSTEM (NØ&CO)
+       ───────────────────────────────────────────────────────────────────────────── */
+
+    /* 1. Modal Overlay */
+    .uni-modal-overlay {
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(4px);
+        z-index: 9998; /* Hierarchy Step 1 */
+        visibility: hidden;
+        opacity: 0;
+        transition: opacity 0.25s ease, visibility 0.25s ease;
+        pointer-events: none;
+        will-change: opacity;
+    }
+    .uni-modal-overlay.active {
+        visibility: visible;
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* 2. Modal Base (Desktop Default: Centered) */
+    .uni-modal {
+        position: fixed;
+        z-index: 9999; /* Hierarchy Step 2 */
+        background: #fff;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.3s ease;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        border: 0.5px solid rgba(0,0,0,0.1);
+        will-change: transform;
+    }
+
+    /* Desktop Viewports (> 768px) */
+    @media (min-width: 769px) {
+        /* Default: Centered Modal */
+        .uni-modal:not(.drawer-right) {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -45%);
+            width: 100%;
+            max-width: 480px;
+            border-radius: 2px;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .uni-modal:not(.drawer-right).active {
+            transform: translate(-50%, -50%);
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Drawer Variant: Right Side (Wishlist/Address) */
+        .uni-modal.drawer-right {
+            top: 0;
+            right: -500px;
+            width: 100%;
+            max-width: 450px;
+            height: 100%;
+            border-radius: 0;
+            border-left: 0.5px solid rgba(0,0,0,0.1);
+        }
+        .uni-modal.drawer-right.active {
+            right: 0;
+        }
+    }
+
+    /* Mobile Viewports (<= 768px): ALL become Bottom Sheets */
+    @media (max-width: 768px) {
+        .uni-modal {
+            top: auto !important;
+            right: 0 !important;
+            left: 0 !important;
+            bottom: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: 85vh !important;
+            border-radius: 16px 16px 0 0 !important;
+            
+            /* Animation Fix: Use translate for GPU acceleration */
+            transform: translateY(100%) !important; 
+            visibility: visible !important;
+            opacity: 1 !important;
+            border: none;
+            box-shadow: 0 -5px 25px rgba(0,0,0,0.15);
+            
+            /* Performance: Short duration, specific properties */
+            transition: transform 0.28s cubic-bezier(0.32, 1, 0.23, 1) !important;
+        }
+        
+        .uni-modal.active {
+            transform: translateY(0) !important;
+        }
+
+        /* Mobile Performance: Opt-out of heavy effects if needed */
+        .uni-modal-overlay {
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+    }
+
+    /* 3. Modal Inner Components */
+    .uni-modal-header {
+        padding: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-bottom: 0.5px solid #f0f0f0;
+        position: relative;
+        flex-shrink: 0;
+        z-index: 10;
+    }
+    .uni-modal-title {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin: 0;
+        color: #000;
+    }
+    .uni-modal-close {
+        position: absolute;
+        right: 8px; /* Closer to edge to maximize header space */
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        font-size: 24px;
+        line-height: 1;
+        cursor: pointer;
+        width: 44px;  /* Standard touch target size */
+        height: 44px; /* Standard touch target size */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #000;
+        z-index: 10001; /* Ensure it's above everything in the modal */
+        transition: opacity 0.2s;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .uni-modal-close:active {
+        opacity: 0.5;
+    }
+    
+    .uni-modal-body {
+        padding: 24px;
+        overflow-y: auto;
+        flex: 1;
+        -webkit-overflow-scrolling: touch; /* iOS scroll fix */
+    }
+    .uni-modal-subtitle {
+        font-family: 'Inter', sans-serif;
+        font-size: 13px;
+        color: #666;
+        margin-bottom: 24px;
+        line-height: 1.5;
+        font-weight: 400;
+        text-align: center;
+    }
+    .uni-modal-footer {
+        padding: 24px;
+        border-top: 0.5px solid #f0f0f0;
+        display: flex;
+        flex-direction: row;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+
+    /* Standardized Buttons for Modals */
+    .uni-modal-btn {
+        flex: 1;
+        width: 100%;
+        padding: 16px;
+        font-family: 'Inter', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: center;
+        border-radius: 0;
+    }
+    .uni-modal-btn-primary {
+        background: #000;
+        color: #fff;
+        border: none;
+    }
+    .uni-modal-btn-primary:hover {
+        background: #333;
+    }
+    .uni-modal-btn-secondary {
+        background: #fff;
+        color: #000;
+        border: 1px solid #000;
+    }
+    .uni-modal-btn-secondary:hover {
+        background: #f9f9f9;
+    }
+
+    /* Stack buttons vertically on mobile always */
+    @media (max-width: 768px) {
+        .uni-modal-footer {
+            flex-direction: column; 
+        }
+        .uni-modal-btn {
+            flex: none;
+        }
+    }
+    /* 4. Global Button Loader System */
+    @keyframes global-btn-spin {
+        to { transform: rotate(360deg); }
+    }
+    .btn-loading-state {
+        color: transparent !important;
+        position: relative;
+        pointer-events: none !important;
+    }
+    .btn-loading-state::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 16px;
+        height: 16px;
+        margin-top: -8px;
+        margin-left: -8px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: global-btn-spin 0.8s linear infinite;
+        visibility: visible;
+    }
+    /* For buttons with white/light backgrounds */
+    .btn-outline.btn-loading-state::after,
+    .btn-secondary.btn-loading-state::after,
+    .uni-modal-btn-secondary.btn-loading-state::after {
+        border: 2px solid rgba(0,0,0,0.1);
+        border-top-color: #000;
+    }
+</style>
+
+<script>
+    /**
+     * UNIFIED MODAL INTERACTIONS
+     * Handles global behaviors like "Click Outside to Close"
+     */
+    document.addEventListener('click', function(e) {
+        // 1. CLICK OUTSIDE TO CLOSE
+        if (e.target.classList.contains('uni-modal-overlay')) {
+            const overlay = e.target;
+            
+            // Search for active modals
+            const activeModal = document.querySelector('.uni-modal.active');
+
+            if (activeModal) {
+                // Look for the page's specific close function if it exists
+                // We try to trigger the existing close UI buttons to ensure logic (like overflow reset) is preserved
+                const closeBtn = activeModal.querySelector('.uni-modal-close') || activeModal.querySelector('.uni-modal-btn-secondary');
+                if (closeBtn) {
+                    closeBtn.click();
+                } else {
+                    // Force close if no button found
+                    activeModal.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+    });
+
+    // Handle global escape key just in case it's missing in some templates
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const activeModal = document.querySelector('.uni-modal.active');
+            if (activeModal) {
+                const closeBtn = activeModal.querySelector('.uni-modal-close') || activeModal.querySelector('.uni-modal-btn-secondary');
+                if (closeBtn) closeBtn.click();
+            }
+        }
+    });
+
+    // GLOBAL BUTTON LOADER SYSTEM
+    document.addEventListener('DOMContentLoaded', () => {
+        // Intercept all form submissions
+        document.addEventListener('submit', (e) => {
+            const form = e.target;
+            const submitBtn = form.querySelector('button[type="submit"]') || form.querySelector('input[type="submit"]');
+            if (submitBtn && !submitBtn.disabled) {
+                submitBtn.classList.add('btn-loading-state');
+                // We use pointer-events:none in CSS, but let's also disable after a tick to allow submit
+                setTimeout(() => { submitBtn.disabled = true; }, 10);
+                
+                // Safety timeout to restore button if page doesn't reload
+                setTimeout(() => {
+                    if (submitBtn) {
+                        submitBtn.classList.remove('btn-loading-state');
+                        submitBtn.disabled = false;
+                    }
+                }, 8000);
+            }
+        });
+
+        // Intercept specific async buttons (add to cart, place order, wallet pay, etc.)
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.btn-add, .checkout-btn, #payBtn, #place-order-btn, #add-to-cart-btn, .btn-async');
+            if (btn && !btn.disabled && !btn.classList.contains('btn-loading-state')) {
+                // Skip if it's a submit button inside a form (already handled above)
+                if (btn.type === 'submit' && btn.closest('form')) return;
+                
+                btn.classList.add('btn-loading-state');
+                
+                // Allow current click event to finish propagating before disabling
+                setTimeout(() => { btn.disabled = true; }, 10);
+
+                // Auto-restore after a few seconds (assuming async call finishes or fails)
+                setTimeout(() => {
+                    if (btn) {
+                        btn.classList.remove('btn-loading-state');
+                        btn.disabled = false;
+                    }
+                }, 5000);
+            }
+        });
+    });
+</script>

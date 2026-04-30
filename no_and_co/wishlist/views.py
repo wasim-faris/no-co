@@ -7,7 +7,9 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.db.models import Prefetch, Sum
+from products.models import Variant, VariantImage, Product
 from cart.models import Cart
+from offers.utils import apply_offers_to_variants
 
 
 def wishlist(request):
@@ -47,8 +49,46 @@ def wishlist(request):
             )
         )
 
+    similar_items = []
+    if wishlist_items.exists():
+        first_product = wishlist_items.first().variant.product
+        similar_products = (
+            Product.objects.filter(is_active=True, is_deleted=False)
+            .exclude(id=first_product.id)
+            .order_by("-created_at")[:6]
+        )
+
+        for p in similar_products:
+            rep_variant = (
+                p.variants.filter(is_active=True, is_deleted=False)
+                .order_by("-is_default", "id")
+                .first()
+            )
+            if rep_variant:
+                similar_items.append(rep_variant)
+
+    similar_items = apply_offers_to_variants(similar_items)
+    if not similar_items:
+        fallback_products = Product.objects.filter(
+            is_active=True, is_deleted=False
+        ).order_by("-id")[:8]
+        for p in fallback_products:
+            rep_variant = (
+                p.variants.filter(is_active=True, is_deleted=False)
+                .order_by("-is_default", "id")
+                .first()
+            )
+            if rep_variant:
+                similar_items.append(rep_variant)
+        similar_items = apply_offers_to_variants(similar_items)
+
     return render(
-        request, "wishlist/wishlist.html", {"whishlist_items": wishlist_items}
+        request, 
+        "wishlist/wishlist.html", 
+        {
+            "whishlist_items": wishlist_items,
+            "similar_items": similar_items,
+        }
     )
 
 

@@ -9,26 +9,24 @@
         <div class="order-date">{{ order.created_at|date:"M d, Y" }}</div>
         {% with return_request=order.returns.first %}
             {% if return_request %}
-                <span class="status-badge 
-                    {% if return_request.status == 'REFUNDED' %}badge-refunded
-                    {% elif return_request.status == 'APPROVED' %}badge-return-approved
-                    {% elif return_request.status == 'REJECTED' %}badge-cancelled
-                    {% else %}badge-return-requested{% endif %} order-status-badge" data-role="listing-status">
-                    {% if return_request.status == 'REFUNDED' %}Refunded
-                    {% elif return_request.status == 'APPROVED' %}Return Approved
-                    {% elif return_request.status == 'REQUESTED' %}Return Requested
-                    {% else %}Return Rejected{% endif %}
+                <span class="status-badge order-status-badge" data-role="listing-status">
+                    {% if return_request.status == 'REFUNDED' %}Status: Refunded
+                    {% elif return_request.status == 'APPROVED' %}Status: Return Approved
+                    {% elif return_request.status == 'REQUESTED' %}Status: Return Requested
+                    {% else %}Status: Return Rejected{% endif %}
                 </span>
             {% else %}
-                {% with item_status=order.items.first.item_status %}
-                    {% if item_status == 'DELIVERED' or order.delivered_date %}
-                        <span class="status-badge badge-delivered order-status-badge" data-role="listing-status">Delivered</span>
-                    {% elif item_status == 'SHIPPED' %}
-                        <span class="status-badge" style="color: #1a3a3a; border-color: #bee5eb; background: #e3f2fd;" data-role="listing-status">Shipped</span>
-                    {% elif item_status == 'CANCELLED' or item_status == 'RETURNED' %}
-                        <span class="status-badge badge-cancelled order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
+                {% with status=order.status %}
+                    {% if status == 'DELIVERED' or order.delivered_date %}
+                        <span class="status-badge order-status-badge" data-role="listing-status">Status: Delivered</span>
+                    {% elif status == 'SHIPPED' %}
+                        <span class="status-badge order-status-badge" data-role="listing-status">Status: Shipped</span>
+                    {% elif status == 'CANCELLED' %}
+                        <span class="status-badge order-status-badge" data-role="listing-status">Status: Cancelled</span>
+                    {% elif status == 'PARTIAL_CANCELLED' %}
+                        <span class="status-badge order-status-badge" data-role="listing-status">Status: Partial Cancelled</span>
                     {% else %}
-                        <span class="status-badge badge-pending order-status-badge" data-role="listing-status">{{ item_status|title }}</span>
+                        <span class="status-badge order-status-badge" data-role="listing-status">Status: {{ order.get_status_display|default:"Order Placed" }}</span>
                     {% endif %}
                 {% endwith %}
             {% endif %}
@@ -50,7 +48,7 @@
             {% with item=order.items.first %}
             <div class="order-product-name">{{ item.variant.product.product_name }}</div>
             <div class="order-variant">{{ item.variant.color }} &nbsp;·&nbsp; Size {{ item.variant.size.name }} {% if order.items.count > 1 %}&nbsp;·&nbsp; +{{ order.items.count|add:"-1" }} more{% endif %}</div>
-            <div class="order-amount">₹{{ order.total_amount }} <span class="order-amount-label">Total</span></div>
+            <div class="order-amount">₹{{ order.active_total }} <span class="order-amount-label">Total</span></div>
             {% endwith %}
         </div>
         <a href="{% url 'order_details' order.id %}" class="order-arrow" title="View Details">

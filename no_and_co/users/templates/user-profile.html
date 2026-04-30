@@ -1,1731 +1,651 @@
 {% extends 'user_base/base.html' %}
-{% block django_messages %}{% endblock %}
+{% load static %}
 
+{% block title %}NØ&CO | Profile{% endblock %}
 
 {% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --primary: #111111;
+        --accent: #C9A96E;
+        --bg: #FAFAF8;
+        --card-bg: #FFFFFF;
+        --border: #E8E6E1;
+        --muted: #888888;
+        --font-display: 'Cormorant Garamond', serif;
+        --font-ui: 'Inter', sans-serif;
+    }
 
+    .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); font-weight: 500; }
+    .display-text { font-family: var(--font-display); font-weight: 400; }
+
+    /* ── PAGE WRAPPER ── */
+    .profile-page-wrapper { display: flex; min-height: 100vh; }
+
+    /* ── DESKTOP SIDEBAR ── */
+    .desktop-sidebar { display: none; }
+
+    @media (min-width: 1024px) {
+        .profile-page-wrapper { display: grid; grid-template-columns: 260px 1fr; }
+        .desktop-sidebar {
+            display: flex; flex-direction: column;
+            width: 260px; background: #FFFFFF;
+            border-right: 0.5px solid #E8E6E1;
+            position: sticky; top: 52px; height: calc(100vh - 52px);
+            overflow-y: auto; padding: 48px 0 32px; flex-shrink: 0;
+        }
+        .sidebar-label {
+            font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 500;
+            text-transform: uppercase; letter-spacing: 0.15em; color: #000000;
+            padding: 0 24px; margin-bottom: 32px;
+        }
+        .sidebar-nav { display: flex; flex-direction: column; }
+        .sidebar-nav-item {
+            display: flex; align-items: center; gap: 12px; height: 48px;
+            padding: 0 24px; font-family: 'Inter', sans-serif; font-size: 13px;
+            font-weight: 400; text-transform: uppercase; letter-spacing: 0.08em;
+            color: #000000; text-decoration: none; border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .sidebar-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; opacity: 1; transition: opacity 0.2s ease; }
+        .sidebar-nav-item:hover { color: #111111; background: rgba(0,0,0,0.03); }
+        .sidebar-nav-item:hover svg { opacity: 1; }
+        .sidebar-nav-item.active { color: #FFFFFF; border-left: 3px solid #000000; background: #000000; }
+        .sidebar-nav-item.active svg { opacity: 1; color: #FFFFFF; }
+        .sidebar-logout .sidebar-nav-item:hover { color: #DC2626 !important; background: rgba(220, 38, 38, 0.04) !important; }
+        .sidebar-logout .sidebar-nav-item:hover svg { color: #DC2626 !important; }
+    }
+
+    /* ── MAIN CONTENT ── */
+    .profile-main-content { flex: 1; min-width: 0; }
+    .profile-container { max-width: 1440px; margin: 0 auto; padding: 24px; }
+    .layout-grid { display: grid; grid-template-columns: 1fr; gap: 64px; }
+    .left-panel { display: flex; flex-direction: column; }
+
+    /* ── PROFILE HEADER ── */
+    .profile-header { margin-bottom: 64px; text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .avatar-wrapper { position: relative; display: inline-block; margin-bottom: 52px; border-radius: 50%; }
+    .avatar-ring { position: absolute; top: -6px; left: -6px; right: -6px; bottom: -6px; border: 1px solid transparent; border-radius: 50%; transition: border-color 0.4s ease; pointer-events: none; z-index: 3; }
+    .avatar-wrapper:hover .avatar-ring { border-color: var(--accent); }
+    .avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; display: block; box-shadow: 0 4px 12px rgba(0,0,0,0.05); position: relative; z-index: 1; transition: filter 0.3s ease; }
+    .avatar-camera-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.4); border-radius: 50%; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.3s ease; z-index: 2; pointer-events: none; }
+    .avatar-camera-overlay svg { width: 20px; height: 20px; color: #fff; }
+    label[for="photoFileInput"]:hover .avatar-camera-overlay { opacity: 1; }
+    label[for="photoFileInput"]:hover .avatar { filter: brightness(0.8); }
+    .member-badge { position: absolute; bottom: -32px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; padding: 6px 14px; font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; white-space: nowrap; border-radius: 2px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 4; }
+    
+    .user-name { font-family: var(--font-display); font-size: 40px; line-height: 1.1; margin-bottom: 12px; color: var(--primary); }
+    .user-contact { font-size: 13px; color: var(--muted); font-weight: 300; margin-bottom: 32px; display: flex; flex-direction: column; gap: 4px; text-align: center; justify-content: center; align-items: center; }
+
+    .btn-outline { display: inline-block; border: 1px solid var(--primary); padding: 14px 32px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; background: transparent; cursor: pointer; transition: all 0.3s ease; color: var(--primary); border-radius: 0; font-weight: 500; }
+    .btn-outline:hover { background: var(--primary); color: white; }
+    .btn-filled { background: var(--primary) !important; color: white !important; }
+    .btn-filled:hover { background: #333 !important; }
+
+    /* ── SECTIONS ── */
+    .section-header { margin-bottom: 32px; padding-bottom: 16px; border-bottom: 0.5px solid var(--border); }
+    .section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--primary); font-weight: 500; }
+
+    /* ── WALLET CARD ── */
+    .wallet-section { margin-bottom: 64px; margin-top: 48px; }
+    .wallet-card { background: var(--primary); color: white; padding: 40px; border-radius: 4px; position: relative; overflow: hidden; box-shadow: 0 24px 48px rgba(0,0,0,0.12); }
+    .wallet-card::after { content: ''; position: absolute; top: 0; right: 0; width: 300px; height: 300px; background: radial-gradient(circle, rgba(201, 169, 110, 0.15) 0%, rgba(201, 169, 110, 0) 70%); transform: translate(30%, -30%); pointer-events: none; }
+    .wallet-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 56px; position: relative; z-index: 2; }
+    .wallet-tier { color: var(--accent); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500; }
+    .wallet-logo { font-family: var(--font-display); font-size: 16px; letter-spacing: 0.2em; color: rgba(255,255,255,0.6); }
+    .wallet-subtitle { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); margin-bottom: 4px; font-family: var(--font-ui); }
+    .wallet-balance-wrap { margin-bottom: 40px; position: relative; z-index: 2; }
+    .wallet-balance { font-size: 48px; line-height: 1; margin-bottom: 4px; color: #FAFAF8; font-family: var(--font-display); }
+    .wallet-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.4); font-family: var(--font-ui); }
+    .progress-wrap { width: 100%; position: relative; z-index: 2; }
+    .progress-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }
+    .progress-title { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--accent); font-family: var(--font-ui); }
+    .progress-percentage { font-size: 24px; line-height: 1; color: #FAFAF8; font-family: var(--font-display); }
+    .progress-bar { height: 2px; background: rgba(255,255,255,0.15); width: 100%; margin-bottom: 10px; position: relative; border-radius: 1px; overflow: hidden; }
+    .progress-fill { position: absolute; top: 0; left: 0; height: 100%; background: var(--accent); width: 0%; border-radius: 1px; transition: width 1s cubic-bezier(0.25, 1, 0.5, 1); }
+    .progress-footer { font-size: 10px; color: rgba(255,255,255,0.5); font-family: var(--font-ui); }
+
+    /* ── RECENT ORDERS MOBILE ── */
+    .recent-orders-mobile { margin-bottom: 0; }
+    .recent-order-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--border); padding: 14px 0; }
+    .recent-order-left { display: flex; flex-direction: column; gap: 4px; }
+    .recent-order-number { font-size: 12px; font-weight: 500; color: var(--primary); }
+    .recent-order-date { font-size: 11px; color: var(--muted); font-weight: 300; }
+    .view-all-orders-link { display: block; margin-top: 16px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+    .view-all-orders-link:hover { color: var(--primary); }
+
+    /* ── STATUS CHIPS ── */
+    .status-chip { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; padding: 4px 10px; border-radius: 2px; }
+    .status-delivered { background: rgba(201,169,110,0.1); color: #997B41; }
+    .status-processing { background: rgba(234,179,8,0.1); color: #854d0e; }
+    .status-shipped { background: rgba(59,130,246,0.1); color: #1d4ed8; }
+    .status-cancelled { background: rgba(239, 68, 68, 0.1); color: #991b1b; }
+
+    /* ── STATS GRID ── */
+    .stats-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .stat-card { background: var(--card-bg); border: 0.5px solid var(--border); padding: 40px 32px; display: flex; flex-direction: column; transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease; border-radius: 2px; }
+    .stat-card:hover { transform: translateY(-4px); box-shadow: 0 24px 48px rgba(0,0,0,0.06); border-color: var(--accent); }
+    .stat-icon-wrap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+    .stat-icon { width: 20px; height: 20px; color: var(--primary); opacity: 0.8; }
+    .stat-value { font-size: 48px; line-height: 1; margin-bottom: 16px; color: var(--primary); }
+    .stat-action { display: inline-flex; align-items: center; font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 500; color: var(--primary); margin-top: auto; width: max-content; padding-bottom: 2px; border-bottom: 1px solid transparent; transition: color 0.3s ease, border-color 0.3s ease; }
+    .stat-action:hover { color: var(--accent); border-color: var(--accent); }
+    .stat-action svg { width: 12px; height: 12px; margin-left: 6px; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+    .stat-action:hover svg { transform: translateX(4px); }
+
+    .add-photo-link, .change-password-link { display: inline-block; margin-top: 8px; font-family: var(--font-ui); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #999; background: none; border: none; cursor: pointer; padding: 0; text-decoration: none; }
+    .add-photo-link:hover, .change-password-link:hover { color: var(--primary); text-decoration: underline; }
+    .change-password-link { margin-top: 12px; display: block; }
+
+    /* ── AVATAR TRASH ICON OVERLAY ── */
+    .avatar-remove-overlay { position: absolute; bottom: 0; left: 0; width: 100%; height: 28px; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; border-radius: 0 0 50px 50px; opacity: 0; transition: opacity 0.25s ease; cursor: pointer; z-index: 2; }
+    .avatar-wrapper:hover .avatar-remove-overlay { opacity: 1; }
+    .avatar-remove-overlay svg { width: 13px; height: 13px; color: #ffffff; display: block; flex-shrink: 0; }
+
+    /* ── AVATAR SPINNER ── */
+    .avatar-upload-spinner { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 5; }
+    .avatar-upload-spinner.active { display: flex; }
+    .avatar-upload-spinner svg { width: 22px; height: 22px; animation: spin 0.8s linear infinite; color: #fff; }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    /* ── EDIT DRAWER ── */
+    .edit-drawer-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 10000; }
+    .edit-drawer-overlay.active { display: block; }
+    .edit-drawer { position: fixed; top: 0; right: 0; width: 420px; max-width: 100%; height: 100%; background: var(--bg); z-index: 10001; transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1); display: flex; flex-direction: column; border-left: 0.5px solid var(--border); }
+    .edit-drawer.active { transform: translateX(0); }
+    .edit-drawer-inner { padding: 48px 40px; height: 100%; overflow-y: auto; }
+    .edit-drawer-head { margin-bottom: 40px; padding-bottom: 16px; border-bottom: 0.5px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .drawer-close-btn { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: none; border: 0.5px solid var(--border); cursor: pointer; border-radius: 0; transition: background 0.2s ease, border-color 0.2s ease; flex-shrink: 0; }
+    .drawer-close-btn:hover { background: var(--primary); border-color: var(--primary); }
+    .drawer-close-btn:hover svg { color: #fff; }
+    .drawer-close-btn svg { width: 12px; height: 12px; color: var(--muted); transition: color 0.2s ease; }
+    .edit-field-group { margin-bottom: 28px; }
+    .edit-label { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 8px; font-family: var(--font-ui); }
+    .edit-input { width: 100%; border: none; border-bottom: 0.5px solid var(--border); background: transparent; font-family: var(--font-ui); font-size: 14px; color: var(--primary); padding: 8px 0; outline: none; transition: border-color 0.2s; }
+    .edit-input:focus { border-color: var(--primary); }
+    .edit-save-btn { margin-top: 16px; font-family: var(--font-ui); width: 100%; }
+
+    /* ── HAMBURGER ── */
+    .mobile-sidebar-toggle {
+        display: none; position: fixed; top: 60px; right: 16px; z-index: 9999;
+        width: 44px; height: 44px; background: #fff; border: 0.5px solid rgba(0,0,0,0.18);
+        border-radius: 50%; cursor: pointer; flex-direction: column; justify-content: center;
+        align-items: center; padding: 0; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    }
+    .hamburger-icon { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; width: 20px; }
+    .hamburger-icon span { display: block; height: 1px; background: #111111; transition: all 0.3s ease; }
+    .mobile-sidebar-toggle.is-active { background: rgba(13,13,13,0.85); border-color: rgba(255,255,255,0.15); }
+    .mobile-sidebar-toggle.is-active .hamburger-icon span { background: #ffffff; }
+    .hamburger-icon span:nth-child(1) { width: 18px; }
+    .hamburger-icon span:nth-child(2) { width: 12px; }
+    .hamburger-icon span:nth-child(3) { width: 15px; }
+    .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(1) { width: 18px; transform: translateY(6px) rotate(45deg); }
+    .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+    .mobile-sidebar-toggle.is-active .hamburger-icon span:nth-child(3) { width: 18px; transform: translateY(-6px) rotate(-45deg); }
+
+    /* ── SIDEBAR OVERLAY ── */
+    .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); z-index: 9997; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 0.3s ease, visibility 0.3s ease; }
+    .sidebar-overlay.is-active { display: block; opacity: 1; visibility: visible; pointer-events: auto; }
+
+    /* ── MOBILE DRAWER ── */
+    .mobile-drawer { display: none; flex-direction: column; position: fixed; top: 0; right: 0; width: 260px; height: 100%; background: #0D0D0D; z-index: 9998; transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); padding-top: 80px; }
+    .mobile-drawer.is-active { transform: translateX(0); }
+    .drawer-header { padding: 0 24px 24px; }
+    .drawer-title { font-family: 'Inter', sans-serif; font-size: 10px; color: #C9A96E; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 500; margin: 0; }
+    .drawer-nav { display: flex; flex-direction: column; }
+    .drawer-nav-item { display: flex; align-items: center; height: 48px; padding: 0 24px; font-family: 'Inter', sans-serif; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.7); text-decoration: none; border-left: 3px solid transparent; transition: all 0.2s ease; }
+    .drawer-nav-item:hover { color: #fff; background: rgba(255,255,255,0.04); }
+    .drawer-nav-item.active { border-left: 3px solid #C9A96E; color: #C9A96E; background: rgba(201,169,110,0.07); }
+
+    /* ── RESPONSIVE TWEAKS ── */
+    .profile-action-btns { display: flex; gap: 12px; margin-top: 8px; width: 100%; justify-content: center; }
+    .referral-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; gap: 16px; }
+    
+    @media (max-width: 1023px) {
+        .mobile-sidebar-toggle { display: flex; }
+        .mobile-drawer { display: flex; }
+        .desktop-sidebar { display: none !important; }
+        .profile-header { width: 100%; padding: 0 16px; }
+        .user-contact { flex-direction: column; align-items: center; text-align: center; }
+        .avatar-remove-overlay { opacity: 1; }
+        .profile-action-btns { flex-direction: column; width: 100%; }
+        .profile-action-btns .btn-outline { width: 100%; text-align: center; }
+        .referral-header { flex-direction: column; align-items: stretch; gap: 20px; }
+        .referral-header .btn-outline { width: 100%; text-align: center; }
+        .stat-card { padding: 24px 16px; }
+    }
+    @media (min-width: 768px) {
+        .profile-container { padding: 64px 48px; }
+        .avatar { width: 80px; height: 80px; }
+        .user-name { font-size: 48px; }
+        .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+        .user-contact { flex-direction: row; gap: 16px; justify-content: center; }
+        .profile-action-btns { flex-direction: row; width: auto; }
+        .profile-action-btns .btn-outline { width: auto; }
+        .referral-header { flex-direction: row; align-items: flex-start; }
+        .referral-header .btn-outline { width: auto; }
+    }
+    @media (min-width: 1200px) {
+        .profile-container { padding: 80px 64px; }
+        .layout-grid { grid-template-columns: 6fr 4fr; gap: 120px; align-items: start; }
+        .right-panel { position: sticky; top: 80px; }
+    }
+    @media (min-width: 1024px) {
+        .mobile-sidebar-toggle, .mobile-drawer, .sidebar-overlay { display: none !important; }
+    }
+    @keyframes btn-spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
-
-    <style>
-        .shell *, .shell *::before, .shell *::after {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        .shell {
-            --ink:        #0A0A0A;
-            --ink-mid:    #4A4444;
-            --ink-soft:   #9A9494;
-            --ink-faint:  #E4E0DC;
-            --ink-ghost:  #F5F3F0;
-            --warm-white: #FDFCFA;
-            --pure-white: #FFFFFF;
-            --accent:     #0A0A0A;
-
-            --border:     1px solid var(--ink-faint);
-            --radius-sm:  2px;
-            --radius-md:  4px;
-
-            --shadow-lift: 0 1px 0 rgba(0,0,0,0.04), 0 4px 16px rgba(0,0,0,0.04);
-            --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-
-            color: var(--ink);
-        }
-
-        .shell .micro {
-            font-size: 9px;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            font-weight: 600;
-            font-family: inherit;
-        }
-
-        .shell .label {
-            font-size: 10px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            font-weight: 500;
-            color: var(--ink-soft);
-        }
-
-        .shell {
-            max-width: 1440px;
-            margin: 0 auto;
-            display: flex;
-            min-height: 100vh;
-            background: var(--warm-white);
-        }
-
-        .shell .sidebar {
-            width: 280px;
-            flex-shrink: 0;
-            border-right: var(--border);
-            background: var(--pure-white);
-            padding: 56px 40px;
-            position: sticky;
-            top: 0;
-            height: 100vh;
-            overflow-y: auto;
-        }
-
-        .shell .sidebar-section-label {
-            font-size: 8px;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            color: var(--ink-soft);
-            font-weight: 600;
-            margin-bottom: 32px;
-            display: block;
-        }
-
-        .shell .nav-list { list-style: none; }
-        .shell .nav-item + .nav-item { margin-top: 2px; }
-
-        .shell .nav-link {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 11px 16px;
-            font-size: 8.5px;
-            letter-spacing: 0.28em;
-            text-transform: uppercase;
-            font-weight: 500;
-            color: var(--ink-mid);
-            text-decoration: none;
-            border-radius: var(--radius-sm);
-            transition: var(--transition);
-            border: 1px solid transparent;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        .shell .nav-link:hover {
-            color: var(--ink);
-            background: var(--ink-ghost);
-        }
-
-        .shell .nav-link.active {
-            background: var(--ink);
-            color: white !important;
-        }
-
-        .shell .nav-icon {
-            width: 14px;
-            height: 14px;
-            opacity: 0.5;
-            flex-shrink: 0;
-        }
-
-        .shell .nav-link.active .nav-icon,
-        .shell .nav-link:hover .nav-icon { opacity: 1; }
-
-        .shell .nav-link.active .nav-icon { filter: invert(1); }
-
-        .shell .main {
-            flex: 1;
-            min-width: 0;
-            padding: 56px 64px 80px;
-            background: var(--warm-white);
-        }
-
-        .shell .section-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: var(--border);
-            padding-bottom: 14px;
-            margin-bottom: 28px;
-        }
-
-        .shell .profile-header {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            padding-bottom: 48px;
-            border-bottom: var(--border);
-            margin-bottom: 48px;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-
-        .shell .profile-identity {
-            display: flex;
-            align-items: center;
-            gap: 28px;
-        }
-
-        .shell .avatar-wrap {
-            position: relative;
-            flex-shrink: 0;
-        }
-
-        .shell .avatar-img {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            border: var(--border);
-            object-fit: cover;
-            display: block;
-            background: var(--ink-ghost);
-        }
-
-        .shell .avatar-overlay {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            background: rgba(10,10,10,0.5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: var(--transition);
-            cursor: pointer;
-        }
-
-        .shell .avatar-wrap:hover .avatar-overlay { opacity: 1; }
-        .shell .avatar-overlay svg { width: 16px; height: 16px; color: white; }
-
-        .shell .profile-name {
-            margin-bottom: 8px;
-        }
-
-        .shell .profile-email {
-            font-size: 12px;
-            color: var(--ink-mid);
-            font-weight: 400;
-            margin-bottom: 3px;
-        }
-
-        .shell .profile-phone {
-            font-size: 12px;
-            color: var(--ink-soft);
-        }
-
-        .shell .member-since {
-            font-size: 9px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: var(--ink-soft);
-            margin-top: 10px;
-        }
-
-        .shell .member-since span { color: var(--ink); letter-spacing: 0; font-family: inherit; }
-
-        .shell .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 9px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            font-weight: 600;
-            font-family: inherit;
-            padding: 13px 28px;
-            cursor: pointer;
-            transition: var(--transition);
-            border: none;
-            outline: none;
-            text-decoration: none;
-            border-radius: 0;
-        }
-
-        .shell .btn-dark {
-            background: var(--ink);
-            color: white;
-            border: 1px solid var(--ink);
-        }
-
-        .shell .btn-dark:hover { background: #222; }
-
-        .shell .btn-outline {
-            background: transparent;
-            color: var(--ink);
-            border: 1px solid var(--ink-faint);
-        }
-
-        .shell .btn-outline:hover { border-color: var(--ink); }
-
-        .shell .btn-text {
-            background: transparent;
-            color: var(--ink-soft);
-            border: none;
-            padding: 0;
-            font-size: 9px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            font-weight: 500;
-            text-decoration: underline;
-            text-underline-offset: 3px;
-            text-decoration-color: var(--ink-faint);
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        .shell .btn-text:hover { color: var(--ink); text-decoration-color: var(--ink); }
-
-        .shell .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            border: var(--border);
-            margin-bottom: 48px;
-        }
-
-        .shell .stat-card {
-            padding: 28px 32px;
-            border-right: var(--border);
-            background: var(--pure-white);
-            transition: var(--transition);
-        }
-
-        .shell .stat-card:last-child { border-right: none; }
-        .shell .stat-card:hover { background: var(--ink-ghost); }
-
-        .shell .stat-label {
-            font-size: 8px;
-            letter-spacing: 0.28em;
-            text-transform: uppercase;
-            font-weight: 600;
-            color: var(--ink-soft);
-            margin-bottom: 20px;
-            display: block;
-        }
-
-        .shell .stat-row {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-        }
-
-        .shell .stat-value {
-            font-size: 32px;
-            font-weight: 300;
-            line-height: 1;
-            letter-spacing: -0.03em;
-            font-family: inherit;
-        }
-
-        .shell .stat-value sup {
-            font-size: 14px;
-            font-weight: 400;
-            color: var(--ink-soft);
-            vertical-align: super;
-            font-family: inherit;
-            letter-spacing: 0;
-        }
-
-        .shell .stat-action {
-            font-size: 9px;
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
-            font-weight: 500;
-            color: var(--ink);
-            text-decoration: none;
-            border-bottom: 1px solid var(--ink-faint);
-            padding-bottom: 1px;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .shell .stat-action:hover { border-color: var(--ink); }
-
-        .shell .completion-module {
-            border: var(--border);
-            background: var(--pure-white);
-            margin-bottom: 48px;
-        }
-
-        .shell .completion-top {
-            padding: 28px 32px 24px;
-            border-bottom: var(--border);
-            display: flex;
-            align-items: center;
-            gap: 24px;
-        }
-
-        .shell .completion-meta { flex: 1; min-width: 0; }
-
-        .shell .completion-header-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .shell .completion-badge {
-            font-size: 8px;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            font-weight: 600;
-            padding: 4px 10px;
-            border: 1px solid var(--ink-faint);
-            color: var(--ink-soft);
-            border-radius: 100px;
-            transition: var(--transition);
-        }
-
-        .shell .progress-rail {
-            height: 1px;
-            background: var(--ink-faint);
-            position: relative;
-            margin-bottom: 10px;
-            overflow: visible;
-        }
-
-        .shell .progress-bar {
-            height: 1px;
-            background: var(--ink);
-            width: 0%;
-            transition: width 1.6s cubic-bezier(0.16, 1, 0.3, 1);
-            position: relative;
-        }
-
-        .shell .progress-bar::after {
-            content: '';
-            position: absolute;
-            right: -2px;
-            top: -2px;
-            width: 5px;
-            height: 5px;
-            background: var(--ink);
-            border-radius: 50%;
-        }
-
-        .shell .progress-sub {
-            font-size: 10px;
-            color: var(--ink-soft);
-            font-weight: 300;
-            margin-top: 10px;
-            letter-spacing: 0.01em;
-        }
-
-        .shell .completion-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-        }
-
-        .shell .completion-item {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 18px 32px;
-            border-right: var(--border);
-            border-bottom: var(--border);
-            transition: background 0.2s;
-        }
-
-        .shell .completion-item:nth-child(2n) { border-right: none; }
-        .shell .completion-item:nth-child(3),
-        .shell .completion-item:nth-child(4) { border-bottom: none; }
-        .shell .completion-item:hover { background: var(--ink-ghost); }
-
-        .shell .completion-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            border: 1px solid var(--ink-faint);
-            flex-shrink: 0;
-            transition: var(--transition);
-        }
-
-        .shell .completion-item.done .completion-dot {
-            background: var(--ink);
-            border-color: var(--ink);
-        }
-
-        .shell .completion-text { flex: 1; min-width: 0; }
-
-        .shell .completion-title {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--ink-soft);
-            letter-spacing: 0.01em;
-        }
-
-        .shell .completion-item.done .completion-title { color: var(--ink); }
-
-        .shell .completion-sub {
-            font-size: 10px;
-            color: var(--ink-soft);
-            font-weight: 300;
-            margin-top: 1px;
-        }
-
-        .shell .completion-check svg {
-            width: 11px;
-            height: 11px;
-            color: var(--ink-faint);
-        }
-
-        .shell .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 48px;
-        }
-
-        .shell .left-col { min-width: 0; }
-        .shell .right-col { display: flex; flex-direction: column; gap: 0; }
-
-        .shell .module {
-            border: var(--border);
-            background: var(--pure-white);
-            margin-bottom: 24px;
-        }
-
-        .shell .module-header {
-            padding: 20px 28px;
-            border-bottom: var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .shell .module-body { padding: 28px; }
-
-        .shell .purchase-row {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-        }
-
-        .shell .purchase-thumb {
-            width: 64px;
-            height: 88px;
-            background: var(--ink-ghost);
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-
-        .shell .purchase-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: grayscale(0.4);
-            transition: transform 1s cubic-bezier(0.16,1,0.3,1), filter 0.4s ease;
-        }
-
-        .shell .purchase-row:hover .purchase-thumb img {
-            transform: scale(1.06);
-            filter: grayscale(0);
-        }
-
-        .shell .purchase-info { flex: 1; min-width: 0; }
-
-        .shell .purchase-name {
-            font-size: 13px;
-            font-weight: 500;
-            color: var(--ink);
-            margin-bottom: 4px;
-        }
-
-        .shell .purchase-meta {
-            font-size: 9px;
-            letter-spacing: 0.18em;
-            text-transform: uppercase;
-            color: var(--ink-soft);
-            font-weight: 500;
-            margin-bottom: 12px;
-        }
-
-        .shell .purchase-tags { display: flex; gap: 6px; }
-
-        .shell .tag {
-            font-size: 8px;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            font-weight: 600;
-            padding: 5px 10px;
-            border: 1px solid var(--ink-faint);
-            color: var(--ink-soft);
-        }
-
-        .shell .purchase-arrow {
-            width: 36px;
-            height: 36px;
-            border: 1px solid var(--ink-faint);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .shell .purchase-arrow:hover {
-            background: var(--ink);
-            border-color: var(--ink);
-            color: white;
-        }
-
-        .shell .product-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
-
-        .shell .product-card { cursor: pointer; }
-
-        .shell .product-img-wrap {
-            aspect-ratio: 3/4;
-            background: var(--ink-ghost);
-            overflow: hidden;
-            position: relative;
-            margin-bottom: 14px;
-        }
-
-        .shell .product-img-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: grayscale(0.3);
-            transition: transform 1.2s cubic-bezier(0.16,1,0.3,1), filter 0.5s ease;
-        }
-
-        .shell .product-card:hover .product-img-wrap img {
-            transform: scale(1.05);
-            filter: grayscale(0);
-        }
-
-        .shell .product-add-btn {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(255,255,255,0.95);
-            padding: 12px;
-            font-size: 8px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            font-weight: 700;
-            text-align: center;
-            cursor: pointer;
-            border: none;
-            transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
-            font-family: inherit;
-        }
-
-        .shell .product-card:hover .product-add-btn { transform: translateY(0); }
-        .shell .product-add-btn:hover { background: var(--ink); color: white; }
-
-        .shell .product-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .shell .product-name {
-            font-size: 10px;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            font-weight: 500;
-            color: var(--ink);
-        }
-
-        .shell .product-color {
-            font-size: 9px;
-            color: var(--ink-soft);
-            font-weight: 300;
-            margin-top: 3px;
-        }
-
-        .shell .product-price {
-            font-size: 11px;
-            font-weight: 500;
-            color: var(--ink);
-            white-space: nowrap;
-        }
-
-        .shell .wallet-module {
-            background: var(--ink);
-            color: white;
-            padding: 36px 32px;
-        }
-
-        .shell .wallet-label {
-            font-size: 8px;
-            letter-spacing: 0.28em;
-            text-transform: uppercase;
-            font-weight: 600;
-            color: rgba(255,255,255,0.4);
-            margin-bottom: 28px;
-        }
-
-        .shell .wallet-balance-label {
-            font-size: 9px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            font-weight: 500;
-            color: rgba(255,255,255,0.4);
-            margin-bottom: 6px;
-        }
-
-        .shell .wallet-amount {
-            font-family: inherit;
-            font-size: 38px;
-            font-weight: 400;
-            letter-spacing: -0.02em;
-            line-height: 1;
-            color: white;
-            margin-bottom: 24px;
-        }
-
-        .shell .wallet-link {
-            font-size: 9px;
-            letter-spacing: 0.16em;
-            text-transform: uppercase;
-            font-weight: 500;
-            color: rgba(255,255,255,0.4);
-            text-decoration: none;
-            border-bottom: 1px solid rgba(255,255,255,0.15);
-            padding-bottom: 1px;
-            transition: color 0.2s;
-        }
-
-        .shell .wallet-link:hover { color: white; border-color: white; }
-
-        .shell .wallet-manage {
-            display: block;
-            width: 100%;
-            margin-top: 28px;
-            padding: 13px;
-            font-size: 9px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            font-weight: 600;
-            font-family: inherit;
-            text-align: center;
-            background: transparent;
-            color: rgba(255,255,255,0.5);
-            border: 1px solid rgba(255,255,255,0.2);
-            cursor: pointer;
-            transition: var(--transition);
-        }
-
-        .shell .wallet-manage:hover { color: white; border-color: rgba(255,255,255,0.6); }
-
-        .shell .address-module {
-            border: var(--border);
-            background: var(--pure-white);
-            border-top: none;
-        }
-
-        .shell .address-module-header {
-            padding: 20px 28px;
-            border-bottom: var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .shell .address-body { padding: 28px; }
-
-        .shell .address-name {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--ink);
-            margin-bottom: 8px;
-        }
-
-        .shell .address-lines {
-            font-size: 12px;
-            color: var(--ink-mid);
-            font-weight: 300;
-            line-height: 1.7;
-        }
-
-        .shell .address-actions {
-            display: flex;
-            gap: 16px;
-            margin-top: 20px;
-        }
-
-        .shell .empty-state {
-            background: var(--ink-ghost);
-            padding: 36px 28px;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 16px;
-        }
-
-        .shell .empty-state-text {
-            font-size: 11px;
-            color: var(--ink-soft);
-            font-weight: 300;
-            letter-spacing: 0.02em;
-            line-height: 1.6;
-        }
-
-        .shell .care-module {
-            border: var(--border);
-            border-top: none;
-            background: var(--pure-white);
-        }
-
-        .shell .care-module-header {
-            padding: 20px 28px;
-            border-bottom: var(--border);
-        }
-
-        .shell .care-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 28px;
-            border-bottom: var(--border);
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .shell .care-item:last-child { border-bottom: none; }
-        .shell .care-item:hover { background: var(--ink-ghost); }
-
-        .shell .care-item-label {
-            font-size: 11px;
-            font-weight: 400;
-            color: var(--ink-mid);
-            letter-spacing: 0.02em;
-        }
-
-        .shell .care-item:hover .care-item-label { color: var(--ink); }
-
-        .shell .care-arrow {
-            width: 12px;
-            height: 12px;
-            opacity: 0.25;
-            transition: opacity 0.2s, transform 0.2s;
-        }
-
-        .shell .care-item:hover .care-arrow { opacity: 1; transform: translateX(2px); }
-
-        .shell .remove-photo {
-            font-size: 8px;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            font-weight: 500;
-            color: var(--ink-soft);
-            background: none;
-            border: none;
-            border-bottom: 1px solid var(--ink-faint);
-            padding-bottom: 1px;
-            cursor: pointer;
-            margin-top: 8px;
-            display: block;
-            transition: var(--transition);
-            font-family: inherit;
-        }
-
-        .shell .remove-photo:hover { color: var(--ink); border-color: var(--ink); }
-
-        /* ── Field hints ── */
-        .field-hint {
-            font-size: 10px;
-            color: #C0392B;
-            display: block;
-            margin-top: 5px;
-            min-height: 14px;
-            letter-spacing: 0.01em;
-        }
-
-        .input-error { border-bottom-color: #C0392B !important; }
-        .input-ok    { border-bottom-color: #5A8C3A !important; }
-
-        /* ── Phone Input — India only ── */
-
-        /* ── Skeleton ── */
-        @keyframes skeleton-shimmer {
-            0%   { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        body.page-loading .skeleton-target {
-            position: relative;
-            overflow: hidden;
-            background: #EDECEA !important;
-            border-color: transparent !important;
-            box-shadow: none !important;
-            color: transparent !important;
-        }
-
-        body.page-loading .skeleton-target * { opacity: 0 !important; }
-
-        body.page-loading .skeleton-target::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(100deg, transparent 20%, rgba(255,255,255,0.7) 50%, transparent 80%);
-            animation: skeleton-shimmer 1.8s ease-in-out infinite;
-        }
-
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(8px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        .shell .animate-in { animation: fadeUp 0.5s ease forwards; }
-
-        /* ── Modal ── */
-        #editModal {
-            position: fixed;
-            inset: 0;
-            z-index: 100;
-            display: none;
-            align-items: stretch;
-        }
-
-        #editModal.open { display: flex; }
-
-        .modal-backdrop {
-            flex: 1;
-            background: rgba(10,10,10,0.25);
-            backdrop-filter: blur(2px);
-        }
-
-        .modal-panel {
-            width: 100%;
-            max-width: 460px;
-            background: #FFFFFF;
-            height: 100%;
-            overflow-y: auto;
-            transform: translateX(100%);
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            display: flex;
-            flex-direction: column;
-            font-family: inherit;
-        }
-
-        #editModal.open .modal-panel { transform: translateX(0); }
-
-        .modal-top {
-            padding: 40px 40px 32px;
-            border-bottom: 1px solid #E4E0DC;
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-        }
-
-        .modal-close {
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid #E4E0DC;
-            cursor: pointer;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            background: none;
-            flex-shrink: 0;
-        }
-
-        .modal-close:hover { border-color: #0A0A0A; background: #0A0A0A; color: white; }
-        .modal-close svg { width: 14px; height: 14px; }
-
-        .modal-body { padding: 40px; flex: 1; }
-
-        .form-field { margin-bottom: 32px; }
-
-        .form-label {
-            display: block;
-            font-size: 8px;
-            letter-spacing: 0.28em;
-            text-transform: uppercase;
-            font-weight: 700;
-            color: #9A9494;
-            margin-bottom: 10px;
-        }
-
-        .form-input {
-            width: 100%;
-            border: none;
-            border-bottom: 1px solid #E4E0DC;
-            background: transparent;
-            padding: 10px 0;
-            font-size: 13px;
-            font-family: inherit;
-            font-weight: 300;
-            color: #0A0A0A;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .form-input:focus { border-bottom-color: #0A0A0A; }
-
-        .modal-footer {
-            padding: 28px 40px 40px;
-            border-top: 1px solid #E4E0DC;
-        }
-
-        /* Save button states */
-        #save-btn:disabled {
-            opacity: 0.35 !important;
-            cursor: not-allowed !important;
-            pointer-events: none;
-        }
-        #save-btn:not(:disabled):hover { background: #222 !important; }
-
-        /* ── Toast ── */
-        #toast-container {
-            position: fixed;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
-        }
-
-        .custom-pill-toast {
-            width: max-content;
-            max-width: 90vw;
-            padding: 10px 22px 10px 14px;
-            border-radius: 50px;
-            display: flex;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            opacity: 0;
-            transform: translateY(-20px);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            pointer-events: auto;
-            background: #000;
-            color: #fff;
-        }
-
-        .custom-pill-toast.show { opacity: 1; transform: translateY(0); }
-
-        .toast-left-content { display: flex; align-items: center; gap: 12px; }
-
-        .toast-icon-circle {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .toast-success .toast-icon-circle { background: #2F8D46; }
-        .toast-error   .toast-icon-circle { background: #E03B2A; }
-
-        .toast-message-wrapper {
-            display: flex;
-            flex-direction: column;
-            white-space: nowrap;
-            margin-right: 15px;
-        }
-
-        .toast-main-text {
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            line-height: 1.2;
-        }
-
-        .toast-sub-text { font-size: 9px; opacity: 0.7; margin-top: 1px; }
-
-        .toast-close-btn {
-            cursor: pointer;
-            font-size: 16px;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-        }
-
-        .toast-close-btn:hover { opacity: 1; }
-
-        /* ── Responsive ── */
-        @media (max-width: 1100px) {
-            .shell .content-grid { grid-template-columns: 1fr; }
-            .shell .right-col { flex-direction: row; flex-wrap: wrap; gap: 16px; }
-            .shell .wallet-module,
-            .shell .address-module,
-            .shell .care-module { flex: 1; min-width: 280px; }
-        }
-
-        @media (max-width: 900px) {
-            .shell .main { padding: 40px 32px 64px; }
-            .shell .stats-grid { grid-template-columns: repeat(3, 1fr); }
-            .shell .sidebar { display: none; }
-        }
-
-        @media (max-width: 640px) {
-            .shell .stats-grid { grid-template-columns: 1fr; }
-            .shell .stat-card { border-right: none; border-bottom: var(--border); }
-            .shell .completion-grid { grid-template-columns: 1fr; }
-            .shell .completion-item { border-right: none !important; }
-            .shell .product-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        .shell {
-            font-family: 'Playfair Display', serif;
-        }
-    </style>
-
-<body class="page-loading">
-
-<div id="toast-container"></div>
-
-<div class="shell">
-
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <span class="sidebar-section-label">Account</span>
-        <ul class="nav-list">
-            <li class="nav-item">
-                <a href="{% url 'user-profile' request.user.id %}" class="nav-link active">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h10M4 18h16"/></svg>
-                    Overview
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'orders' %}" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
-                    Orders
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'wishlist' %}" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
-                    Wishlist
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="{% url 'user-address' %}" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>
-                    Addresses
-                </a>
-            </li>
-            <li class="nav-item">
-                <a href="#" class="nav-link">
-                    <svg class="nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-                    Settings
-                </a>
-            </li>
-        </ul>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="main animate-in">
-
-        <!-- PROFILE HEADER -->
-        <header class="profile-header">
-            <div class="profile-identity">
-                <div style="display:flex;flex-direction:column;align-items:center;">
-                    <div class="avatar-wrap skeleton-target" id="avatar-skeleton">
-                        <label for="profile-upload">
-                            {% if user.profile_photo %}
-                            <img class="avatar-img" src="{{ user.profile_photo.url }}" alt="Profile photo">
-                            {% else %}
-                            <img class="avatar-img" src="/media/profile_photos/default.jpg" alt="Profile photo">
-                            {% endif %}
-                            <div class="avatar-overlay">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                </svg>
-                            </div>
-                        </label>
-                        <form method="POST" enctype="multipart/form-data" id="photo-form"
-                              action="{% url 'add-profile-pic' request.user.id %}">
-                            {% csrf_token %}
-                            <input type="file" id="profile-upload" name="profile_photo"
-                                   class="hidden" accept="image/*"
-                                   onchange="document.getElementById('photo-form').submit();">
-                        </form>
-                    </div>
-
-                    {% if user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg" %}
-                    <form method="POST" action="{% url 'delete-profile-pic' user.id %}">
-                        {% csrf_token %}
-                        <button class="remove-photo">Remove</button>
-                    </form>
-                    {% endif %}
-                </div>
-
-                <div class="profile-meta skeleton-target">
-                    <h1 class="profile-name page-title">{{ request.user.get_full_name|default:request.user.username }}</h1>
-                    <p class="profile-email">{{ user.email }}</p>
-                    {% if not user.socialaccount_set.exists %}
-                    <a href="{% url "change-password" %}" style="font-size:12px; text-decoration: underline; display:inline-block; margin-top:4px;">
-                        Change Password
-                    </a>
-                    {% endif %}
-                    <p class="profile-phone">{{ request.user.phone_number|default_if_none:'' }}</p>
-                    <p class="member-since">Member since <span>{{ request.user.date_joined|date:"M Y" }}</span></p>
-                </div>
+    {% include 'user_base/components/mobile_drawer.html' %}
+
+    <!-- Edit Profile Drawer -->
+    <div class="edit-drawer-overlay" id="editDrawerOverlay"></div>
+    <div class="edit-drawer" id="editDrawer">
+        <div class="edit-drawer-inner">
+            <div class="edit-drawer-head">
+                <span class="label">Edit Profile</span>
+                <button class="drawer-close-btn" id="editDrawerCloseBtn" aria-label="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
             </div>
-
-            <button onclick="toggleModal()" class="btn btn-dark skeleton-target">
-                Edit Profile
-            </button>
-        </header>
-
-        <!-- STAT CARDS -->
-        <div class="stats-grid skeleton-target">
-            <div class="stat-card">
-                <span class="stat-label">Orders</span>
-                <div class="stat-row">
-                    <span class="stat-value">01</span>
-                    <span class="stat-action">Track →</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Saved Addresses</span>
-                <div class="stat-row">
-                    <span class="stat-value">02</span>
-                    <span class="stat-action">Manage →</span>
-                </div>
-            </div>
-            <div class="stat-card">
-                <span class="stat-label">Wishlist</span>
-                <div class="stat-row">
-                    <span class="stat-value">8 <sup>items</sup></span>
-                    <span class="stat-action">View →</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- PROFILE COMPLETION -->
-        <section class="completion-module skeleton-target" id="profile-completion-section" data-pct="{{ profile_completion }}">
-            <div class="completion-top">
-                <div class="completion-meta">
-                    <div class="completion-header-row">
-                        <span class="label">Profile Completion</span>
-                        <span class="completion-badge" id="completion-badge">In Progress</span>
-                    </div>
-                    <div class="progress-rail">
-                        <div class="progress-bar" id="progress-fill"></div>
-                    </div>
-                    <p class="progress-sub">
-                        <span id="completion-pct" style="font-weight:500;color:var(--ink);">0%</span>
-                        &nbsp;— Complete your profile to unlock faster checkout.
-                    </p>
-                </div>
-            </div>
-
-            <div class="completion-grid">
-                <div class="completion-item {% if request.user.username %}done{% endif %}">
-                    <div class="completion-dot"></div>
-                    <div class="completion-text">
-                        <p class="completion-title">{% if request.user.username %}Username added{% else %}Add a username{% endif %}</p>
-                        {% if not request.user.username %}<p class="completion-sub">Your display name</p>{% endif %}
-                    </div>
-                    {% if not request.user.username %}
-                    <button onclick="toggleModal()" class="btn-text">Add</button>
-                    {% else %}
-                    <div class="completion-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
-                    {% endif %}
-                </div>
-
-                <div class="completion-item {% if request.user.phone_number %}done{% endif %}">
-                    <div class="completion-dot"></div>
-                    <div class="completion-text">
-                        <p class="completion-title">{% if request.user.phone_number %}Phone added{% else %}Add phone number{% endif %}</p>
-                        {% if not request.user.phone_number %}<p class="completion-sub">For order notifications</p>{% endif %}
-                    </div>
-                    {% if not request.user.phone_number %}
-                    <button onclick="toggleModal()" class="btn-text">Add</button>
-                    {% else %}
-                    <div class="completion-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
-                    {% endif %}
-                </div>
-
-                <div class="completion-item {% if user.profile_photo %}done{% endif %}">
-                    <div class="completion-dot"></div>
-                    <div class="completion-text">
-                        <p class="completion-title">{% if user.profile_photo %}Photo uploaded{% else %}Upload a photo{% endif %}</p>
-                        {% if not user.profile_photo %}<p class="completion-sub">Personalise your account</p>{% endif %}
-                    </div>
-                    {% if not user.profile_photo %}
-                    <label for="profile-upload" class="btn-text" style="cursor:pointer;">Upload</label>
-                    {% else %}
-                    <div class="completion-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
-                    {% endif %}
-                </div>
-
-                <div class="completion-item {% if user.has_address %}done{% endif %}">
-                    <div class="completion-dot"></div>
-                    <div class="completion-text">
-                        <p class="completion-title">{% if user.has_address %}Address saved{% else %}Add shipping address{% endif %}</p>
-                        {% if not user.has_address %}<p class="completion-sub">For faster checkout</p>{% endif %}
-                    </div>
-                    {% if not user.has_address %}
-                    <a href="{% url 'user-address' %}" class="btn-text">Add</a>
-                    {% else %}
-                    <div class="completion-check"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
-                    {% endif %}
-                </div>
-            </div>
-        </section>
-
-        <!-- MAIN CONTENT GRID -->
-        <div class="content-grid">
-            <div class="left-col">
-                <section>
-                    <div class="section-head">
-                        <span class="label">Referral & Rewards</span>
-                    </div>
-                    <div class="module skeleton-target">
-                        <div class="module-body">
-                            <div style="display:flex; gap: 48px; flex-wrap: wrap;">
-                                <!-- Code Section -->
-                                <div style="flex: 1; min-width: 280px;">
-                                    <p class="micro" style="color: var(--ink-soft); margin-bottom: 12px;">Your Referral Code</p>
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <div style="background: var(--ink-ghost); padding: 16px 24px; border: 1px dashed var(--ink-soft); font-family: monospace; font-size: 18px; letter-spacing: 0.2em; color: var(--ink);">
-                                            {{ user.referral_code }}
-                                        </div>
-                                        <button onclick="copyReferralCode('{{ user.referral_code }}', this)" class="btn btn-outline" style="padding: 16px 20px;">
-                                            Copy
-                                        </button>
-                                    </div>
-                                    <p class="progress-sub" style="margin-top: 16px; line-height: 1.6;">
-                                        Share this code with your friends. They get <span style="color: var(--ink); font-weight: 600;">₹40</span> on signup, and you get <span style="color: var(--ink); font-weight: 600;">₹100</span> when they join.
-                                    </p>
-                                </div>
-
-                                <!-- Stats Section -->
-                                <div style="width: 200px; display: flex; flex-direction: column; gap: 24px; border-left: var(--border); padding-left: 48px;">
-                                    <div>
-                                        <p class="micro" style="color: var(--ink-soft); margin-bottom: 4px;">Total Referrals</p>
-                                        <p style="font-size: 28px; font-weight: 300; font-family: inherit;">{{ total_referrals }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="micro" style="color: var(--ink-soft); margin-bottom: 4px;">Rewards Earned</p>
-                                        <p style="font-size: 28px; font-weight: 300; font-family: inherit;">₹{{ total_rewards }}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- History Section -->
-                            {% if referrals %}
-                            <div style="margin-top: 48px; pt-48px; border-top: var(--border); padding-top: 32px;">
-                                <p class="micro" style="color: var(--ink-soft); margin-bottom: 24px;">Recent Referrals</p>
-                                <div style="display: flex; flex-direction: column; gap: 16px;">
-                                    {% for ref in referrals %}
-                                    <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 12px; border-bottom: 1px solid var(--ink-ghost);">
-                                        <div>
-                                            <p style="font-size: 11px; font-weight: 500; color: var(--ink);">{{ ref.referred_user.username|slice:":3" }}***{{ ref.referred_user.username|slice:"-2:" }}</p>
-                                            <p style="font-size: 9px; color: var(--ink-soft); margin-top: 2px;">{{ ref.created_at|date:"M d, Y" }}</p>
-                                        </div>
-                                        <p style="font-size: 11px; font-weight: 600; color: #2F8D46;">+₹{{ ref.reward_amount_referrer }}</p>
-                                    </div>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </section>
-
-                <section style="margin-top: 48px;">
-                    <div class="section-head">
-                        <span class="label">Recent Purchase</span>
-                        <a href="#" class="btn-text">Archive (12)</a>
-                    </div>
-                    <div class="module skeleton-target">
-                        <div class="module-body">
-                            <div class="purchase-row">
-                                <div class="purchase-thumb">
-                                    <img src="https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&q=80&w=200" alt="">
-                                </div>
-                                <div class="purchase-info">
-                                    <p class="purchase-name">Relaxed Fit Cashmere Cardigan</p>
-                                    <p class="purchase-meta">Delivered — Nov 12, 2024</p>
-                                    <div class="purchase-tags">
-                                        <span class="tag">Medium</span>
-                                        <span class="tag">Oatmeal Melange</span>
-                                    </div>
-                                </div>
-                                <div class="purchase-arrow">
-                                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="1.5"/></svg>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section style="margin-top:36px;">
-                    <div class="section-head">
-                        <span class="label">Curated For You</span>
-                    </div>
-                    <div class="product-grid">
-                        <div class="product-card skeleton-target">
-                            <div class="product-img-wrap">
-                                <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=400" alt="">
-                                <button class="product-add-btn">Add to bag +</button>
-                            </div>
-                            <div class="product-info">
-                                <div>
-                                    <p class="product-name">Essential Cotton Tee</p>
-                                    <p class="product-color">Light Grey</p>
-                                </div>
-                                <p class="product-price">£45</p>
-                            </div>
-                        </div>
-                        <div class="product-card skeleton-target">
-                            <div class="product-img-wrap">
-                                <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=400" alt="">
-                                <button class="product-add-btn">Add to bag +</button>
-                            </div>
-                            <div class="product-info">
-                                <div>
-                                    <p class="product-name">Structured Overshirt</p>
-                                    <p class="product-color">Midnight Blue</p>
-                                </div>
-                                <p class="product-price">£110</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </div>
-
-            <div class="right-col">
-                <div class="wallet-module skeleton-target">
-                    <p class="wallet-label">Wallet</p>
-                    <p class="wallet-balance-label">Balance</p>
-                    <p class="wallet-amount">₹{{ wallet_balance }}</p>
-                    <a href="#" class="wallet-link">View Transactions →</a>
-                    <button class="wallet-manage">Manage Wallet</button>
-                </div>
-
-                <div class="address-module skeleton-target">
-                    <div class="address-module-header">
-                        <span class="label">Shipping Address</span>
-                    </div>
-                    {% if has_address %}
-                    <div class="address-body">
-                        <p class="address-name">{{ address.full_name }}</p>
-                        <div class="address-lines">
-                            <p>{{ address.street }}</p>
-                            <p>{{ address.city }}, {{ address.zip_code }}</p>
-                            <p>{{ address.country }}</p>
-                        </div>
-                        <div class="address-actions">
-                            <button class="btn-text">Edit</button>
-                            <button class="btn-text" style="color:#C0392B;text-decoration-color:rgba(192,57,43,0.3);">Remove</button>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="empty-state">
-                        <p class="empty-state-text">No shipping address saved.<br>Add one for faster checkout.</p>
-                        <a href="{% url 'user-address' %}" class="btn btn-dark" style="font-size:8px;padding:11px 20px;">Add Address</a>
-                    </div>
-                    {% endif %}
-                </div>
-
-                <div class="care-module skeleton-target">
-                    <div class="care-module-header">
-                        <span class="label">Customer Care</span>
-                    </div>
-                    <div class="care-item">
-                        <span class="care-item-label">Returns &amp; Exchanges</span>
-                        <svg class="care-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="1.8"/></svg>
-                    </div>
-                    <div class="care-item">
-                        <span class="care-item-label">Track My Package</span>
-                        <svg class="care-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-width="1.8"/></svg>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-</div>
-
-<!-- MODAL -->
-<div id="editModal">
-    <div class="modal-backdrop" onclick="toggleModal()"></div>
-    <div class="modal-panel">
-        <div class="modal-top">
-            <div>
-                <p class="form-label" style="margin-bottom:8px;">Account</p>
-                <h2 style="font-size:22px;font-weight:400;letter-spacing:-0.01em;color:#0A0A0A;font-family: 'Playfair Display', serif;">Edit Details</h2>
-            </div>
-            <button onclick="toggleModal()" class="modal-close">
-                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-        </div>
-
-        <div class="modal-body">
-            <form action="{% url 'update-profile' request.user.id %}" method="POST" id="profileForm">
+            <form id="editProfileForm" action="{% url 'update-profile' user.id %}" method="POST">
                 {% csrf_token %}
-
-                <div class="form-field">
-                    <label class="form-label">Full Name</label>
-                    <input type="text" name="username" id="field-username"
-                           value="{{ request.user.username }}"
-                           class="form-input" placeholder="Your name">
-                    <span id="hint-username" class="field-hint"></span>
+                <div class="edit-field-group">
+                    <label class="edit-label" for="editUsername">Username</label>
+                    <input class="edit-input" type="text" id="editUsername" name="username" value="{{ user.username }}">
                 </div>
-
-                <div class="form-field">
-                    <label class="form-label">Email Address</label>
-                    <input type="email" name="email" id="field-email"
-                           value="{{ request.user.email }}"
-                           class="form-input" placeholder="your@email.com">
-                    <span id="hint-email" class="field-hint"></span>
+                <div class="edit-field-group">
+                    <label class="edit-label" for="editEmail">Email</label>
+                    <input class="edit-input" type="email" id="editEmail" name="email" value="{{ user.email }}" {% if not user.has_usable_password %}readonly{% endif %}>
                 </div>
-
-                <div class="form-field">
-                    <label class="form-label">Phone Number</label>
-                    <div style="display:flex;align-items:center;border-bottom:1px solid #E4E0DC;" id="phone-wrap">
-                        <span style="font-size:13px;color:#0A0A0A;padding:10px 10px 10px 0;white-space:nowrap;display:flex;align-items:center;gap:6px;flex-shrink:0;">
-                            🇮🇳 +91
-                        </span>
-                        <span style="width:1px;height:16px;background:#E4E0DC;margin-right:10px;flex-shrink:0;"></span>
-                        <input type="tel" id="phone" name="phone_number"
-                               value="{{ request.user.phone_number|default:'' }}"
-                               class="form-input"
-                               placeholder="9876543210"
-                               maxlength="10"
-                               style="border:none !important;padding:10px 0;flex:1;outline:none;">
-                    </div>
-                    <input type="hidden" name="phone" id="phone_full">
-                    <span id="hint-phone" class="field-hint"></span>
+                <div class="edit-field-group">
+                    <label class="edit-label" for="editPhone">Phone</label>
+                    <input class="edit-input" type="text" id="editPhone" name="phone" value="{{ user.phone_number|default:'' }}">
                 </div>
-
-                <!-- buttons inside form so disabled works correctly -->
-                <div style="padding-top:32px;border-top:1px solid #E4E0DC;margin-top:8px;">
-                    <button type="submit" id="save-btn" disabled
-                            style="display:block;width:100%;padding:16px 28px;background:#0A0A0A;color:#fff;border:1px solid #0A0A0A;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;font-weight:600;font-family:inherit;cursor:pointer;outline:none;transition:background 0.3s;">
-                        Save Changes
-                    </button>
-                    <button type="button" onclick="toggleModal()"
-                            style="display:block;width:100%;margin-top:12px;font-size:9px;letter-spacing:0.18em;text-transform:uppercase;font-weight:500;color:#9A9494;background:none;border:none;cursor:pointer;font-family:inherit;padding:10px;">
-                        Cancel
-                    </button>
-                </div>
-
+                <button type="submit" class="btn-outline edit-save-btn">Save Changes</button>
             </form>
         </div>
     </div>
-</div>
 
-<!-- Scripts -->
+    <div class="profile-page-wrapper">
+        <!-- Desktop Sidebar -->
+        {% include 'user_base/components/desktop_sidebar.html' %}
 
+        <!-- Main Content -->
+        <main class="profile-main-content">
+            <div class="profile-container">
+                <div class="layout-grid">
+                    
+                    <!-- Left Panel -->
+                    <div class="left-panel">
+                        <!-- Profile Header -->
+                        <div class="profile-header">
+                            <div class="avatar-wrapper">
+                                <label for="photoFileInput" style="cursor: pointer; position: relative; display: block;">
+                                    <div class="avatar-ring"></div>
+                                    <img id="profileAvatar" src="{{ user.profile_photo.url }}" alt="{{ user.username }}" class="avatar">
+                                    <div class="avatar-camera-overlay">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                                    </div>
+                                    <div class="avatar-upload-spinner" id="avatarSpinner">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
+                                    </div>
+                                </label>
+                                {% if has_profile_photo %}
+                                <div class="avatar-remove-overlay" id="avatarRemoveOverlay">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path></svg>
+                                </div>
+                                {% endif %}
+                                <div class="member-badge">MEMBER SINCE {{ user.date_joined|date:"M Y"|upper }}</div>
+                            </div>
 
-<script>
-/* ── Skeleton Reveal ── */
-function revealContent() {
-    requestAnimationFrame(function () {
-        var MINIMUM_SKELETON_MS = 600;
-        var start = performance.now();
-        function doReveal() {
-            var elapsed   = performance.now() - start;
-            var remaining = MINIMUM_SKELETON_MS - elapsed;
-            setTimeout(function () {
-                document.body.classList.remove('page-loading');
-                animateCompletion();
-            }, Math.max(0, remaining));
-        }
-        if (document.readyState === 'complete') { doReveal(); }
-        else { window.addEventListener('load', doReveal, { once: true }); }
-    });
-}
-revealContent();
+                            <input type="file" id="photoFileInput" accept="image/*" style="display:none">
+                            
+                            <h1 class="user-name display-text">{{request.user.username}}</h1>
+                            <div class="user-contact">
+                                <span>{{ user.email }}</span>
+                                {% if user.phone_number %}<span>{{ user.phone_number }}</span>{% endif %}
+                            </div>
 
-/* ── Profile Completion Animation ── */
-function animateCompletion() {
-    var section = document.getElementById('profile-completion-section');
-    var pct     = parseInt(section.getAttribute('data-pct'), 10) || 0;
-    var fill    = document.getElementById('progress-fill');
-    var counter = document.getElementById('completion-pct');
-    var badge   = document.getElementById('completion-badge');
+                            <div class="profile-action-btns">
+                                <button class="btn-outline btn-filled" id="editProfileBtn">Edit Profile</button>
+                                {% if user.has_usable_password %}
+                                <a href="{% url 'change-password' %}" class="btn-outline" style="text-decoration:none;">Password</a>
+                                {% endif %}
+                            </div>
+                        </div>
 
-    requestAnimationFrame(function () { fill.style.width = pct + '%'; });
+                        <!-- Referral Section -->
+                        <div class="referral-section" style="margin-bottom: 24px;">
+                            <div class="section-header">
+                                <h2 class="section-title">Refer & Earn</h2>
+                            </div>
+                            <div class="stat-card" style="cursor: default; transform: none; box-shadow: none; border-color: var(--border);">
+                                <div class="referral-header">
+                                    <div>
+                                        <div class="label" style="margin-bottom: 12px;">Your Referral Code</div>
+                                        <div class="display-text" style="font-size: 32px; letter-spacing: 0.15em; color: var(--primary);">{{ user.referral_code }}</div>
+                                    </div>
+                                    <button class="btn-outline" style="padding: 10px 24px; font-size: 9px;" onclick="copyReferralCode('{{ user.referral_code|escapejs }}')">Copy Code</button>
+                                </div>
+                                <div style="border-top: 0.5px solid var(--border); padding-top: 24px;">
+                                    <div class="label" style="text-transform: none; letter-spacing: 0.05em; color: var(--muted); font-size: 11px;">
+                                        {{ total_referrals }} user{{ total_referrals|pluralize }} joined using your code.
+                                        {% if total_rewards > 0 %}
+                                        <span style="color: var(--accent); margin-left: 8px;">• Total earned: ₹{{ total_rewards }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-    var duration  = 1300;
-    var startTime = null;
+                        <!-- Wallet Section -->
+                        <div class="wallet-section">
+                            <div class="section-header">
+                                <h2 class="section-title">NØ&CO Membership</h2>
+                            </div>
+                            <div class="wallet-card" data-balance="{{ wallet_balance }}" data-percent="{{ profile_completion }}">
+                                <div class="wallet-top">
+                                    <span class="wallet-tier">Member</span>
+                                    <span class="wallet-logo">NØ&CO</span>
+                                </div>
+                                <div class="wallet-balance-wrap">
+                                    <div class="wallet-subtitle">WALLET</div>
+                                    <div class="wallet-balance display-text" id="wallet-balance">₹0.00</div>
+                                    <div class="wallet-label">AVAILABLE BALANCE</div>
+                                </div>
+                                <div class="progress-wrap">
+                                    <div class="progress-header">
+                                        <span class="progress-title">PROFILE COMPLETION</span>
+                                        <span class="progress-percentage display-text" id="progress-percent">0%</span>
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="progress-fill"></div>
+                                    </div>
+                                    <div class="progress-footer" id="progress-footer"></div>
+                                </div>
+                            </div>
+                        </div>
 
-    function countUp(timestamp) {
-        if (!startTime) startTime = timestamp;
-        var progress = Math.min((timestamp - startTime) / duration, 1);
-        var eased    = 1 - Math.pow(1 - progress, 3);
-        var current  = Math.round(eased * pct);
-        counter.textContent = current + '%';
-        if (progress < 1) {
-            requestAnimationFrame(countUp);
-        } else {
-            if (pct === 100)    { badge.textContent = 'Complete'; badge.style.borderColor = '#0A0A0A'; badge.style.color = '#0A0A0A'; }
-            else if (pct >= 75) { badge.textContent = 'Almost There'; }
-            else if (pct >= 50) { badge.textContent = 'Half Way'; }
-            else                { badge.textContent = 'In Progress'; }
-        }
-    }
-    requestAnimationFrame(countUp);
-}
+                        <!-- Recent Orders (mobile only) -->
+                        <div class="recent-orders-mobile">
+                            <div class="section-header">
+                                <h2 class="section-title">Recent Orders</h2>
+                            </div>
+                            {% if recent_orders %}
+                            <div class="recent-orders-list">
+                                {% for order in recent_orders %}
+                                <div class="recent-order-row">
+                                    <div class="recent-order-left">
+                                        <span class="recent-order-number">#{{ order.order_number }}</span>
+                                        <span class="recent-order-date">{{ order.created_at|date:"d M Y" }}</span>
+                                    </div>
+                                    <span class="status-chip status-{{ order.status|lower }}">{{ order.get_status_display }}</span>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <a href="{% url 'orders' %}" class="view-all-orders-link">View All Orders →</a>
+                            {% else %}
+                            <p style="font-size:13px;color:#999;text-align:center;padding:24px 0;">No orders yet.</p>
+                            {% endif %}
+                        </div>
 
-/* ── Validation rules ── */
-var USERNAME_RE = /^[a-zA-Z0-9_]{4,}$/;
-var EMAIL_RE    = /^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,}$/;
+                    </div><!-- End Left Panel -->
 
-function validateUsername(v) {
-    if (!v) return 'Username is required';
-    if (v.length < 4) return (4 - v.length) + ' more character(s) needed';
-    if (!USERNAME_RE.test(v)) return 'Only letters, numbers and _ allowed';
-    return null;
-}
+                    <!-- Right Panel -->
+                    <div class="right-panel">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon-wrap">
+                                    <div class="label">Orders</div>
+                                    <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                                </div>
+                                <div class="stat-value display-text">{{ order_count }}</div>
+                                <a href="{% url 'orders' %}" class="stat-action">Track <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
 
-function validateEmail(v) {
-    if (!v) return 'Email is required';
-    if (!EMAIL_RE.test(v)) return 'Enter a valid email address';
-    var parts = v.split('.');
-    var tld = parts[parts.length - 1];
-    if (tld.length < 3 && parts.length < 3) return 'Enter a complete email (e.g. you@gmail.com)';
-    return null;
-}
+                            <div class="stat-card">
+                                <div class="stat-icon-wrap">
+                                    <div class="label">Bag</div>
+                                    <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                                </div>
+                                <div class="stat-value display-text">{{ wishlist_count }}</div>
+                                <a href="{% url 'wishlist' %}" class="stat-action">View <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
 
-function cleanPhone(v) {
-    v = v.trim();
-    if (v.startsWith('+91')) v = v.slice(3);
-    else if (v.startsWith('91') && v.length >= 12) v = v.slice(2);
-    return v.replace(/[^0-9]/g, '').slice(0, 10);
-}
+                            <div class="stat-card">
+                                <div class="stat-icon-wrap">
+                                    <div class="label">Wallet</div>
+                                    <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                                </div>
+                                <div class="stat-value display-text">₹{{ wallet_balance }}</div>
+                                <a href="{% url 'wallet' %}" class="stat-action">Reload <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
 
-function validatePhone(v) {
-    return v.length === 10 && /^[6-9]/.test(v);
-}
+                            <div class="stat-card">
+                                <div class="stat-icon-wrap">
+                                    <div class="label">Address</div>
+                                    <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                </div>
+                                <div class="stat-value display-text">{{ address_count }}</div>
+                                <a href="{% url 'address' %}" class="stat-action">Manage <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></a>
+                            </div>
+                        </div>
+                    </div><!-- End Right Panel -->
 
-/* ── Button state ── */
-function updateButton() {
-    var btn = document.getElementById('save-btn');
-    if (!btn) return;
-    var uOk = validateUsername(document.getElementById('field-username').value.trim()) === null;
-    var eOk = validateEmail(document.getElementById('field-email').value.trim()) === null;
-    var pOk = validatePhone(document.getElementById('phone').value.trim());
-    btn.disabled = !(uOk && eOk && pOk);
-}
+                </div>
+            </div>
+        </main>
+    </div>
 
-/* ── Modal ── */
-function toggleModal() {
-    var modal = document.getElementById('editModal');
-    if (!modal.classList.contains('open')) {
-        modal.classList.add('open');
-        document.body.style.overflow = 'hidden';
-        updateButton();
-    } else {
-        modal.classList.remove('open');
-        document.body.style.overflow = '';
-    }
-}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const editBtn = document.getElementById('editProfileBtn');
+            const editDrawer = document.getElementById('editDrawer');
+            const editOverlay = document.getElementById('editDrawerOverlay');
+            const editClose = document.getElementById('editDrawerCloseBtn');
 
-document.addEventListener('DOMContentLoaded', function () {
+            function toggleDrawer(drawer, overlay, show) {
+                if (show) {
+                    drawer.classList.add('active');
+                    overlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    drawer.classList.remove('active');
+                    overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
 
-    /* Strip +91 from pre-filled phone on page load */
-    var pEl = document.getElementById('phone');
-    if (pEl) pEl.value = cleanPhone(pEl.value);
+            if (editBtn) editBtn.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, true));
+            if (editOverlay) editOverlay.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, false));
+            if (editClose) editClose.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, false));
 
-    /* Run once so button is correct if user opens modal immediately */
-    updateButton();
+            // Wallet Counter & Progress Animation
+            const walletCard = document.querySelector('.wallet-card');
+            if (walletCard) {
+                const targetBalance = parseFloat(walletCard.getAttribute('data-balance')) || 0;
+                const targetPercent = parseInt(walletCard.getAttribute('data-percent')) || 0;
 
-    /* username */
-    var uEl   = document.getElementById('field-username');
-    var uHint = document.getElementById('hint-username');
-    uEl.addEventListener('input', function() {
-        var err = validateUsername(uEl.value.trim());
-        uEl.classList.toggle('input-error', !!err);
-        uEl.classList.toggle('input-ok',    !err && !!uEl.value);
-        uHint.textContent = err || '';
-        updateButton();
-    });
+                setTimeout(() => {
+                    animateValue("wallet-balance", 0, targetBalance, 1500, true);
+                    animateValue("progress-percent", 0, targetPercent, 1500, false, "%");
+                    const fill = document.getElementById('progress-fill');
+                    if (fill) fill.style.width = targetPercent + "%";
 
-    /* email */
-    var eEl   = document.getElementById('field-email');
-    var eHint = document.getElementById('hint-email');
-    eEl.addEventListener('input', function() {
-        var err = validateEmail(eEl.value.trim());
-        eEl.classList.toggle('input-error', !!err);
-        eEl.classList.toggle('input-ok',    !err && !!eEl.value);
-        eHint.textContent = err || '';
-        updateButton();
-    });
+                    const footer = document.getElementById('progress-footer');
+                    if (footer) {
+                        footer.textContent = targetPercent < 100 ? "Complete your profile to unlock premium features." : "Your profile is fully optimized.";
+                    }
+                }, 400);
+            }
 
-    /* phone */
-    var pWrap = document.getElementById('phone-wrap');
-    var pHint = document.getElementById('hint-phone');
-    pEl.addEventListener('input', function() {
-        pEl.value = pEl.value.replace(/[^0-9]/g, '').slice(0, 10);
-        var v     = pEl.value;
-        var valid = validatePhone(v);
-        var hasErr = v.length > 0 && !valid;
-        if (pWrap) pWrap.style.borderBottomColor = !v ? '#E4E0DC' : valid ? '#5A8C3A' : '#C0392B';
-        pHint.textContent = hasErr ? (v.length < 10 ? (10 - v.length) + ' more digit(s) needed' : 'Must start with 6, 7, 8 or 9') : '';
-        updateButton();
-    });
+            function animateValue(id, start, end, duration, isCurrency, suffix = "") {
+                const obj = document.getElementById(id);
+                if (!obj) return;
+                let startTimestamp = null;
+                const step = (timestamp) => {
+                    if (!startTimestamp) startTimestamp = timestamp;
+                    const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                    const current = progress * (end - start) + start;
+                    if (isCurrency) {
+                        obj.innerHTML = "₹" + current.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    } else {
+                        obj.innerHTML = Math.floor(current) + suffix;
+                    }
+                    if (progress < 1) window.requestAnimationFrame(step);
+                };
+                window.requestAnimationFrame(step);
+            }
 
-    /* submit */
-    document.getElementById('profileForm').addEventListener('submit', function(e) {
-        var raw   = pEl.value.replace(/[^0-9]/g, '');
-        var valid = validatePhone(raw);
-        if (valid) {
-            document.getElementById('phone_full').value = '+91' + raw;
-        } else {
-            e.preventDefault();
-            pHint.textContent = 'Enter a valid 10-digit Indian mobile number';
-        }
-    });
+            // Photo Upload
+            const fileInput = document.getElementById('photoFileInput');
+            const avatarImg = document.getElementById('profileAvatar');
+            const spinner = document.getElementById('avatarSpinner');
 
-    /* Django messages → toasts */
-    {% if messages %}
-        {% for message in messages %}
-            showToast("{{ message|escapejs }}", "{% if 'success' in message.tags %}success{% else %}error{% endif %}");
-        {% endfor %}
-    {% endif %}
-});
+            async function compressImage(file, maxWidth = 800, maxHeight = 800, quality = 0.8) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+                    reader.onload = event => {
+                        const img = new Image();
+                        img.src = event.target.result;
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            let width = img.width;
+                            let height = img.height;
 
-/* ── Toast ── */
-function showToast(message, type) {
-    type = type || 'error';
-    var container = document.getElementById('toast-container');
-    if (!container) return;
+                            if (width > height) {
+                                if (width > maxWidth) {
+                                    height *= maxWidth / width;
+                                    width = maxWidth;
+                                }
+                            } else {
+                                if (height > maxHeight) {
+                                    width *= maxHeight / height;
+                                    height = maxHeight;
+                                }
+                            }
 
-    var toast = document.createElement('div');
-    toast.className = 'custom-pill-toast ' + (type === 'success' ? 'toast-success' : 'toast-error');
+                            canvas.width = width;
+                            canvas.height = height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, width, height);
 
-    var icon    = type === 'success' ? '✓' : '✕';
-    var subtext = type === 'success' ? 'Success' : 'Error';
+                            canvas.toBlob(blob => {
+                                if (blob) {
+                                    resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                                        type: 'image/jpeg',
+                                        lastModified: Date.now()
+                                    }));
+                                } else {
+                                    reject(new Error("Compression failed"));
+                                }
+                            }, 'image/jpeg', quality);
+                        };
+                        img.onerror = () => reject(new Error("Image load failed"));
+                    };
+                    reader.onerror = () => reject(new Error("File read failed"));
+                });
+            }
 
-    toast.innerHTML =
-        '<div class="toast-left-content">' +
-            '<div class="toast-icon-circle">' + icon + '</div>' +
-            '<div class="toast-message-wrapper">' +
-                '<div class="toast-main-text">' + message + '</div>' +
-                '<div class="toast-sub-text">' + subtext + '</div>' +
-            '</div>' +
-        '</div>' +
-        '<div class="toast-close-btn" onclick="this.parentElement.remove()">✕</div>';
+            if (fileInput) {
+                fileInput.addEventListener('change', async function () {
+                    const file = this.files[0];
+                    if (!file) return;
 
-    container.appendChild(toast);
-    setTimeout(function() { toast.classList.add('show'); }, 10);
-    setTimeout(function() {
-        if (toast.parentNode) {
-            toast.classList.remove('show');
-            setTimeout(function() { toast.remove(); }, 400);
-        }
-    }, 4000);
-}
+                    // Preview immediately using Object URL (faster than FileReader)
+                    const objectUrl = URL.createObjectURL(file);
+                    if (avatarImg) {
+                        avatarImg.src = objectUrl;
+                        avatarImg.onload = () => URL.revokeObjectURL(objectUrl);
+                    }
 
-/* ── Copy Referral Code ── */
-function copyReferralCode(code, btn) {
-    navigator.clipboard.writeText(code).then(function() {
-        var originalText = btn.textContent;
-        btn.textContent = 'Copied ✓';
-        btn.classList.add('btn-dark');
-        btn.classList.remove('btn-outline');
-        setTimeout(function() {
-            btn.textContent = originalText;
-            btn.classList.remove('btn-dark');
-            btn.classList.add('btn-outline');
-        }, 2000);
-    });
-}
-</script>
+                    if (spinner) spinner.classList.add('active');
 
+                    try {
+                        // Optimize image before upload
+                        const optimizedFile = await compressImage(file);
+                        
+                        const formData = new FormData();
+                        formData.append('profile_photo', optimizedFile);
+
+                        const response = await fetch("{% url 'add-profile-pic' user.id %}", {
+                            method: 'POST',
+                            body: formData,
+                            headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+
+                        const data = await response.json();
+
+                        if (data.image_url) {
+                            if (avatarImg) avatarImg.src = data.image_url;
+                            if (typeof showProfileToast === 'function') {
+                                showProfileToast("Profile photo updated successfully", "success");
+                            }
+                        } else {
+                            throw new Error(data.error || "Upload failed");
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        const msg = err.message || "Upload failed";
+                        if (typeof showProfileToast === 'function') {
+                            showProfileToast(msg, "error");
+                        } else {
+                            alert(msg);
+                        }
+                    } finally {
+                        if (spinner) spinner.classList.remove('active');
+                        fileInput.value = ''; // Reset input
+                    }
+                });
+            }
+
+            // Edit Profile Form Submit Loader
+            const editForm = document.getElementById('editProfileForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function() {
+                    const submitBtn = this.querySelector('button[type="submit"]');
+                    if (submitBtn && !submitBtn.disabled) {
+                        submitBtn.disabled = true;
+                        submitBtn.style.color = 'transparent';
+                        submitBtn.style.position = 'relative';
+                        submitBtn.insertAdjacentHTML('beforeend', '<div class="inline-spinner" style="position:absolute; top:50%; left:50%; margin-left:-8px; margin-top:-8px; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:btn-spin 1s linear infinite;"></div>');
+                    }
+                });
+            }
+
+            // Delete Photo
+            const removeOverlay = document.getElementById('avatarRemoveOverlay');
+            if (removeOverlay) {
+                removeOverlay.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (!confirm("Remove profile photo?")) return;
+                    fetch("{% url 'delete-profile-pic' user.id %}", {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    }).then(() => window.location.reload());
+                });
+            }
+
+            // Copy Referral Code
+            window.copyReferralCode = function (code) {
+                if (!code) return;
+                navigator.clipboard.writeText(code).then(() => {
+                    if (typeof showProfileToast === 'function') {
+                        showProfileToast("Referral code copied to clipboard", "success");
+                    }
+                }).catch(err => console.error('Failed to copy: ', err));
+            };
+        });
+    </script>
+
+    {% include 'user_base/components/nav_js.html' %}
 {% endblock %}

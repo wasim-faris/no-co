@@ -550,8 +550,11 @@ body.order-success-page {
         // Show toast only once per session avoiding reload duplicates
         const orderNumber = "{{ order.order_number }}";
         const toastKey = `order_success_toast_${orderNumber}`;
+        
+        // Only show this hardcoded toast if there are NO Django success messages
+        const hasDjangoSuccess = {% if messages %}true{% else %}false{% endif %};
 
-        if (!sessionStorage.getItem(toastKey)) {
+        if (!sessionStorage.getItem(toastKey) && !hasDjangoSuccess) {
             setTimeout(function () {
                 if (typeof showToast === "function") {
                     showToast(

@@ -48,6 +48,19 @@ class Order(models.Model):
         ("PAID", "Paid"),
         ("FAILED", "Failed"),
         ("REFUNDED", "Refunded"),
+        ("PARTIALLY_REFUNDED", "Partially Refunded"),
+        ("VOIDED", "Voided"),
+    )
+
+    ORDER_STATUS_CHOICES = (
+        ("PENDING", "Pending"),
+        ("CONFIRMED", "Confirmed"),
+        ("PROCESSING", "Processing"),
+        ("SHIPPED", "Shipped"),
+        ("OUT_FOR_DELIVERY", "Out for Delivery"),
+        ("DELIVERED", "Delivered"),
+        ("CANCELLED", "Cancelled"),
+        ("PARTIAL_CANCELLED", "Partial Cancelled"),
     )
 
     payment = models.ForeignKey(Payment, on_delete=models.SET_NULL, null=True)
@@ -88,6 +101,12 @@ class Order(models.Model):
         default="PENDING"
     )
 
+    status = models.CharField(
+        max_length=50,
+        choices=ORDER_STATUS_CHOICES,
+        default="PENDING"
+    )
+
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     tax_amount = models.DecimalField(max_digits=10, decimal_places=2)
     discount_amount = models.DecimalField(
@@ -107,6 +126,52 @@ class Order(models.Model):
     tracking_id = models.CharField(max_length=100, blank=True, null=True)
     courier_name = models.CharField(max_length=100, blank=True, null=True)
     admin_notes = models.TextField(blank=True, null=True)
+
+    @property
+    def active_items(self):
+        return self.items.exclude(item_status="CANCELLED")
+
+    @property
+    def cancelled_items(self):
+        return self.items.filter(item_status="CANCELLED")
+
+    @property
+    def active_original_subtotal(self):
+        return sum(item.price * item.quantity for item in self.active_items)
+
+    @property
+    def active_discount(self):
+        return sum(item.discount_amount for item in self.active_items)
+
+    @property
+    def active_subtotal(self):
+        return sum(item.final_price * item.quantity for item in self.active_items)
+
+    @property
+    def cancelled_subtotal(self):
+        return sum(item.final_price * item.quantity for item in self.cancelled_items)
+
+    @property
+    def active_tax(self):
+        from decimal import Decimal
+        if self.subtotal > 0:
+            tax_rate = self.tax_amount / self.subtotal
+            return (self.active_original_subtotal * tax_rate).quantize(Decimal('0.01'))
+        return Decimal('0.00')
+
+    @property
+    def refund_amount(self):
+        from decimal import Decimal
+        if self.payment_method == 'COD':
+            return Decimal('0.00')
+        return self.cancelled_subtotal
+
+    @property
+    def active_total(self):
+        from decimal import Decimal
+        if self.active_items.exists():
+            return (self.active_subtotal + self.active_tax + self.delivery_charge).quantize(Decimal('0.01'))
+        return Decimal('0.00')
 
     def save(self, *args, **kwargs):
         if not self.order_number:
@@ -129,6 +194,7 @@ class OrderItem(models.Model):
         ("OUT_FOR_DELIVERY", "Out for Delivery"),
         ("DELIVERED", "Delivered"),
         ("CANCELLED", "Cancelled"),
+        ("PARTIAL_CANCELLED", "Partial Cancelled"),
         ("RETURN_REQUESTED", "Return Requested"),
         ("RETURN_APPROVED", "Return Approved"),
         ("RETURN_PICKUP_SCHEDULED", "Return Pickup Scheduled"),

@@ -108,6 +108,7 @@ TEMPLATES = [
         'DIRS': [os.path.join(BASE_DIR, 'templates')],
         "APP_DIRS": True,
         "OPTIONS": {
+            "debug": True,
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
@@ -135,7 +136,6 @@ DATABASES = {
         'PORT': config('NO_AND_CO_DB_PORT'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
@@ -228,8 +228,9 @@ EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 
-EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_USER     = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL  = f"NO & CO <{config('EMAIL_HOST_USER')}>"
 
 ACCOUNT_LOGIN_METHODS = {"email"}
 

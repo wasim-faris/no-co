@@ -233,6 +233,7 @@ def admin_product_management(request, id=None):
         delivery_returns = request.POST.get("delivery_returns")
         materials = request.POST.get("fabric")
         washing = request.POST.get("washing")
+        offer_percentage = request.POST.get("offer_percentage", 0) or 0
 
         category = get_object_or_404(Category, id=category_id)
         subcategory = get_object_or_404(Subcategory, id=subcategory_id)
@@ -245,6 +246,7 @@ def admin_product_management(request, id=None):
             product.delivery_returns = delivery_returns
             product.category = category
             product.subcategory = subcategory
+            product.offer_percentage = offer_percentage
             product.save()
             messages.success(request, "Product Updated")
         else:
@@ -256,6 +258,7 @@ def admin_product_management(request, id=None):
                 delivery_returns=delivery_returns,
                 category=category,
                 subcategory=subcategory,
+                offer_percentage=offer_percentage,
             )
             messages.success(request, "Product Created")
 

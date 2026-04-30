@@ -1,0 +1,817 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block content %}
+<!-- GOOGLE FONTS -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+<!-- 
+    PREMIUM FASHION BRAND REDESIGN
+    Typography: Cormorant Garamond (Serif) + DM Sans (Sans)
+    Brand Aesthetic: H&M Premium, Zara, COS
+-->
+
+<!-- 1. MOBILE NAVIGATION ELEMENTS (Keep existing logic) -->
+<button id="hamburger-btn" class="luxury-hamburger" aria-label="Open Menu">
+    <div class="hamb-box">
+        <span class="hamb-line"></span>
+        <span class="hamb-line"></span>
+    </div>
+</button>
+
+<div id="drawer-overlay" class="luxury-overlay"></div>
+<aside id="profile-drawer" class="luxury-drawer">
+    <div class="drawer-header-luxury">
+        <div class="drawer-user-info-minimal">
+            <h3 class="drawer-user-name-serif">{{ user.username }}</h3>
+            <p class="drawer-user-email-tiny">{{ user.email }}</p>
+        </div>
+        <button id="drawer-close" class="btn-close-drawer">&times;</button>
+    </div>
+    <nav class="drawer-nav-luxury">
+        <a href="{% url 'user-profile' user.id %}" class="drawer-link active">Overview</a>
+        <a href="{% url 'orders' %}" class="drawer-link">Orders</a>
+        <a href="{% url 'wishlist' %}" class="drawer-link">Wishlist</a>
+        <a href="{% url 'address' %}" class="drawer-link">Addresses</a>
+        <a href="{% url 'update-profile' user.id %}" class="drawer-link">Settings</a>
+    </nav>
+    <div class="drawer-footer-luxury">
+        <a href="{% url 'account_logout' %}" class="logout-link-luxury">Logout</a>
+    </div>
+</aside>
+
+<div class="luxury-page-wrapper">
+    <div class="luxury-layout-container">
+        <!-- 2. DESKTOP SIDEBAR (Keep existing structure) -->
+        <aside class="luxury-desktop-sidebar">
+            {% include 'user_base/components/profile_sidebar.html' %}
+        </aside>
+
+        <!-- 3. MAIN EDITORIAL CONTENT -->
+        <main class="luxury-main-content">
+            
+            <!-- SKELETON LOADER -->
+            <div id="luxury-skeleton" class="skeleton-container">
+                <div class="skel-hero"></div>
+                <div class="skel-strip"></div>
+                <div class="skel-grid">
+                    <div class="skel-card"></div>
+                    <div class="skel-card"></div>
+                </div>
+            </div>
+
+            <!-- MAIN CONTENT AREA -->
+            <div id="luxury-content" class="content-fade-in" style="display: none;">
+                
+                <!-- HERO SECTION -->
+                <section class="editorial-hero">
+                    <div class="hero-identity">
+                        <div class="avatar-editorial-wrapper">
+                            <div class="avatar-square-frame">
+                                <div id="profile-img-loader" class="profile-img-loader">
+                                    <div class="spinner-minimal"></div>
+                                </div>
+                                {% if user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg" %}
+                                    <img src="{{ user.profile_photo.url }}" alt="{{ user.username }}" class="editorial-avatar-img" id="profile-avatar-display">
+                                {% else %}
+                                    <div class="editorial-avatar-placeholder" id="profile-avatar-placeholder">{{ user.username|slice:":1"|upper }}</div>
+                                {% endif %}
+                                <div class="avatar-edit-overlay" onclick="document.getElementById('photo_upload_input').click()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                                    <span>Update Photo</span>
+                                </div>
+                            </div>
+                            {% if user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg" %}
+                                <form action="{% url 'delete-profile-pic' user.id %}" method="POST" class="mt-2 text-center">
+                                    {% csrf_token %}
+                                    <button type="submit" class="link-remove-minimal">Remove Photo</button>
+                                </form>
+                            {% endif %}
+                        </div>
+                        <div class="user-meta-display">
+                            <h1 class="display-name-serif">{{ user.username }}</h1>
+                            <div class="meta-details-row">
+                                <span class="meta-item">{{ user.email }}</span>
+                                {% if user.phone_number %}
+                                    <span class="meta-item">{{ user.phone_number }}</span>
+                                {% endif %}
+                                <span class="meta-item accent-gold">Since {{ user.date_joined|date:"Y" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hero-actions">
+                        <button onclick="openEditModal()" class="btn-rect-outline">Edit Account</button>
+                    </div>
+                    
+                    <form id="avatar-upload-form" action="{% url 'add-profile-pic' user.id %}" method="POST" enctype="multipart/form-data" class="hidden">
+                        {% csrf_token %}
+                        <input type="file" id="photo_upload_input" name="profile_photo">
+                    </form>
+                </section>
+
+                <!-- STATS STRIP -->
+                <section class="editorial-stats-strip">
+                    <a href="{% url 'orders' %}" class="strip-item">
+                        <span class="label-tiny-caps">Orders</span>
+                        <span class="number-serif-large">{{ user.orders.count|default:"0"|stringformat:"02d" }}</span>
+                    </a>
+                    <a href="{% url 'address' %}" class="strip-item">
+                        <span class="label-tiny-caps">Saved Addresses</span>
+                        <span class="number-serif-large">{{ user.addresses.count|default:"0"|stringformat:"02d" }}</span>
+                    </a>
+                    <a href="{% url 'wishlist' %}" class="strip-item">
+                        <span class="label-tiny-caps">Wishlist</span>
+                        <span class="number-serif-large">{{ user.wishlist_items.count|default:"0"|stringformat:"02d" }}</span>
+                    </a>
+                </section>
+
+                <!-- PAGE CONTENT GRID -->
+                <div class="editorial-body-grid">
+                    
+                    <!-- COLUMN 1 -->
+                    <div class="editorial-col">
+                        
+                        <!-- WALLET -->
+                        <div class="editorial-card dark-surface">
+                            <div class="card-head">
+                                <span class="label-tiny-caps white-faded">Available Balance</span>
+                            </div>
+                            <div class="wallet-display">
+                                <span class="balance-serif-large">₹{{ wallet_balance|default:"0.00" }}</span>
+                                <a href="#" class="link-gold-tiny">Reload Account</a>
+                            </div>
+                        </div>
+
+                        <!-- PROFILE COMPLETION -->
+                        <div class="editorial-card bordered-surface">
+                            <div class="card-head justify-between">
+                                <span class="label-tiny-caps">Profile Integrity</span>
+                                <span class="serif-percent"><span id="pct-count">0</span>%</span>
+                            </div>
+                            <div class="minimal-progress-track">
+                                <div class="minimal-progress-fill" id="progress-bar" data-target="{{ profile_completion }}"></div>
+                            </div>
+                            <div class="integrity-grid">
+                                <div class="integrity-item {% if user.is_authenticated %}checked{% endif %}">
+                                    <span class="integrity-dot"></span><span class="label-tiny-caps">Account</span>
+                                </div>
+                                <div class="integrity-item {% if user.profile_photo and user.profile_photo.name != 'profile_photos/default.jpg' %}checked{% endif %}">
+                                    <span class="integrity-dot"></span><span class="label-tiny-caps">Visual</span>
+                                </div>
+                                <div class="integrity-item {% if user.phone_number %}checked{% endif %}">
+                                    <span class="integrity-dot"></span><span class="label-tiny-caps">Contact</span>
+                                </div>
+                                <div class="integrity-item {% if user.addresses.exists %}checked{% endif %}">
+                                    <span class="integrity-dot"></span><span class="label-tiny-caps">Shipping</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- COLUMN 2 -->
+                    <div class="editorial-col">
+                        
+                        <!-- REFERRAL -->
+                        <div class="editorial-card bordered-surface">
+                            <div class="card-head">
+                                <span class="label-tiny-caps">Referral Program</span>
+                            </div>
+                            <p class="body-text-minimal">Share the invitation. Your inner circle receives a welcome gift, and you earn credit toward future collections.</p>
+                            
+                            <div class="luxury-referral-field">
+                                <span class="code-serif-display" id="refCodeText">{{ user.referral_code }}</span>
+                                <button onclick="copyRefCode()" class="btn-copy-editorial" id="copyBtn">Copy</button>
+                            </div>
+
+                            <div class="referral-meta-grid">
+                                <div class="ref-meta-item">
+                                    <span class="ref-num">{{ total_referrals|default:"0" }}</span>
+                                    <span class="label-tiny-caps">Invited</span>
+                                </div>
+                                <div class="ref-meta-item">
+                                    <span class="ref-num">₹{{ total_rewards|default:"0" }}</span>
+                                    <span class="label-tiny-caps">Credits Earned</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DEFAULT ADDRESS -->
+                        <div class="editorial-card bordered-surface">
+                            <div class="card-head justify-between">
+                                <span class="label-tiny-caps">Primary Address</span>
+                                <a href="{% url 'address' %}" class="link-black-underline">Manage</a>
+                            </div>
+                            {% if addresses %}
+                                {% with first_addr=addresses.0 %}
+                                <div class="primary-addr-box">
+                                    <h4 class="addr-name-serif">{{ first_addr.first_name }} {{ first_addr.last_name }}</h4>
+                                    <p class="addr-detail-light">
+                                        {{ first_addr.address_line1 }}<br>
+                                        {% if first_addr.address_line2 %}{{ first_addr.address_line2 }}<br>{% endif %}
+                                        {{ first_addr.city }}, {{ first_addr.state }} {{ first_addr.pin_code }}<br>
+                                        {{ first_addr.country }}
+                                    </p>
+                                </div>
+                                {% endwith %}
+                            {% else %}
+                                <p class="body-text-minimal italic">No shipping details provided.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="uni-modal-overlay" id="editModalOverlay"></div>
+<div id="editModal" class="uni-modal" aria-hidden="true">
+    <div class="uni-modal-header">
+        <h2 class="uni-modal-title">Update Profile</h2>
+        <button onclick="closeEditModal()" class="uni-modal-close">&times;</button>
+    </div>
+    <div class="uni-modal-body">
+        <form action="{% url 'update-profile' user.id %}" method="POST" id="editProfileForm">
+            {% csrf_token %}
+            <div class="luxury-input-group mb-6">
+                <label class="label-tiny-caps block mb-2">Username</label>
+                <input type="text" name="username" value="{{ user.username }}" placeholder="janedoe" class="w-full border-b border-gray-200 py-3 outline-none focus:border-black transition-all">
+            </div>
+            <div class="luxury-input-group mb-6">
+                <label class="label-tiny-caps block mb-2">Email</label>
+                <input type="email" name="email" value="{{ user.email }}" placeholder="jane@example.com" class="w-full border-b border-gray-200 py-3 outline-none focus:border-black transition-all">
+            </div>
+            <div class="luxury-input-group mb-8">
+                <label class="label-tiny-caps block mb-2">Phone</label>
+                <input type="text" name="phone" value="{{ user.phone_number|default:'' }}" placeholder="+91 98765 43210" class="w-full border-b border-gray-200 py-3 outline-none focus:border-black transition-all">
+            </div>
+        </form>
+    </div>
+    <div class="uni-modal-footer">
+        <button type="submit" form="editProfileForm" class="uni-modal-btn uni-modal-btn-primary">Save Changes</button>
+        <button type="button" onclick="closeEditModal()" class="uni-modal-btn uni-modal-btn-secondary">Cancel</button>
+    </div>
+</div>
+
+
+<style>
+/* PREMIUM THEME CONFIG */
+:root {
+    --luxury-bg: #FAF8F5;
+    --luxury-white: #FFFFFF;
+    --luxury-dark: #0D0D0D;
+    --luxury-muted: #888480;
+    --luxury-border: #EDEAE6;
+    --luxury-gold: #C9A96E;
+    --font-serif: 'Cormorant Garamond', serif;
+    --font-sans: 'Helvetica Neue', 'DM Sans', sans-serif;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+.luxury-page-wrapper {
+    background: var(--luxury-bg);
+    min-height: 100vh;
+    padding-bottom: 120px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+/* LAYOUT STRUCTURE */
+.luxury-layout-container {
+    display: flex;
+    max-width: 1300px;
+    margin: 0 auto;
+}
+
+.luxury-desktop-sidebar {
+    width: 280px;
+    background: #fff;
+    border-right: 1px solid var(--luxury-border);
+    min-height: 100vh;
+}
+
+@media (max-width: 1024px) {
+    .luxury-desktop-sidebar { display: none; }
+    .luxury-layout-container { display: block; }
+}
+
+.luxury-main-content {
+    flex: 1;
+    min-width: 0;
+}
+
+/* SKELETON LOGIC */
+@keyframes editorialShimmer {
+    0% { background-position: -800px 0; }
+    100% { background-position: 800px 0; }
+}
+.skeleton-container div {
+    background: #f6f7f8;
+    background-image: linear-gradient(to right, #f6f7f8 0%, #edeef1 20%, #f6f7f8 40%, #f6f7f8 100%);
+    background-repeat: no-repeat;
+    background-size: 800px 100%;
+    animation: editorialShimmer 1.5s linear infinite forwards;
+}
+.skel-hero { height: 350px; width: 100%; margin-bottom: 2px; }
+.skel-strip { height: 140px; width: 100%; margin-bottom: 40px; }
+.skel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 40px; }
+.skel-card { height: 300px; }
+
+/* CONTENT ANIMATION */
+.content-fade-in {
+    animation: luxuryEntry 0.8s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+@keyframes luxuryEntry {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* HERO SECTION */
+.editorial-hero {
+    padding: 24px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid #eee;
+    gap: 18px;
+}
+
+.hero-identity {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+}
+
+.avatar-square-frame {
+    width: 110px;
+    height: 110px;
+    position: relative;
+    background: #f0f0f0;
+    overflow: hidden;
+    cursor: pointer;
+    border-radius: 50%;
+}
+
+.editorial-avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    filter: grayscale(100%);
+    transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profile-img-loader {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 50%;
+}
+
+.profile-img-loader.active {
+    display: flex;
+}
+
+.spinner-minimal {
+    width: 24px;
+    height: 24px;
+    border: 1px solid rgba(13, 13, 13, 0.1);
+    border-top: 1px solid var(--luxury-dark);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.avatar-square-frame:hover .editorial-avatar-img {
+    flex-direction: column;
+    justify-content: center;
+    text-align: left;
+}
+
+.display-name-serif {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    color: var(--luxury-dark);
+}
+
+.meta-details-row {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: #777;
+}
+
+.meta-sep { display: none; }
+
+.accent-gold {
+    color: var(--luxury-gold);
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.link-remove-minimal {
+    font-family: var(--font-sans);
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--luxury-muted);
+    text-decoration: underline;
+    background: none; border: none;
+}
+
+.btn-rect-outline {
+    border: 1px solid var(--luxury-dark);
+    padding: 16px 32px;
+    font-family: var(--font-sans);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    transition: all 0.3s;
+}
+
+.btn-rect-outline:hover { background: var(--luxury-dark); color: #fff; }
+
+/* STATS STRIP */
+.editorial-stats-strip {
+    background: #fff;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid #eee;
+    border-bottom: 1px solid #eee;
+    margin: 16px 0;
+}
+
+.strip-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 8px;
+    text-decoration: none;
+    border-right: 1px solid #eee;
+    transition: background 0.2s ease;
+}
+
+.strip-item:last-child {
+    border-right: none;
+}
+
+.strip-item:hover { background: #f9f9f9; }
+
+.label-tiny-caps {
+    font-family: var(--font-sans);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #888;
+    font-weight: 500;
+}
+
+.number-serif-large {
+    font-family: var(--font-sans);
+    font-size: 18px;
+    color: var(--luxury-dark);
+    font-weight: 500;
+    margin-top: 4px;
+}
+
+/* CONTENT GRID */
+.editorial-body-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+    padding: 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+@media (min-width: 768px) {
+    .editorial-body-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 32px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .editorial-body-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+    }
+}
+
+.editorial-col { display: flex; flex-direction: column; gap: 40px; }
+
+.editorial-card { background: #fff; padding: 40px; position: relative; }
+
+.bordered-surface { border: 1px solid var(--luxury-border); }
+.dark-surface { background: var(--luxury-dark); }
+
+.card-head { display: flex; align-items: center; margin-bottom: 32px; }
+.justify-between { justify-content: space-between; }
+
+.body-text-minimal {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.8;
+    color: #555;
+    margin-bottom: 32px;
+}
+
+/* WALLET */
+.wallet-display { display: flex; justify-content: space-between; align-items: flex-end; }
+.balance-serif-large { font-family: var(--font-serif); font-size: 48px; color: #fff; font-weight: 300; }
+.link-gold-tiny { color: var(--luxury-gold); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; text-decoration: underline; }
+
+/* INTEGRITY/COMPLETION */
+.serif-percent { font-family: var(--font-serif); font-size: 26px; color: var(--luxury-dark); }
+.minimal-progress-track { height: 1px; background: var(--luxury-border); margin-bottom: 32px; }
+.minimal-progress-fill { height: 1px; background: var(--luxury-dark); width: 0; transition: width 1.5s cubic-bezier(0.65, 0, 0.35, 1); }
+
+.integrity-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.integrity-item { display: flex; align-items: center; gap: 12px; opacity: 0.3; }
+.integrity-item.checked { opacity: 1; }
+.integrity-dot { width: 5px; height: 5px; background: var(--luxury-border); border-radius: 50%; }
+.checked .integrity-dot { background: var(--luxury-gold); }
+
+/* REFERRAL */
+.luxury-referral-field {
+    border: 1px dashed var(--luxury-gold);
+    background: #fdfdfd;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+.code-serif-display { font-family: var(--font-serif); font-size: 32px; letter-spacing: 4px; color: var(--luxury-dark); }
+.btn-copy-editorial { background: var(--luxury-dark); color: #fff; border: none; padding: 12px 24px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; }
+.btn-copy-editorial.copied { background: var(--luxury-gold); }
+
+.referral-meta-grid { display: flex; gap: 40px; }
+.ref-meta-item { display: flex; flex-direction: column; }
+.ref-num { font-family: var(--font-serif); font-size: 28px; }
+
+/* ADDRESS */
+.addr-name-serif { font-family: var(--font-serif); font-size: 22px; font-weight: 400; margin-bottom: 12px; }
+.addr-detail-light { font-family: var(--font-sans); font-size: 13px; line-height: 1.8; color: #666; font-weight: 300; }
+.link-black-underline { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #000; text-decoration: underline; }
+
+/* HAMBURGER & DRAWER (MOBILE) */
+.luxury-hamburger {
+    display: none;
+    position: fixed;
+    top: 70px; right: 24px;
+    z-index: 9000;
+    background: #fff;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+    align-items: center; justify-content: center;
+}
+.hamb-box { width: 18px; height: 10px; display: flex; flex-direction: column; justify-content: space-between; }
+.hamb-line { height: 1.5px; background: #000; width: 100%; transition: 0.3s; }
+
+.luxury-overlay { position: fixed; inset: 0; background: rgba(13,13,13,0.3); backdrop-filter: blur(4px); z-index: 9997; opacity: 0; visibility: hidden; transition: 0.5s; }
+.luxury-overlay.visible { opacity: 1; visibility: visible; }
+
+.luxury-drawer {
+    position: fixed;
+    right: 0; top: 0;
+    width: 300px; height: 100%;
+    background: #fff;
+    z-index: 9998;
+    transform: translateX(100%);
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+    padding: 60px 32px;
+    display: flex; flex-direction: column;
+}
+.luxury-drawer.open { transform: translateX(0); }
+
+.drawer-header-luxury { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 60px; }
+.drawer-user-name-serif { font-family: var(--font-serif); font-size: 28px; line-height: 1.1; margin-bottom: 6px; }
+.drawer-user-email-tiny { font-size: 11px; color: var(--luxury-muted); }
+.btn-close-drawer { font-size: 32px; font-weight: 200; background: none; border: none; }
+
+.drawer-nav-luxury { display: flex; flex-direction: column; gap: 32px; flex: 1; }
+.drawer-link { font-family: var(--font-sans); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; text-decoration: none; color: #555; }
+.drawer-link.active { color: #000; font-weight: 700; }
+.logout-link-luxury { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--luxury-muted); }
+
+
+
+/* RESPONSIVE BREAKS */
+@media (max-width: 1024px) {
+    .luxury-hamburger { display: flex; }
+    .editorial-hero { padding: 16px; }
+    .editorial-body-grid { padding: 16px; }
+}
+
+@media (max-width: 767px) {
+    .editorial-hero {
+        padding: 14px 16px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+    }
+    
+    .hero-identity {
+        gap: 16px;
+    }
+    
+    .avatar-square-frame {
+        width: 70px;
+        height: 70px;
+        flex-shrink: 0;
+    }
+    
+    .display-name-serif {
+        font-size: 18px;
+        margin-bottom: 2px;
+    }
+    
+    .meta-details-row {
+        gap: 0;
+        font-size: 12px;
+    }
+    
+    .editorial-stats-strip {
+        margin: 12px 0;
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .strip-item {
+        padding: 14px 6px;
+    }
+    
+    .number-serif-large {
+        font-size: 18px;
+    }
+    
+    .editorial-body-grid {
+        padding: 16px;
+        gap: 16px;
+    }
+    
+    .hero-actions {
+        display: none;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. SKELETON HANDLER
+    setTimeout(() => {
+        const skel = document.getElementById('luxury-skeleton');
+        const content = document.getElementById('luxury-content');
+        if(skel) skel.style.display = 'none';
+        if(content) content.style.display = 'block';
+
+        // 2. PROGRESS ANIMATION
+        const bar = document.getElementById('progress-bar');
+        if(bar) {
+            const target = bar.getAttribute('data-target');
+            bar.style.width = target + '%';
+            animateValue("pct-count", 0, target, 1800);
+        }
+    }, 1500);
+
+    // 3. COUNTER LOGIC
+    function animateValue(id, start, end, duration) {
+        const obj = document.getElementById(id);
+        if(!obj) return;
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = Math.floor(progress * (end - start) + start);
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    // 4. DRAWER HANDLER
+    const hamb = document.getElementById('hamburger-btn');
+    const drawer = document.getElementById('profile-drawer');
+    const overlay = document.getElementById('drawer-overlay');
+    const closeD = document.getElementById('drawer-close');
+
+    function openD() { 
+        drawer.classList.add('open'); 
+        overlay.classList.add('visible'); 
+        document.body.style.overflow = 'hidden';
+    }
+    function closeDwr() { 
+        drawer.classList.remove('open'); 
+        overlay.classList.remove('visible'); 
+        document.body.style.overflow = '';
+    }
+
+    if(hamb) hamb.onclick = openD;
+    if(overlay) overlay.onclick = closeDwr;
+    if(closeD) closeD.onclick = closeDwr;
+});
+
+// MODAL CONTROLS
+function openEditModal() { 
+    const modal = document.getElementById('editModal');
+    const overlay = document.getElementById('editModalOverlay');
+    modal.classList.add('active');
+    if (overlay) overlay.classList.add('active');
+    
+    const hamb = document.getElementById('hamburger-btn');
+    if (hamb) hamb.style.display = 'none';
+    document.body.style.overflow = 'hidden';
+}
+function closeEditModal() { 
+    const modal = document.getElementById('editModal');
+    const overlay = document.getElementById('editModalOverlay');
+    modal.classList.remove('active');
+    if (overlay) overlay.classList.remove('active');
+    
+    const hamb = document.getElementById('hamburger-btn');
+    if (hamb && window.innerWidth <= 1024) hamb.style.display = 'flex';
+    document.body.style.overflow = '';
+}
+
+
+// AJAX AVATAR UPLOAD
+document.getElementById('photo_upload_input').addEventListener('change', async function() {
+    const form = document.getElementById('avatar-upload-form');
+    const formData = new FormData(form);
+    const loader = document.getElementById('profile-img-loader');
+    
+    if (loader) loader.classList.add('active');
+    
+    try {
+        const response = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.image_url) {
+            const avatarImg = document.getElementById('profile-avatar-display');
+            if (avatarImg) {
+                avatarImg.src = data.image_url;
+            } else {
+                // If there was no image before, we might need to replace the placeholder
+                location.reload(); // Fallback for simplicity when transitioning from placeholder to image
+            }
+        } else if (data.error) {
+            alert(data.error);
+        }
+    } catch (error) {
+        console.error('Upload failed:', error);
+    } finally {
+        if (loader) loader.classList.remove('active');
+    }
+});
+
+// CLIPBOARD
+function copyRefCode() {
+    const txt = document.getElementById('refCodeText').innerText;
+    navigator.clipboard.writeText(txt).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const orig = btn.innerText;
+        btn.innerText = 'Copied ✓';
+        btn.classList.add('copied');
+        setTimeout(() => {
+            btn.innerText = orig;
+            btn.classList.remove('copied');
+        }, 3000);
+    });
+}
+</script>
+{% endblock %}

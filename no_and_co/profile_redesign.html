@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NØ&CO | Profile</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #111111;
+            --accent: #C9A96E;
+            --bg: #FAFAF8;
+            --card-bg: #FFFFFF;
+            --border: #E8E6E1;
+            --muted: #888888;
+            
+            --font-display: 'Cormorant Garamond', serif;
+            --font-ui: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--primary);
+            font-family: var(--font-ui);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .display-text {
+            font-family: var(--font-display);
+            font-weight: 400;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 64px;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            margin-bottom: 64px;
+            text-align: center;
+        }
+
+        .avatar-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 32px;
+        }
+
+        .avatar-ring {
+            position: absolute;
+            top: -6px;
+            left: -6px;
+            right: -6px;
+            bottom: -6px;
+            border: 1px solid transparent;
+            border-radius: 50%;
+            transition: border-color 0.4s ease;
+        }
+
+        .avatar-wrapper:hover .avatar-ring {
+            border-color: var(--accent);
+        }
+
+        .avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        }
+
+        .member-badge {
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary);
+            color: white;
+            padding: 6px 14px;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            white-space: nowrap;
+            border-radius: 2px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .user-name {
+            font-size: 36px;
+            line-height: 1.1;
+            margin-bottom: 12px;
+            color: var(--primary);
+        }
+
+        .user-contact {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 300;
+            margin-bottom: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .btn-outline {
+            display: inline-block;
+            border: 1px solid var(--primary);
+            padding: 14px 32px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--primary);
+            border-radius: 0;
+            font-weight: 500;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Section Global */
+        .section-header {
+            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 0.5px solid var(--border);
+        }
+
+        .section-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        /* Wallet Card */
+        .wallet-section {
+            margin-bottom: 64px;
+        }
+
+        .wallet-card {
+            background: var(--primary);
+            color: white;
+            padding: 40px;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.12);
+        }
+
+        .wallet-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(201,169,110,0.15) 0%, rgba(201,169,110,0) 70%);
+            transform: translate(30%, -30%);
+            pointer-events: none;
+        }
+
+        .wallet-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 56px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .wallet-tier {
+            color: var(--accent);
+            font-size: 10px;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .wallet-logo {
+            font-family: var(--font-display);
+            font-size: 16px;
+            letter-spacing: 0.2em;
+            color: rgba(255,255,255,0.6);
+        }
+
+        .wallet-balance-wrap {
+            margin-bottom: 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .wallet-balance {
+            font-size: 56px;
+            line-height: 1;
+            margin-bottom: 8px;
+        }
+
+        .wallet-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(255,255,255,0.5);
+        }
+
+        .progress-wrap {
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .progress-bar {
+            height: 2px;
+            background: rgba(255,255,255,0.15);
+            width: 100%;
+            margin-bottom: 16px;
+            position: relative;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            border-radius: 1px;
+        }
+
+        @keyframes fillBar {
+            from { width: 0%; }
+            to { width: 68%; } /* 340/500 */
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: rgba(255,255,255,0.7);
+            font-weight: 400;
+        }
+
+        /* Recent Activity */
+        .recent-activity {
+            margin-bottom: 64px;
+        }
+
+        .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .order-card {
+            background: var(--card-bg);
+            border: 0.5px solid var(--border);
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 2px;
+        }
+
+        .order-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 32px rgba(0,0,0,0.04);
+            border-color: var(--border);
+        }
+
+        .order-img {
+            width: 72px;
+            height: 96px;
+            object-fit: cover;
+            background: #F5F5F5;
+            border-radius: 2px;
+        }
+
+        .order-info {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .order-number {
+            font-size: 22px;
+            margin-bottom: 6px;
+            color: var(--primary);
+        }
+
+        .order-date {
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 12px;
+            font-weight: 300;
+        }
+
+        .status-chip {
+            align-self: flex-start;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 4px 10px;
+            background: #F5F5F5;
+            color: var(--primary);
+            border-radius: 2px;
+        }
+
+        .status-chip.delivered {
+            background: rgba(201,169,110,0.1);
+            color: #997B41;
+        }
+
+        .order-action {
+            padding: 16px;
+            color: var(--muted);
+            transition: color 0.3s ease;
+        }
+
+        .order-action:hover {
+            color: var(--primary);
+        }
+
+        /* Log out */
+        .logout-section {
+            margin-top: 24px;
+            margin-bottom: 64px;
+            text-align: center;
+        }
+
+        .logout-link {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--muted);
+            display: inline-block;
+            position: relative;
+            padding-bottom: 4px;
+            transition: color 0.3s ease;
+        }
+
+        .logout-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 0.5px;
+            background: var(--muted);
+            transition: background 0.3s ease;
+        }
+
+        .logout-link:hover {
+            color: var(--primary);
+        }
+
+        .logout-link:hover::after {
+            background: var(--primary);
+        }
+
+        /* Right Panel - Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 0.5px solid var(--border);
+            padding: 40px 32px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+            border-radius: 2px;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 24px 48px rgba(0,0,0,0.06);
+            border-color: var(--accent);
+        }
+
+        .stat-icon-wrap {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .stat-icon {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 16px;
+            color: var(--primary);
+        }
+
+        .stat-action {
+            display: inline-flex;
+            align-items: center;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-weight: 500;
+            color: var(--primary);
+            margin-top: auto;
+            width: max-content;
+            padding-bottom: 2px;
+            border-bottom: 1px solid transparent;
+            transition: color 0.3s ease, border-color 0.3s ease;
+        }
+
+        .stat-action:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .stat-action svg {
+            width: 12px;
+            height: 12px;
+            margin-left: 6px;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .stat-action:hover svg {
+            transform: translateX(4px);
+        }
+
+        /* Media Queries */
+        @media (min-width: 768px) {
+            .container {
+                padding: 64px 48px;
+            }
+            
+            .profile-header {
+                text-align: left;
+            }
+
+            .user-contact {
+                flex-direction: row;
+                gap: 16px;
+                justify-content: flex-start;
+            }
+            
+            .user-contact span:not(:last-child)::after {
+                content: '•';
+                margin-left: 16px;
+                color: var(--border);
+            }
+
+            .avatar-wrapper {
+                margin-bottom: 40px;
+            }
+
+            .avatar {
+                width: 80px;
+                height: 80px;
+            }
+
+            .user-name {
+                font-size: 48px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 24px;
+            }
+
+            .logout-section {
+                text-align: left;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .container {
+                padding: 80px 64px;
+            }
+
+            .layout-grid {
+                grid-template-columns: 6fr 4fr;
+                gap: 120px;
+                align-items: start;
+            }
+
+            .right-panel {
+                position: sticky;
+                top: 80px;
+            }
+
+            .logout-section {
+                margin-top: 48px;
+            }
+        }
+
+        /* Animation class */
+        .animate-progress {
+            animation: fillBar 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            animation-delay: 0.4s;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="layout-grid">
+            
+            <!-- Left Panel -->
+            <div class="left-panel">
+                
+                <!-- Profile Header -->
+                <div class="profile-header">
+                    <div class="avatar-wrapper">
+                        <div class="avatar-ring"></div>
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop" alt="User Avatar" class="avatar">
+                        <div class="member-badge">MEMBER SINCE APR 2026</div>
+                    </div>
+                    <h1 class="user-name display-text">Alexander Sterling</h1>
+                    <div class="user-contact">
+                        <span>alexander.sterling@example.com</span>
+                        <span>+44 7700 900077</span>
+                    </div>
+                    <button class="btn-outline">Edit Profile</button>
+                </div>
+
+                <!-- Loyalty / Wallet Section -->
+                <div class="wallet-section">
+                    <div class="section-header">
+                        <h2 class="section-title">NØ&CO Membership</h2>
+                    </div>
+                    <div class="wallet-card">
+                        <div class="wallet-top">
+                            <span class="wallet-tier">Silver Member</span>
+                            <span class="wallet-logo">NØ&CO</span>
+                        </div>
+                        
+                        <div class="wallet-balance-wrap">
+                            <div class="wallet-subtitle">WALLET</div>
+                            <div class="wallet-balance display-text" id="wallet-balance">₹0.00</div>
+                            <div class="wallet-label">AVAILABLE BALANCE</div>
+                        </div>
+                        
+                        <div class="progress-wrap">
+                            <div class="progress-header">
+                                <span class="progress-title">PROFILE COMPLETION</span>
+                                <span class="progress-percentage display-text" id="progress-percent">0%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                            <div class="progress-footer">
+                                4 of 6 steps completed
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="recent-activity">
+                    <div class="section-header">
+                        <h2 class="section-title">Recent Orders</h2>
+                    </div>
+                    <div class="order-list">
+                        <!-- Order 1 -->
+                        <div class="order-card">
+                            <img src="https://images.unsplash.com/photo-1594938298593-70f111f451b6?q=80&w=200&auto=format&fit=crop" alt="Order item" class="order-img">
+                            <div class="order-info">
+                                <div class="order-number display-text">#ORD-90821</div>
+                                <div class="order-date">April 24, 2026</div>
+                                <div class="status-chip delivered">Delivered</div>
+                            </div>
+                            <a href="#" class="order-action">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </a>
+                        </div>
+                        <!-- Order 2 -->
+                        <div class="order-card">
+                            <img src="https://images.unsplash.com/photo-1593030761757-71fae45fa0e7?q=80&w=200&auto=format&fit=crop" alt="Order item" class="order-img">
+                            <div class="order-info">
+                                <div class="order-number display-text">#ORD-90754</div>
+                                <div class="order-date">March 12, 2026</div>
+                                <div class="status-chip processing">Processing</div>
+                            </div>
+                            <a href="#" class="order-action">
+                                <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="square" stroke-linejoin="miter">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Log Out -->
+                <div class="logout-section">
+                    <a href="#" class="logout-link">Log Out</a>
+                </div>
+
+            </div> <!-- End Left Panel -->
+
+            <!-- Right Panel (Sticky Stats) -->
+            <div class="right-panel">
+                <div class="stats-grid">
+                    
+                    <!-- Orders Card -->
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap">
+                            <div class="label">Orders</div>
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+                                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                            </svg>
+                        </div>
+                        <div class="stat-value display-text">15</div>
+                        <a href="#" class="stat-action">
+                            Track
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+
+                    <!-- Bag Card -->
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap">
+                            <div class="label">Bag</div>
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+                                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <path d="M16 10a4 4 0 0 1-8 0"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-value display-text">0</div>
+                        <a href="#" class="stat-action">
+                            View
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+
+                    <!-- Wallet Card (Balance) -->
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap">
+                            <div class="label">Wallet</div>
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="stat-value display-text">$250</div>
+                        <a href="#" class="stat-action">
+                            Manage
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+
+                    <!-- Addresses Card -->
+                    <div class="stat-card">
+                        <div class="stat-icon-wrap">
+                            <div class="label">Saved Addresses</div>
+                            <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                        <div class="stat-value display-text">1</div>
+                        <a href="#" class="stat-action">
+                            Add
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                <polyline points="12 5 19 12 12 19"></polyline>
+                            </svg>
+                        </a>
+                    </div>
+
+                </div>
+            </div> <!-- End Right Panel -->
+
+        </div>
+    </div>
+    <style>
+        /* Add these specific overrides for the new card contents */
+        .wallet-subtitle {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            margin-bottom: 4px;
+            font-family: var(--font-ui);
+        }
+
+        .wallet-balance {
+            font-size: 48px;
+            line-height: 1;
+            margin-bottom: 4px;
+            color: #FAFAF8;
+        }
+
+        .wallet-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: rgba(255,255,255,0.4);
+            font-family: var(--font-ui);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 10px;
+        }
+
+        .progress-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            font-family: var(--font-ui);
+        }
+
+        .progress-percentage {
+            font-size: 24px;
+            line-height: 1;
+            color: #FAFAF8;
+        }
+
+        .progress-bar {
+            height: 2px;
+            background: rgba(255,255,255,0.15);
+            width: 100%;
+            margin-bottom: 10px;
+            position: relative;
+            border-radius: 1px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            border-radius: 1px;
+            transition: width 1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .progress-footer {
+            font-size: 10px;
+            color: rgba(255,255,255,0.5);
+            font-family: var(--font-ui);
+        }
+    </style>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // --- 1. Progress Bar & Percent Animation (0 -> 68% over 1.0s) ---
+            const targetPercent = 68;
+            const durationPercent = 1000;
+            
+            const progressFill = document.getElementById("progress-fill");
+            const progressText = document.getElementById("progress-percent");
+            
+            // Trigger CSS width animation
+            setTimeout(() => {
+                progressFill.style.width = targetPercent + "%";
+            }, 50);
+
+            // Number counter for percent
+            let startTimestampPercent = null;
+            const stepPercent = (timestamp) => {
+                if (!startTimestampPercent) startTimestampPercent = timestamp;
+                const progress = Math.min((timestamp - startTimestampPercent) / durationPercent, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+                
+                progressText.textContent = Math.floor(easeOut * targetPercent) + "%";
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(stepPercent);
+                } else {
+                    progressText.textContent = targetPercent + "%";
+                }
+            };
+            window.requestAnimationFrame(stepPercent);
+
+            // --- 2. Wallet Balance Animation (0 -> 1240 over 1.2s) ---
+            const targetBalance = 1240;
+            const durationBalance = 1200;
+            const balanceText = document.getElementById("wallet-balance");
+            
+            let startTimestampBalance = null;
+            const stepBalance = (timestamp) => {
+                if (!startTimestampBalance) startTimestampBalance = timestamp;
+                const progress = Math.min((timestamp - startTimestampBalance) / durationBalance, 1);
+                const easeOut = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+                
+                const currentVal = easeOut * targetBalance;
+                
+                balanceText.textContent = "₹" + currentVal.toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                
+                if (progress < 1) {
+                    window.requestAnimationFrame(stepBalance);
+                } else {
+                    balanceText.textContent = "₹" + targetBalance.toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+                }
+            };
+            window.requestAnimationFrame(stepBalance);
+        });
+    </script>
+</body>
+</html>

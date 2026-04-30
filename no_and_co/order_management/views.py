@@ -109,19 +109,19 @@ def admin_update_order_status(request, order_id):
 
                 if new_status == "CANCELLED":
                     order.cancelled_at = timezone.now()
-
-
+                    if order.payment_method == "COD":
+                        order.payment_status = "VOIDED"
                 
-                    if order.payment_status == "PAID" or order.payment_method == "wallet":
+                order.status = new_status
+                order.save()
 
+                if new_status == "CANCELLED":
+                    if order.payment_status == "PAID" or order.payment_method == "wallet":
                         if order.payment_status != "REFUNDED":
                             wallet, _ = Wallet.objects.get_or_create(user=order.user)
                             refund_amount = order.total_amount
-
-
                             wallet.balance = Decimal(wallet.balance) + Decimal(refund_amount)
                             wallet.save()
-
 
                             WalletTransaction.objects.create(
                                 wallet=wallet,
@@ -137,6 +137,9 @@ def admin_update_order_status(request, order_id):
 
                 if new_status == "DELIVERED":
                     order.delivered_date = timezone.now()
+                    if order.payment_method == "COD":
+                        order.payment_status = "PAID"
+                    order.save()
 
 
                     try:

@@ -296,38 +296,35 @@
                         <div class="info-row"><span class="info-label">Date</span> {{ order.created_at|date:"d M Y" }}</div>
                         <div class="info-row">
                             <span class="info-label">Order Status</span> 
-                            {% with return_request=order.returns.first %}
-                                {% if return_request %}
-                                    <strong>
-                                    {% if return_request.status == 'REFUNDED' %}Refunded
-                                    {% elif return_request.status == 'APPROVED' %}Return Approved
-                                    {% elif return_request.status == 'REQUESTED' %}Return Requested
-                                    {% else %}Return Rejected{% endif %}
-                                    </strong>
-                                {% else %}
-                                    {{ order.items.first.item_status|default:"Pending"|title }}
-                                {% endif %}
-                            {% endwith %}
+                            {% if order.payment_status == 'VOIDED' or order.payment_status == 'REFUNDED' %}
+                                <strong style="color: #7F1D1D;">CANCELLED</strong>
+                            {% elif order.payment_status == 'PARTIALLY_REFUNDED' %}
+                                <strong style="color: #92400E;">PARTIALLY CANCELLED</strong>
+                            {% else %}
+                                <strong>{{ order.status_history.first.status|default:"Confirmed"|upper }}</strong>
+                            {% endif %}
                         </div>
                         <div class="info-row" style="margin-top: 10px;">
                             <span class="info-label">Payment Mode</span> {{ order.get_payment_method_display }}
                         </div>
                         <div class="info-row">
                             <span class="info-label">Pay Status</span> 
-                            {% if order.payment_method == 'COD' %}
-                                {% with return_request=order.returns.first %}
-                                    {% if return_request %}
-                                        {% if return_request.status == 'REFUNDED' %}Refunded
-                                        {% elif return_request.status == 'APPROVED' %}Refund in Process
-                                        {% elif return_request.status == 'REJECTED' %}Paid
-                                        {% else %}Refund N/A{% endif %}
-                                    {% else %}
-                                        {% if order.items.first.item_status == 'DELIVERED' or order.delivered_date %}Paid
-                                        {% else %}Pending{% endif %}
-                                    {% endif %}
-                                {% endwith %}
+                            {% if order.payment_status == 'PAID' %}
+                                <strong style="color:#14532D;">PAID</strong>
+                            {% elif order.payment_status == 'REFUNDED' %}
+                                <strong style="color:#111;">REFUNDED</strong>
+                            {% elif order.payment_status == 'PARTIALLY_REFUNDED' %}
+                                {% if order.payment_method == 'COD' %}
+                                    <strong style="color:#92400E;">PAY ON DELIVERY</strong>
+                                {% else %}
+                                    <strong style="color:#92400E;">PARTIALLY REFUNDED</strong>
+                                {% endif %}
+                            {% elif order.payment_status == 'VOIDED' %}
+                                <strong style="color:#7F1D1D;">VOIDED</strong>
+                            {% elif order.payment_method == 'COD' and order.payment_status == 'PENDING' %}
+                                <strong style="color:#92400E;">PAY ON DELIVERY</strong>
                             {% else %}
-                                {{ order.get_payment_status_display }}
+                                <strong>{{ order.get_payment_status_display|upper }}</strong>
                             {% endif %}
                         </div>
                     </div>
@@ -349,14 +346,19 @@
             </thead>
             <tbody>
                 {% for item in items %}
-                <tr>
+                <tr {% if item.item_status == 'CANCELLED' %}style="background-color: #FAFAFA;"{% endif %}>
                     <td>
-                        <span class="item-main">{{ item.variant.product.product_name }}</span>
-                        <div class="item-sub">{{ item.variant.color }} &nbsp; | &nbsp; size {{ item.variant.size.name }}</div>
+                        <span class="item-main" {% if item.item_status == 'CANCELLED' %}style="text-decoration: line-through; color: #999;"{% endif %}>{{ item.variant.product.product_name }}</span>
+                        <div class="item-sub">
+                            {{ item.variant.color }} &nbsp; | &nbsp; size {{ item.variant.size.name }}
+                            {% if item.item_status == 'CANCELLED' %}
+                                &nbsp; | &nbsp; <span style="color: #7F1D1D; font-weight: bold;">CANCELLED</span>
+                            {% endif %}
+                        </div>
                     </td>
-                    <td style="text-align: center;">{{ item.quantity }}</td>
-                    <td style="text-align: right;">&#8377;{{ item.price }}</td>
-                    <td style="text-align: right; font-weight: bold;">&#8377;{{ item.line_total }}</td>
+                    <td style="text-align: center; {% if item.item_status == 'CANCELLED' %}text-decoration: line-through; color: #999;{% endif %}">{{ item.quantity }}</td>
+                    <td style="text-align: right; {% if item.item_status == 'CANCELLED' %}text-decoration: line-through; color: #999;{% endif %}">&#8377;{{ item.price }}</td>
+                    <td style="text-align: right; font-weight: bold; {% if item.item_status == 'CANCELLED' %}text-decoration: line-through; color: #999;{% endif %}">&#8377;{{ item.line_total }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -368,7 +370,7 @@
         <table class="summary-table">
             <tr>
                 <td class="summary-label">Subtotal</td>
-                <td class="summary-value">&#8377;{{ order.subtotal }}</td>
+                <td class="summary-value">&#8377;{{ order.active_original_subtotal }}</td>
             </tr>
             <tr>
                 <td class="summary-label">Shipping</td>
@@ -378,17 +380,29 @@
             </tr>
             <tr>
                 <td class="summary-label">Tax (GST)</td>
-                <td class="summary-value">&#8377;{{ order.tax_amount }}</td>
+                <td class="summary-value">&#8377;{{ order.active_tax }}</td>
             </tr>
-            {% if order.discount_amount and order.discount_amount > 0 %}
+            {% if order.active_discount and order.active_discount > 0 %}
             <tr>
                 <td class="summary-label">Discount</td>
-                <td class="summary-value">&ndash; &#8377;{{ order.discount_amount }}</td>
+                <td class="summary-value">&ndash; &#8377;{{ order.active_discount }}</td>
             </tr>
             {% endif %}
+            
+            {% if order.payment_method != 'COD' and order.cancelled_subtotal > 0 %}
+            <tr style="color: #777;">
+                <td class="summary-label">Cancelled Amount</td>
+                <td class="summary-value" style="text-decoration: line-through;">&ndash; &#8377;{{ order.cancelled_subtotal }}</td>
+            </tr>
+            <tr>
+                <td class="summary-label" style="color: #059669; font-weight: bold;">Refund Amount</td>
+                <td class="summary-value" style="color: #059669; font-weight: bold;">&#8377;{{ order.refund_amount }}</td>
+            </tr>
+            {% endif %}
+
             <tr class="total-row">
                 <td class="summary-label" style="font-weight:bold;">Total Amount</td>
-                <td class="summary-value total-amount">&#8377;{{ order.total_amount }}</td>
+                <td class="summary-value total-amount">&#8377;{{ order.active_total }}</td>
             </tr>
         </table>
     </div>
