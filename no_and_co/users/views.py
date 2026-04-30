@@ -232,7 +232,7 @@ def add_profile_pic(request, id):
             return redirect("user-profile", id=id)
 
         user.profile_photo = new_photo
-        user.save()
+        user.save(update_fields=['profile_photo'])
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({"image_url": user.profile_photo.url})
