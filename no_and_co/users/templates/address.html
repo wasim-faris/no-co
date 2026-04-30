@@ -146,57 +146,58 @@
         to { transform: rotate(360deg); }
     }
 
-    /* ── MODAL UI ENHANCEMENTS ── */
-    .uni-modal { border: none !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; overflow: hidden; }
-    .uni-modal-body { padding: 32px !important; overflow-x: hidden; }
-    .uni-modal-header { padding: 24px 32px !important; border-bottom: 0.5px solid #eee !important; justify-content: flex-start !important; }
-    .uni-modal-footer { padding: 24px 32px !important; border-top: 0.5px solid #eee !important; }
-    .uni-modal-title { font-size: 16px !important; font-weight: 600 !important; font-family: var(--font-display) !important; letter-spacing: 0.02em !important; text-transform: none !important; }
-    .uni-modal-close { font-size: 20px !important; right: 16px !important; opacity: 0.4; transition: opacity 0.2s; }
-    .uni-modal-close:hover { opacity: 1; }
+    /* ── MODAL: DESKTOP RIGHT-SIDE DRAWER ── */
+    @media (min-width: 769px) {
+        #addressModal,
+        #EditaddressModal {
+            top: 0 !important;
+            left: auto !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 480px !important;
+            max-width: 480px !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            border-radius: 0 !important;
+            border-left: 0.5px solid var(--border) !important;
+            transform: translateX(100%) !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            will-change: transform;
+        }
+        #addressModal.active,
+        #EditaddressModal.active {
+            transform: translateX(0) !important;
+        }
+    }
 
+    /* ── FORM FIELDS ── */
     .form-field { margin-bottom: 24px; position: relative; }
     .form-label { display: block; font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); margin-bottom: 8px; font-family: var(--font-ui); }
     .form-input { width: 100%; border: none; border-bottom: 0.5px solid var(--border); padding: 10px 0; font-family: var(--font-ui); font-size: 14px; color: var(--primary); background: transparent; outline: none; transition: border-color 0.3s ease; border-radius: 0; -webkit-appearance: none; }
     .form-input:focus { border-color: var(--primary); }
     .form-input.error { border-color: var(--danger); }
-    
     .error-msg { font-size: 10px; color: var(--danger); margin-top: 4px; display: none; }
     .error-msg.show { display: block; }
-
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    
-    @media (max-width: 768px) {
-        .form-row { grid-template-columns: 1fr !important; gap: 0; }
-        .uni-modal-body { padding: 24px !important; }
-        .uni-modal-header, .uni-modal-footer { padding: 20px 24px !important; }
-        .uni-modal { max-width: 100% !important; width: 100% !important; border-radius: 20px 20px 0 0 !important; }
-    }
+    @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; gap: 0; } }
 
-    /* Fix for phone row */
+    /* ── PHONE ROW ── */
     .phone-row { display: flex; border-bottom: 0.5px solid var(--border); transition: border-color 0.3s; }
     .phone-row.focus { border-color: var(--primary); }
     .phone-row.error { border-color: var(--danger); }
     .phone-code-select { border: none !important; border-right: 0.5px solid var(--border) !important; background: transparent !important; padding: 10px 8px 10px 0 !important; font-size: 14px !important; font-family: var(--font-ui) !important; color: var(--primary) !important; outline: none !important; cursor: pointer; width: 80px; }
     .phone-number-input { border: none !important; flex: 1; padding: 10px !important; background: transparent !important; font-size: 14px !important; font-family: var(--font-ui) !important; color: var(--primary) !important; outline: none !important; }
 
-    /* Custom Radio & Checkbox */
+    /* ── RADIO & CHECKBOX ── */
     .radio-group { display: flex; gap: 24px; margin-top: 12px; }
     .radio-item, .check-item { display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; font-family: var(--font-ui); color: var(--primary); font-weight: 300; }
     .radio-item input, .check-item input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; margin: 0; }
     .check-label, .radio-label { line-height: 1; }
 
-    /* Select Styling */
+    /* ── SELECT ── */
     select.form-input { cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%23888' stroke-width='1' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0 center; padding-right: 20px; }
-
-    /* Close Button Polish */
-    .uni-modal-close { 
-        width: 32px !important; height: 32px !important; 
-        background: #f5f5f5 !important; border-radius: 50% !important; 
-        font-size: 18px !important; display: flex !important; 
-        align-items: center !important; justify-content: center !important; 
-        right: 24px !important; top: 24px !important;
-    }
 </style>
 {% endblock %}
 
@@ -767,115 +768,76 @@ function confirmDelete(id) { const o = document.getElementById(`delete-overlay-$
 function cancelDelete(id)  { const o = document.getElementById(`delete-overlay-${id}`); if (o) o.classList.remove('visible'); }
 
 
-/* ── DOMContentLoaded ── */
+/* ── DOMContentLoaded: one-time init ── */
 document.addEventListener('DOMContentLoaded', function () {
     fetchCountries();
     ensureEditErrorSpans();
-
-
-    /* ADD — PIN */
-    const addPin = document.getElementById('f-postal');
-    if (addPin) addPin.addEventListener('input', () => verifyPin('add', { pin:'f-postal', city:'f-city', state:'f-state', country:'f-country', errPin:'err-postal' }));
-
-    /* ADD — phone focus & digits only */
-    const addPhone = document.getElementById('f-phone');
-    if (addPhone) {
-        addPhone.addEventListener('focus', () => addPhone.closest('.phone-row').classList.add('focus'));
-        addPhone.addEventListener('blur', () => addPhone.closest('.phone-row').classList.remove('focus'));
-        addPhone.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); clearFieldError(this, document.getElementById('err-phone')); });
-    }
-
-    /* ADD — country change */
-    const addCountry = document.getElementById('f-country');
-    if (addCountry) addCountry.addEventListener('change', function () {
-        if (!addCountry.disabled) { formState.add.pinVerified = false; formState.add.officialCity = ''; formState.add.officialState = ''; unlockField(document.getElementById('f-city')); unlockField(document.getElementById('f-state')); clearFieldError(document.getElementById('f-postal'), document.getElementById('err-postal')); }
-    });
-
-    /* ADD — live clear */
-    ['f-first-name','f-last-name','f-addr1','f-city','f-state'].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener('input', function () { clearFieldError(this, document.getElementById('err-' + id.replace('f-', ''))); });
-    });
-
-    /* ADD — submit */
-    const addForm = document.getElementById('addressForm');
-    if (addForm) {
-        addForm.addEventListener('submit', function (e) {
-            addForm.querySelectorAll('select[disabled]').forEach(sel => {
-                const val = sel.getAttribute('data-locked-value') || sel.value;
-                const existing = addForm.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
-                if (existing) { existing.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); addForm.appendChild(h); }
-            });
-            if (!validateAddress('add', ADD_IDS)) { 
-                e.preventDefault(); 
-                const firstErr = addForm.querySelector('.error, .error-msg.show'); 
-                if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' }); 
-            } else {
-                const submitBtn = this.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.style.color = 'transparent';
-                    submitBtn.style.position = 'relative';
-                    submitBtn.insertAdjacentHTML('beforeend', '<div class="inline-spinner" style="position:absolute; top:50%; left:50%; margin-left:-8px; margin-top:-8px; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:btn-spin 1s linear infinite;"></div>');
-                }
-            }
-        });
-    }
-
-    /* EDIT — PIN */
-    const editPin = document.getElementById('edit-pin');
-    if (editPin) editPin.addEventListener('input', () => verifyPin('edit', { pin:'edit-pin', city:'edit-city', state:'edit-state', country:'edit-country', errPin:'err-edit-pin' }));
-
-    /* EDIT — phone focus & digits only */
-    const editPhone = document.getElementById('edit-phone');
-    if (editPhone) {
-        editPhone.addEventListener('focus', () => editPhone.closest('.phone-row').classList.add('focus'));
-        editPhone.addEventListener('blur', () => editPhone.closest('.phone-row').classList.remove('focus'));
-        editPhone.addEventListener('input', function () { this.value = this.value.replace(/\D/g, '').slice(0, 10); clearFieldError(this, document.getElementById('err-edit-phone')); });
-    }
-
-    /* EDIT — country change */
-    const editCountry = document.getElementById('edit-country');
-    if (editCountry) editCountry.addEventListener('change', function () {
-        if (!editCountry.disabled) { formState.edit.pinVerified = false; formState.edit.officialCity = ''; formState.edit.officialState = ''; unlockField(document.getElementById('edit-city')); unlockField(document.getElementById('edit-state')); clearFieldError(document.getElementById('edit-pin'), document.getElementById('err-edit-pin')); }
-    });
-
-    /* EDIT — live clear */
-    ['edit-first-name','edit-last-name','edit-addr1','edit-city','edit-state'].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener('input', function () { clearFieldError(this, document.getElementById('err-' + id)); });
-    });
-
-    /* EDIT — submit */
-    const editForm = document.getElementById('editAddressForm');
-    if (editForm) {
-        editForm.addEventListener('submit', function (e) {
-            editForm.querySelectorAll('select[disabled]').forEach(sel => {
-                const val = sel.getAttribute('data-locked-value') || sel.value;
-                const existing = editForm.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
-                if (existing) { existing.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); editForm.appendChild(h); }
-            });
-            if (!validateAddress('edit', EDIT_IDS)) { 
-                e.preventDefault(); 
-                const firstErr = editForm.querySelector('.error, [id^="err-edit-"]:not(.hidden)'); 
-                if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' }); 
-            } else {
-                const submitBtn = this.querySelector('button[type="submit"]');
-                if (submitBtn) {
-                    submitBtn.disabled = true;
-                    submitBtn.style.color = 'transparent';
-                    submitBtn.style.position = 'relative';
-                    submitBtn.insertAdjacentHTML('beforeend', '<div class="inline-spinner" style="position:absolute; top:50%; left:50%; margin-left:-8px; margin-top:-8px; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:btn-spin 1s linear infinite;"></div>');
-                }
-            }
-        });
-    }
-
-    /* Escape → close */
-    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeModal(); closeEditModal(); } });
 });
+
+/* ── Event Delegation (works even after DOM updates) ── */
+document.addEventListener('input', function(e) {
+    const id = e.target.id;
+    if (id === 'f-postal') verifyPin('add', { pin:'f-postal', city:'f-city', state:'f-state', country:'f-country', errPin:'err-postal' });
+    if (id === 'edit-pin') verifyPin('edit', { pin:'edit-pin', city:'edit-city', state:'edit-state', country:'edit-country', errPin:'err-edit-pin' });
+    if (id === 'f-phone') { e.target.value = e.target.value.replace(/\D/g,'').slice(0,10); clearFieldError(e.target, document.getElementById('err-phone')); }
+    if (id === 'edit-phone') { e.target.value = e.target.value.replace(/\D/g,'').slice(0,10); clearFieldError(e.target, document.getElementById('err-edit-phone')); }
+    const fieldMap = { 'f-first-name':'err-first-name','f-last-name':'err-last-name','f-addr1':'err-addr1','f-city':'err-city','f-state':'err-state','edit-first-name':'err-edit-first-name','edit-last-name':'err-edit-last-name','edit-addr1':'err-edit-addr1','edit-city':'err-edit-city','edit-state':'err-edit-state' };
+    if (fieldMap[id]) clearFieldError(e.target, document.getElementById(fieldMap[id]));
+});
+
+document.addEventListener('focusin', function(e) {
+    if (e.target.classList.contains('phone-number-input')) { const r = e.target.closest('.phone-row'); if (r) r.classList.add('focus'); }
+});
+document.addEventListener('focusout', function(e) {
+    if (e.target.classList.contains('phone-number-input')) { const r = e.target.closest('.phone-row'); if (r) r.classList.remove('focus'); }
+});
+
+document.addEventListener('change', function(e) {
+    if (e.target.id === 'f-country' && !e.target.disabled) {
+        formState.add.pinVerified = false; formState.add.officialCity = ''; formState.add.officialState = '';
+        unlockField(document.getElementById('f-city')); unlockField(document.getElementById('f-state'));
+        clearFieldError(document.getElementById('f-postal'), document.getElementById('err-postal'));
+    }
+    if (e.target.id === 'edit-country' && !e.target.disabled) {
+        formState.edit.pinVerified = false; formState.edit.officialCity = ''; formState.edit.officialState = '';
+        unlockField(document.getElementById('edit-city')); unlockField(document.getElementById('edit-state'));
+        clearFieldError(document.getElementById('edit-pin'), document.getElementById('err-edit-pin'));
+    }
+});
+
+document.addEventListener('submit', function(e) {
+    if (e.target.id === 'addressForm') {
+        const form = e.target;
+        form.querySelectorAll('select[disabled]').forEach(sel => {
+            const val = sel.getAttribute('data-locked-value') || sel.value;
+            const ex = form.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
+            if (ex) { ex.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); form.appendChild(h); }
+        });
+        if (!validateAddress('add', ADD_IDS)) {
+            e.preventDefault();
+            const firstErr = form.querySelector('.error, .error-msg.show');
+            if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+        }
+        // Valid submit: global btn-loading-state in modal_system.html handles the button spinner
+    }
+    if (e.target.id === 'editAddressForm') {
+        const form = e.target;
+        form.querySelectorAll('select[disabled]').forEach(sel => {
+            const val = sel.getAttribute('data-locked-value') || sel.value;
+            const ex = form.querySelector(`input[type="hidden"][name="${sel.name}"][data-mirror="1"]`);
+            if (ex) { ex.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); form.appendChild(h); }
+        });
+        if (!validateAddress('edit', EDIT_IDS)) {
+            e.preventDefault();
+            const firstErr = form.querySelector('.error, [id^="err-edit-"]:not(.hidden)');
+            if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
+        }
+        // Valid submit: global btn-loading-state in modal_system.html handles the button spinner
+    }
+});
+
+/* Escape → close */
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeModal(); closeEditModal(); } });
 </script>
 
 {% include 'user_base/components/nav_js.html' %}
