@@ -491,8 +491,10 @@
                                 <div class="prod-name">{{ item.variant.product.product_name }}</div>
                                 <div class="prod-meta">Colour: {{ item.variant.color }} &nbsp;·&nbsp; Size: {{ item.variant.size.name }} &nbsp;·&nbsp; Qty: {{ item.quantity }}</div>
                                 <div class="prod-actions">
-                                    {% if item.item_status == 'PLACED' or item.item_status == 'PENDING' %}
-                                    <button type="button" class="order-action-mini cancel-item-btn" data-item-index="{{ forloop.counter0 }}">Cancel Item</button>
+                                    {% if order.items.all|length > 1 %}
+                                        {% if item.item_status == 'PLACED' or item.item_status == 'PENDING' %}
+                                        <button type="button" class="order-action-mini cancel-item-btn" data-item-index="{{ forloop.counter0 }}">Cancel Item</button>
+                                        {% endif %}
                                     {% endif %}
                                     
                                     {% if item.item_status == 'DELIVERED' %}
@@ -519,9 +521,9 @@
                                             {% endif %}
                                         {% else %}
                                             {% if item.item_status == 'DELIVERED' or order.delivered_date %}
-                                                Status: Delivered
+                                                <span class="prod-meta">Status: Delivered</span>
                                             {% else %}
-                                                Status: {{ item.item_status|title }}
+                                                <span class="prod-meta">Status: {{ item.item_status|title }}</span>
                                             {% endif %}
                                         {% endif %}
                                     {% endwith %}
