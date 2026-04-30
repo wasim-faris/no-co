@@ -34,11 +34,6 @@
             }
             return;
         }
-        /* Close (X) button inside drawer */
-        if (e.target.closest('#drawerClose')) {
-            closeDrawer();
-            return;
-        }
         /* Overlay click */
         if (e.target.id === 'drawerOverlay') {
             closeDrawer();
