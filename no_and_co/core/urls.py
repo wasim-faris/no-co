@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from . import views
 urlpatterns = [
-    path("", views.ladies, name='home'),
+    path("", views.home, name='home'),
     path("mens/", views.home ,name="mens"),
     path("ladies/", views.ladies ,name="ladies"),
     path("kids/", views.kids, name="kids"),
