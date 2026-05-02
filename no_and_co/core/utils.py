@@ -29,19 +29,17 @@ def coupon_validation(coupon, user, cart_total):
     if coupon.min_purchase and cart_total < coupon.min_purchase:
         return False, f"Minimum ₹{coupon.min_purchase} required"
 
-    # ✅ STRICT PER USER LIMIT (REQUIRED)
-    if coupon.usage_limit_per_user is None:
-        return False, "This coupon is not valid"
+    # PER USER LIMIT
+    if coupon.usage_limit_per_user is not None:
+        used_count = CouponUsage.objects.filter(
+            user=user,
+            coupon=coupon
+        ).count()
 
-    used_count = CouponUsage.objects.filter(
-        user=user,
-        coupon=coupon
-    ).count()
+        if used_count >= coupon.usage_limit_per_user:
+            return False, "You have already used this coupon"
 
-    if used_count >= coupon.usage_limit_per_user:
-        return False, "You have already used this coupon"
-
-    # ✅ EXTRA SAFETY
+    # EXTRA SAFETY
     if cart_total <= 0:
         return False, "Invalid cart total"
 
@@ -77,11 +75,15 @@ def get_cart_total(user):
 def get_available_coupons(user, cart_total):
     today = timezone.now().date()
 
+    from django.db.models import Q
+    
     coupons = Coupon.objects.filter(
-        is_active = True,
-        is_deleted = False,
-        start_date__lte=today,
-        end_date__gte = today
+        is_active=True,
+        is_deleted=False
+    ).filter(
+        Q(start_date__lte=today) | Q(start_date__isnull=True)
+    ).filter(
+        Q(end_date__gte=today) | Q(end_date__isnull=True)
     ).order_by("-created_at")
 
     valid_coupons = []
@@ -90,16 +92,18 @@ def get_available_coupons(user, cart_total):
         if coupon.min_purchase and cart_total < coupon.min_purchase:
             continue
 
-        # STRICT RULE: Must have a limit
-        if coupon.usage_limit_per_user is None:
-            continue
+        if coupon.usage_limit_per_user is not None:
+            used = CouponUsage.objects.filter(
+                user=user, coupon=coupon
+            ).count()
 
-        used = CouponUsage.objects.filter(
-            user=user, coupon=coupon
-        ).count()
+            if used >= coupon.usage_limit_per_user:
+                continue
 
-        if used >= coupon.usage_limit_per_user:
-            continue
+        if coupon.total_usage_limit is not None:
+            total_used = CouponUsage.objects.filter(coupon=coupon).count()
+            if total_used >= coupon.total_usage_limit:
+                continue
 
         valid_coupons.append(coupon)
 

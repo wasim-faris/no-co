@@ -19,6 +19,7 @@ urlpatterns = [
     path("cancel-order-item/<int:item_id>/", views.cancel_order_item, name="cancel-order-item"),
     path("apply-coupon/", views.apply_coupon, name="apply-coupon"),
     path("remove-coupon/", views.remove_coupon, name="remove-coupon"),
+    path("api/coupons/active/", views.active_coupons, name="active-coupons"),
     path("return-order/<int:order_id>/", views.return_order, name="return-order"),
     path("payment-success/<int:order_id>/", views.payment_success, name="payment-success"),
     path("order-failed/<int:order_id>/", views.order_failed, name="order-failed"),

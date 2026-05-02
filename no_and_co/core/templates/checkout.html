@@ -788,27 +788,23 @@
                     <button type="submit" class="uni-modal-btn uni-modal-btn-primary">APPLY</button>
                 </div>
             </form>
+            {% else %}
+            <div class="flex flex-col gap-4 mt-4">
+                <div class="p-4 border border-black bg-gray-50 flex justify-between items-center">
+                    <span class="text-[11px] font-bold uppercase tracking-widest">{{ applied_coupon.code }} Applied</span>
+                    <button type="button" onclick="removeCoupon()" class="text-[10px] font-bold uppercase tracking-widest text-red-600 hover:text-red-800 underline">Remove</button>
+                </div>
+            </div>
             {% endif %}
 
             <!-- Available Coupons -->
             <div class="mt-8">
                 <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 mb-6">Available Coupons</h3>
                 <div class="space-y-4" id="available-coupons">
-                    {% if coupons %}
-                        {% for coupon in coupons %}
-                            <div class="p-6 border border-gray-200 bg-gray-50/50 group hover:border-black transition-all cursor-pointer" onclick="selectCoupon('{{ coupon.code }}')">
-                                <div class="flex justify-between items-start mb-3">
-                                    <span class="px-3 py-1 bg-white border border-black text-[11px] font-black tracking-widest">{{ coupon.code }}</span>
-                                    <span class="text-[11px] font-bold text-green-600">SAVE ₹{{ coupon.discount_value }}</span>
-                                </div>
-                                <p class="text-[10px] text-gray-500 uppercase tracking-tight leading-relaxed">{{ coupon.description|default:"Exclusive NØ&CO Discount" }}</p>
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <div class="py-8 text-center bg-gray-50 border border-dashed border-gray-200">
-                            <p class="text-[10px] text-gray-400 uppercase tracking-widest">No active coupons available</p>
-                        </div>
-                    {% endif %}
+                    <!-- Will be populated via JS fetch -->
+                    <div class="py-8 text-center bg-gray-50 border border-dashed border-gray-200" id="coupon-loading">
+                        <p class="text-[10px] text-gray-400 uppercase tracking-widest">Loading coupons...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -827,9 +823,76 @@
             overlay.classList.add('active');
             modal.classList.add('active');
             toggleBodyScroll(true);
+            fetchAvailableCoupons();
         } else {
             console.error('[Coupon Modal] Elements not found. overlay:', overlay, 'modal:', modal);
         }
+    }
+    
+    let availableCoupons = [];
+    
+    async function fetchAvailableCoupons() {
+        const container = document.getElementById('available-coupons');
+        if (!container) return;
+        
+        container.innerHTML = `
+            <div class="py-8 text-center bg-gray-50 border border-dashed border-gray-200">
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest">Loading coupons...</p>
+            </div>
+        `;
+        
+        try {
+            const response = await fetch('/api/coupons/active/');
+            const data = await response.json();
+            console.log(data); // Debug API response
+            
+            if (data.success) {
+                availableCoupons = data.coupons;
+                renderCoupons();
+            } else {
+                container.innerHTML = `
+                    <div class="py-8 text-center bg-gray-50 border border-dashed border-gray-200">
+                        <p class="text-[10px] text-red-400 uppercase tracking-widest">Failed to load coupons</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error fetching coupons:', error);
+            container.innerHTML = `
+                <div class="py-8 text-center bg-gray-50 border border-dashed border-gray-200">
+                    <p class="text-[10px] text-red-400 uppercase tracking-widest">Error loading coupons</p>
+                </div>
+            `;
+        }
+    }
+    
+    function renderCoupons() {
+        const container = document.getElementById('available-coupons');
+        if (!container) return;
+        
+        if (availableCoupons.length === 0) {
+            container.innerHTML = `
+                <div class="py-8 text-center bg-gray-50 border border-dashed border-gray-200">
+                    <p class="text-[10px] text-gray-400 uppercase tracking-widest">No active coupons available</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '';
+        availableCoupons.forEach(coupon => {
+            html += `
+                <div class="p-6 border border-gray-200 bg-gray-50/50 group hover:border-black transition-all cursor-pointer" onclick="selectCoupon('${coupon.code}')">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="px-3 py-1 bg-white border border-black text-[11px] font-black tracking-widest">${coupon.code}</span>
+                        <span class="text-[11px] font-bold text-green-600">SAVE ₹${coupon.discount_value}</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500 uppercase tracking-tight leading-relaxed">${coupon.description || 'Exclusive NØ&CO Discount'}</p>
+                </div>
+            `;
+        });
+        
+        container.innerHTML = html;
     }
     function closeModal() {
         var overlay = document.getElementById('modalOverlay');
@@ -842,7 +905,16 @@
     }
     function selectCoupon(code) {
         var input = document.getElementById('coupon-code');
-        if (input) { input.value = code; input.focus(); }
+        if (input) { 
+            input.value = code; 
+            input.focus(); 
+        } else {
+            if (typeof showToast === 'function') {
+                showToast("A coupon is already applied. Please remove it first.", "error");
+            } else {
+                alert("A coupon is already applied. Please remove it first.");
+            }
+        }
     }
 </script>
 

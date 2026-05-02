@@ -1069,6 +1069,11 @@ def return_order(request, order_id):
 
 def apply_coupon(request):
     if request.method == "POST":
+        if request.session.get("coupon_id"):
+            return JsonResponse({
+                "success": False , "message": "A coupon is already applied. Please remove it first."
+            })
+            
         code = request.POST.get("code")
 
         try:
@@ -1113,3 +1118,16 @@ def remove_coupon(request):
 def order_failed(request, order_id):
     order = get_object_or_404(Order, id=order_id, user=request.user)
     return render(request, "order_failed.html", {"order": order})
+
+@login_required(login_url="login")
+def active_coupons(request):
+    cart_total = get_cart_total(request.user)
+    coupons = get_available_coupons(request.user, cart_total)
+    data = []
+    for c in coupons:
+        data.append({
+            "code": c.code,
+            "discount_value": float(c.discount_value),
+            "description": "Exclusive NØ&CO Discount"
+        })
+    return JsonResponse({"success": True, "coupons": data})
