@@ -175,42 +175,43 @@
             <span class="section-label">Season Essentials</span>
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
-    <section class="w-full flex flex-col md:flex-row items-stretch no-gap gap-0 p-0 m-0">
+    
+<section class="w-full flex flex-col md:flex-row items-stretch no-gap gap-0 p-0 m-0">
         <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
-
-    <div class="w-full flex-1 aspect-[4/5] overflow-hidden p-0 m-0" style="position: relative;">
-        <div class="skeleton skeleton-img h-full w-full"></div>
-        <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/men-grid-vid-3.mp4" poster="{{ MEDIA_URL }}video/w18-hm-refresh-men-02-d.avif" class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
-            <source src="" type="video/mp4">
-        </video>
-    </div>
-
-    <!-- TAG LINK ADDED (no design change) -->
-    <a href="/products/?subcategory=LINEN-SHIRTS" class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto" style="display:flex !important; text-decoration:none; color:inherit;">
-
-        <span class="section-label">Soft Romance</span>
-
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-        </svg>
-
-    </a>
-
-</div>
-        <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
-            <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
+            <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0"
+                style="position: relative;">
                 <div class="skeleton skeleton-img h-full w-full"></div>
-                <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/men-grid-vid-1.mp4" poster="{{ MEDIA_URL }}video/MF05262P14-4x5-men-startpage-wk17.avif" class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
+                <video muted loop playsinline preload="none"
+                    onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
+                    data-src="{{ MEDIA_URL }}video/men-grid-vid-3.mp4" poster="{% static 'core/images/kid-img-1.avif' %}"
+                    class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
                     <source src="" type="video/mp4">
                 </video>
             </div>
-            <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto" style="display:flex !important;">
-                <span class="section-label">LINEN DAYS</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white actual-content mt-auto"
+                style="display:block !important;">
+                <p class="section-label">Shirts</p>
+                <p class="sub-label">Explore</p>
+            </div>
+        </div>
+        <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
+            <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0"
+                style="position: relative;">
+                <div class="skeleton skeleton-img h-full w-full"></div>
+                <video muted loop playsinline preload="none"
+                    onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
+                    data-src="{{ MEDIA_URL }}video/men-grid-vid-1.mp4" poster="{% static 'core/images/kid-im2.avif' %}"
+                    class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
+                    <source src="" type="video/mp4">
+                </video>
+            </div>
+            <div class="w-full px-4 md:px-8 py-4 border-b border-gray-200 bg-white actual-content mt-auto"
+                style="display:block !important;">
+                <p class="section-label">Trousers</p>
+                <p class="sub-label">Explore</p>
             </div>
         </div>
     </section>
-
     <section class="w-full grid grid-cols-3 md:grid-cols-6 no-gap">
         {% for variant in variants %}
         <a href="{% url 'product-details' variant.product.id %}" class="product-grid-item aspect-[3/4] skeleton-wrapper block">
