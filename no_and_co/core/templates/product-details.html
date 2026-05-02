@@ -2125,20 +2125,54 @@
     })();
 
     // ════════════════════════════════════════
-    // INITIAL WISHLIST STATE SYNC
+    // INITIAL WISHLIST STATE SYNC & RE-SYNC
     // ════════════════════════════════════════
-    document.addEventListener('DOMContentLoaded', function () {
-        const activeWishlistIds = [
-            {% for item in whishlist_items %}"{{ item.variant.id }}"{% if not forloop.last %},{% endif %}{% endfor %}
-        ];
+    function syncWishlistState() {
+        fetch("{% url 'get-wishlist-ids' %}")
+            .then(res => res.json())
+            .then(data => {
+                if (data.wishlist_ids) {
+                    // Update the global tracker
+                    wishlistedVariantIds.length = 0;
+                    data.wishlist_ids.forEach(id => wishlistedVariantIds.push(String(id)));
 
-        document.querySelectorAll('.like-btn').forEach(btn => {
-            const vId = String(btn.getAttribute('data-variant-id'));
-            if (activeWishlistIds.includes(vId)) {
-                btn.classList.add('liked');
-            }
-        });
+                    // Sync all heart icons on the page
+                    document.querySelectorAll('.like-btn').forEach(btn => {
+                        const vId = String(btn.getAttribute('data-variant-id'));
+                        // For the main PDP heart, it might not have the attribute yet
+                        const isMainHeart = btn.closest('.info-inner') !== null;
+                        
+                        if (isMainHeart) {
+                            if (wishlistedVariantIds.includes(currentVariantId)) {
+                                btn.classList.add('liked');
+                            } else {
+                                btn.classList.remove('liked');
+                            }
+                        } else {
+                            if (wishlistedVariantIds.includes(vId)) {
+                                btn.classList.add('liked');
+                            } else {
+                                btn.classList.remove('liked');
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(err => console.error('Wishlist re-sync error:', err));
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        // Initial sync handled by template tags in variable declaration (wishlistedVariantIds),
+        // but we can trigger a fresh sync for safety or just rely on pageshow.
+        syncWishlistState();
     });
+
+    // Re-sync on browser back/bfcache return or window focus
+    window.addEventListener('pageshow', (event) => {
+        // event.persisted is true if page was loaded from bfcache
+        syncWishlistState();
+    });
+    window.addEventListener('focus', syncWishlistState);
 
     // ════════════════════════════════════════
     // PREMIUM IMAGE ZOOM (Toggle-Based Hover Zoom)

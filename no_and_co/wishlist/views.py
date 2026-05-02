@@ -217,3 +217,19 @@ def merge_wishlist_item(request, user, old_session_key):
             item.user = user
             item.session_key = None
             item.save()
+
+
+def get_wishlist_ids(request):
+    if request.user.is_authenticated:
+        ids = list(Wishlist.objects.filter(user=request.user).values_list('variant_id', flat=True))
+    else:
+        session_key = request.session.session_key
+        if not session_key:
+            ids = []
+        else:
+            ids = list(Wishlist.objects.filter(session_key=session_key).values_list('variant_id', flat=True))
+    
+    # Convert IDs to strings for consistency with JS
+    ids = [str(id) for id in ids]
+    
+    return JsonResponse({'wishlist_ids': ids})
