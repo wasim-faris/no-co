@@ -162,9 +162,9 @@
                 </div>
             </div>
             <img
-                src="{% static 'core/images/main-img.jpg' %}"
+                src="{{ MEDIA_URL }}video/main-img.jpg"
                 alt="Hero"
-                loading="lazy"
+                loading="eager"
                 onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
                 class="w-full h-full object-cover object-top actual-content"
             />
