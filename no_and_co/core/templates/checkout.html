@@ -813,7 +813,39 @@
             </div>
         </div>
     </div>
-  
+
+<script>
+    /* ── Coupon Modal Functions (isolated block – safe from other script errors) ── */
+    function toggleBodyScroll(lock) {
+        document.body.style.overflow = lock ? 'hidden' : '';
+    }
+    function openModal() {
+        console.log('[Coupon Modal] openModal called');
+        var overlay = document.getElementById('modalOverlay');
+        var modal   = document.getElementById('modalContent');
+        if (overlay && modal) {
+            overlay.classList.add('active');
+            modal.classList.add('active');
+            toggleBodyScroll(true);
+        } else {
+            console.error('[Coupon Modal] Elements not found. overlay:', overlay, 'modal:', modal);
+        }
+    }
+    function closeModal() {
+        var overlay = document.getElementById('modalOverlay');
+        var modal   = document.getElementById('modalContent');
+        if (overlay && modal) {
+            overlay.classList.remove('active');
+            modal.classList.remove('active');
+            toggleBodyScroll(false);
+        }
+    }
+    function selectCoupon(code) {
+        var input = document.getElementById('coupon-code');
+        if (input) { input.value = code; input.focus(); }
+    }
+</script>
+
                     <!-- Reserved Message Space to prevent layout shift -->
                     <div class="h-[20px] mt-[6px] overflow-hidden">
                         <p id="coupon-error" class="text-red-600 text-[12px] hidden m-0"></p>
@@ -821,42 +853,8 @@
                     </div>
 
 <script>
-    // Modal functions
-    function toggleBodyScroll(disable) {
-        if (disable) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-    }
-
-    function openModal() {
-        const overlay = document.getElementById('modalOverlay');
-        const content = document.getElementById('modalContent');
-        content.classList.add('opacity-100', 'scale-100');
-    }
-
-    function closeModal(event) {
-        const overlay = document.getElementById('modalOverlay');
-        const content = document.getElementById('modalContent');
-        if (event === undefined || event.target === overlay) {
-            overlay.classList.add('pointer-events-none', 'opacity-0');
-            content.classList.remove('opacity-100', 'scale-100');
-            content.classList.add('opacity-0', 'scale-[0.98]');
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-                overlay.classList.remove('pointer-events-none');
-                toggleBodyScroll(false);
-            }, 200);
-        }
-    }
-
-    document.addEventListener('keydown', function(event) {
-        const overlay = document.getElementById('modalOverlay');
-        if (event.key === 'Escape' && overlay && !overlay.classList.contains('hidden')) {
-            closeModal();
-        }
-    });
+    /* openModal / closeModal / toggleBodyScroll / selectCoupon are defined
+       in the isolated <script> block immediately after the modal HTML above. */
 
     function selectAddress(element) {
         // Remove active class from all
