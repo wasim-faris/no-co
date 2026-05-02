@@ -217,11 +217,53 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
 </section>
-    <section class="w-full flex flex-col md:flex-row items-stretch no-gap gap-0 p-0 m-0">
+  <section class="w-full grid grid-cols-1 md:grid-cols-2" style="gap:0; margin:0; padding:0;">
+  <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
+    <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative; margin:0; padding:0;">
+      <div class="skeleton skeleton-img"></div>
+      <img src="{{ MEDIA_URL }}video/aws-grid-img.avif" alt="Soft Romance" class="w-full h-full object-cover object-top" style="display:block; margin:0; padding:0;" loading="lazy" onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')">
+    </div>
+    <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
+      <span class="section-label">Soft Romance</span>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </div>
+  </div>
+  <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
+    <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative; margin:0; padding:0;">
+      <div class="skeleton skeleton-img"></div>
+      <img src="{{ MEDIA_URL }}video/e1fcde13af6efbb4ccb1430555d869694235d9fa.avif"  alt="New Occasionwear" class="w-full h-full object-cover object-top" style="display:block; margin:0; padding:0;" loading="lazy" onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')">
+    </div>
+    <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
+      <span class="section-label">New Occasionwear</span>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </div>
+  </div>
+</section>
+
+    <section class="w-full grid grid-cols-3 md:grid-cols-6 no-gap">
+        {% for variant in variants %}
+        <a href="{% url 'product-details' variant.product.id %}" class="product-grid-item aspect-[3/4] skeleton-wrapper block">
+            <div class="w-full h-full relative">
+                <div class="skeleton skeleton-img"></div>
+                {% if variant.primary_images %}
+                    <img data-src="{{ variant.primary_images.0.image.url }}" alt="" class="w-full h-full object-cover lazy-image" loading="lazy">
+                {% else %}
+                    <div class="w-full h-full bg-gray-100 actual-content" style="display:block !important;"></div>
+                {% endif %}
+            </div>
+        </a>
+        {% endfor %}
+    </section>
+
+    <a href="{% url 'product-listing' %}?category=ladies&section=newin" class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white hover:opacity-80 transition-opacity" style="display:flex !important; text-decoration:none; color:inherit;">
+      <span class="section-label">New In</span>
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+     <section class="w-full flex flex-col md:flex-row items-stretch no-gap gap-0 p-0 m-0">
       <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
         <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
             <div class="skeleton skeleton-img h-full w-full"></div>
-            <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/94f7416ced85bf2e675e5243b9754cee.mp4" poster="{{ MEDIA_URL }}video/ladies-cat-img.avif" class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
+            <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/hero-video.mp4" poster="{{ MEDIA_URL }}video/ladies-cat-img.avif" class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
               <source src="" type="video/mp4">
             </video>
         </div>
@@ -244,60 +286,32 @@
       </div>
     </section>
 
-    <section class="w-full grid grid-cols-3 md:grid-cols-6 no-gap">
-        {% for variant in variants %}
-        <a href="{% url 'product-details' variant.product.id %}" class="product-grid-item aspect-[3/4] skeleton-wrapper block">
-            <div class="w-full h-full relative">
-                <div class="skeleton skeleton-img"></div>
-                {% if variant.primary_images %}
-                    <img data-src="{{ variant.primary_images.0.image.url }}" alt="" class="w-full h-full object-cover lazy-image" loading="lazy">
-                {% else %}
-                    <div class="w-full h-full bg-gray-100 actual-content" style="display:block !important;"></div>
-                {% endif %}
-            </div>
-        </a>
-        {% endfor %}
-    </section>
+    <section class="w-full relative skeleton-wrapper overflow-hidden border-t border-gray-100">
 
-    <a href="{% url 'product-listing' %}?category=ladies&section=newin" class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white hover:opacity-80 transition-opacity" style="display:flex !important; text-decoration:none; color:inherit;">
-      <span class="section-label">New In</span>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </a>
-   <section class="w-full grid grid-cols-1 md:grid-cols-2" style="gap:0; margin:0; padding:0;">
-  <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
-    <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative; margin:0; padding:0;">
-      <div class="skeleton skeleton-img"></div>
-      <img src="{{ MEDIA_URL }}video/ladies-cat-img.avif" alt="Soft Romance" class="w-full h-full object-cover" style="display:block; margin:0; padding:0;" loading="lazy" onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')">
-    </div>
-    <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
-      <span class="section-label">Soft Romance</span>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </div>
+  <div class="w-full h-[90vh] overflow-hidden relative immersive-banner">
+
+    <div class="skeleton skeleton-img"></div>
+
+    <img
+      src="{{ MEDIA_URL }}video/ladies-home.avif"
+      alt="Season Essentials"
+      onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
+      class="w-full h-full object-cover object-top actual-content"
+    >
+
   </div>
-  <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
-    <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative; margin:0; padding:0;">
-      <div class="skeleton skeleton-img"></div>
-      <img src="{{ MEDIA_URL }}video/ladies-img-grid2.avif"  alt="New Occasionwear" class="w-full h-full object-cover" style="display:block; margin:0; padding:0;" loading="lazy" onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')">
-    </div>
-    <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
-      <span class="section-label">New Occasionwear</span>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </div>
+
+  <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
+
+    <span class="section-label">Season Essentials</span>
+
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path d="M5 12h14M12 5l7 7-7 7"/>
+    </svg>
+
   </div>
+
 </section>
-       <section class="w-full relative skeleton-wrapper overflow-hidden border-t border-gray-100">
-       <div class="w-full  overflow-hidden relative immersive-banner">
-            <div class="skeleton skeleton-img"></div>
-            <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/hero-video.mp4" poster="{% static 'core/images/ladies-2.avif' %}" class="w-full h-full object-cover lazy-video actual-content">
-                <source src="" type="video/mp4">
-            </video>
-        </div>
-        <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
-            <span class="section-label">Season Essentials</span>
-
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>
-    </section>
     {% comment %} <section class="w-full relative skeleton-wrapper overflow-hidden border-t border-gray-100">
         <div class="w-full aspect-[16/9] md:aspect-[21/9] overflow-hidden relative immersive-banner">
             <div class="skeleton skeleton-img"></div>
@@ -399,7 +413,7 @@
         });
 
         // --- MEDIA PERFORMANCE OPTIMIZATION ---
-        
+
         // Video Lazy Loading (IntersectionObserver)
         const videoObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
