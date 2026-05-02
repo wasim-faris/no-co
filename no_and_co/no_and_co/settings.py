@@ -27,7 +27,13 @@ SECRET_KEY = config('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = ['wasim-faris.online', 'www.wasim-faris.online', '13.201.86.61']
+ALLOWED_HOSTS = [
+    'wasim-faris.online',
+    'www.wasim-faris.online',
+    '13.201.86.61',
+    '127.0.0.1',
+    'localhost'
+]
 
 LOGIN_REDIRECT_URL = "home"
 
