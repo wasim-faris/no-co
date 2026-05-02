@@ -176,10 +176,9 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
         </div>
     
-<section class="w-full flex flex-col md:flex-row items-stretch no-gap gap-0 p-0 m-0">
-        <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
-            <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0"
-                style="position: relative;">
+    <section class="w-full grid grid-cols-1 md:grid-cols-2" style="gap:0; margin:0; padding:0;">
+        <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
+            <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative; margin:0; padding:0;">
                 <div class="skeleton skeleton-img h-full w-full"></div>
                 <video muted loop playsinline preload="none"
                     onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
@@ -194,9 +193,8 @@
                 <p class="sub-label">Explore</p>
             </div>
         </div>
-        <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
-            <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0"
-                style="position: relative;">
+        <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
+            <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative; margin:0; padding:0;">
                 <div class="skeleton skeleton-img h-full w-full"></div>
                 <video muted loop playsinline preload="none"
                     onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
