@@ -161,10 +161,10 @@
                     <a href="{% url 'kids' %}" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Kids</a>
                 </div>
             </div>
-            <video autoplay muted loop playsinline onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" class="w-full h-full object-cover object-top actual-content">
-                <source src="{{ MEDIA_URL }}video/men-grid-vid-4.mp4" type="video/webm">
+            <video autoplay muted loop playsinline preload="metadata" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" poster="{{ MEDIA_URL }}video/w18-hm-refresh-men-01-d.avif" class="w-full h-full object-cover object-top actual-content">
+                <source src="{{ MEDIA_URL }}video/men-grid-vid-4.mp4" type="video/mp4">
                 <!-- Fallback Image -->
-                <img src="{% static 'core/images/main-img.jpg' %}" alt="Hero" class="w-full h-full object-cover object-top">
+                <img src="{% static 'core/images/main-img.jpg' %}" alt="Hero" class="w-full h-full object-cover object-top" loading="lazy">
             </video>
         </div>
 
@@ -178,8 +178,8 @@
 
     <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
         <div class="skeleton skeleton-img h-full w-full"></div>
-        <video autoplay loop muted playsinline onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" class="block w-full h-full object-cover m-0 p-0 lazy-image">
-            <source src="{{ MEDIA_URL }}video/men-grid-vid-3.mp4" type="video/webm">
+        <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/men-grid-vid-3.mp4" poster="{{ MEDIA_URL }}video/w18-hm-refresh-men-02-d.avif" class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
+            <source src="" type="video/mp4">
         </video>
     </div>
 
@@ -198,8 +198,8 @@
         <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
             <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
                 <div class="skeleton skeleton-img h-full w-full"></div>
-                <video autoplay loop muted playsinline onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" class="block w-full h-full object-cover m-0 p-0 lazy-image">
-                    <source src="{{ MEDIA_URL }}video/men-grid-vid-1.mp4" type="video/webm">
+                <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/men-grid-vid-1.mp4" poster="{{ MEDIA_URL }}video/MF05262P14-4x5-men-startpage-wk17.avif" class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
+                    <source src="" type="video/mp4">
                 </video>
             </div>
             <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto" style="display:flex !important;">
@@ -215,7 +215,7 @@
             <div class="w-full h-full relative">
                 <div class="skeleton skeleton-img"></div>
                 {% if variant.primary_images %}
-                    <img data-src="{{ variant.primary_images.0.image.url }}" alt="" class="w-full h-full object-cover lazy-image">
+                    <img data-src="{{ variant.primary_images.0.image.url }}" alt="" class="w-full h-full object-cover lazy-image" loading="lazy">
                 {% else %}
                     <div class="w-full h-full bg-gray-100 actual-content" style="display:block !important;"></div>
                 {% endif %}
@@ -233,11 +233,12 @@
   <div class="w-full h-[90vh] overflow-hidden relative immersive-banner">
     <div class="skeleton skeleton-img"></div>
 
-    <img
+      <img
       src="{{ MEDIA_URL }}video/w18-hm-refresh-men-01-d.avif"
       alt="Season Essentials"
       onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
      class="w-full h-full object-cover object-top actual-content"
+     loading="lazy"
     >
 
   </div>
@@ -255,7 +256,7 @@
   <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
     <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative; margin:0; padding:0;">
       <div class="skeleton skeleton-img"></div>
-      <img data-src="{{ MEDIA_URL }}video/w18-hm-refresh-men-02-d.AVIF" alt="Soft Romance" class="w-full h-full object-cover lazy-image" style="display:block; margin:0; padding:0;">
+      <img src="{{ MEDIA_URL }}video/w18-hm-refresh-men-02-d.avif" alt="Soft Romance" class="w-full h-full object-cover" style="display:block; margin:0; padding:0;" loading="lazy" onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')">
     </div>
     <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
       <span class="section-label">Soft Romance</span>
@@ -265,7 +266,7 @@
   <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
     <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative; margin:0; padding:0;">
       <div class="skeleton skeleton-img"></div>
-      <img data-src="{{ MEDIA_URL }}video/MF05262P14-4x5-men-startpage-wk17.avif"  alt="New Occasionwear" class="w-full h-full object-cover lazy-image" style="display:block; margin:0; padding:0;">
+      <img src="{{ MEDIA_URL }}video/MF05262P14-4x5-men-startpage-wk17.avif"  alt="New Occasionwear" class="w-full h-full object-cover" style="display:block; margin:0; padding:0;" loading="lazy" onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')">
     </div>
     <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
       <span class="section-label">New Occasionwear</span>
@@ -354,6 +355,50 @@
 
         document.querySelectorAll('.animate-on-scroll').forEach(el => {
             observer.observe(el);
+        });
+
+        // --- MEDIA PERFORMANCE OPTIMIZATION ---
+        
+        // Video Lazy Loading (IntersectionObserver)
+        const videoObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const video = entry.target;
+                    if (video.dataset.src) {
+                        video.src = video.dataset.src;
+                        video.load();
+                        video.play().catch(e => console.warn("Video play interrupted:", e));
+                        videoObserver.unobserve(video);
+                    }
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '50px' });
+
+        document.querySelectorAll('.lazy-video').forEach(video => {
+            videoObserver.observe(video);
+        });
+
+        // Image Lazy Loading (IntersectionObserver)
+        const imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    if (img.dataset.src) {
+                        img.src = img.dataset.src;
+                        img.classList.remove('opacity-0');
+                        // For images with skeleton loaders
+                        img.onload = () => {
+                            const wrapper = img.closest('.skeleton-wrapper');
+                            if (wrapper) wrapper.classList.add('is-loaded');
+                        };
+                        imageObserver.unobserve(img);
+                    }
+                }
+            });
+        }, { threshold: 0.1, rootMargin: '200px' });
+
+        document.querySelectorAll('.lazy-image').forEach(img => {
+            imageObserver.observe(img);
         });
 
         // Typing Animation
