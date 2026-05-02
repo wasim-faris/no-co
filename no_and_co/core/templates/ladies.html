@@ -260,31 +260,64 @@
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
     </a>
      <section class="w-full flex flex-col md:flex-row items-stretch no-gap gap-0 p-0 m-0">
-      <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
+
+    <!-- FIRST GRID (IMAGE NOW) -->
+    <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
+
         <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
             <div class="skeleton skeleton-img h-full w-full"></div>
-            <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/hero-video.mp4" poster="{{ MEDIA_URL }}video/ladies-cat-img.avif" class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
-              <source src="" type="video/mp4">
-            </video>
+
+            <img
+                src="{{ MEDIA_URL }}video/DD10262P12-4x5-women-startpage-wk18.avif"
+                alt="Soft Romance"
+                loading="eager"
+                onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
+                class="block w-full h-full object-cover m-0 p-0 actual-content"
+            >
+
         </div>
-        <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto" style="display:flex !important;">
+
+        <a href="/products/?subcategory=LINEN-SHIRTS"
+            class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto"
+            style="display:flex !important; text-decoration:none; color:inherit;">
+
             <span class="section-label">Soft Romance</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>
-      </div>
-      <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
-        <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
+
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+
+        </a>
+
+    </div>
+
+    <!-- SECOND GRID (UNCHANGED VIDEO) -->
+    <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
+        <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0"
+            style="position: relative;">
             <div class="skeleton skeleton-img h-full w-full"></div>
-            <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/From KlickPin CF Fashion _ Studio Ideas [Video] _ Studio di moda - Pin-4222193395387533.mp4" poster="{{ MEDIA_URL }}video/ladies-img-grid2.avif" class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
-              <source src="" type="video/mp4">
+
+            <video muted loop playsinline preload="none"
+                onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
+                data-src="{{ MEDIA_URL }}video/2023_NINA_10A_4x5.WEBM"
+                poster="{{ MEDIA_URL }}video/MF05262P14-4x5-men-startpage-wk17.avif"
+                class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
+                <source src="" type="video/mp4">
             </video>
+
         </div>
-        <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto" style="display:flex !important;">
-            <span class="section-label">New Occasionwear</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+
+        <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto"
+            style="display:flex !important;">
+            <span class="section-label">LINEN DAYS</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
         </div>
-      </div>
-    </section>
+    </div>
+
+</section>
+
 
     <section class="w-full relative skeleton-wrapper overflow-hidden border-t border-gray-100">
 
@@ -292,12 +325,13 @@
 
     <div class="skeleton skeleton-img"></div>
 
-    <img
-      src="{{ MEDIA_URL }}video/ladies-home.avif"
-      alt="Season Essentials"
-      onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
+    <video
+      autoplay muted loop playsinline preload="metadata"
+      onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
       class="w-full h-full object-cover object-top actual-content"
     >
+      <source src="{{ MEDIA_URL }}video/hero-video.mp4" type="video/mp4">
+    </video>
 
   </div>
 

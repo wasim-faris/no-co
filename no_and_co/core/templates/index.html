@@ -5,8 +5,13 @@
 {% load static %}
 
 <style>
-    .serif-font{font-family:'Playfair Display',serif}
-    .no-scrollbar::-webkit-scrollbar{display:none}
+    .serif-font {
+        font-family: 'Playfair Display', serif
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none
+    }
 
 
 
@@ -41,7 +46,7 @@
         border-radius: 50px;
         display: flex;
         align-items: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         opacity: 0;
         transform: translateY(-20px);
         transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -50,16 +55,67 @@
         color: #fff;
     }
 
-    .custom-pill-toast.show { opacity: 1; transform: translateY(0); }
-    .toast-left-content { display: flex; align-items: center; gap: 12px; }
-    .toast-icon-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
-    .toast-success .toast-icon-circle { background: #2F8D46; }
-    .toast-error .toast-icon-circle { background: #E03B2A; }
-    .toast-message-wrapper { display: flex; flex-direction: column; white-space: nowrap; margin-right: 15px; }
-    .toast-main-text { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; line-height: 1.2; }
-    .toast-sub-text { font-size: 9px; opacity: 0.7; margin-top: 1px; }
-    .toast-close-btn { cursor: pointer; font-size: 16px; opacity: 0.6; transition: opacity 0.2s; }
-    .toast-close-btn:hover { opacity: 1; }
+    .custom-pill-toast.show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .toast-left-content {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .toast-icon-circle {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+    }
+
+    .toast-success .toast-icon-circle {
+        background: #2F8D46;
+    }
+
+    .toast-error .toast-icon-circle {
+        background: #E03B2A;
+    }
+
+    .toast-message-wrapper {
+        display: flex;
+        flex-direction: column;
+        white-space: nowrap;
+        margin-right: 15px;
+    }
+
+    .toast-main-text {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        line-height: 1.2;
+    }
+
+    .toast-sub-text {
+        font-size: 9px;
+        opacity: 0.7;
+        margin-top: 1px;
+    }
+
+    .toast-close-btn {
+        cursor: pointer;
+        font-size: 16px;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+
+    .toast-close-btn:hover {
+        opacity: 1;
+    }
 
     /* MOBILE PRODUCT GRID FIX (768px and below) */
     @media (max-width: 768px) {
@@ -67,6 +123,7 @@
             aspect-ratio: 2/3 !important;
             height: auto !important;
         }
+
         .product-grid-item img {
             object-fit: contain !important;
             object-position: center;
@@ -81,6 +138,7 @@
             width: 100% !important;
             aspect-ratio: auto !important;
         }
+
         .immersive-banner img {
             height: 100% !important;
             object-fit: cover !important;
@@ -90,31 +148,50 @@
 
     /* ZARA STYLE SECTION */
     @keyframes zaraFadeUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
+
     @keyframes zaraFadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
     }
+
     .animate-zara-fade-up {
         animation: zaraFadeUp 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
+
     .animate-zara-fade-in {
         animation: zaraFadeIn 1.5s ease-out forwards;
     }
+
     .delay-500 {
         animation-delay: 0.5s;
     }
+
     .zara-heading {
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         letter-spacing: 0.4em;
         line-height: 1.2;
     }
+
     .zara-text {
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
         letter-spacing: 0.02em;
     }
+
     .zara-button {
         display: inline-block;
         background: #000;
@@ -129,7 +206,11 @@
         transition: opacity 0.3s ease;
         text-decoration: none;
     }
-    .zara-button:hover { opacity: 0.7; }
+
+    .zara-button:hover {
+        opacity: 0.7;
+    }
+
     .typing-cursor {
         display: inline-block;
         width: 1.5px;
@@ -139,7 +220,18 @@
         vertical-align: middle;
         animation: blink 0.8s infinite;
     }
-    @keyframes blink { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
+    @keyframes blink {
+
+        0%,
+        100% {
+            opacity: 0;
+        }
+
+        50% {
+            opacity: 1;
+        }
+    }
 </style>
 
 <div id="toast-container"></div>
@@ -150,76 +242,94 @@
             <div class="skeleton skeleton-img"></div>
             <!-- Immersive Hero Trigger & Compact Dropdown -->
             <div class="md:hidden absolute top-4 left-5 z-20">
-                <div id="categoryDropdownTrigger" class="text-[#111] text-[13px] font-medium tracking-[0.15em] uppercase cursor-pointer flex items-center bg-white px-2 py-1 rounded-[4px] shadow-sm">
+                <div id="categoryDropdownTrigger"
+                    class="text-[#111] text-[13px] font-medium tracking-[0.15em] uppercase cursor-pointer flex items-center bg-white px-2 py-1 rounded-[4px] shadow-sm">
                     MENS <span class="ml-1.5 text-base leading-none font-light">+</span>
                 </div>
 
                 <!-- Floating Compact Dropdown -->
-                <div id="categoryDropdown" class="absolute top-10 left-0 w-[170px] bg-white rounded-[6px] border border-black/5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] py-2 transition-all duration-300 opacity-0 visibility-hidden max-h-0 overflow-hidden">
+                <div id="categoryDropdown"
+                    class="absolute top-10 left-0 w-[170px] bg-white rounded-[6px] border border-black/5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] py-2 transition-all duration-300 opacity-0 visibility-hidden max-h-0 overflow-hidden">
                     <a href="{% url 'mens' %}" class="block px-4 py-2 text-[14px] font-semibold text-[#111]">Mens</a>
                     <a href="{% url 'ladies' %}" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Ladies</a>
                     <a href="{% url 'kids' %}" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Kids</a>
                 </div>
             </div>
-            <img
-                src="{{ MEDIA_URL }}video/main-img.jpg"
-                alt="Hero"
-                loading="eager"
+            <img src="{{ MEDIA_URL }}video/main-img.jpg" alt="Hero" loading="eager"
                 onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
-                class="w-full h-full object-cover object-top actual-content"
-            />
+                class="w-full h-full object-cover object-top actual-content" />
         </div>
 
     </section>
-<div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
-            <span class="section-label">Season Essentials</span>
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-        </div>
+    <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content"
+        style="display:flex !important;">
+        <span class="section-label">Season Essentials</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
+    </div>
     <section class="w-full flex flex-col md:flex-row items-stretch no-gap gap-0 p-0 m-0">
         <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
 
-    <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
-        <div class="skeleton skeleton-img h-full w-full"></div>
-        <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/men-grid-vid-3.mp4" poster="{{ MEDIA_URL }}video/w18-hm-refresh-men-02-d.avif" class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
-            <source src="" type="video/mp4">
-        </video>
-    </div>
-
-    <!-- TAG LINK ADDED (no design change) -->
-    <a href="/products/?subcategory=LINEN-SHIRTS" class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto" style="display:flex !important; text-decoration:none; color:inherit;">
-
-        <span class="section-label">Soft Romance</span>
-
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-        </svg>
-
-    </a>
-
-</div>
-        <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
-            <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0" style="position: relative;">
+            <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0"
+                style="position: relative;">
                 <div class="skeleton skeleton-img h-full w-full"></div>
-                <video muted loop playsinline preload="none" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" data-src="{{ MEDIA_URL }}video/men-grid-vid-1.mp4" poster="{{ MEDIA_URL }}video/MF05262P14-4x5-men-startpage-wk17.avif" class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
+                <video muted loop playsinline preload="none"
+                    onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
+                    data-src="{{ MEDIA_URL }}video/men-grid-vid-3.mp4"
+                    poster="{{ MEDIA_URL }}video/w18-hm-refresh-men-02-d.avif"
+                    class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
                     <source src="" type="video/mp4">
                 </video>
             </div>
-            <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto" style="display:flex !important;">
+
+            <!-- TAG LINK ADDED (no design change) -->
+            <a href="/products/?subcategory=LINEN-SHIRTS"
+                class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto"
+                style="display:flex !important; text-decoration:none; color:inherit;">
+
+                <span class="section-label">Soft Romance</span>
+
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+
+            </a>
+
+        </div>
+        <div class="w-full md:w-1/2 flex flex-col skeleton-wrapper p-0 m-0 border-0">
+            <div class="w-full flex-1 aspect-[4/5] overflow-hidden immersive-banner p-0 m-0"
+                style="position: relative;">
+                <div class="skeleton skeleton-img h-full w-full"></div>
+                <video muted loop playsinline preload="none"
+                    onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
+                    data-src="{{ MEDIA_URL }}video/men-grid-vid-1.mp4"
+                    poster="{{ MEDIA_URL }}video/MF05262P14-4x5-men-startpage-wk17.avif"
+                    class="block w-full h-full object-cover m-0 p-0 lazy-video actual-content">
+                    <source src="" type="video/mp4">
+                </video>
+            </div>
+            <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content mt-auto"
+                style="display:flex !important;">
                 <span class="section-label">LINEN DAYS</span>
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
             </div>
         </div>
     </section>
 
     <section class="w-full grid grid-cols-3 md:grid-cols-6 no-gap">
         {% for variant in variants %}
-        <a href="{% url 'product-details' variant.product.id %}" class="product-grid-item aspect-[3/4] skeleton-wrapper block">
+        <a href="{% url 'product-details' variant.product.id %}"
+            class="product-grid-item aspect-[3/4] skeleton-wrapper block">
             <div class="w-full h-full relative">
                 <div class="skeleton skeleton-img"></div>
                 {% if variant.primary_images %}
-                    <img data-src="{{ variant.primary_images.0.image.url }}" alt="" class="w-full h-full object-cover lazy-image" loading="lazy">
+                <img data-src="{{ variant.primary_images.0.image.url }}" alt=""
+                    class="w-full h-full object-cover lazy-image" loading="lazy">
                 {% else %}
-                    <div class="w-full h-full bg-gray-100 actual-content" style="display:block !important;"></div>
+                <div class="w-full h-full bg-gray-100 actual-content" style="display:block !important;"></div>
                 {% endif %}
             </div>
         </a>
@@ -227,55 +337,68 @@
 
     </section>
 
-<a href="{% url 'product-listing' %}?category=mens&section=newin" class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white hover:opacity-80 transition-opacity" style="display:flex !important; text-decoration:none; color:inherit;">
+    <a href="{% url 'product-listing' %}?category=mens&section=newin"
+        class="w-full border-b border-gray-200 px-4 md:px-8 py-3 flex items-center justify-between bg-white hover:opacity-80 transition-opacity"
+        style="display:flex !important; text-decoration:none; color:inherit;">
         <span class="section-label">New In</span>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+        </svg>
     </a>
-  <section class="w-full relative skeleton-wrapper overflow-hidden border-t border-gray-100">
-  <div class="w-full h-[90vh] overflow-hidden relative immersive-banner">
-    <div class="skeleton skeleton-img"></div>
+    <section class="w-full relative skeleton-wrapper overflow-hidden border-t border-gray-100">
+        <div class="w-full h-[90vh] overflow-hidden relative immersive-banner">
+            <div class="skeleton skeleton-img"></div>
 
-      <img
-      src="{{ MEDIA_URL }}video/w18-hm-refresh-men-01-d.avif"
-      alt="Season Essentials"
-      onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
-     class="w-full h-full object-cover object-top actual-content"
-     loading="eager"
-    >
+            <img src="{{ MEDIA_URL }}video/w18-hm-refresh-men-01-d.avif" alt="Season Essentials"
+                onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')"
+                class="w-full h-full object-cover object-top actual-content" loading="eager">
 
-  </div>
+        </div>
 
-  <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
-    <span class="section-label">Season Essentials</span>
+        <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content"
+            style="display:flex !important;">
+            <span class="section-label">Season Essentials</span>
 
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-      <path d="M5 12h14M12 5l7 7-7 7"/>
-    </svg>
-  </div>
-</section>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+        </div>
+    </section>
 
-      <section class="w-full grid grid-cols-1 md:grid-cols-2" style="gap:0; margin:0; padding:0;">
-  <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
-    <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative; margin:0; padding:0;">
-      <div class="skeleton skeleton-img"></div>
-      <img src="{{ MEDIA_URL }}video/w18-hm-refresh-men-02-d.avif" alt="Soft Romance" class="w-full h-full object-cover" style="display:block; margin:0; padding:0;" loading="eager" onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')">
-    </div>
-    <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
-      <span class="section-label">Soft Romance</span>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </div>
-  </div>
-  <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
-    <div class="w-full aspect-[4/5] overflow-hidden immersive-banner" style="position: relative; margin:0; padding:0;">
-      <div class="skeleton skeleton-img"></div>
-      <img src="{{ MEDIA_URL }}video/MF05262P14-4x5-men-startpage-wk17.avif"  alt="New Occasionwear" class="w-full h-full object-cover" style="display:block; margin:0; padding:0;" loading="eager" onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')">
-    </div>
-    <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content" style="display:flex !important;">
-      <span class="section-label">New Occasionwear</span>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-    </div>
-  </div>
-</section>
+    <section class="w-full grid grid-cols-1 md:grid-cols-2" style="gap:0; margin:0; padding:0;">
+        <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
+            <div class="w-full aspect-[4/5] overflow-hidden immersive-banner"
+                style="position: relative; margin:0; padding:0;">
+                <div class="skeleton skeleton-img"></div>
+                <img src="{{ MEDIA_URL }}video/w18-hm-refresh-men-02-d.avif" alt="Soft Romance"
+                    class="w-full h-full object-cover" style="display:block; margin:0; padding:0;" loading="eager"
+                    onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')">
+            </div>
+            <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content"
+                style="display:flex !important;">
+                <span class="section-label">Soft Romance</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </div>
+        </div>
+        <div class="w-full skeleton-wrapper" style="margin:0; padding:0;">
+            <div class="w-full aspect-[4/5] overflow-hidden immersive-banner"
+                style="position: relative; margin:0; padding:0;">
+                <div class="skeleton skeleton-img"></div>
+                <img src="{{ MEDIA_URL }}video/MF05262P14-4x5-men-startpage-wk17.avif" alt="New Occasionwear"
+                    class="w-full h-full object-cover" style="display:block; margin:0; padding:0;" loading="eager"
+                    onload="this.closest('.skeleton-wrapper').classList.add('is-loaded')">
+            </div>
+            <div class="w-full px-4 md:px-8 py-4 flex items-center justify-between border-b border-gray-200 bg-white actual-content"
+                style="display:flex !important;">
+                <span class="section-label">New Occasionwear</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+            </div>
+        </div>
+    </section>
 
 
     <section class="w-full bg-white px-6 md:px-12 py-16 md:py-24 text-left">
@@ -283,7 +406,8 @@
             <h2 class="text-lg md:text-xl font-bold uppercase zara-heading mb-8 animate-zara-fade-up">
                 MEN’S COLLECTION
             </h2>
-            <p id="typing-paragraph" class="text-[0.9rem] md:text-[1rem] leading-relaxed text-gray-800 zara-text max-w-2xl mb-10 min-h-[3em]">
+            <p id="typing-paragraph"
+                class="text-[0.9rem] md:text-[1rem] leading-relaxed text-gray-800 zara-text max-w-2xl mb-10 min-h-[3em]">
             </p>
             <a href="{% url 'product-listing' %}?category=mens" class="zara-button">EXPLORE NOW</a>
         </div>
@@ -324,7 +448,7 @@
         container.appendChild(toast);
         setTimeout(() => toast.classList.add('show'), 10);
         setTimeout(() => {
-            if(toast.parentNode) {
+            if (toast.parentNode) {
                 toast.classList.remove('show');
                 setTimeout(() => toast.remove(), 400);
             }
@@ -337,7 +461,7 @@
             try {
                 const messages = JSON.parse(dataElement.textContent);
                 messages.forEach(msg => showToast(msg.message, msg.tags));
-            } catch (e) {}
+            } catch (e) { }
         }
 
         // Scroll Animation Observer
