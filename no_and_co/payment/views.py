@@ -1,7 +1,7 @@
 import json
 from shutil import ExecError
 from statistics import quantiles
-from turtle import update
+
 from django.db import transaction
 from django.http import JsonResponse
 from .models import Payment

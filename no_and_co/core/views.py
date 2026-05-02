@@ -1,7 +1,6 @@
 from ctypes import addressof
 from decimal import Decimal
 from venv import create
-from winreg import REG_QWORD
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.views.decorators.cache import never_cache
