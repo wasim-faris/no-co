@@ -47,7 +47,6 @@
     .wishlist-grid {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        grid-auto-rows: 1fr;
         gap: 0;
         width: 100%;
         margin: 0;
@@ -577,43 +576,65 @@
         .wishlist-header {
             padding: 20px 12px 16px;
         }
+        /* 2-column grid: equal width, no gap, each row auto-sized by its own content */
         .wishlist-grid {
             grid-template-columns: repeat(2, 1fr);
-            gap: 0 !important;
-            padding: 0 !important;
+            grid-auto-rows: auto;
+            gap: 0;
+            padding: 0;
+            align-items: start;
         }
+        /* Cards fill their column, never overflow */
         .fav-card-container {
             width: 100%;
+            min-width: 0;
             margin: 0;
             padding: 0;
+            overflow: hidden;
+            border-right: 1px solid #ebebeb;
+            border-bottom: 1px solid #ebebeb;
         }
+        /* Remove right border from every 2nd card (right column) */
+        .fav-card-container:nth-child(2n) {
+            border-right: none;
+        }
+        /* Image: same portrait ratio, never overflows */
         .fav-img-wrapper {
             aspect-ratio: 3 / 4;
-            margin: 0;
             width: 100%;
+            margin: 0;
         }
+        /* Details section: tight but balanced */
         .fav-details {
-            padding: 10px 8px 12px;
-            gap: 4px;
+            padding: 8px 8px 10px;
+            gap: 3px;
         }
+        /* Product name: allow wrap on 2 lines max, no awkward ellipsis cut */
         .fav-name {
             font-size: 11px;
-            line-height: 1.4;
+            line-height: 1.35;
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
             margin-bottom: 2px;
         }
         .fav-price {
             font-size: 12px;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
+        /* ADD button: fits within the padded card, not over-wide */
         .btn-add-fav {
-            padding: 10px 0;
+            width: 100%;
+            padding: 9px 0;
             font-size: 10px;
+            letter-spacing: 0.08em;
             margin-top: 4px;
         }
         .size-btn {
             height: 44px;
         }
-
         .mini-img {
             width: 80px;
         }
