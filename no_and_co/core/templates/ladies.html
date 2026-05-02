@@ -196,14 +196,14 @@
     <!-- Immersive Hero Trigger & Compact Dropdown -->
     <div class="md:hidden absolute top-4 left-5 z-20">
         <div id="categoryDropdownTrigger" class="text-[#111] text-[13px] font-medium tracking-[0.15em] uppercase cursor-pointer flex items-center bg-white px-2 py-1 rounded-[4px] shadow-sm">
-            LADIES <span class="ml-1.5 text-base leading-none font-light">+</span>
+            {% if request.resolver_match.url_name == 'kids' %}KIDS{% elif request.resolver_match.url_name == 'ladies' or request.resolver_match.url_name == 'home' %}LADIES{% else %}MENS{% endif %} <span class="ml-1.5 text-base leading-none font-light">+</span>
         </div>
 
         <!-- Floating Compact Dropdown -->
         <div id="categoryDropdown" class="absolute top-10 left-0 w-[170px] bg-white rounded-[6px] border border-black/5 shadow-[0_4px_12px_rgba(0,0,0,0.08)] py-2 transition-all duration-300 opacity-0 visibility-hidden max-h-0 overflow-hidden">
-            <a href="{% url 'mens' %}" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Mens</a>
-            <a href="{% url 'ladies' %}" class="block px-4 py-2 text-[14px] font-semibold text-[#111]">Ladies</a>
-            <a href="{% url 'kids' %}" class="block px-4 py-2 text-[14px] font-normal text-[#555]">Kids</a>
+            <a href="{% url 'mens' %}" class="block px-4 py-2 text-[14px] {% if request.resolver_match.url_name == 'mens' %}font-semibold text-[#111]{% else %}font-normal text-[#555]{% endif %}">Mens</a>
+            <a href="{% url 'ladies' %}" class="block px-4 py-2 text-[14px] {% if request.resolver_match.url_name == 'ladies' or request.resolver_match.url_name == 'home' %}font-semibold text-[#111]{% else %}font-normal text-[#555]{% endif %}">Ladies</a>
+            <a href="{% url 'kids' %}" class="block px-4 py-2 text-[14px] {% if request.resolver_match.url_name == 'kids' %}font-semibold text-[#111]{% else %}font-normal text-[#555]{% endif %}">Kids</a>
         </div>
     </div>
     <video autoplay muted loop playsinline preload="metadata" onplay="this.closest('.skeleton-wrapper').classList.add('is-loaded')" poster="{% static 'core/images/ladies-home.avif' %}" class="w-full h-full object-cover object-top actual-content">

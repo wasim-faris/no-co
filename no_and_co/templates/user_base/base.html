@@ -780,6 +780,17 @@
                         }
                     }
                 } else {
+                    // Immediate label update for smoother transition when selecting a category
+                    const item = e.target.closest('#categoryDropdown a');
+                    if (item) {
+                        const container = item.closest('.relative') || item.parentElement.parentElement;
+                        const triggerBtn = container.querySelector('#categoryDropdownTrigger');
+                        if (triggerBtn) {
+                            const newLabel = item.textContent.trim().toUpperCase();
+                            triggerBtn.innerHTML = `${newLabel} <span class="ml-1.5 text-base leading-none font-light">+</span>`;
+                        }
+                    }
+
                     // Close all dropdowns on outside click
                     document.querySelectorAll('#categoryDropdown').forEach(d => {
                         d.style.maxHeight = '0px';
