@@ -785,12 +785,14 @@
                 <!-- Input Section -->
                 <div class="flex flex-col gap-4 mt-4">
                     <input type="text" id="coupon-code" name="code" placeholder="Enter coupon code" required class="w-full h-12 border border-gray-300 px-4 text-sm focus:outline-none focus:border-black uppercase">
-                    <button type="submit" class="uni-modal-btn uni-modal-btn-primary flex items-center justify-center gap-2">
-                        <span id="btn-text">APPLY</span>
-                        <svg id="btn-spinner" class="animate-spin h-4 w-4 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
+                    <button type="submit" class="uni-modal-btn uni-modal-btn-primary relative flex items-center justify-center" style="height: 48px;">
+                        <span id="btn-text" class="transition-opacity duration-200">APPLY</span>
+                        <div id="btn-spinner" class="absolute inset-0 flex items-center justify-center hidden pointer-events-none">
+                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
                     </button>
                 </div>
             </form>
@@ -798,12 +800,14 @@
             <div class="flex flex-col gap-4 mt-4">
                 <div class="p-4 border border-black bg-gray-50 flex justify-between items-center">
                     <span class="text-[11px] font-bold uppercase tracking-widest">{{ applied_coupon.code }} Applied</span>
-                    <button type="button" id="remove-btn" onclick="removeCoupon()" class="text-[10px] font-bold uppercase tracking-widest text-red-600 hover:text-red-800 underline flex items-center gap-2">
-                        <span id="remove-btn-text">Remove</span>
-                        <svg id="remove-btn-spinner" class="animate-spin h-3 w-3 text-red-600 hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
+                    <button type="button" id="remove-btn" onclick="removeCoupon()" class="text-[10px] font-bold uppercase tracking-widest text-red-600 hover:text-red-800 underline relative flex items-center justify-center min-w-[50px] min-h-[16px]">
+                        <span id="remove-btn-text" class="transition-opacity duration-200">Remove</span>
+                        <div id="remove-btn-spinner" class="absolute inset-0 flex items-center justify-center hidden pointer-events-none">
+                            <svg class="animate-spin h-3.5 w-3.5 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </div>
                     </button>
                 </div>
             </div>
@@ -841,7 +845,7 @@
         }
     }
     
-    let availableCoupons = [];
+    var availableCoupons = [];
     
     async function fetchAvailableCoupons() {
         const container = document.getElementById('available-coupons');
@@ -1354,10 +1358,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (errorBox) errorBox.classList.add("hidden");
             if (successBox) successBox.classList.add("hidden");
             
-            submitBtn.disabled = true;
-            if (btnText) btnText.innerText = "Applying...";
+            submitBtn.style.pointerEvents = "none";
+            if (btnText) btnText.style.opacity = '0.4';
             if (btnSpinner) btnSpinner.classList.remove("hidden");
-            submitBtn.classList.add("opacity-50", "cursor-not-allowed");
 
             try {
                 const response = await fetch(form.action, {
@@ -1378,10 +1381,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         errorBox.classList.remove("hidden");
                     }
                     // Re-enable button
-                    submitBtn.disabled = false;
-                    if (btnText) btnText.innerText = "APPLY";
+                    submitBtn.style.pointerEvents = "auto";
+                    if (btnText) btnText.style.opacity = '1';
                     if (btnSpinner) btnSpinner.classList.add("hidden");
-                    submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
                 } else {
                     if (data.was_capped) {
                         showToast("Discount exceeds cart value. Adjusted automatically.", "success");
@@ -1406,10 +1408,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } catch (err) {
                 showToast("An error occurred.", "error");
-                submitBtn.disabled = false;
-                if (btnText) btnText.innerText = "APPLY";
+                submitBtn.style.pointerEvents = "auto";
+                if (btnText) btnText.style.opacity = '1';
                 if (btnSpinner) btnSpinner.classList.add("hidden");
-                submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
             }
         });
     }
@@ -1431,8 +1432,8 @@ function removeCoupon() {
     const text = document.getElementById('remove-btn-text');
     const spinner = document.getElementById('remove-btn-spinner');
     
-    if (btn) btn.disabled = true;
-    if (text) text.innerText = 'Removing...';
+    if (btn) btn.style.pointerEvents = 'none';
+    if (text) text.style.opacity = '0.4';
     if (spinner) spinner.classList.remove('hidden');
 
     fetch("{% url 'remove-coupon' %}", {
@@ -1452,15 +1453,15 @@ function removeCoupon() {
             }
         } else {
             showToast("Error removing coupon", "error");
-            if (btn) btn.disabled = false;
-            if (text) text.innerText = 'Remove';
+            if (btn) btn.style.pointerEvents = 'auto';
+            if (text) text.style.opacity = '1';
             if (spinner) spinner.classList.add('hidden');
         }
     })
     .catch(() => {
         showToast("An error occurred.", "error");
-        if (btn) btn.disabled = false;
-        if (text) text.innerText = 'Remove';
+        if (btn) btn.style.pointerEvents = 'auto';
+        if (text) text.style.opacity = '1';
         if (spinner) spinner.classList.add('hidden');
     });
 }
