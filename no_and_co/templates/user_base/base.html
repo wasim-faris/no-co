@@ -418,11 +418,60 @@
             background: #111111;
             transition: width 0.3s ease-out;
         }
+
         /* Mobile responsive */
         @media (max-width: 768px) {
             .ldr-stage { width: 38px; height: 50px; }
             .ldr-outfit svg { width: 38px; height: 50px; }
             .ldr-pulse { width: 36px; margin-top: 16px; }
+        }
+
+        /* ─── Global Wishlist Heart Toggle Styling ─── */
+        .like-btn {
+            cursor: pointer !important;
+            z-index: 50 !important;
+            position: relative;
+            pointer-events: auto !important;
+            -webkit-tap-highlight-color: transparent !important;
+            touch-action: manipulation !important;
+            transition: transform 0.2s ease;
+        }
+        
+        .like-btn i {
+            pointer-events: none; /* Let the button handle the tap */
+            transition: all 0.2s ease;
+        }
+
+        /* Support both .unfilled-heart/filled-heart and .fav-heart-empty/fill patterns */
+        .like-btn .filled-heart, 
+        .like-btn .fav-heart-fill { 
+            display: none !important; 
+            color: #e8192c !important; /* Premium red */
+        }
+        
+        .like-btn .unfilled-heart, 
+        .like-btn .fav-heart-empty { 
+            display: inline-block !important; 
+        }
+
+        /* Active State */
+        .like-btn.liked .filled-heart,
+        .like-btn.liked .fav-heart-fill { 
+            display: inline-block !important; 
+        }
+        
+        .like-btn.liked .unfilled-heart,
+        .like-btn.liked .fav-heart-empty { 
+            display: none !important; 
+        }
+
+        @media (hover: hover) {
+            .like-btn:hover { transform: scale(1.1); }
+        }
+
+        /* Mobile specific fixes to prevent stuck hover states */
+        @media (max-width: 768px) {
+            .like-btn:hover { transform: none !important; }
         }
     </style>
     {% block extra_head %}{% endblock %}
@@ -953,13 +1002,28 @@
         }
 
         // Global Click Handler for Wishlist Toggle (Capture Phase)
+        let lastToggleTime = 0;
+
+        // Prevent double firing from touchstart vs click on mobile
+        document.addEventListener('touchstart', function(e) {
+            const btn = e.target.closest('.like-btn');
+            if (btn) {
+                // By not preventing default here, we allow scrolling.
+                // The click handler below with debounce handles the actual logic.
+            }
+        }, { passive: true, capture: true });
+
         document.addEventListener('click', function(e) {
             const btn = e.target.closest('.like-btn');
-            if (!btn) return;
+            if (!btn || btn.getAttribute('data-processing') === 'true') return;
 
             // Stop navigation (if inside <a>) and prevent bubbling/other listeners
             e.preventDefault();
             e.stopPropagation();
+
+            const now = Date.now();
+            if (now - lastToggleTime < 450) return; // Increased debounce for stability
+            lastToggleTime = now;
 
             let variantId = btn.getAttribute('data-variant-id');
             const isMainHeart = typeof currentVariantId !== 'undefined' && btn.closest('.info-inner') !== null;
@@ -970,23 +1034,33 @@
                 return;
             }
             variantId = String(variantId);
-
+            
+            btn.setAttribute('data-processing', 'true');
             const wasLiked = WishlistStore.has(variantId);
 
-            // Optimistic UI update via LocalStorage
+            // 1. Optimistic Local State
             if (wasLiked) {
                 WishlistStore.remove(variantId);
+                btn.classList.remove('liked');
             } else {
                 WishlistStore.add(variantId);
+                btn.classList.add('liked');
             }
-            WishlistStore.syncUI();
 
-            // Fire custom event for specific page logic (like removing cards in wishlist.html)
+            // 2. Sync other instances of the SAME product on the page
+            document.querySelectorAll(`.like-btn[data-variant-id="${variantId}"]`).forEach(el => {
+                if (el !== btn) {
+                    if (wasLiked) el.classList.remove('liked');
+                    else el.classList.add('liked');
+                }
+            });
+
+            // Fire custom event for page-specific logic (e.g., removing from wishlist grid)
             window.dispatchEvent(new CustomEvent('wishlistToggled', { 
                 detail: { variantId: variantId, isLiked: !wasLiked, btn: btn } 
             }));
 
-            // Sync with backend
+            // 3. Backend Sync
             fetch('/wishlist-toggle/', {
                 method: 'POST',
                 headers: {
@@ -995,21 +1069,26 @@
                 },
                 body: JSON.stringify({ variant_id: variantId })
             }).then(res => {
+                btn.removeAttribute('data-processing');
                 if (!res.ok) throw new Error('Network error');
                 return res.json();
             }).then(data => {
-                // Ensure localStorage matches server truth
-                if (data.status === 'added') WishlistStore.add(variantId);
-                else if (data.status === 'removed') WishlistStore.remove(variantId);
-                WishlistStore.syncUI();
+                const isNowLiked = (data.status === 'added');
                 
-                // Update navbar counter if provided
+                // Reconcile if server differs from optimistic state
+                if (isNowLiked !== !wasLiked) {
+                    if (isNowLiked) WishlistStore.add(variantId);
+                    else WishlistStore.remove(variantId);
+                    WishlistStore.syncUI();
+                }
+                
                 if (data.wishlist_count !== undefined) {
                     window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: data.wishlist_count } }));
                 }
             }).catch(err => {
+                btn.removeAttribute('data-processing');
                 console.error('Wishlist Sync Error:', err);
-                // Revert optimistic update on failure
+                // Revert on failure
                 if (wasLiked) WishlistStore.add(variantId);
                 else WishlistStore.remove(variantId);
                 WishlistStore.syncUI();

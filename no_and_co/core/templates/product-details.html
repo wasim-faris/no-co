@@ -1037,12 +1037,11 @@
         <p style="font-size: 10px; font-weight: 500; color: #767676; text-transform: uppercase; letter-spacing: 0.08em; margin: 0 0 2px;">{% if product.is_new %}NEW ARRIVAL{% else %}{{ product.category.category_name }}{% endif %}</p>
         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:4px;">
             <h1 class="prod-name" style="margin:0;">{{ product.product_name }}</h1>
-            <button class="like-btn {% if default_variant.id in whishlist_variant_ids %}liked{% endif %}" data-variant-id="{{ default_variant.id }}" style="background:none;border:none;cursor:pointer;padding:0;color:#ccc;font-size:20px;">
+            <button class="like-btn {% if default_variant.id in whishlist_variant_ids %}liked{% endif %}" data-variant-id="{{ default_variant.id }}">
                 <i class="ri-heart-line unfilled-heart"></i>
                 <i class="ri-heart-fill filled-heart"></i>
             </button>
         </div>
-
         <div id="priceWrapper" style="margin-bottom: 8px;">
             {% if default_variant.has_discount %}
                 <div class="flex items-baseline gap-3">

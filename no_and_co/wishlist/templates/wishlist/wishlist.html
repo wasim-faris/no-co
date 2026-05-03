@@ -114,12 +114,6 @@
     @media (hover: hover) {
         .fav-heart:hover { transform: scale(1.15); }
     }
-    /* unfilled by default */
-    .fav-heart .fav-heart-fill   { display: none;   color: #e8192c; }
-    .fav-heart .fav-heart-empty  { display: inline; color: #555; }
-    /* liked = in wishlist */
-    .fav-heart.liked .fav-heart-fill   { display: inline; }
-    .fav-heart.liked .fav-heart-empty  { display: none; }
 
     /* ─── Card content: slight padding, tight spacing ─── */
     .fav-details {
@@ -485,9 +479,7 @@
     @media (hover: hover) {
         .similar-heart:hover i { transform: scale(1.15); }
     }
-    .like-btn .filled-heart { display: none; color: #e02b2b !important; }
-    .like-btn.liked .filled-heart { display: inline-block; }
-    .like-btn.liked .unfilled-heart { display: none; }
+
 
 
     .similar-label {
@@ -799,7 +791,16 @@
                 </div>
                 {% endif %}
                 {% endwith %}
-                <button class="btn-add-fav btn-drawer-trigger" data-variant-id="{{ item.variant.id }}" data-wishlist-id="{{ item.id }}">ADD</button>
+                <button class="btn-add-fav btn-drawer-trigger" 
+                        data-variant-id="{{ item.variant.id }}" 
+                        data-wishlist-id="{{ item.id }}"
+                        data-product-name="{{ item.variant.product.product_name|escapejs }}"
+                        data-price="{% if item.variant.has_discount %}{{ item.variant.final_price }}{% else %}{{ item.variant.price }}{% endif %}"
+                        data-color="{{ item.variant.color|escapejs }}"
+                        data-product-id="{{ item.variant.product.id }}"
+                        data-image="{% if item.variant.primary_images.all %}{{ item.variant.primary_images.all.0.image.url }}{% elif item.variant.images.all %}{{ item.variant.images.all.0.image.url }}{% else %}https://placehold.co/400x600?text={{ item.variant.product.product_name|urlencode }}{% endif %}">
+                    ADD
+                </button>
             </div>
 
         </div>
@@ -1003,80 +1004,7 @@
 
         document.addEventListener('DOMContentLoaded', syncHearts);
 
-        document.addEventListener('click', function(e) {
-            const btn = e.target.closest('.like-btn');
-            if (!btn) return;
 
-            e.preventDefault();
-            e.stopPropagation();
-
-            const variantId = String(btn.getAttribute('data-variant-id'));
-            if (!variantId) return;
-
-            // Optimistic UI toggle
-            const wasLiked = btn.classList.contains('liked');
-            btn.classList.toggle('liked');
-
-            fetch('/wishlist-toggle/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ variant_id: variantId })
-            })
-            .then(response => {
-                if (!response.ok) throw new Error('Network error');
-                return response.json();
-            })
-            .then(data => {
-                if (data.status === 'added') {
-                    btn.classList.add('liked');
-                    if (!wishlistedVariantIds.includes(variantId)) {
-                        wishlistedVariantIds.push(variantId);
-                    }
-                } else if (data.status === 'removed') {
-                    btn.classList.remove('liked');
-                    const idx = wishlistedVariantIds.indexOf(variantId);
-                    if (idx > -1) wishlistedVariantIds.splice(idx, 1);
-
-                    // Fade out and remove the card (specific to wishlist page)
-                    const container = btn.closest('.fav-card-container');
-                    if (container) {
-                        container.style.transition = 'opacity 0.3s ease';
-                        container.style.opacity = '0';
-                        setTimeout(() => {
-                            container.remove();
-                            // If empty, reload to show empty state or just keep as is
-                            if (document.querySelectorAll('.fav-card-container').length === 0) {
-                                location.reload();
-                            }
-                        }, 320);
-                    }
-                }
-
-                // Show toast removed as per request for cleaner UI during wishlist toggle
-                /*
-                if (typeof showToast === 'function') {
-                    const msg = data.status === 'added' ? "Added to wishlist" : "Removed from wishlist";
-                    showToast(msg, "success");
-                }
-                */
-
-                // Update counts globally
-                if (data.wishlist_count !== undefined) {
-                    window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: data.wishlist_count } }));
-                }
-                if (data.cart_count !== undefined) {
-                    window.dispatchEvent(new CustomEvent('cartUpdated', { detail: { count: data.cart_count } }));
-                }
-            })
-            .catch(err => {
-                console.error('Wishlist Sync Error:', err);
-                if (wasLiked) btn.classList.add('liked');
-                else btn.classList.remove('liked');
-            });
-        });
 
         // Listen for global wishlist toggle to remove card from grid
         window.addEventListener('wishlistToggled', function(e) {
@@ -1134,9 +1062,30 @@
             }, 2500);
         }
 
-        function openDrawer(variantId) {
+        function openDrawer(variantId, productData) {
             // Reset state
             selectedVariantId = null;
+
+            // Instantly update drawer UI if product data is available
+            if (productData) {
+                document.getElementById('drawerProductName').textContent = productData.name || 'LOADING...';
+                document.getElementById('drawerProductPrice').textContent = 'Rs. ' + (productData.price || '...');
+                document.getElementById('drawerProductVariant').textContent = 'Selected colour: ' + (productData.color || '...');
+                const dImg = document.getElementById('drawerProductImg');
+                if (dImg) {
+                    dImg.src = productData.image || 'https://placehold.co/400x600?text=No+Image';
+                    dImg.onerror = function() { this.src = 'https://placehold.co/400x600?text=No+Image'; };
+                    dImg.style.display = 'block';
+                }
+                const linkPDP = document.getElementById('linkDrawerPDP');
+                if (linkPDP && productData.productId) {
+                    linkPDP.href = `/product-details/${productData.productId}/?variant=${variantId}`;
+                }
+            } else {
+                document.getElementById('drawerProductName').textContent = 'LOADING...';
+                document.getElementById('drawerProductPrice').textContent = '';
+                document.getElementById('drawerProductVariant').textContent = '';
+            }
 
             // Show Skeletons
             sizeGrid.innerHTML = '';
@@ -1158,20 +1107,24 @@
             overlay.classList.add('active');
             drawer.classList.add('active');
 
-            // Fetch variant data
+            // Fetch variant sizes
             fetch(`/api/variant-sizes/${variantId}/`)
                 .then(res => res.json())
                 .then(data => {
-                    document.getElementById('drawerProductName').textContent = data.product_name;
-                    document.getElementById('drawerProductPrice').textContent = 'Rs. ' + data.price;
-                    document.getElementById('drawerProductVariant').textContent = 'Selected colour: ' + data.color;
-                    const dImg = document.getElementById('drawerProductImg');
-                    if (dImg) {
-                        dImg.src = data.image_url || 'https://placehold.co/400x600?text=No+Image';
-                        dImg.onerror = function() { this.src = 'https://placehold.co/400x600?text=No+Image'; };
-                        dImg.style.display = 'block';
+                    // Update any missing data if needed (fallback)
+                    if (!productData) {
+                        document.getElementById('drawerProductName').textContent = data.product_name;
+                        document.getElementById('drawerProductPrice').textContent = 'Rs. ' + data.price;
+                        document.getElementById('drawerProductVariant').textContent = 'Selected colour: ' + data.color;
+                        const dImg = document.getElementById('drawerProductImg');
+                        if (dImg) {
+                            dImg.src = data.image_url || 'https://placehold.co/400x600?text=No+Image';
+                        }
+                        const linkPDP = document.getElementById('linkDrawerPDP');
+                        if (linkPDP) {
+                            linkPDP.href = `/product-details/${data.product_id}/?variant=${variantId}`;
+                        }
                     }
-                    document.getElementById('linkDrawerPDP').href = `/product-details/${data.product_id}/`;
 
                     // Populate Sizes
                     sizeGrid.innerHTML = '';
@@ -1238,7 +1191,16 @@
                 e.preventDefault();
                 const vId = btn.getAttribute('data-variant-id');
                 selectedWishlistId = btn.getAttribute('data-wishlist-id');
-                if (vId) openDrawer(vId);
+                
+                const productData = {
+                    name: btn.getAttribute('data-product-name'),
+                    price: btn.getAttribute('data-price'),
+                    color: btn.getAttribute('data-color'),
+                    image: btn.getAttribute('data-image'),
+                    productId: btn.getAttribute('data-product-id')
+                };
+
+                if (vId) openDrawer(vId, productData);
             }
         });
 
