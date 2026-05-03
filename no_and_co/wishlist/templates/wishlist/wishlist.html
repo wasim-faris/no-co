@@ -477,17 +477,18 @@
         padding: 0;
         z-index: 10;
     }
-    .similar-heart svg {
-        width: 18px;
-        height: 18px;
-        fill: none;
-        stroke: #000;
-        stroke-width: 1.5;
-        transition: transform 0.1s;
+    .similar-heart i {
+        font-size: 18px;
+        color: #000;
+        transition: transform 0.2s ease;
     }
     @media (hover: hover) {
-        .similar-heart:hover svg { transform: scale(1.15); fill: #eee; }
+        .similar-heart:hover i { transform: scale(1.15); }
     }
+    .like-btn .filled-heart { display: none; color: #e02b2b !important; }
+    .like-btn.liked .filled-heart { display: inline-block; }
+    .like-btn.liked .unfilled-heart { display: none; }
+
 
     .similar-label {
         font-size: 9px;
@@ -842,8 +843,9 @@
                         <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
                     {% endif %}
                     {% endwith %}
-                    <button class="similar-heart" aria-label="Add to Wishlist">
-                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    <button class="similar-heart like-btn" data-variant-id="{{ item.id }}" aria-label="Add to Wishlist">
+                        <i class="ri-heart-line unfilled-heart"></i>
+                        <i class="ri-heart-fill filled-heart"></i>
                     </button>
                 </div>
                 <p class="similar-label" style="padding: 0 10px; margin: 6px 0 1px;">{% if item.product.is_new %}NEW ARRIVAL{% elif item.product.is_premium %}H&M Premium Selection{% else %}{{ item.product.category.category_name }}{% endif %}</p>
@@ -895,8 +897,9 @@
                         <img data-src="{% if all_imgs %}{{ all_imgs.0.image.url }}{% else %}#{% endif %}" class="product-img absolute inset-0 w-full h-full object-cover lazy-image" alt="{{ item.color }}">
                     {% endif %}
                     {% endwith %}
-                    <button class="similar-heart" aria-label="Add to Wishlist">
-                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    <button class="similar-heart like-btn" data-variant-id="{{ item.id }}" aria-label="Add to Wishlist">
+                        <i class="ri-heart-line unfilled-heart"></i>
+                        <i class="ri-heart-fill filled-heart"></i>
                     </button>
                 </div>
                 <p class="similar-label" style="padding: 0 10px; margin: 6px 0 1px;">{% if item.product.is_new %}NEW ARRIVAL{% elif item.product.is_premium %}H&M Premium Selection{% else %}{{ item.product.category.category_name }}{% endif %}</p>
@@ -1074,6 +1077,24 @@
                 else btn.classList.remove('liked');
             });
         });
+
+        // Listen for global wishlist toggle to remove card from grid
+        window.addEventListener('wishlistToggled', function(e) {
+            if (!e.detail.isLiked) {
+                const container = e.detail.btn.closest('.fav-card-container');
+                if (container) {
+                    container.style.transition = 'opacity 0.3s ease';
+                    container.style.opacity = '0';
+                    setTimeout(() => {
+                        container.remove();
+                        if (document.querySelectorAll('.fav-card-container').length === 0) {
+                            location.reload();
+                        }
+                    }, 320);
+                }
+            }
+        });
+
         // ─── ADD TO CART DRAWER LOGIC ───
         const overlay = document.getElementById('atcDrawerOverlay');
         const drawer = document.getElementById('atcDrawer');

@@ -1359,7 +1359,8 @@
             currentVariantId = String(resolvedId);
             heartBtn.setAttribute('data-variant-id', currentVariantId);
 
-            if (wishlistedVariantIds.includes(currentVariantId)) {
+            if ((window.WishlistStore && window.WishlistStore.has(currentVariantId)) || 
+                (typeof wishlistedVariantIds !== 'undefined' && wishlistedVariantIds.includes(currentVariantId))) {
                 heartBtn.classList.add('liked');
             } else {
                 heartBtn.classList.remove('liked');

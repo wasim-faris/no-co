@@ -871,6 +871,151 @@
             });
         });
     </script>
+    <!-- Global Wishlist Sync & LocalStorage Store -->
+    <script>
+        window.WishlistStore = {
+            get: function() {
+                try { return JSON.parse(localStorage.getItem('no_co_wishlist')) || []; }
+                catch(e) { return []; }
+            },
+            set: function(list) {
+                localStorage.setItem('no_co_wishlist', JSON.stringify(list));
+            },
+            add: function(id) {
+                let list = this.get();
+                if (!list.includes(String(id))) { list.push(String(id)); this.set(list); }
+            },
+            remove: function(id) {
+                let list = this.get();
+                this.set(list.filter(x => x !== String(id)));
+            },
+            has: function(id) {
+                return this.get().includes(String(id));
+            },
+            syncUI: function() {
+                const list = this.get();
+                document.querySelectorAll('.like-btn').forEach(btn => {
+                    let vId = btn.getAttribute('data-variant-id');
+                    // Special case for main PDP heart which may not have data-variant-id initially
+                    if (!vId && typeof currentVariantId !== 'undefined' && btn.closest('.info-inner') !== null) {
+                        vId = currentVariantId;
+                    }
+                    if (vId) {
+                        if (list.includes(String(vId))) {
+                            btn.classList.add('liked');
+                        } else {
+                            btn.classList.remove('liked');
+                        }
+                    }
+                });
+            }
+        };
+
+        // Initialize UI on load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Seed local storage with server-rendered state
+            let list = WishlistStore.get();
+            let changed = false;
+            document.querySelectorAll('.like-btn.liked').forEach(btn => {
+                let vId = btn.getAttribute('data-variant-id');
+                if (!vId && typeof currentVariantId !== 'undefined' && btn.closest('.info-inner') !== null) {
+                    vId = currentVariantId;
+                }
+                if (vId && !list.includes(String(vId))) {
+                    list.push(String(vId));
+                    changed = true;
+                }
+            });
+            if (changed) WishlistStore.set(list);
+
+            WishlistStore.syncUI();
+        });
+
+        // Sync UI when localStorage changes in another tab
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'no_co_wishlist') WishlistStore.syncUI();
+        });
+
+        // Helper: Get CSRF Token from Cookie
+        function getCsrfCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Global Click Handler for Wishlist Toggle (Capture Phase)
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('.like-btn');
+            if (!btn) return;
+
+            // Stop navigation (if inside <a>) and prevent bubbling/other listeners
+            e.preventDefault();
+            e.stopPropagation();
+
+            let variantId = btn.getAttribute('data-variant-id');
+            const isMainHeart = typeof currentVariantId !== 'undefined' && btn.closest('.info-inner') !== null;
+            if (isMainHeart) variantId = currentVariantId;
+
+            if (!variantId) {
+                console.error('Wishlist Error: could not resolve variant id.');
+                return;
+            }
+            variantId = String(variantId);
+
+            const wasLiked = WishlistStore.has(variantId);
+
+            // Optimistic UI update via LocalStorage
+            if (wasLiked) {
+                WishlistStore.remove(variantId);
+            } else {
+                WishlistStore.add(variantId);
+            }
+            WishlistStore.syncUI();
+
+            // Fire custom event for specific page logic (like removing cards in wishlist.html)
+            window.dispatchEvent(new CustomEvent('wishlistToggled', { 
+                detail: { variantId: variantId, isLiked: !wasLiked, btn: btn } 
+            }));
+
+            // Sync with backend
+            fetch('/wishlist-toggle/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfCookie('csrftoken')
+                },
+                body: JSON.stringify({ variant_id: variantId })
+            }).then(res => {
+                if (!res.ok) throw new Error('Network error');
+                return res.json();
+            }).then(data => {
+                // Ensure localStorage matches server truth
+                if (data.status === 'added') WishlistStore.add(variantId);
+                else if (data.status === 'removed') WishlistStore.remove(variantId);
+                WishlistStore.syncUI();
+                
+                // Update navbar counter if provided
+                if (data.wishlist_count !== undefined) {
+                    window.dispatchEvent(new CustomEvent('wishlistUpdated', { detail: { count: data.wishlist_count } }));
+                }
+            }).catch(err => {
+                console.error('Wishlist Sync Error:', err);
+                // Revert optimistic update on failure
+                if (wasLiked) WishlistStore.add(variantId);
+                else WishlistStore.remove(variantId);
+                WishlistStore.syncUI();
+            });
+        }, true); // true = capture phase intercept
+    </script>
 </body>
 
 </html>
