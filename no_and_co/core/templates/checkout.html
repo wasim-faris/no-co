@@ -785,7 +785,7 @@
                 <!-- Input Section -->
                 <div class="flex flex-col gap-4 mt-4">
                     <input type="text" id="coupon-code" name="code" placeholder="Enter coupon code" required class="w-full h-12 border border-gray-300 px-4 text-sm focus:outline-none focus:border-black uppercase">
-                    <button type="submit" class="uni-modal-btn uni-modal-btn-primary relative flex items-center justify-center" style="height: 48px;">
+                    <button type="submit" id="coupon-submit-btn" disabled class="uni-modal-btn uni-modal-btn-primary relative flex items-center justify-center opacity-50 cursor-not-allowed" style="height: 48px;">
                         <span id="btn-text" class="transition-opacity duration-200">APPLY</span>
                         <div id="btn-spinner" class="absolute inset-0 flex items-center justify-center hidden pointer-events-none">
                             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -865,6 +865,10 @@
             if (data.success) {
                 availableCoupons = data.coupons;
                 renderCoupons();
+                const input = document.getElementById('coupon-code');
+                if (input && input.value.trim()) {
+                    input.dispatchEvent(new Event('input'));
+                }
             } else {
                 container.innerHTML = `
                     <div class="py-8 text-center bg-gray-50 border border-dashed border-gray-200">
@@ -925,7 +929,9 @@
         var input = document.getElementById('coupon-code');
         if (input) { 
             input.value = code; 
-            input.focus(); 
+            input.focus();
+            // Trigger validation
+            input.dispatchEvent(new Event('input'));
         } else {
             if (typeof showToast === 'function') {
                 showToast("A coupon is already applied. Please remove it first.", "error");
@@ -1328,6 +1334,9 @@ window.addEventListener("pageshow", function (event) {
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById("coupon-form");
     const input = document.getElementById("coupon-code");
+    const submitBtn = document.getElementById("coupon-submit-btn");
+    const errorBox = document.getElementById("coupon-error");
+    const successBox = document.getElementById("coupon-success");
 
     function triggerFullReload() {
         const loading = document.getElementById("loading-overlay");
@@ -1343,6 +1352,40 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 150);
     }
 
+    // Real-time validation
+    if (input) {
+        input.addEventListener("input", () => {
+            const code = input.value.trim().toUpperCase();
+            if (!code) {
+                if (errorBox) errorBox.classList.add("hidden");
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add("opacity-50", "cursor-not-allowed");
+                }
+                return;
+            }
+
+            const isValid = availableCoupons.some(c => c.code.toUpperCase() === code);
+            
+            if (isValid) {
+                if (errorBox) errorBox.classList.add("hidden");
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove("opacity-50", "cursor-not-allowed");
+                }
+            } else {
+                if (errorBox) {
+                    errorBox.textContent = "Invalid coupon code";
+                    errorBox.classList.remove("hidden");
+                }
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add("opacity-50", "cursor-not-allowed");
+                }
+            }
+        });
+    }
+
     if (form) {
         form.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -1350,11 +1393,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const code = input.value.trim();
             if (!code) return;
 
-            const submitBtn = form.querySelector('button[type="submit"]');
+            // Final frontend validation before API call
+            const isValid = availableCoupons.some(c => c.code.toUpperCase() === code.toUpperCase());
+            if (!isValid) {
+                if (errorBox) {
+                    errorBox.textContent = "Invalid coupon code";
+                    errorBox.classList.remove("hidden");
+                }
+                return;
+            }
+
             const btnText = submitBtn.querySelector("#btn-text");
             const btnSpinner = submitBtn.querySelector("#btn-spinner");
-            const errorBox = document.getElementById("coupon-error");
-            const successBox = document.getElementById("coupon-success");
 
             // UI Reset & Loading State
             if (errorBox) errorBox.classList.add("hidden");
@@ -1376,16 +1426,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await response.json();
 
+                // Stop loader immediately regardless of outcome
+                submitBtn.style.pointerEvents = "auto";
+                if (btnText) btnText.style.opacity = '1';
+                if (btnSpinner) btnSpinner.classList.add("hidden");
+
                 if (!data.success) {
                     showToast(data.message || "Invalid coupon", "error");
                     if (errorBox) {
                         errorBox.textContent = data.message || "Invalid coupon";
                         errorBox.classList.remove("hidden");
                     }
-                    // Re-enable button
-                    submitBtn.style.pointerEvents = "auto";
-                    if (btnText) btnText.style.opacity = '1';
-                    if (btnSpinner) btnSpinner.classList.add("hidden");
                 } else {
                     if (data.was_capped) {
                         showToast("Discount exceeds cart value. Adjusted automatically.", "success");
