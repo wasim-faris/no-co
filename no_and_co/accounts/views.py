@@ -342,6 +342,12 @@ def not_found(request):
     return render(request, "404.html")
 
 
+def get_domain(request):
+    if request.get_host().startswith("127.0.0.1") or request.get_host().startswith("localhost"):
+        return "http://127.0.0.1:8000"
+    return "https://wasim-faris.online"
+
+
 @never_cache
 def forgot_password(request):
 
@@ -384,7 +390,8 @@ def forgot_password(request):
 
                 PasswordResetToken.objects.create(user=user, uuid_token=uuid_token)
 
-                reset_link = f"http://127.0.0.1:8000/reset-link/{uuid_token}/"
+                domain = get_domain(request)
+                reset_link = f"{domain}/reset-link/{uuid_token}/"
 
                 # ── HTML forgot-password email ──────────────────────────
                 try:
