@@ -901,7 +901,9 @@
                 <div class="p-6 border border-gray-200 bg-gray-50/50 group hover:border-black transition-all cursor-pointer" onclick="selectCoupon('${coupon.code}')">
                     <div class="flex justify-between items-start mb-3">
                         <span class="px-3 py-1 bg-white border border-black text-[11px] font-black tracking-widest">${coupon.code}</span>
-                        <span class="text-[11px] font-bold text-green-600">SAVE ₹${coupon.discount_value}</span>
+                        <span class="text-[11px] font-bold text-green-600">
+                            ${coupon.discount_type === 'percentage' ? 'SAVE ' + parseInt(coupon.discount_value) + '%' : 'SAVE ₹' + parseInt(coupon.discount_value)}
+                        </span>
                     </div>
                     <p class="text-[10px] text-gray-500 uppercase tracking-tight leading-relaxed">${coupon.description || 'Exclusive NØ&CO Discount'}</p>
                 </div>

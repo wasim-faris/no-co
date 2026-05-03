@@ -1128,6 +1128,7 @@ def active_coupons(request):
         data.append({
             "code": c.code,
             "discount_value": float(c.discount_value),
+            "discount_type": c.discount_type,
             "description": "Exclusive NØ&CO Discount"
         })
     return JsonResponse({"success": True, "coupons": data})
