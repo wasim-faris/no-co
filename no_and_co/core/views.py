@@ -962,7 +962,7 @@ def cancel_order_item(request, item_id):
         # Calculate proportional tax for the item
         item_base = Decimal(item.final_price) * item.quantity
         tax_rate = order.tax_amount / order.subtotal if order.subtotal > 0 else Decimal('0.00')
-        item_tax = (item_base * tax_rate).quantize(Decimal('0.01'))
+        item_tax = (Decimal(item.price) * item.quantity * tax_rate).quantize(Decimal('0.01'))
         
         refund_amount = item_base + item_tax
         

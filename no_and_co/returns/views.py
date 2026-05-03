@@ -266,11 +266,24 @@ def complete_refund(request):
             )
 
             user = return_request.order.user
-          
-            amount = return_request.order.total_amount
+            item = return_request.order_item
+            order = return_request.order
+            
+            # Use item's final_price which already includes proportional coupon discount
+            item_base_refund = Decimal(item.final_price) * item.quantity
+            
+            # Calculate proportional tax for this item
+            if order.subtotal > 0:
+                tax_rate = order.tax_amount / order.subtotal
+                item_tax = (Decimal(item.price) * item.quantity * tax_rate).quantize(Decimal('0.01'))
+            else:
+                item_tax = Decimal('0.00')
+                
+            amount = item_base_refund + item_tax
+            
             wallet , created = Wallet.objects.get_or_create(user=user)
 
-            wallet.balance = Decimal(wallet.balance) + Decimal(amount)
+            wallet.balance = Decimal(wallet.balance) + amount
             wallet.save()
 
             WalletTransaction.objects.create(
