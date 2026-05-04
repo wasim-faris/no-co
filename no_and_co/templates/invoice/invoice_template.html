@@ -1,331 +1,126 @@
-{% load static %}<!DOCTYPE html>
+{% load static %}
+{% load order_extras %}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Invoice {{ order.order_number }} — NO &amp; CO</title>
     <style type="text/css">
-        /* ════════════════════════════════════
-           PAGE / PDF SETUP (A4)
-        ════════════════════════════════════ */
-        @page {
-            size: A4 portrait;
-            margin: 1.5cm;
-        }
-
-        /* ════════════════════════════════════
-           RESET & BASE
-        ════════════════════════════════════ */
+        @page { size: A4 portrait; margin: 1.2cm; }
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 8.5pt; color: #1f2937; background: #ffffff; line-height: 1.4; }
         
-        body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 9pt;
-            color: #000000;
-            background: #ffffff;
-            line-height: 1.5;
-        }
+        .topbar { width: 100%; background: #000000; padding: 12px 40px; color: #ffffff; display: flex; justify-content: space-between; align-items: center; }
+        .topbar-btn { background: #ffffff; color: #000000; padding: 8px 20px; font-size: 7.5pt; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; border: none; cursor: pointer; border-radius: 2px; }
+        
+        .invoice-container { max-width: 800px; margin: 0 auto; padding: 30px; }
+        
+        .header { width: 100%; margin-bottom: 30px; }
+        .header table { width: 100%; border-collapse: collapse; }
+        .brand-name { font-size: 18pt; font-weight: bold; text-transform: uppercase; letter-spacing: -0.5px; }
+        .invoice-literal { text-align: right; font-size: 12pt; font-weight: 300; text-transform: uppercase; letter-spacing: 4px; color: #6b7280; }
+        .header-rule { border: none; border-top: 1pt solid #000000; margin-top: 8px; }
 
-        /* ════════════════════════════════════
-           TOPBAR (Screen Only)
-        ════════════════════════════════════ */
-        .topbar {
-            width: 100%;
-            background: #000000;
-            padding: 12px 40px;
-            color: #ffffff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .topbar-btn {
-            background: #ffffff;
-            color: #000000;
-            padding: 8px 20px;
-            font-size: 8pt;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            border: none;
-            cursor: pointer;
-        }
+        .details-section { width: 100%; margin-bottom: 35px; margin-top: 15px; }
+        .details-table { width: 100%; border-collapse: collapse; }
+        .details-table td { vertical-align: top; width: 50%; }
+        .details-heading { font-size: 6.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1.2px; color: #9ca3af; margin-bottom: 6px; display: block; }
+        .info-text { line-height: 1.5; }
+        .customer-name { font-weight: bold; display: block; margin-bottom: 2px; font-size: 9pt; }
+        .info-row { margin-bottom: 2px; }
+        .info-label { font-size: 6.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; width: 90px; display: inline-block; color: #6b7280; }
 
-        /* ════════════════════════════════════
-           DOCUMENT LAYOUT
-        ════════════════════════════════════ */
-        .invoice-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px;
-        }
+        .items-section { width: 100%; margin-bottom: 25px; }
+        .items-table { width: 100%; border-collapse: collapse; }
+        .items-table th { text-align: left; font-size: 7pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.8px; padding: 8px 0; border-bottom: 1.5pt solid #000000; color: #111827; }
+        .items-table td { padding: 12px 8px; border-bottom: 0.5pt solid #f3f4f6; vertical-align: middle; }
+        
+        .returned-row { background-color: #fffaf0; } /* Subtle orange for return context */
+        .returned-row-cancelled { background-color: #fef2f2; } /* Subtle red for cancel context */
+        
+        .item-main { font-weight: bold; font-size: 9pt; color: #111827; }
+        .item-sub { font-size: 7pt; color: #9ca3af; text-transform: uppercase; margin-top: 3px; }
+        
+        .badge { display: inline-block; padding: 2px 6px; font-size: 6pt; font-weight: bold; border-radius: 3px; text-transform: uppercase; margin-left: 6px; vertical-align: middle; border: 0.5pt solid transparent; }
+        .badge-delivered { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .badge-cancelled { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+        .badge-returned { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+        
+        .strikethrough { text-decoration: line-through; color: #9ca3af; }
 
-        /* ════════════════════════════════════
-           HEADER
-        ════════════════════════════════════ */
-        .header {
-            width: 100%;
-            margin-bottom: 50px;
-        }
-        .header table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .brand-name {
-            font-size: 20pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: -0.5px;
-        }
-        .invoice-literal {
-            text-align: right;
-            font-size: 14pt;
-            font-weight: 300;
-            text-transform: uppercase;
-            letter-spacing: 5px;
-        }
+        .summary-section { width: 100%; margin-top: 15px; }
+        .summary-table { width: 42%; margin-left: auto; border-collapse: collapse; }
+        .summary-table td { padding: 4px 0; }
+        .summary-label { text-align: left; font-size: 7pt; text-transform: uppercase; color: #6b7280; font-weight: 500; }
+        .summary-value { text-align: right; font-size: 8.5pt; font-weight: bold; }
+        
+        /* Updated Total Styling */
+        .total-row { border-top: 1.5pt solid #000000; }
+        .total-row td { padding-top: 12px; }
+        .total-value { font-size: 13pt; color: #000000; }
 
-        .header-rule {
-            border: none;
-            border-top: 0.5pt solid #000000;
-            margin-top: 10px;
-        }
+        /* Refund Summary Box */
+        .refund-box { background: #fdfdfd; border: 1pt dashed #d1d5db; padding: 15px; margin: 25px 0; border-radius: 4px; }
+        .refund-header { font-size: 7.5pt; font-weight: bold; text-transform: uppercase; letter-spacing: 1.5px; color: #374151; margin-bottom: 12px; display: block; border-bottom: 0.5pt solid #e5e7eb; padding-bottom: 6px; }
+        .refund-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+        .refund-table td { padding: 5px 0; font-size: 8pt; }
+        .refund-total-line { border-top: 0.5pt solid #e5e7eb; padding-top: 8px; margin-top: 8px; display: flex; justify-content: space-between; font-weight: bold; color: #059669; }
 
-        /* ════════════════════════════════════
-           CLIENT & INVOICE DETAILS
-        ════════════════════════════════════ */
-        .details-section {
-            width: 100%;
-            margin-bottom: 60px;
-            margin-top: 30px;
-        }
-        .details-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .details-table td {
-            vertical-align: top;
-            width: 50%;
-        }
-        .details-heading {
-            font-size: 7pt;
-            font-weight: 300;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #666666;
-            margin-bottom: 8px;
-            display: block;
-        }
-        .info-text {
-            line-height: 1.6;
-        }
-        .customer-name {
-            font-weight: bold;
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        /* Detail rows for right column */
-        .info-row {
-            margin-bottom: 2px;
-        }
-        .info-label {
-            font-size: 7pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            width: 90px;
-            display: inline-block;
-        }
-
-        /* ════════════════════════════════════
-           PRODUCT TABLE
-        ════════════════════════════════════ */
-        .items-section {
-            width: 100%;
-            margin-bottom: 40px;
-        }
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .items-table th {
-            text-align: left;
-            font-size: 7.5pt;
-            font-weight: bold;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding-bottom: 12px;
-            border-bottom: 0.8pt solid #000000;
-        }
-        .items-table td {
-            padding: 15px 0;
-            border-bottom: 0.4pt solid #f0f0f0;
-            vertical-align: top;
-        }
-        .items-table tr:last-child td {
-            border-bottom: 0.8pt solid #000000;
-        }
-        .item-main {
-            font-weight: bold;
-            font-size: 9pt;
-            display: block;
-        }
-        .item-sub {
-            font-size: 7pt;
-            color: #777777;
-            text-transform: uppercase;
-            margin-top: 3px;
-        }
-
-        /* ════════════════════════════════════
-           SUMMARY
-        ════════════════════════════════════ */
-        .summary-section {
-            width: 100%;
-            margin-bottom: 80px;
-        }
-        .summary-table {
-            width: 35%;
-            margin-left: auto;
-            border-collapse: collapse;
-        }
-        .summary-table td {
-            padding: 4px 0;
-        }
-        .summary-label {
-            text-align: left;
-            font-size: 7pt;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .summary-value {
-            text-align: right;
-            font-size: 9pt;
-        }
-        .total-row td {
-            padding-top: 15px;
-            font-weight: bold;
-            border-top: 1pt solid #000000;
-        }
-        .total-amount {
-            font-size: 14pt;
-        }
-
-        /* ════════════════════════════════════
-           FOOTER
-        ════════════════════════════════════ */
-        .footer {
-            text-align: center;
-            font-size: 8pt;
-            padding-top: 40px;
-        }
-        .footer-tag {
-            font-size: 9pt;
-            font-weight: 300;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 15px;
-            display: block;
-        }
-        .footer-note {
-            font-size: 7pt;
-            color: #999999;
-            margin-bottom: 30px;
-            display: block;
-        }
-        .brand-text {
-            font-weight: bold;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-            display: block;
-        }
-        .contact-links {
-            color: #666666;
-        }
-
-        /* ════════════════════════════════════
-           SCREEN VS PDF
-        ════════════════════════════════════ */
-        @media print {
-            .topbar { display: none; }
-            .invoice-container { padding: 0; }
-        }
+        .rupee-symbol { font-family: 'DejaVu Sans', 'Arial Unicode MS', 'sans-serif'; }
+        
+        @media print { .topbar { display: none; } .invoice-container { padding: 0; } }
     </style>
 </head>
 <body>
 
 {% if not is_pdf %}
 <div class="topbar">
-    <div>NO &amp; CO &nbsp; | &nbsp; Invoice {{ order.order_number }}</div>
-    <button class="topbar-btn" onclick="window.print()">Download PDF</button>
+    <div style="font-weight: bold; letter-spacing: 2px;">NO &amp; CO</div>
+    <button class="topbar-btn" onclick="window.print()">Print Invoice</button>
 </div>
 {% endif %}
 
 <div class="invoice-container">
-    
-    <!-- Header -->
     <div class="header">
         <table>
             <tr>
                 <td class="brand-name">NO &amp; CO</td>
-                <td class="invoice-literal">INVOICE</td>
+                <td class="invoice-literal">{% if order|has_returns %}REVISED INVOICE{% else %}TAX INVOICE{% endif %}</td>
             </tr>
         </table>
-        <div class="header-rule"></div>
+        <hr class="header-rule">
     </div>
 
-    <!-- Details -->
     <div class="details-section">
         <table class="details-table">
             <tr>
                 <td>
-                    <span class="details-heading">Details</span>
+                    <span class="details-heading">Bill To</span>
                     <div class="info-text">
                         <span class="customer-name">{{ order.address.first_name }} {{ order.address.last_name }}</span>
                         {{ order.address.address_line1 }}{% if order.address.address_line2 %}, {{ order.address.address_line2 }}{% endif %}<br>
                         {{ order.address.city }}, {{ order.address.state }} &ndash; {{ order.address.pin_code }}<br>
-                        {{ order.address.country }}<br>
-                        <span style="display:block; margin-top:5px;">{{ order.user.email }}</span>
+                        {{ order.address.country }}
+                        <span style="display:block; margin-top:4px; color: #6b7280; font-size: 7.5pt;">{{ order.user.email }}</span>
                     </div>
                 </td>
                 <td>
-                    <span class="details-heading">Invoice Details</span>
+                    <span class="details-heading">Order Details</span>
                     <div class="info-text">
                         <div class="info-row"><span class="info-label">Invoice No</span> #INV-{{ order.order_number }}</div>
-                        <div class="info-row"><span class="info-label">Order No</span> #{{ order.order_number }}</div>
-                        <div class="info-row"><span class="info-label">Date</span> {{ order.created_at|date:"d M Y" }}</div>
-                        <div class="info-row">
-                            <span class="info-label">Order Status</span> 
-                            {% if order.payment_status == 'VOIDED' or order.payment_status == 'REFUNDED' %}
-                                <strong style="color: #7F1D1D;">CANCELLED</strong>
-                            {% elif order.payment_status == 'PARTIALLY_REFUNDED' %}
-                                <strong style="color: #92400E;">PARTIALLY CANCELLED</strong>
-                            {% else %}
-                                <strong>{{ order.status_history.first.status|default:"Confirmed"|upper }}</strong>
-                            {% endif %}
-                        </div>
-                        <div class="info-row" style="margin-top: 10px;">
-                            <span class="info-label">Payment Mode</span> {{ order.get_payment_method_display }}
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Pay Status</span> 
-                            {% if order.payment_status == 'PAID' %}
-                                <strong style="color:#14532D;">PAID</strong>
-                            {% elif order.payment_status == 'REFUNDED' %}
-                                <strong style="color:#111;">REFUNDED</strong>
-                            {% elif order.payment_status == 'PARTIALLY_REFUNDED' %}
-                                {% if order.payment_method == 'COD' %}
-                                    <strong style="color:#92400E;">PAY ON DELIVERY</strong>
-                                {% else %}
-                                    <strong style="color:#92400E;">PARTIALLY REFUNDED</strong>
-                                {% endif %}
-                            {% elif order.payment_status == 'VOIDED' %}
-                                <strong style="color:#7F1D1D;">VOIDED</strong>
-                            {% elif order.payment_method == 'COD' and order.payment_status == 'PENDING' %}
-                                <strong style="color:#92400E;">PAY ON DELIVERY</strong>
-                            {% else %}
-                                <strong>{{ order.get_payment_status_display|upper }}</strong>
-                            {% endif %}
+                        <div class="info-row"><span class="info-label">Order Date</span> {{ order.created_at|date:"d M Y" }}</div>
+                        {% with refund_date=order|get_latest_refund_date %}
+                        {% if refund_date %}
+                        <div class="info-row"><span class="info-label" style="color: #059669;">Refund Date</span> <span style="color: #059669; font-weight: bold;">{{ refund_date|date:"d M Y" }}</span></div>
+                        {% endif %}
+                        {% endwith %}
+                        <div class="info-row" style="margin-top: 6px;"><span class="info-label">Payment</span> {{ order.get_payment_method_display }}</div>
+                        <div class="info-row"><span class="info-label">Pay Status</span> 
+                            {% if order.payment_status == 'PAID' %}<strong style="color:#065f46;">PAID</strong>
+                            {% elif order.payment_status == 'REFUNDED' %}<strong style="color:#111;">REFUNDED</strong>
+                            {% elif order.payment_status == 'PARTIALLY_REFUNDED' %}<strong style="color:#9a3412;">PARTIALLY REFUNDED</strong>
+                            {% else %}<strong>{{ order.get_payment_status_display|upper }}</strong>{% endif %}
                         </div>
                     </div>
                 </td>
@@ -333,90 +128,103 @@
         </table>
     </div>
 
-    <!-- Items -->
     <div class="items-section">
         <table class="items-table">
             <thead>
                 <tr>
-                    <th style="width: 55%;">Product</th>
+                    <th style="width: 50%; padding-left: 8px;">Description</th>
+                    <th style="width: 15%; text-align: center;">Price</th>
                     <th style="width: 10%; text-align: center;">Qty</th>
-                    <th style="width: 15%; text-align: right;">Price</th>
-                    <th style="width: 20%; text-align: right;">Total</th>
+                    <th style="width: 25%; text-align: right; padding-right: 8px;">Line Total</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in items %}
-                <tr {% if item.item_status == 'CANCELLED' %}style="background-color: #FAFAFA;"{% endif %}>
-                    <td>
-                        <span class="item-main" {% if item.item_status == 'CANCELLED' %}style="text-decoration: line-through; color: #999;"{% endif %}>{{ item.variant.product.product_name }}</span>
+                <tr class="{% if item|is_returned %}returned-row{% elif item.item_status == 'CANCELLED' %}returned-row-cancelled{% endif %}">
+                    <td style="padding-left: 8px;">
+                        <span class="item-main {% if item|is_returned or item.item_status == 'CANCELLED' %}strikethrough{% endif %}">{{ item.variant.product.product_name }}</span>
+                        <span class="badge {% if item.item_status == 'DELIVERED' %}badge-delivered{% elif item.item_status == 'CANCELLED' %}badge-cancelled{% elif item|is_returned %}badge-returned{% else %}badge-delivered{% endif %}">
+                            {{ item|get_item_status_display }}
+                        </span>
                         <div class="item-sub">
-                            {{ item.variant.color }} &nbsp; | &nbsp; size {{ item.variant.size.name }}
-                            {% if item.item_status == 'CANCELLED' %}
-                                &nbsp; | &nbsp; <span style="color: #7F1D1D; font-weight: bold;">CANCELLED</span>
-                            {% endif %}
+                            {{ item.variant.color }} &nbsp; | &nbsp; SIZE {{ item.variant.size.name }}
                         </div>
                     </td>
-                    <td style="text-align: center; {% if item.item_status == 'CANCELLED' %}text-decoration: line-through; color: #999;{% endif %}">{{ item.quantity }}</td>
-                    <td style="text-align: right; {% if item.item_status == 'CANCELLED' %}text-decoration: line-through; color: #999;{% endif %}">&#8377;{{ item.price }}</td>
-                    <td style="text-align: right; font-weight: bold; {% if item.item_status == 'CANCELLED' %}text-decoration: line-through; color: #999;{% endif %}">&#8377;{{ item.line_total }}</td>
+                    <td style="text-align: center; {% if item|is_returned or item.item_status == 'CANCELLED' %}color: #9ca3af;{% endif %}">
+                        <span class="rupee-symbol">₹</span>{{ item.price }}
+                    </td>
+                    <td style="text-align: center;">{{ item.quantity }}</td>
+                    <td style="text-align: right; padding-right: 8px; font-weight: bold;">
+                        <span class="{% if item|is_returned or item.item_status == 'CANCELLED' %}strikethrough{% endif %}">
+                            <span class="rupee-symbol">₹</span>{{ item|get_item_line_total }}
+                        </span>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <!-- Summary -->
+    {% if order|has_returns or order|is_partially_cancelled %}
+    <div class="refund-box">
+        <span class="refund-header">Refund Summary Breakdown</span>
+        <table class="refund-table">
+            {% for item in items %}
+                {% if item|is_returned or item.item_status == 'CANCELLED' %}
+                <tr>
+                    <td style="color: #4b5563;">{{ item.variant.product.product_name }}</td>
+                    <td style="text-align: center; color: #6b7280;">{{ item.quantity }} x <span class="rupee-symbol">₹</span>{{ item.final_price }}</td>
+                    <td style="text-align: right; font-weight: bold; color: #dc2626;">+ <span class="rupee-symbol">₹</span>{{ item|get_item_refund_amount:order }}</td>
+                </tr>
+                {% endif %}
+            {% endfor %}
+        </table>
+        <div class="refund-total-line">
+            <span>Total Refund Issued to Wallet</span>
+            <span><span class="rupee-symbol">₹</span>{{ order|get_refunded_total }}</span>
+        </div>
+        <div style="margin-top: 15px; font-size: 7.5pt; color: #6b7280; display: flex; justify-content: space-between; border-top: 0.5pt solid #e5e7eb; padding-top: 8px;">
+            <span>Original Order Total: <span class="rupee-symbol">₹</span>{{ order.total_amount }}</span>
+            <span style="color: #111827; font-weight: bold;">Revised Order Total: <span class="rupee-symbol">₹</span>{{ order|get_remaining_total }}</span>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="summary-section">
         <table class="summary-table">
             <tr>
-                <td class="summary-label">Subtotal</td>
-                <td class="summary-value">&#8377;{{ order.active_original_subtotal }}</td>
+                <td class="summary-label">Revised Subtotal</td>
+                <td class="summary-value"><span class="rupee-symbol">₹</span>{{ order|get_active_subtotal }}</td>
             </tr>
+            {% if order.discount_amount > 0 %}
             <tr>
-                <td class="summary-label">Shipping</td>
-                <td class="summary-value">
-                    {% if order.delivery_charge == 0 %}FREE{% else %}&#8377;{{ order.delivery_charge }}{% endif %}
-                </td>
-            </tr>
-            <tr>
-                <td class="summary-label">Tax (GST)</td>
-                <td class="summary-value">&#8377;{{ order.active_tax }}</td>
-            </tr>
-            {% if order.active_discount and order.active_discount > 0 %}
-            <tr>
-                <td class="summary-label">Discount</td>
-                <td class="summary-value">&ndash; &#8377;{{ order.active_discount }}</td>
+                <td class="summary-label">Discount Applied</td>
+                <td class="summary-value" style="color: #dc2626;">&ndash; <span class="rupee-symbol">₹</span>{{ order.discount_amount }}</td>
             </tr>
             {% endif %}
-            
-            {% if order.payment_method != 'COD' and order.cancelled_subtotal > 0 %}
-            <tr style="color: #777;">
-                <td class="summary-label">Cancelled Amount</td>
-                <td class="summary-value" style="text-decoration: line-through;">&ndash; &#8377;{{ order.cancelled_subtotal }}</td>
+            <tr>
+                <td class="summary-label">Shipping &amp; Handling</td>
+                <td class="summary-value">{% if order.delivery_charge == 0 %}FREE{% else %}<span class="rupee-symbol">₹</span>{{ order.delivery_charge }}{% endif %}</td>
             </tr>
             <tr>
-                <td class="summary-label" style="color: #059669; font-weight: bold;">Refund Amount</td>
-                <td class="summary-value" style="color: #059669; font-weight: bold;">&#8377;{{ order.refund_amount }}</td>
+                <td class="summary-label">Revised Tax (GST)</td>
+                <td class="summary-value"><span class="rupee-symbol">₹</span>{{ order|get_active_tax }}</td>
             </tr>
-            {% endif %}
-
             <tr class="total-row">
-                <td class="summary-label" style="font-weight:bold;">Total Amount</td>
-                <td class="summary-value total-amount">&#8377;{{ order.active_total }}</td>
+                <td class="summary-label" style="font-size: 8pt; color: #000000; font-weight: bold;">{% if order|has_returns %}REVISED TOTAL{% else %}GRAND TOTAL{% endif %}</td>
+                <td class="summary-value total-value"><span class="rupee-symbol">₹</span>{{ order|get_remaining_total }}</td>
             </tr>
         </table>
     </div>
 
-    <!-- Footer -->
-    <div class="footer">
-        <span class="footer-tag">Thank you for your purchase</span>
-        <span class="footer-note">This is a computer-generated invoice and does not require a signature.</span>
-        <span class="brand-text">NO &amp; CO</span>
-        <div class="contact-links">
-            support@noandco.com &nbsp; | &nbsp; www.noandco.com
-        </div>
+    <div style="text-align: center; margin-top: 60px; padding-top: 20px; border-top: 0.5pt solid #e5e7eb;">
+        <span style="font-size: 8pt; text-transform: uppercase; letter-spacing: 2px; color: #9ca3af; display: block; margin-bottom: 8px;">
+            {% if order|has_returns %}REVISED INVOICE &bull; REFUND COMPLETED{% else %}THANK YOU FOR SHOPPING WITH US{% endif %}
+        </span>
+        <span style="font-size: 7pt; color: #9ca3af; display: block; margin-bottom: 15px;">This is an electronically generated document. No signature is required.</span>
+        <div style="font-weight: bold; color: #111827; font-size: 9pt;">NO &amp; CO</div>
+        <div style="color: #9ca3af; font-size: 7.5pt; margin-top: 4px;">support@noandco.com &nbsp; | &nbsp; www.noandco.com</div>
     </div>
-
 </div>
 
 {% if not is_pdf %}
