@@ -578,13 +578,19 @@
     <div class="plp-header-content">
       <!-- ══ PAGE TITLE ══ -->
       <div style="padding: 32px 0 20px;">
-          <h1 class="page-title" style="margin: 0; color: #000;">
-              {% if request.GET.subcategory and request.GET.subcategory.strip %}
+          <h1 class="page-title" style="margin: 0; color: #000; text-transform: uppercase;">
+              {% if request.GET.section and request.GET.section.strip %}
+                  {{ request.GET.section }}
+              {% elif request.GET.subcategory and request.GET.subcategory.strip %}
                   {{ request.GET.subcategory }}
-              {% elif section == 'newin' %}
-                  NEW IN
               {% elif query and query.strip and query != "None" %}
                   {{ query }}
+              {% elif request.GET.category == 'mens' %}
+                  MEN
+              {% elif request.GET.category == 'ladies' %}
+                  LADIES
+              {% elif request.GET.category == 'kids' %}
+                  KIDS
               {% elif request.GET.category and request.GET.category.strip %}
                   {{ request.GET.category }}
               {% else %}
