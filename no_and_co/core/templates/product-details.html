@@ -244,8 +244,8 @@
         }
     }
 
-    .size-box:hover { 
-        background: #f5f5f5; 
+    .size-box:hover {
+        background: #f5f5f5;
         outline: 1px solid #111;
         outline-offset: -1px;
         z-index: 1;
@@ -463,7 +463,7 @@
         cursor: zoom-in; /* Let the user know it's clickable */
         transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
- 
+
     .gallery-swapping img {
         opacity: 0 !important;
         filter: blur(10px);
@@ -1118,14 +1118,14 @@
             <span class="secondary-link">Check Availability</span>
         </div>
 
-        <div class="rating-row">
+        {% comment %} <div class="rating-row">
             <span class="secondary-link">Reviews (1407)</span>
             <span style="font-size:12px; font-weight:700; color:#000;">★★★★★ 4.6</span>
-        </div>
+        </div> {% endcomment %}
 
         <!-- ══ FIT INDICATOR (H&M style, static) ══ -->
         <!-- No border-top here: rating-row already separates this section -->
-        <div style="padding: 4px 0 16px;">
+        {% comment %} <div style="padding: 4px 0 16px;">
 
             <!-- TRUE TO SIZE -->
             <div style="margin-bottom: 20px;">
@@ -1157,7 +1157,7 @@
                     <span style="font-size: 12px; color: #444; font-weight: 400;">Spot on</span>
                     <span style="font-size: 12px; color: #444; font-weight: 400;">Long</span>
                 </div>
-            </div>
+            </div> {% endcomment %}
 
             <!-- ════ H&M ACCORDION SECTIONS ════ -->
             <div class="acc-item" style="margin-top: 30px;">
@@ -1358,7 +1358,7 @@
             currentVariantId = String(resolvedId);
             heartBtn.setAttribute('data-variant-id', currentVariantId);
 
-            if ((window.WishlistStore && window.WishlistStore.has(currentVariantId)) || 
+            if ((window.WishlistStore && window.WishlistStore.has(currentVariantId)) ||
                 (typeof wishlistedVariantIds !== 'undefined' && wishlistedVariantIds.includes(currentVariantId))) {
                 heartBtn.classList.add('liked');
             } else {
@@ -1415,7 +1415,7 @@
         // Update Text and price
         const hasDiscount = element.getAttribute('data-has-discount') === 'true';
         const priceWrapper = document.getElementById('priceWrapper');
-        
+
         if (hasDiscount) {
             const finalPrice = element.getAttribute('data-final-price');
             const originalPrice = element.getAttribute('data-original-price');
@@ -1434,7 +1434,7 @@
                 <p class="text-base font-medium text-black" id="displayPrice">Rs. ${price}</p>
             `;
         }
-        
+
         colorLabel.innerText = `COLOUR: ${element.getAttribute('data-color')}`;
 
         // Premium Animation: Fade out gallery first
@@ -1449,7 +1449,7 @@
         const extraImgs = Array.from(element.attributes)
             .filter(attr => attr.name.startsWith('data-img-extra-'))
             .map(attr => attr.value);
-        
+
         const allNewSources = [element.getAttribute('data-img1'), ...extraImgs];
 
         let loadPromises = [];
@@ -2141,7 +2141,7 @@
                         const vId = String(btn.getAttribute('data-variant-id'));
                         // For the main PDP heart, it might not have the attribute yet
                         const isMainHeart = btn.closest('.info-inner') !== null;
-                        
+
                         if (isMainHeart) {
                             if (wishlistedVariantIds.includes(currentVariantId)) {
                                 btn.classList.add('liked');
