@@ -316,12 +316,18 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script id="categories-data" type="application/json">
+    {{ all_categories_json|safe }}
+</script>
 <script>
-    function validateName(inputId, submitId, errorId) {
+    const categoriesData = JSON.parse(document.getElementById('categories-data').textContent);
+
+    function validateName(inputId, submitId, errorId, currentId = null) {
         const input = document.getElementById(inputId);
         const submit = document.getElementById(submitId);
         const error = document.getElementById(errorId);
         const val = input.value.trim();
+        const lowerVal = val.toLowerCase();
         let errorMessage = "";
 
         if (val.length === 0) {
@@ -332,6 +338,15 @@
             errorMessage = "Only alphabet letters and spaces are allowed";
         } else if (/\s{2,}/.test(val)) {
             errorMessage = "Multiple consecutive spaces are not allowed";
+        } else {
+            // Duplicate check
+            const isDuplicate = categoriesData.some(cat => 
+                cat.category_name.toLowerCase() === lowerVal && 
+                String(cat.id) !== String(currentId)
+            );
+            if (isDuplicate) {
+                errorMessage = "Category already exists";
+            }
         }
 
         if (errorMessage) {
@@ -360,9 +375,17 @@
     }
 
     function openEditModal(id, name) {
+        const nameInput = document.getElementById('editCategoryName');
         document.getElementById('editCategoryId').value = id;
-        document.getElementById('editCategoryName').value = name;
+        nameInput.value = name;
+        
+        // Add event listener for real-time duplicate check during edit
+        nameInput.oninput = () => validateName('editCategoryName', 'editCategorySubmit', 'editCategoryError', id);
+        
         openModal('editCategoryModal');
+        
+        // Initial validation
+        validateName('editCategoryName', 'editCategorySubmit', 'editCategoryError', id);
     }
 
     function openDeleteModal(id, name) {

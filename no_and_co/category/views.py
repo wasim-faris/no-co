@@ -36,8 +36,8 @@ def admin_category(request):
             
             name = name.upper()
 
-            if Category.objects.filter(category_name=name).exists():
-                messages.error(request, "Category already exists or archived")
+            if Category.objects.filter(category_name__iexact=name).exists():
+                messages.error(request, "Category already exists")
                 return redirect("admin-category")
 
             if not name or len(name.strip()) < 3:
@@ -65,7 +65,7 @@ def admin_category(request):
             
             name = name.upper()
             cat_id = request.POST.get("category_id")
-            if Category.objects.filter(category_name=name).exclude(id=cat_id).exists():
+            if Category.objects.filter(category_name__iexact=name).exclude(id=cat_id).exists():
                 messages.error(request, "Category name already exists")
                 return redirect("admin-category")
 
@@ -115,6 +115,11 @@ def admin_category(request):
     inactive_count = all_categories.filter(is_active=False).count()
     subcategory_count = Subcategory.objects.filter(is_deleted=False).count()
 
+    # Fetch all categories for real-time validation
+    import json
+    all_categories_data = list(Category.objects.filter(is_deleted=False).values('id', 'category_name'))
+    all_categories_json = json.dumps(all_categories_data)
+
     return render(
         request,
         "admin-category.html",
@@ -125,6 +130,7 @@ def admin_category(request):
             "inactive_count": inactive_count,
             "search_query": query,
             "subcategory_count": subcategory_count,
+            "all_categories_json": all_categories_json,
         },
     )
 
