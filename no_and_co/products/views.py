@@ -97,106 +97,6 @@ def admin_product_details(request, id):
     product = get_object_or_404(Product, id=id)
 
     if request.method == "POST":
-        action = request.POST.get("action")
-
-        if action == "add_variant":
-            size_name = request.POST.get("size")
-            size_obj, _ = Size.objects.get_or_create(name=size_name)
-
-            try:
-                stock_val = int(request.POST.get("stock", 0))
-                if stock_val < 0 or stock_val > 100000:
-                    messages.error(request, "Stock must be between 0 and 100,000")
-                    return redirect("admin-product-details", id=product.id)
-            except ValueError:
-                messages.error(request, "Invalid stock value")
-                return redirect("admin-product-details", id=product.id)
-            if Variant.objects.filter(
-                product=product,
-                size_id=size_obj.id,
-                color=request.POST.get("color"),
-                is_deleted=False,
-            ).exists():
-                messages.warning(
-                    request, "A variant with this size and color already exists."
-                )
-                return redirect("admin-product-details", id=product.id)
-
-            Variant.objects.create(
-                product=product,
-                size=size_obj,
-                color=request.POST.get("color"),
-                color_hex=request.POST.get("color_hex"),
-                price=request.POST.get("price"),
-                stock=stock_val,
-                is_active=request.POST.get("is_active") == "true",
-                is_default=request.POST.get("is_default") == "true",
-            )
-            messages.success(request, "Product variant created successfully")
-            return redirect("admin-product-details", id=product.id)
-
-        if action == "edit_variant":
-            variant_id = request.POST.get("variant_id")
-            variant = get_object_or_404(Variant, id=variant_id)
-            size = request.POST.get("size")
-            price = request.POST.get("price")
-
-            try:
-                stock_val = int(request.POST.get("stock", 0))
-                if stock_val < 0 or stock_val > 100000:
-                    messages.error(request, "Stock must be between 0 and 100,000")
-                    return redirect("admin-product-details", id=product.id)
-            except ValueError:
-                messages.error(request, "Invalid stock value")
-                return redirect("admin-product-details", id=product.id)
-
-            color = request.POST.get("color", "").strip()
-            if not validate_meaningful_content(color):
-                messages.error(request, "Only alphabet letters and single spaces are allowed")
-                return redirect("admin-product-details", id=product.id)
-            
-            size_obj, _ = Size.objects.get_or_create(name=size)
-
-            # Check for duplicate combination on edit
-            if Variant.objects.filter(product=product, size=size_obj, color=color, is_deleted=False).exclude(id=variant_id).exists():
-                messages.error(request, "A variant with this size and color already exists.")
-                return redirect("admin-product-details", id=product.id)
-
-            is_active = request.POST.get("is_active") == "true"
-            is_default = request.POST.get("is_default") == "true"
-
-            if is_default:
-                Variant.objects.filter(is_default=True, product=variant.product).update(
-                    is_default=False
-                )
-
-            variant.size = size_obj
-            variant.price = price
-            variant.stock = stock_val
-            variant.color = color
-            variant.color_hex = request.POST.get("color_hex")
-            variant.is_active = is_active
-            variant.is_default = is_default
-            variant.save()
-            messages.success(request, "Product edited succesfully")
-            return redirect("admin-product-details", id=product.id)
-
-        if action == "delete_variant":
-            variant_id = request.POST.get("variant_id")
-            variant = get_object_or_404(Variant, id=variant_id)
-            variant.is_deleted = True
-            variant.save()
-            messages.success(request, "Product variant deleted succesfully")
-            return redirect("admin-product-details", id=product.id)
-
-        if action == "set_default":
-            variant_id = request.POST.get("variant_id")
-            variant = get_object_or_404(Variant, id=variant_id)
-            variant.is_default = True
-            variant.save()
-            messages.success(request, "Default variant updated")
-            return redirect("admin-product-details", id=product.id)
-
         deleted_product = request.POST.get("deleted_product")
         if deleted_product:
             product.is_deleted = True
@@ -204,24 +104,10 @@ def admin_product_details(request, id):
             messages.success(request, "Product moved to archives")
             return redirect("admin-products")
 
-        if action == "toggle_variant":
-            variant_id = request.POST.get("variant_id")
-            variant = get_object_or_404(Variant, id=variant_id)
-            if not variant.is_default:
-                variant.is_active = not variant.is_active
-                variant.save()
-                messages.success(request, "Status updated")
-            else:
-                messages.warning(request, "Default variant must stay active")
-
         return redirect("admin-product-details", id=product.id)
 
     category = Category.objects.filter(is_deleted=False, is_active=True)
     subcategory = Subcategory.objects.filter(is_deleted=False, is_active=True)
-    
-    # Apply offers to variants for display
-    variants = product.variants.filter(is_deleted=False).order_by('-is_default', 'id')
-    apply_offers_to_variants(variants)
 
     return render(
         request,
@@ -230,7 +116,6 @@ def admin_product_details(request, id):
             "product": product,
             "category": category,
             "subcategory": subcategory,
-            "variants": variants, # Pass calculated variants
         },
     )
 
