@@ -31,7 +31,7 @@ from django.http import JsonResponse
 from wallet.models import Wallet, WalletTransaction
 from coupon.models import Coupon, CouponUsage
 from offers.utils import apply_offers_to_variants
-from .utils import coupon_validation, get_cart_total,get_available_coupons
+from .utils import coupon_validation, get_cart_total, get_available_coupons, revalidate_coupon
 from offers.utils import get_best_offer
 # Create your views here.
 
@@ -478,6 +478,11 @@ def checkout(request):
 
     tax_amount = (sub_total * GST_RATE).quantize(Decimal("0.01"))
 
+    # Re-validate coupon before calculating totals
+    is_valid, msg = revalidate_coupon(request)
+    if not is_valid:
+        messages.warning(request, msg)
+
     discount = Decimal(str(request.session.get("discount", 0)))
 
     applied_coupon = None
@@ -554,6 +559,12 @@ def place_order(request):
             latest_price = item.variant.product.get_discounted_price(item.variant.price)
             item.price = latest_price
             item.save()
+
+        # Re-validate coupon before finalizing order
+        is_valid, msg = revalidate_coupon(request)
+        if not is_valid:
+            messages.error(request, msg)
+            return redirect("checkout")
 
         sub_total = sum(item.price * item.quantity for item in cart_items)
         tax_rate = Decimal("0.12")

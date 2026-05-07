@@ -614,6 +614,8 @@
                         setError('discount_value', 'Enter valid discount value');
                     } else if (dType === 'percentage' && dVal > 100) {
                         setError('discount_value', 'Percentage cannot exceed 100%');
+                    } else if (dType === 'fixed' && !isNaN(minP) && dVal >= minP) {
+                        setError('discount_value', 'Discount amount must be less than minimum purchase amount');
                     }
 
                     const minP = parseFloat(getVal('min_purchase'));

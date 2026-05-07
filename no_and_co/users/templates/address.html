@@ -900,9 +900,15 @@ document.addEventListener('submit', async function(e) {
 
         /* 2. Convert to AJAX POST */
         e.preventDefault();
-        
+
+        // Resolve the correct submit button for this form
+        const submitBtn = isAddressForm
+            ? document.getElementById('submit-btn')
+            : (isEditForm ? document.getElementById('edit-submit-btn') : null);
+
         // Prevent double submission
-        if (form.dataset.submitting === "true" || submitBtn.disabled) return;
+        if (form.dataset.submitting === "true") return;
+        if (submitBtn && submitBtn.disabled) return;
 
         if (submitBtn) {
             form.dataset.submitting = "true";
@@ -966,69 +972,163 @@ document.addEventListener('submit', async function(e) {
 /* Escape → close */
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeModal(); closeEditModal(); } });
 
-/* ── Real-time phone validation ── */
+/* ── Inline validators (character-level) ── */
+function validateNameVal(val) {
+    const t = val.trim();
+    if (!t) return 'This field is required.';
+    if (t.length < 2) return 'Must be at least 2 characters.';
+    if (!/^[a-zA-Z ]+$/.test(t)) return 'Only letters are allowed. No numbers or special characters.';
+    if (/  /.test(t)) return 'Multiple spaces are not allowed.';
+    return '';
+}
+function validateAddressVal(val, required) {
+    const t = val.trim();
+    if (!t) return required ? 'This field is required.' : '';
+    if (t.length < 3) return 'Must be at least 3 characters.';
+    if (!/^[a-zA-Z0-9 ]+$/.test(t)) return 'Only letters, numbers, and spaces are allowed.';
+    if (/  /.test(t)) return 'Multiple spaces are not allowed.';
+    return '';
+}
+function validatePhoneVal(val) {
+    if (!val) return 'Phone number is required.';
+    if (!/^[6-9]\d{9}$/.test(val)) return 'Enter a valid 10-digit number starting with 6–9.';
+    return '';
+}
+function validatePinVal(val) {
+    if (!val) return 'PIN code is required.';
+    if (!/^\d{6}$/.test(val)) return 'PIN code must be exactly 6 digits.';
+    return '';
+}
+
+/* ── Real-time validation with touched state ── */
 document.addEventListener('DOMContentLoaded', function() {
-    const PHONE_AJAX_URL = "{% url 'validate-phone' %}";
 
-    // Setup Validation Maps
-    const addMap = {
-        '#f-first-name': (val) => val.trim().length >= 2,
-        '#f-last-name': (val) => val.trim().length >= 1,
-        '#f-phone': (val) => true, // Handled by attachPhoneValidation
-        '#f-addr1': (val) => val.trim().length >= 5,
-        '#f-city': (val) => val.trim().length >= 2,
-        '#f-state': (val) => val.trim().length >= 2,
-        '#f-postal': (val) => /^\d{6}$/.test(val.trim()),
-        '#f-country': (val) => val && val !== ""
-    };
-
-    const editMap = {
-        '#edit-first-name': (val) => val.trim().length >= 2,
-        '#edit-last-name': (val) => val.trim().length >= 1,
-        '#edit-phone': (val) => true,
-        '#edit-addr1': (val) => val.trim().length >= 5,
-        '#edit-city': (val) => val.trim().length >= 2,
-        '#edit-state': (val) => val.trim().length >= 2,
-        '#edit-pin': (val) => /^\d{6}$/.test(val.trim()),
-        '#edit-country': (val) => val && val !== ""
-    };
-
-    // Attach Phone Validation
-    ValidationUtils.attachPhoneValidation('#f-phone', '#submit-btn', PHONE_AJAX_URL);
-    ValidationUtils.attachPhoneValidation('#edit-phone', '#edit-submit-btn', PHONE_AJAX_URL);
-
-    // Attach Form Watchers
-    ValidationUtils.watchForm('#addressForm', '#submit-btn', addMap);
-    ValidationUtils.watchForm('#editAddressForm', '#edit-submit-btn', editMap);
-
-    // Add individual real-time listeners for feedback
-    const setupRealtimeFeedback = (map, formId) => {
+    function setupFormValidation(formId, btnId, fieldDefs) {
         const form = document.getElementById(formId);
-        Object.keys(map).forEach(selector => {
-            const el = form.querySelector(selector);
-            if (!el || selector.includes('phone')) return;
-            
-            el.addEventListener('input', () => {
-                const val = el.value.trim();
-                const isValid = map[selector](val);
-                const errId = selector.replace('#f-', 'err-').replace('#edit-', 'err-edit-');
-                const errEl = document.getElementById(errId);
-                
-                if (!isValid) {
-                    el.dataset.isValid = "false";
-                    if (val) { // Only show error if they've typed something
-                        showFieldError(el, errEl, "Please enter valid information");
-                    }
+        const btn  = document.getElementById(btnId);
+        if (!form || !btn) return;
+
+        // Start disabled; no errors shown yet
+        btn.disabled = true;
+
+        function getErrorFor(id, val) {
+            const def = fieldDefs.find(f => f.id === id);
+            return def ? def.validate(val) : '';
+        }
+
+        function checkAll() {
+            const allOk = fieldDefs.every(def => {
+                const el = document.getElementById(def.id);
+                if (!el) return true;
+                const val = el.tagName === 'SELECT'
+                    ? (el.disabled ? (el.getAttribute('data-locked-value') || el.value) : el.value)
+                    : el.value.trim();
+                return def.validate(val) === '';
+            });
+            btn.disabled = !allOk;
+        }
+
+        fieldDefs.forEach(def => {
+            const el = document.getElementById(def.id);
+            if (!el) return;
+
+            const errEl = document.getElementById(def.errId);
+
+            function validate() {
+                const val = el.tagName === 'SELECT'
+                    ? (el.disabled ? (el.getAttribute('data-locked-value') || el.value) : el.value)
+                    : el.value.trim();
+                const msg = def.validate(val);
+                if (msg) {
+                    showFieldError(el, errEl, msg);
                 } else {
-                    el.dataset.isValid = "true";
                     clearFieldError(el, errEl);
                 }
-            });
-        });
-    };
+                checkAll();
+            }
 
-    setupRealtimeFeedback(addMap, 'addressForm');
-    setupRealtimeFeedback(editMap, 'editAddressForm');
+            // Validate on input (only if already touched)
+            el.addEventListener('input', function() {
+                if (el.dataset.touched === 'true') validate();
+                else checkAll(); // Still update button state silently
+            });
+
+            // Mark touched and validate on blur
+            el.addEventListener('blur', function() {
+                el.dataset.touched = 'true';
+                validate();
+            });
+
+            // For selects, treat change as blur+input
+            if (el.tagName === 'SELECT') {
+                el.addEventListener('change', function() {
+                    el.dataset.touched = 'true';
+                    validate();
+                });
+            }
+        });
+
+        // Expose checkAll so openModal can reset button state
+        form._checkAll = checkAll;
+        form._resetTouched = function() {
+            fieldDefs.forEach(def => {
+                const el = document.getElementById(def.id);
+                if (el) { el.dataset.touched = ''; }
+            });
+            btn.disabled = true;
+            const formEl = document.getElementById(formId);
+            clearAllErrors(formEl);
+        };
+
+        checkAll();
+    }
+
+    const ADD_FIELDS = [
+        { id:'f-first-name', errId:'err-first-name',  validate: v => validateNameVal(v) },
+        { id:'f-last-name',  errId:'err-last-name',   validate: v => validateNameVal(v) },
+        { id:'f-phone',      errId:'err-phone',        validate: v => validatePhoneVal(v) },
+        { id:'f-addr1',      errId:'err-addr1',        validate: v => validateAddressVal(v, true) },
+        { id:'f-city',       errId:'err-city',         validate: v => validateNameVal(v) },
+        { id:'f-state',      errId:'err-state',        validate: v => validateNameVal(v) },
+        { id:'f-postal',     errId:'err-postal',       validate: v => validatePinVal(v) },
+        { id:'f-country',    errId:'err-country',      validate: v => (v && v !== '' ? '' : 'Please select a country.') },
+    ];
+    const EDIT_FIELDS = [
+        { id:'edit-first-name', errId:'err-edit-first-name',  validate: v => validateNameVal(v) },
+        { id:'edit-last-name',  errId:'err-edit-last-name',   validate: v => validateNameVal(v) },
+        { id:'edit-phone',      errId:'err-edit-phone',        validate: v => validatePhoneVal(v) },
+        { id:'edit-addr1',      errId:'err-edit-addr1',        validate: v => validateAddressVal(v, true) },
+        { id:'edit-city',       errId:'err-edit-city',         validate: v => validateNameVal(v) },
+        { id:'edit-state',      errId:'err-edit-state',        validate: v => validateNameVal(v) },
+        { id:'edit-pin',        errId:'err-edit-pin',          validate: v => validatePinVal(v) },
+        { id:'edit-country',    errId:'err-edit-country',      validate: v => (v && v !== '' ? '' : 'Please select a country.') },
+    ];
+
+    // Block special characters live while typing
+    [['f-first-name','f-last-name','f-city','f-state','edit-first-name','edit-last-name','edit-city','edit-state']].flat().forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => { el.value = el.value.replace(/[^a-zA-Z ]/g, ''); });
+    });
+    [['f-addr1','f-addr2','edit-addr1','edit-addr2']].flat().forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener('input', () => { el.value = el.value.replace(/[^a-zA-Z0-9 ]/g, ''); });
+    });
+
+    setupFormValidation('addressForm', 'submit-btn', ADD_FIELDS);
+    setupFormValidation('editAddressForm', 'edit-submit-btn', EDIT_FIELDS);
+
+    // Re-run checkAll after countries load (since country select starts empty)
+    const origFetchCountries = fetchCountries;
+    window.fetchCountries = async function() {
+        const result = await origFetchCountries();
+        const af = document.getElementById('addressForm');
+        const ef = document.getElementById('editAddressForm');
+        if (af && af._checkAll) af._checkAll();
+        if (ef && ef._checkAll) ef._checkAll();
+        return result;
+    };
 });
 </script>
 

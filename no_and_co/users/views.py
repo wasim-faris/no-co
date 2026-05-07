@@ -18,7 +18,7 @@ from django.shortcuts import get_object_or_404
 from .decorators import block_check
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
-from utils.validation import validate_meaningful_content, clean_input
+from utils.validation import validate_meaningful_content, clean_input, validate_name_field, validate_address_field
 
 from django.http import JsonResponse
 from utils.phone_validation import is_valid_phone
@@ -396,14 +396,41 @@ def address(request):
             messages.error(request, "Please fill all required fields.")
             return redirect("address")
 
-        if not validate_meaningful_content(first_name) or not validate_meaningful_content(last_name):
+        fn_valid, fn_msg = validate_name_field(first_name)
+        if not fn_valid:
             request.session["address_form_data"] = request.POST
-            messages.error(request, "Please enter a valid name.")
+            messages.error(request, f"First name: {fn_msg}")
             return redirect("address")
 
-        if not validate_meaningful_content(address_line1) or not validate_meaningful_content(city) or not validate_meaningful_content(state):
+        ln_valid, ln_msg = validate_name_field(last_name)
+        if not ln_valid:
             request.session["address_form_data"] = request.POST
-            messages.error(request, "Please enter valid address details.")
+            messages.error(request, f"Last name: {ln_msg}")
+            return redirect("address")
+
+        addr1_valid, addr1_msg = validate_address_field(address_line1, required=True)
+        if not addr1_valid:
+            request.session["address_form_data"] = request.POST
+            messages.error(request, f"Address Line 1: {addr1_msg}")
+            return redirect("address")
+
+        if address_line2:
+            addr2_valid, addr2_msg = validate_address_field(address_line2, required=False)
+            if not addr2_valid:
+                request.session["address_form_data"] = request.POST
+                messages.error(request, f"Address Line 2: {addr2_msg}")
+                return redirect("address")
+
+        city_valid, city_msg = validate_name_field(city)
+        if not city_valid:
+            request.session["address_form_data"] = request.POST
+            messages.error(request, f"City: {city_msg}")
+            return redirect("address")
+
+        state_valid, state_msg = validate_name_field(state)
+        if not state_valid:
+            request.session["address_form_data"] = request.POST
+            messages.error(request, f"State: {state_msg}")
             return redirect("address")
 
         phone_valid, phone_msg = is_valid_phone(phone_number, region="IN")
@@ -526,12 +553,35 @@ def edit_address(request, id):
             messages.error(request, "Please fill all required fields.")
             return redirect("address")
 
-        if not validate_meaningful_content(first_name) or not validate_meaningful_content(last_name):
-            messages.error(request, "Please enter a valid name.")
+        fn_valid, fn_msg = validate_name_field(first_name)
+        if not fn_valid:
+            messages.error(request, f"First name: {fn_msg}")
             return redirect("address")
 
-        if not validate_meaningful_content(address_line1) or not validate_meaningful_content(city) or not validate_meaningful_content(state):
-            messages.error(request, "Please enter valid address details.")
+        ln_valid, ln_msg = validate_name_field(last_name)
+        if not ln_valid:
+            messages.error(request, f"Last name: {ln_msg}")
+            return redirect("address")
+
+        addr1_valid, addr1_msg = validate_address_field(address_line1, required=True)
+        if not addr1_valid:
+            messages.error(request, f"Address Line 1: {addr1_msg}")
+            return redirect("address")
+
+        if address_line2:
+            addr2_valid, addr2_msg = validate_address_field(address_line2, required=False)
+            if not addr2_valid:
+                messages.error(request, f"Address Line 2: {addr2_msg}")
+                return redirect("address")
+
+        city_valid, city_msg = validate_name_field(city)
+        if not city_valid:
+            messages.error(request, f"City: {city_msg}")
+            return redirect("address")
+
+        state_valid, state_msg = validate_name_field(state)
+        if not state_valid:
+            messages.error(request, f"State: {state_msg}")
             return redirect("address")
 
         phone_valid, phone_msg = is_valid_phone(phone_number, region="IN")

@@ -64,10 +64,10 @@ def add_coupon(request):
         if not validate_meaningful_content(code):
             errors['code'] = 'Only alphabet letters and single spaces are allowed.'
 
-        if discount_type == 'flat' and discount_value and min_purchase:
+        if discount_type == 'fixed' and discount_value and min_purchase:
             try:
-                if float(discount_value) > float(min_purchase):
-                    errors['discount_value'] = 'Flat discount cannot exceed minimum purchase amount.'
+                if float(discount_value) >= float(min_purchase):
+                    errors['discount_value'] = 'Discount amount must be less than minimum purchase amount.'
             except ValueError:
                 pass
 
@@ -151,10 +151,10 @@ def edit_coupon(request):
         if not validate_meaningful_content(code):
             errors['code'] = 'Only alphabet letters and single spaces are allowed.'
 
-        if discount_type == 'flat' and discount_value and min_purchase:
+        if discount_type == 'fixed' and discount_value and min_purchase:
             try:
-                if float(discount_value) > float(min_purchase):
-                    errors['discount_value'] = 'Flat discount cannot exceed minimum purchase amount.'
+                if float(discount_value) >= float(min_purchase):
+                    errors['discount_value'] = 'Discount amount must be less than minimum purchase amount.'
             except ValueError:
                 pass
 

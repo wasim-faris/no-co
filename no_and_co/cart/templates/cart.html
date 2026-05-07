@@ -621,6 +621,10 @@
                         <span class="text-[#767676]">Order value</span>
                         <span class="font-bold price-flash" id="summary-order-total">Rs. {{ order_total }}</span>
                     </div>
+                    <div class="summary-row" id="summary-discount-row" style="{% if not request.session.discount %}display: none;{% endif %}">
+                        <span class="text-green-600 font-bold">Discount</span>
+                        <span class="font-bold text-green-600 price-flash" id="summary-discount">-Rs. {{ request.session.discount|default:0 }}</span>
+                    </div>
                     <div class="summary-row">
                         <span class="text-[#767676]">Estimated delivery fee</span>
                         <span class="font-bold price-flash" id="summary-delivery">Rs. {{ delivery_fee }}.00</span>
@@ -911,6 +915,20 @@
         flashPrice(document.getElementById('summary-order-total'), 'Rs. ' + fmt(data.order_total));
         flashPrice(document.getElementById('summary-delivery'),    'Rs. ' + fmt(data.delivery_fee) + '.00');
         flashPrice(document.getElementById('summary-full-total'),  'Rs. ' + fmt(data.full_total));
+
+        // Handle Coupon Updates
+        const discountRow = document.getElementById('summary-discount-row');
+        const discountEl = document.getElementById('summary-discount');
+        if (data.discount > 0) {
+            if (discountRow) discountRow.style.display = 'flex';
+            if (discountEl) flashPrice(discountEl, '-Rs. ' + fmt(data.discount));
+        } else {
+            if (discountRow) discountRow.style.display = 'none';
+        }
+
+        if (data.coupon_removed && data.coupon_message) {
+            showToast(data.coupon_message);
+        }
 
         // Dispatch global event for navbar update
         if (data.cart_count !== undefined) {

@@ -65,12 +65,41 @@ def coupon_validation(coupon, user, cart_total):
     return True, discount
 
 def get_cart_total(user):
+    cart_items = Cart.objects.filter(user=user)
+    total = 0
+    for item in cart_items:
+        # Use the discounted price as the base for coupon application
+        price = item.variant.product.get_discounted_price(item.variant.price)
+        total += price * item.quantity
+    return total
 
-    total = cart_items = Cart.objects.filter(user=user).aggregate(
-        total = Sum(F("variant__price") * F("quantity"))
-    )["total"]
+def revalidate_coupon(request):
+    """
+    Re-validates the applied coupon in the session against the current cart.
+    Returns (is_valid, message)
+    """
+    coupon_id = request.session.get("coupon_id")
+    if not coupon_id:
+        return True, None
 
-    return total or 0
+    try:
+        coupon = Coupon.objects.get(id=coupon_id, is_deleted=False, is_active=True)
+    except Coupon.DoesNotExist:
+        request.session.pop("coupon_id", None)
+        request.session.pop("discount", None)
+        return False, "Applied coupon is no longer available."
+
+    cart_total = get_cart_total(request.user)
+    is_valid, result = coupon_validation(coupon, request.user, cart_total)
+
+    if not is_valid:
+        request.session.pop("coupon_id", None)
+        request.session.pop("discount", None)
+        return False, f"Coupon removed: {result}"
+
+    # Update discount amount in session (especially for percentage coupons if total changed)
+    request.session["discount"] = float(result)
+    return True, None
 
 def get_available_coupons(user, cart_total):
     today = timezone.now().date()

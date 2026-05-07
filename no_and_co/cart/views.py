@@ -5,6 +5,7 @@ from .models import Cart
 from wishlist.models import Wishlist
 from django.db.models import F, Sum, Prefetch
 from django.http import JsonResponse
+from core.utils import revalidate_coupon
 
 
 
@@ -76,18 +77,24 @@ def cart_view(request):
                     or 0
                 )
 
+                is_coupon_valid, coupon_msg = revalidate_coupon(request)
+                discount = float(request.session.get("discount", 0))
+                
                 delivery_fee = 149 if order_total < 999 else 0
-                full_total = delivery_fee + order_total
-                item_total = cart_obj.price * cart_obj.quantity
+                full_total = float(delivery_fee) + float(order_total) - discount
+                item_total = float(cart_obj.price) * cart_obj.quantity
 
                 return JsonResponse(
                     {
                         "quantity": cart_obj.quantity,
                         "item_total": item_total,
-                        "order_total": order_total,
+                        "order_total": float(order_total),
                         "full_total": full_total,
                         "delivery_fee": delivery_fee,
                         "cart_count": cart_count,
+                        "coupon_removed": not is_coupon_valid,
+                        "coupon_message": coupon_msg,
+                        "discount": discount,
                     }
                 )
 
@@ -318,8 +325,11 @@ def delete_cart_item(request):
                     or 0
                 )
 
+                is_coupon_valid, coupon_msg = revalidate_coupon(request)
+                discount = float(request.session.get("discount", 0))
+
                 delivery_fee = 149 if order_total < 999 else 0
-                full_total = delivery_fee + order_total
+                full_total = float(delivery_fee) + float(order_total) - discount
                 cart_count = (
                     Cart.objects.filter(user=user).aggregate(total=Sum("quantity"))[
                         "total"
@@ -334,10 +344,13 @@ def delete_cart_item(request):
                 return JsonResponse(
                     {
                         "success": True,
-                        "order_total": order_total,
+                        "order_total": float(order_total),
                         "full_total": full_total,
                         "delivery_fee": delivery_fee,
                         "cart_count": cart_count,
+                        "coupon_removed": not is_coupon_valid,
+                        "coupon_message": coupon_msg,
+                        "discount": discount,
                     }
                 )
 
