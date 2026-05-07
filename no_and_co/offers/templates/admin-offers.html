@@ -191,8 +191,9 @@
                         Offer Name <span class="text-red-500">*</span>
                     </label>
                     <input type="text" name="name" id="offerName" required placeholder="e.g. Summer Special"
+                           oninput="validateName('offerName', 'saveButton', 'err_offerName')"
                            class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
-                    <p class="text-[10px] text-red-500 font-medium hidden" id="err_offerName"></p>
+                    <p class="text-[10px] text-red-500 font-bold uppercase tracking-widest mt-1 hidden" id="err_offerName"></p>
                 </div>
 
                 <!-- Discount Type -->
@@ -356,6 +357,38 @@
 </div>
 
 <script>
+    function validateName(inputId, submitId, errorId) {
+        const input = document.getElementById(inputId);
+        const submit = document.getElementById(submitId);
+        const error = document.getElementById(errorId);
+        const val = input.value.trim();
+        let errorMessage = "";
+
+        if (val.length === 0) {
+            errorMessage = "Name is required";
+        } else if (val.length < 3) {
+            errorMessage = "Name must be at least 3 characters";
+        } else if (!/^[a-zA-Z ]+$/.test(val)) {
+            errorMessage = "Only alphabet letters and spaces are allowed";
+        } else if (/\s{2,}/.test(val)) {
+            errorMessage = "Multiple consecutive spaces are not allowed";
+        }
+
+        if (errorMessage) {
+            error.textContent = errorMessage;
+            error.classList.remove('hidden');
+            input.classList.add('border-red-500');
+            submit.disabled = true;
+            submit.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        } else {
+            error.classList.add('hidden');
+            input.classList.remove('border-red-500');
+            submit.disabled = false;
+            submit.classList.remove('opacity-50', 'cursor-not-allowed');
+            return true;
+        }
+    }
     const modal = document.getElementById('offerModal');
     const form = document.getElementById('offerForm');
     const modalTitle = document.getElementById('modalTitle');
@@ -419,6 +452,7 @@
                 catRadio.checked = true;
                 catRadio.dispatchEvent(new Event('change'));
             }
+            validateName('offerName', 'saveButton', 'err_offerName');
         }
     }
     
@@ -708,17 +742,8 @@
     const validateForm = () => {
         let isValid = true;
         
-        const offerName = document.getElementById('offerName');
-        const errName = document.getElementById('err_offerName');
-        if (!offerName.value.trim() || offerName.value.trim().length < 3) {
-            errName.textContent = "Name must be at least 3 characters.";
-            errName.classList.remove('hidden');
-            offerName.classList.add('border-red-500');
-            isValid = false;
-        } else {
-            errName.classList.add('hidden');
-            offerName.classList.remove('border-red-500');
-        }
+        const isNameValid = validateName('offerName', 'saveButton', 'err_offerName');
+        if (!isNameValid) isValid = false;
 
         const discountValue = document.getElementById('discountValue');
         const errDiscount = document.getElementById('err_discountValue');

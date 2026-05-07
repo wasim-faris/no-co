@@ -294,8 +294,10 @@
                         <h4 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">General Information</h4>
                         <div>
                             <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Coupon Code</label>
-                            <input type="text" name="code" id="add_code" placeholder="e.g. FLASH20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
-                            <div id="error_add_code" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
+                            <input type="text" name="code" id="add_code" placeholder="e.g. FLASH SALE" 
+                                   oninput="validateName('add_code', 'addCouponSubmitBtn', 'error_add_code')"
+                                   class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            <div id="error_add_code" class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden"></div>
                         </div>
                         <div class="flex gap-4">
                             <div class="flex-1">
@@ -391,8 +393,10 @@
                         <h4 class="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">General Information</h4>
                         <div>
                             <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Coupon Code</label>
-                            <input type="text" name="code" id="edit_code" value="SUMMER20" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
-                            <div id="error_edit_code" class="text-red-500 text-[10px] font-bold mt-1 hidden"></div>
+                            <input type="text" name="code" id="edit_code" value="SUMMER SALE" 
+                                   oninput="validateName('edit_code', 'editCouponSubmitBtn', 'error_edit_code')"
+                                   class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium text-gray-900 transition-colors">
+                            <div id="error_edit_code" class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden"></div>
                         </div>
                         <div class="flex gap-4">
                             <div class="flex-1">
@@ -501,6 +505,37 @@
 
 {% block extra_scripts %}
 <script>
+        function validateName(inputId, submitId, errorId) {
+            const input = document.getElementById(inputId);
+            const submit = document.getElementById(submitId);
+            const error = document.getElementById(errorId);
+            const val = input.value.trim();
+            let errorMessage = "";
+
+            if (val.length === 0) {
+                errorMessage = "Code is required";
+            } else if (val.length < 3) {
+                errorMessage = "Code must be at least 3 characters";
+            } else if (!/^[a-zA-Z ]+$/.test(val)) {
+                errorMessage = "Only alphabet letters and spaces are allowed";
+            } else if (/\s{2,}/.test(val)) {
+                errorMessage = "Multiple consecutive spaces are not allowed";
+            }
+
+            if (errorMessage) {
+                error.textContent = errorMessage;
+                error.classList.remove('hidden');
+                input.classList.add('border-red-500');
+                submit.disabled = true;
+                submit.classList.add('opacity-50', 'cursor-not-allowed');
+                return false;
+            } else {
+                error.classList.add('hidden');
+                input.classList.remove('border-red-500');
+                // Note: submit button state is also managed by setupFormValidation's validate()
+                return true;
+            }
+        }
         const trigger = document.getElementById('profileTrigger');
         const dropdown = document.getElementById('profileDropdown');
 
@@ -568,8 +603,8 @@
                     };
 
                     // 1. Mandatory & Basic Validation
-                    const code = getVal('code').trim();
-                    if (!code) setError('code', 'Coupon code is required');
+                    const isCodeValid = validateName(`${prefix}code`, submitBtn.id, `error_${prefix}code`);
+                    if (!isCodeValid) isFormValid = false;
 
                     const dType = getVal('discount_type');
                     if (!dType) setError('discount_type', 'Discount type is required');
@@ -744,6 +779,7 @@
                 });
 
                 // Trigger validation manually once form is filled
+                validateName('edit_code', 'editCouponSubmitBtn', 'error_edit_code');
                 editForm.dispatchEvent(new Event('input', { bubbles: true }));
             }
 

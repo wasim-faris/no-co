@@ -31,7 +31,7 @@ def admin_category(request):
             name = request.POST.get("category_name", "").strip()
             
             if not validate_meaningful_content(name):
-                messages.error(request, "Please enter a valid meaningful name")
+                messages.error(request, "Only alphabet letters and single spaces are allowed")
                 return redirect("admin-category")
             
             name = name.upper()
@@ -60,7 +60,7 @@ def admin_category(request):
         if action == "edit":
             name = request.POST.get("category_name", "").strip()
             if not validate_meaningful_content(name):
-                messages.error(request, "Please enter a valid meaningful name")
+                messages.error(request, "Only alphabet letters and single spaces are allowed")
                 return redirect("admin-category")
             
             name = name.upper()
@@ -150,7 +150,7 @@ def admin_subcategory(request):
             name = request.POST.get("subcategory_name", "").strip()
 
             if not validate_meaningful_content(name):
-                messages.error(request, "Please enter a valid meaningful name")
+                messages.error(request, "Only alphabet letters and single spaces are allowed")
                 return redirect("admin-subcategory")
             
             name = name.upper()
@@ -192,7 +192,7 @@ def admin_subcategory(request):
             sub_id = request.POST.get("subcategory_id")
 
             if not validate_meaningful_content(name):
-                messages.error(request, "Please enter a valid meaningful name")
+                messages.error(request, "Only alphabet letters and single spaces are allowed")
                 return redirect("admin-subcategory")
             
             name = name.upper()

@@ -2,30 +2,27 @@ import re
 
 def validate_meaningful_content(value):
     """
-    Validates that the input is not just special characters, spaces, or repeated symbols.
-    Must contain at least one alphanumeric character.
+    STRICT ALPHABET-ONLY VALIDATION:
+    - Allow ONLY letters (A-Z, a-z) and single normal spaces.
+    - Block numbers, symbols, underscores, dashes, etc.
+    - No multiple consecutive spaces.
+    - Must be 3-100 characters.
     """
     if not value:
         return False
     
     trimmed = value.strip()
-    if not trimmed:
+    if len(trimmed) < 3 or len(trimmed) > 100:
         return False
     
-    # Reject if it contains ONLY symbols, underscores, dashes, dots, spaces
-    if re.fullmatch(r"[\s._\-!@#$%^&*()=+\[\]{};':\",.<>/?|\\`~]+", trimmed):
-        return False
-    
-    # Must contain at least one alphanumeric character
-    if not re.search(r"[a-zA-Z0-9]", trimmed):
+    # Allow ONLY letters and spaces
+    if not re.fullmatch(r"[a-zA-Z ]+", trimmed):
         return False
         
-    # Prevent consecutive unnecessary special characters (e.g., "---", "...")
-    # Allow up to 2 consecutive special chars if they are between alphanumeric ones, 
-    # but reject if they are the only content or repeated excessively.
-    if re.search(r"([._\-!@#$%^&*()=+\[\]{};':\",.<>/?|\\`~])\1{2,}", trimmed):
+    # Prevent multiple consecutive spaces
+    if "  " in trimmed:
         return False
-
+        
     return True
 
 def validate_phone_number(phone):

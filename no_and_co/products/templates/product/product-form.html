@@ -128,8 +128,14 @@
     isActive: {% if product %}{{ product.is_active|yesno:'true,false' }}{% else %}true{% endif %},
     showError: false,
     isLoading: false,
+    isNameValid: true,
 
     validateAndSubmit(e) {
+        if (!this.isNameValid) {
+            e.preventDefault();
+            this.showError = true;
+            return false;
+        }
         const form = document.getElementById('mainForm');
 
         if (!form.checkValidity()) {
@@ -147,7 +153,7 @@
         this.isLoading = true;
         return true;
     }
-}" @submit="validateAndSubmit($event)" class="flex-1 flex flex-col overflow-hidden">
+}" @name-valid.window="isNameValid = $event.detail.valid" @submit="validateAndSubmit($event)" class="flex-1 flex flex-col overflow-hidden">
             {% csrf_token %}
 
             <!-- Header -->
@@ -167,10 +173,21 @@
                         <h2 class="font-serif text-xl font-semibold mb-6 tracking-tight text-black">General Information
                         </h2>
                         <div class="space-y-6">
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Product
-                                    Name</label>
-                                <input type="text" name="name" value="{{ product.product_name|default:'' }}" required>
+                            <div class="space-y-2" x-data="{ 
+                                name: '{{ product.product_name|default:'' }}',
+                                error: '',
+                                validate() {
+                                    this.error = window.validateProductName(this.name);
+                                    this.$dispatch('name-valid', { valid: this.error === '' });
+                                }
+                            }" x-init="validate()">
+                                <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Product Name</label>
+                                <input type="text" name="name" x-model="name" @input="validate()" @blur="validate()" 
+                                    class="w-full" :class="{'border-red-500': error}" placeholder="Enter product name" required>
+                                <div class="flex flex-col gap-1 mt-1">
+                                    <p x-show="!error" class="text-[10px] text-gray-400 font-medium">Example: Baggy Jeans, Oversized Hoodie, Cotton T-Shirt</p>
+                                    <p x-show="error" x-text="error" class="text-[10px] text-red-500 font-bold uppercase italic"></p>
+                                </div>
                             </div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-2">
@@ -201,10 +218,6 @@
                                 <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Fabric /
                                     Material</label>
                                 <input type="text" name="fabric" value="{{ product.materials|default:'' }}" required>
-                            </div>
-                            <div class="space-y-2">
-                                <label class="text-xs font-bold text-gray-400 uppercase tracking-widest">Offer Percentage (%)</label>
-                                <input type="number" name="offer_percentage" value="{{ product.offer_percentage|default:'0' }}" step="0.01" min="0" max="100">
                             </div>
                         </div>
                     </div>
@@ -278,8 +291,8 @@
                 <div class="flex gap-4 ml-auto">
                     <button type="button" @click="history.back()"
                         class="border border-[#E5E1DA] px-7 py-3 rounded-xl text-[11px] font-bold uppercase hover:bg-gray-50">Discard</button>
-                    <button type="submit" :disabled="isLoading || showCropModal"
-                        :class="{'opacity-50 cursor-not-allowed': isLoading || showCropModal}"
+                    <button type="submit" :disabled="isLoading || !isNameValid"
+                        :class="{'opacity-50 cursor-not-allowed': isLoading || !isNameValid}"
                         class="bg-black text-white px-10 py-3 rounded-xl text-[11px] font-bold uppercase shadow-lg shadow-black/10 transition-all active:scale-95">
                         <span x-show="!isLoading">{% if product %}Update Product{% else %}Add Product{% endif %}</span>
                         <span x-show="isLoading" x-cloak>Processing...</span>
@@ -320,6 +333,16 @@
 
 {% block extra_scripts %}
 <script>
+        window.validateProductName = function(name) {
+            const val = name ? name.trim() : '';
+            if (val.length === 0) return 'Product name is required';
+            if (val.length < 3) return 'Name must be at least 3 characters';
+            if (val.length > 100) return 'Name must be less than 100 characters';
+            if (!/^[a-zA-Z ]+$/.test(val)) return 'Only alphabet letters and spaces are allowed';
+            if (/\s{2,}/.test(val)) return 'Multiple consecutive spaces are not allowed';
+            return '';
+        };
+
         function toggleProducts() {
             document.getElementById('products-submenu').classList.toggle('open');
             document.getElementById('products-chevron').classList.toggle('rotated');

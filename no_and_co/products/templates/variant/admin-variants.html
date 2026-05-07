@@ -65,7 +65,7 @@
                    class="text-sm font-medium rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100 transition shadow-sm">
                     ← Back to Product
                 </a>
-                <button onclick="document.getElementById('addModal').classList.remove('hidden')"
+                <button onclick="document.getElementById('addModal').classList.remove('hidden'); validateColor('add');"
                    class="px-6 py-3 bg-black text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm">
                     + Add Variant
                 </button>
@@ -362,8 +362,11 @@
 
                     <div>
                         <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color Name</label>
-                        <input type="text" name="color" id="add-color" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors" placeholder="e.g. Cobalt Blue">
-                        <p id="add-color-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                        <input type="text" name="color" id="add-color" oninput="validateColor('add')" onblur="validateColor('add')" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors" placeholder="e.g. Cobalt Blue">
+                        <div class="flex flex-col gap-1 mt-1.5">
+                            <p id="add-color-helper" class="text-[9px] text-gray-400 font-medium">Example: Royal Blue, Jet Black, Forest Green</p>
+                            <p id="add-color-error" class="text-red-500 text-[10px] font-bold uppercase tracking-widest hidden"></p>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color Hex</label>
@@ -468,8 +471,11 @@
 
                     <div>
                         <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color Name</label>
-                        <input type="text" name="color" id="edit-color" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
-                        <p id="edit-color-error" class="text-red-500 text-[11px] mt-1.5 font-bold hidden">This field is required</p>
+                        <input type="text" name="color" id="edit-color" oninput="validateColor('edit')" onblur="validateColor('edit')" class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                        <div class="flex flex-col gap-1 mt-1.5">
+                            <p id="edit-color-helper" class="text-[9px] text-gray-400 font-medium">Example: Royal Blue, Jet Black, Forest Green</p>
+                            <p id="edit-color-error" class="text-red-500 text-[10px] font-bold uppercase tracking-widest hidden"></p>
+                        </div>
                     </div>
                     <div>
                         <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Color Hex</label>
@@ -684,6 +690,8 @@ document.addEventListener('click', function(e) {
         if (err) err.classList.add('hidden');
     });
 
+    validateColor('edit');
+
     modal.classList.remove('hidden');
 });
 
@@ -755,8 +763,46 @@ function setPrimary(modalType, val) {
     document.getElementById(`${modalType}_primary_image`).value = val;
 }
 
+function validateColor(modalType) {
+    const input = document.getElementById(`${modalType}-color`);
+    const errorEl = document.getElementById(`${modalType}-color-error`);
+    const btn = document.getElementById(`${modalType}-submit-btn`);
+    const val = input.value.trim();
+    let error = "";
+
+    if (val.length === 0) {
+        error = "Color name is required";
+    } else if (val.length < 3) {
+        error = "Name must be at least 3 characters";
+    } else if (!/^[a-zA-Z ]+$/.test(val)) {
+        error = "Only alphabet letters and spaces are allowed";
+    } else if (/\s{2,}/.test(val)) {
+        error = "Multiple consecutive spaces are not allowed";
+    }
+
+    if (error) {
+        errorEl.textContent = error;
+        errorEl.classList.remove('hidden');
+        input.classList.add('border-red-500');
+        if (btn) btn.disabled = true;
+        if (btn) btn.classList.add('opacity-50', 'cursor-not-allowed');
+        return false;
+    } else {
+        errorEl.classList.add('hidden');
+        input.classList.remove('border-red-500');
+        if (btn) btn.disabled = false;
+        if (btn) btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        return true;
+    }
+}
+
 function validateForm(modalType, e) {
     if (e) e.preventDefault();
+    
+    // First run the specific color validation
+    const isColorValid = validateColor(modalType);
+    if (!isColorValid) return false;
+
     let isValid = true;
 
     const errorIds = [`${modalType}-image-error`, `${modalType}-size-error`, `${modalType}-color-error`, `${modalType}-price-error`, `${modalType}-stock-error`];
@@ -787,11 +833,12 @@ function validateForm(modalType, e) {
         isValid = false;
     }
 
-    const fields = ['color', 'price', 'stock'];
+    const fields = ['price', 'stock'];
     fields.forEach(f => {
         let el = document.getElementById(`${modalType}-${f}`);
         if (el && !el.value.trim()) {
             let err = document.getElementById(`${modalType}-${f}-error`);
+            if (err) err.classList.add('hidden'); // Reset old error style if any
             if (err) err.classList.remove('hidden');
             isValid = false;
         }

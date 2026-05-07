@@ -200,8 +200,10 @@
               <input type="hidden" name="action" value="create">
             <div>
                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Category Name</label>
-                <input type="text" placeholder="e.g. MENS" name="category_name" required
+                <input type="text" placeholder="e.g. MENS" name="category_name" id="addCategoryName" required
+                       oninput="validateName('addCategoryName', 'addCategorySubmit', 'addCategoryError')"
                        class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
+                <p id="addCategoryError" class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden"></p>
             </div>
 
             <input type="hidden" name="is_active" id="isActiveInput" value="true">
@@ -220,7 +222,7 @@
                 <button type="button" onclick="closeModal('addCategoryModal')" class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">
+                <button type="submit" id="addCategorySubmit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">
                     Save Category
                 </button>
             </div>
@@ -243,14 +245,16 @@
             <div>
                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Category Name</label>
                 <input type="text" id="editCategoryName" name="category_name" required
+                       oninput="validateName('editCategoryName', 'editCategorySubmit', 'editCategoryError')"
                        class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-black font-medium transition-colors">
+                <p id="editCategoryError" class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden"></p>
             </div>
 
             <div class="flex gap-4 pt-2">
                 <button type="button" onclick="closeModal('editCategoryModal')" class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">
                     Cancel
                 </button>
-                <button type="submit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">
+                <button type="submit" id="editCategorySubmit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">
                     Update
                 </button>
             </div>
@@ -313,6 +317,36 @@
 
 {% block extra_scripts %}
 <script>
+    function validateName(inputId, submitId, errorId) {
+        const input = document.getElementById(inputId);
+        const submit = document.getElementById(submitId);
+        const error = document.getElementById(errorId);
+        const val = input.value.trim();
+        let errorMessage = "";
+
+        if (val.length === 0) {
+            errorMessage = "Name is required";
+        } else if (val.length < 3) {
+            errorMessage = "Name must be at least 3 characters";
+        } else if (!/^[a-zA-Z ]+$/.test(val)) {
+            errorMessage = "Only alphabet letters and spaces are allowed";
+        } else if (/\s{2,}/.test(val)) {
+            errorMessage = "Multiple consecutive spaces are not allowed";
+        }
+
+        if (errorMessage) {
+            error.textContent = errorMessage;
+            error.classList.remove('hidden');
+            input.classList.add('border-red-500');
+            submit.disabled = true;
+            submit.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            error.classList.add('hidden');
+            input.classList.remove('border-red-500');
+            submit.disabled = false;
+            submit.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
 
 
     function openModal(modalId) {

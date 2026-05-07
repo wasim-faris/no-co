@@ -62,7 +62,7 @@ def add_coupon(request):
             errors['discount_type'] = 'Discount type is required.'
 
         if not validate_meaningful_content(code):
-            errors['code'] = 'Please enter a valid meaningful coupon code.'
+            errors['code'] = 'Only alphabet letters and single spaces are allowed.'
 
         if discount_type == 'flat' and discount_value and min_purchase:
             try:
@@ -149,7 +149,7 @@ def edit_coupon(request):
             errors['discount_type'] = 'Discount type is required.'
 
         if not validate_meaningful_content(code):
-            errors['code'] = 'Please enter a valid meaningful coupon code.'
+            errors['code'] = 'Only alphabet letters and single spaces are allowed.'
 
         if discount_type == 'flat' and discount_value and min_purchase:
             try:

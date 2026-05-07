@@ -69,7 +69,7 @@ def create_offer(request):
         is_active = request.POST.get("is_active") == "on"
 
         if not validate_meaningful_content(name):
-            messages.error(request, "Please enter a valid meaningful name for the offer")
+            messages.error(request, "Only alphabet letters and single spaces are allowed for the offer name")
             return redirect("admin-offers")
 
         if not start_date or not end_date:
@@ -133,7 +133,7 @@ def update_offer(request, offer_id):
         min_purchase = request.POST.get("min_purchase") or 0
         
         if not validate_meaningful_content(name):
-            messages.error(request, "Please enter a valid meaningful name for the offer")
+            messages.error(request, "Only alphabet letters and single spaces are allowed for the offer name")
             return redirect("admin-offers")
 
         if discount_type == 'flat' and float(discount_value) > float(min_purchase):

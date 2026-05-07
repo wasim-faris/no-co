@@ -157,7 +157,7 @@ def update_profile(request, id):
                 return redirect("user-profile", id=id)
 
             if not validate_meaningful_content(username):
-                messages.error(request, "Please enter a valid meaningful username")
+                messages.error(request, "Only alphabet letters and single spaces are allowed")
                 return redirect("user-profile", id=id)
 
             username = clean_input(username)

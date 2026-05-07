@@ -142,7 +142,7 @@ def admin_product_details(request, id):
 
             color = request.POST.get("color", "").strip()
             if not validate_meaningful_content(color):
-                messages.error(request, "Please enter a valid meaningful color name")
+                messages.error(request, "Only alphabet letters and single spaces are allowed")
                 return redirect("admin-product-details", id=product.id)
             
             size_obj, _ = Size.objects.get_or_create(name=size)
@@ -244,14 +244,13 @@ def admin_product_management(request, id=None):
         delivery_returns = request.POST.get("delivery_returns")
         materials = request.POST.get("fabric")
         washing = request.POST.get("washing")
-        offer_percentage = request.POST.get("offer_percentage", 0) or 0
 
         category = get_object_or_404(Category, id=category_id)
         subcategory = get_object_or_404(Subcategory, id=subcategory_id)
 
         if product:
             if not validate_meaningful_content(product_name):
-                messages.error(request, "Please enter a valid meaningful product name")
+                messages.error(request, "Only alphabet letters and single spaces are allowed")
                 return redirect("admin-products")
             
             product.product_name = product_name
@@ -261,12 +260,11 @@ def admin_product_management(request, id=None):
             product.delivery_returns = delivery_returns
             product.category = category
             product.subcategory = subcategory
-            product.offer_percentage = offer_percentage
             product.save()
             messages.success(request, "Product Updated")
         else:
             if not validate_meaningful_content(product_name):
-                messages.error(request, "Please enter a valid meaningful product name")
+                messages.error(request, "Only alphabet letters and single spaces are allowed")
                 return redirect("admin-products")
 
             product = Product.objects.create(
@@ -277,7 +275,6 @@ def admin_product_management(request, id=None):
                 delivery_returns=delivery_returns,
                 category=category,
                 subcategory=subcategory,
-                offer_percentage=offer_percentage,
             )
             messages.success(request, "Product Created")
 
@@ -319,7 +316,11 @@ def admin_variants(request, id):
 
         if action == "add_variant":
             sizes = request.POST.getlist("sizes")
-            color = request.POST.get("color")
+            color = request.POST.get("color", "").strip()
+            if not validate_meaningful_content(color):
+                messages.error(request, "Only alphabet letters and single spaces are allowed")
+                return redirect("admin-variants", id=product.id)
+
             color_hex = request.POST.get("color_hex")
             price = request.POST.get("price")
 

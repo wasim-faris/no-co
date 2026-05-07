@@ -222,7 +222,10 @@
 
                 <div>
                     <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Subcategory Name</label>
-                    <input type="text" name="subcategory_name" placeholder="e.g. Linen Shirts" required class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors placeholder:text-gray-300">
+                    <input type="text" name="subcategory_name" id="addSubcatName" placeholder="e.g. Linen Shirts" required 
+                           oninput="validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError')"
+                           class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors placeholder:text-gray-300">
+                    <p id="addSubcatError" class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden"></p>
                 </div>
 
                 <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100">
@@ -238,7 +241,7 @@
 
                 <div class="flex gap-4 pt-2">
                     <button type="button" id="cancelBtn" class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">Cancel</button>
-                    <button type="submit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">Create Subcategory</button>
+                    <button type="submit" id="addSubcatSubmit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">Create Subcategory</button>
                 </div>
             </form>
         </div>
@@ -294,7 +297,9 @@
                 <div>
                     <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Subcategory Name</label>
                     <input type="text" name="subcategory_name" id="editSubcatName" required
+                        oninput="validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError')"
                         class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    <p id="editSubcatError" class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden"></p>
                 </div>
 
                 <!-- Buttons -->
@@ -302,7 +307,7 @@
                     <button type="button" onclick="closeEditModal()" class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">
                         Cancel
                     </button>
-                    <button type="submit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">
+                    <button type="submit" id="editSubcatSubmit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">
                         Update
                     </button>
                 </div>
@@ -345,13 +350,48 @@
 
 {% block extra_scripts %}
 <script>
+        function validateName(inputId, submitId, errorId) {
+            const input = document.getElementById(inputId);
+            const submit = document.getElementById(submitId);
+            const error = document.getElementById(errorId);
+            const val = input.value.trim();
+            let errorMessage = "";
+
+            if (val.length === 0) {
+                errorMessage = "Name is required";
+            } else if (val.length < 3) {
+                errorMessage = "Name must be at least 3 characters";
+            } else if (!/^[a-zA-Z ]+$/.test(val)) {
+                errorMessage = "Only alphabet letters and spaces are allowed";
+            } else if (/\s{2,}/.test(val)) {
+                errorMessage = "Multiple consecutive spaces are not allowed";
+            }
+
+            if (errorMessage) {
+                error.textContent = errorMessage;
+                error.classList.remove('hidden');
+                input.classList.add('border-red-500');
+                submit.disabled = true;
+                submit.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                error.classList.add('hidden');
+                input.classList.remove('border-red-500');
+                submit.disabled = false;
+                submit.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+        }
         // Modal Logic
         const modal = document.getElementById('modalOverlay');
         const openBtn = document.getElementById('openModal');
         const closeBtn = document.getElementById('closeModal');
         const cancelBtn = document.getElementById('cancelBtn');
 
-        const toggleModal = () => modal.classList.toggle('modal-hidden');
+        const toggleModal = () => {
+            modal.classList.toggle('modal-hidden');
+            if (!modal.classList.contains('modal-hidden')) {
+                validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError');
+            }
+        };
 
         openBtn.addEventListener('click', toggleModal);
         cancelBtn.addEventListener('click', toggleModal);
@@ -433,6 +473,7 @@ function openEditModal(id, name, categoryId=null) {
     }
 
     editModal.classList.remove("modal-hidden");
+    validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError');
 }
 
 function closeEditModal() {
