@@ -8,6 +8,8 @@ from django.utils import timezone
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
 from utils.validation import validate_meaningful_content, clean_input
+from django.http import HttpResponseBadRequest
+import json
 
 
 @admin_required
@@ -38,7 +40,12 @@ def admin_category(request):
 
             if Category.objects.filter(category_name=name).exists():
                 messages.error(request, "Category already exists or archived")
-                return redirect("admin-category")
+                return HttpResponseBadRequest("Category already exists")
+            
+            # Check for meaningful content
+            if not validate_meaningful_content(name):
+                messages.error(request, "Please enter a valid meaningful name")
+                return HttpResponseBadRequest("Invalid name")
 
             if not name or len(name.strip()) < 3:
                 messages.error(request, "Please enter at least 3 characters")
@@ -67,7 +74,7 @@ def admin_category(request):
             cat_id = request.POST.get("category_id")
             if Category.objects.filter(category_name=name).exclude(id=cat_id).exists():
                 messages.error(request, "Category name already exists")
-                return redirect("admin-category")
+                return HttpResponseBadRequest("Category already exists")
 
             cat = Category.objects.get(id=cat_id)
             cat.category_name = name
@@ -115,6 +122,11 @@ def admin_category(request):
     inactive_count = all_categories.filter(is_active=False).count()
     subcategory_count = Subcategory.objects.filter(is_deleted=False).count()
 
+    # JSON data for frontend real-time duplicate validation
+    all_cats_json = json.dumps(list(
+        Category.objects.filter(is_deleted=False).values('id', 'category_name')
+    ))
+
     return render(
         request,
         "admin-category.html",
@@ -125,6 +137,7 @@ def admin_category(request):
             "inactive_count": inactive_count,
             "search_query": query,
             "subcategory_count": subcategory_count,
+            "all_cats_json": all_cats_json,
         },
     )
 
@@ -159,7 +172,7 @@ def admin_subcategory(request):
                 subcategory_name=name, category=parent_category
             ).exists():
                 messages.error(request, "Subcategory already exists or archived")
-                return redirect("admin-subcategory")
+                return HttpResponseBadRequest("Subcategory already exists")
 
             if not name or len(name.strip()) < 3:
                 messages.error(request, "Please enter at least 3 characters")
@@ -199,7 +212,7 @@ def admin_subcategory(request):
 
             if Subcategory.objects.filter(subcategory_name=name, category_id=parent_category_id).exclude(id=sub_id).exists():
                 messages.error(request, "Subcategory already exists in this category")
-                return redirect("admin-subcategory")
+                return HttpResponseBadRequest("Subcategory already exists")
 
             sub = get_object_or_404(Subcategory, id=sub_id)
             sub.subcategory_name = name
@@ -253,6 +266,11 @@ def admin_subcategory(request):
     active_subcategory = live_subcategory.filter(is_active=True).count()
     inactive_subcategory = live_subcategory.filter(is_active=False).count()
 
+    # JSON data for frontend real-time duplicate validation
+    all_subcats_json = json.dumps(list(
+        Subcategory.objects.filter(is_deleted=False).values('id', 'subcategory_name', 'category_id')
+    ))
+
     return render(
         request,
         "admin-subcategory.html",
@@ -263,5 +281,6 @@ def admin_subcategory(request):
             "subcategory_count": subcategory_count,
             "active_subcategory": active_subcategory,
             "inactive_subcategory": inactive_subcategory,
+            "all_subcats_json": all_subcats_json,
         },
     )

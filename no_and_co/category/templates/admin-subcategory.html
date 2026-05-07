@@ -163,14 +163,12 @@
                 <tbody id="subcategoryTableBody" class="divide-y divide-gray-50 text-sm">
                     {% for i in page_obj %}
                     <tr class="hover:bg-gray-50/50 transition-colors group">
-                        <td class="px-5 py-3 text-[13px] text-gray-400 align-middle">{{
-                            forloop.counter0|add:page_obj.start_index }}</td>
+                        <td class="px-5 py-3 text-[13px] text-gray-400 align-middle">{{ page_obj.start_index|add:forloop.counter0 }}</td>
                         <td class="px-3 py-3 align-middle">
                             <span
                                 class="font-bold text-gray-900 text-[13px] tracking-tight">{{i.subcategory_name}}</span>
                         </td>
-                        <td class="px-3 py-3 text-[13px] font-medium text-gray-900 text-center align-middle">{{
-                            i.category }}</td>
+                        <td class="px-3 py-3 text-[13px] font-medium text-gray-900 text-center align-middle">{{ i.category.category_name }}</td>
                         <td class="px-3 py-3 text-[13px] font-medium text-gray-900 text-center align-middle">124</td>
                         <td class="px-3 py-3 align-middle">
                             {% if i.is_deleted %}
@@ -233,8 +231,7 @@
                                     <input type="hidden" name="subcategory_id" value="{{i.id}}">
                                     <input type="hidden" name="action" value="toggle">
                                     <label class="relative inline-flex items-center cursor-pointer m-0">
-                                        <input type="checkbox" onChange="this.form.submit()" class="sr-only peer" {% if
-                                            i.is_active %}checked{% endif %}>
+                                        <input type="checkbox" onclick="event.preventDefault(); this.form.submit();" class="sr-only peer" {% if i.is_active %}checked{% endif %}>
                                         <div
                                             class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black shadow-inner">
                                         </div>
@@ -274,7 +271,7 @@
                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Parent
                     Category</label>
                 <select name="parent_category" id="addParentCategory" required
-                    onchange="validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError')"
+                    onchange="validateAddSubcat()"
                     class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors appearance-none">
                     <option value="" disabled selected>Select a main category</option>
                     {% for i in category %}
@@ -289,7 +286,7 @@
                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Subcategory
                     Name</label>
                 <input type="text" name="subcategory_name" id="addSubcatName" placeholder="e.g. Linen Shirts" required
-                    oninput="validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError')"
+                    oninput="validateAddSubcat()"
                     class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors placeholder:text-gray-300">
                 <p id="addSubcatError" class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden">
                 </p>
@@ -380,7 +377,7 @@
                 <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Subcategory
                     Name</label>
                 <input type="text" name="subcategory_name" id="editSubcatName" required
-                    oninput="validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError')"
+                    oninput="validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', document.getElementById('editSubcatId').value, document.getElementById('editParentCategory').value)"
                     class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
                 <p id="editSubcatError"
                     class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden"></p>
@@ -445,7 +442,7 @@
 <script>
     const subcategoriesData = JSON.parse(document.getElementById('subcategories-data').textContent);
 
-    function validateName(inputId, submitId, errorId, currentId = null) {
+    function validateName(inputId, submitId, errorId, currentId = null, parentId = null) {
         const input = document.getElementById(inputId);
         const submit = document.getElementById(submitId);
         const error = document.getElementById(errorId);
@@ -462,13 +459,15 @@
         } else if (/\s{2,}/.test(val)) {
             errorMessage = "Multiple consecutive spaces are not allowed";
         } else {
-            // Global duplicate check
-            const isDuplicate = subcategoriesData.some(sub =>
-                sub.subcategory_name.toLowerCase() === lowerVal &&
-                String(sub.id) !== String(currentId)
-            );
+            // Duplicate check (scoped per category if parentId provided)
+            const isDuplicate = subcategoriesData.some(sub => {
+                const matchName = sub.subcategory_name.toLowerCase() === lowerVal;
+                const notCurrent = String(sub.id) !== String(currentId);
+                const matchCategory = parentId ? String(sub.category_id) === String(parentId) : true;
+                return matchName && notCurrent && matchCategory;
+            });
             if (isDuplicate) {
-                errorMessage = "Subcategory name already exists";
+                errorMessage = parentId ? "Subcategory already exists in this category" : "Subcategory name already exists";
             }
         }
 
@@ -496,7 +495,7 @@
     const toggleModal = () => {
         modal.classList.toggle('modal-hidden');
         if (!modal.classList.contains('modal-hidden')) {
-            validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError');
+            validateAddSubcat();
         }
     };
 
@@ -543,12 +542,45 @@
         }
     });
 
-    // Auto-slug Logic (Simple version for UI feel)
-    const nameInput = document.querySelector('input[name="subcategory_name"]');
-    const slugInput = document.querySelector('input[name="slug"]');
-    nameInput.addEventListener('input', (e) => {
-        slugInput.value = e.target.value.toLowerCase().split(' ').join('-');
-    });
+    // Add-form duplicate check (scoped per category)
+    function validateAddSubcat() {
+        const nameInput = document.getElementById('addSubcatName');
+        const submitBtn = document.getElementById('addSubcatSubmit');
+        const errorDiv = document.getElementById('addSubcatError');
+        const categoryId = document.getElementById('addParentCategory').value;
+        const val = nameInput.value.trim();
+        const lowerVal = val.toLowerCase();
+        let errorMessage = '';
+
+        if (val.length === 0) {
+            errorMessage = 'Name is required';
+        } else if (val.length < 3) {
+            errorMessage = 'Name must be at least 3 characters';
+        } else if (!/^[a-zA-Z ]+$/.test(val)) {
+            errorMessage = 'Only alphabet letters and spaces are allowed';
+        } else if (/\s{2,}/.test(val)) {
+            errorMessage = 'Multiple consecutive spaces are not allowed';
+        } else if (categoryId) {
+            const isDuplicate = subcategoriesData.some(sub =>
+                sub.subcategory_name.toLowerCase() === lowerVal &&
+                String(sub.category_id) === String(categoryId)
+            );
+            if (isDuplicate) errorMessage = 'Subcategory already exists in this category';
+        }
+
+        if (errorMessage) {
+            errorDiv.textContent = errorMessage;
+            errorDiv.classList.remove('hidden');
+            nameInput.classList.add('border-red-500');
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        } else {
+            errorDiv.classList.add('hidden');
+            nameInput.classList.remove('border-red-500');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+    }
 
     // Toast animation - removed duplicate, handled by base.html
 
@@ -575,21 +607,25 @@
         const nameInput = document.getElementById("editSubcatName");
         const submitBtn = document.getElementById("editSubcatSubmit");
         const errorDiv = document.getElementById("editSubcatError");
+        const parentSelect = document.getElementById("editParentCategory");
 
         document.getElementById("editSubcatId").value = id;
         nameInput.value = name;
 
         if (categoryId) {
-            document.getElementById("editParentCategory").value = categoryId;
+            parentSelect.value = categoryId;
         }
 
         editModal.classList.remove("modal-hidden");
 
-        // Add event listener for real-time duplicate check during edit (global)
-        nameInput.oninput = () => validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', id);
+        // Add event listener for real-time duplicate check during edit (scoped to parent category)
+        nameInput.oninput = () => {
+            const currentParentId = parentSelect.value;
+            validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', id, currentParentId);
+        };
 
         // Initial validation
-        validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', id);
+        validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', id, parentSelect.value);
     }
 
     function closeEditModal() {
