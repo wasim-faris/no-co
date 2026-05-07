@@ -25,6 +25,30 @@ def validate_meaningful_content(value):
         
     return True
 
+def validate_color_name(value):
+    """
+    Special validation for Variant Colors:
+    - Allow letters, spaces, and single '/'.
+    - Block numbers and other special chars.
+    - Must be 3-100 characters.
+    """
+    if not value:
+        return False
+    
+    trimmed = value.strip()
+    if len(trimmed) < 3 or len(trimmed) > 100:
+        return False
+    
+    # Allow letters, spaces, and /
+    if not re.fullmatch(r"[a-zA-Z /]+", trimmed):
+        return False
+        
+    # Prevent multiple consecutive spaces or slashes
+    if "  " in trimmed or "//" in trimmed:
+        return False
+        
+    return True
+
 def validate_phone_number(phone):
     if not phone:
         return False, "Phone number is required"

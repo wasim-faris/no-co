@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.db import transaction
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
-from utils.validation import validate_meaningful_content, clean_input
+from utils.validation import validate_meaningful_content, validate_color_name, clean_input
 from offers.utils import apply_offers_to_variants
 
 
@@ -217,8 +217,8 @@ def admin_variants(request, id):
         if action == "add_variant":
             sizes = request.POST.getlist("sizes")
             color = request.POST.get("color", "").strip()
-            if not validate_meaningful_content(color):
-                messages.error(request, "Only alphabet letters and single spaces are allowed")
+            if not validate_color_name(color):
+                messages.error(request, "Only letters, spaces, and \"/\" are allowed")
                 return redirect("admin-variants", id=product.id)
 
             color_hex = request.POST.get("color_hex")
@@ -268,6 +268,12 @@ def admin_variants(request, id):
                     for i in range(4):
                         img = request.FILES.get(f"image_{i}")
                         if img:
+                            # Strict image format validation
+                            ext = img.name.split('.')[-1].lower()
+                            if ext not in ['jpg', 'jpeg', 'png', 'webp']:
+                                messages.error(request, f"File '{img.name}' is not a valid image format. Use JPG, PNG or WEBP.")
+                                return redirect("admin-variants", id=product.id)
+
                             if img.size > 2 * 1024 * 1024:
                                 messages.error(request, f"Image {img.name} exceeds the 2MB size limit.")
                                 return redirect("admin-variants", id=product.id)
@@ -322,7 +328,12 @@ def admin_variants(request, id):
             if sizes and sizes[0]:
                 variant.size_id = int(sizes[0])
 
-            variant.color = request.POST.get("color")
+            color = request.POST.get("color", "").strip()
+            if not validate_color_name(color):
+                messages.error(request, "Only letters, spaces, and \"/\" are allowed")
+                return redirect("admin-variants", id=product.id)
+            
+            variant.color = color
             variant.color_hex = request.POST.get("color_hex")
             variant.is_active = "true" in request.POST.getlist("is_active")
             variant.is_default = "true" in request.POST.getlist("is_default")
@@ -336,6 +347,12 @@ def admin_variants(request, id):
             for i in range(4):
                 img = request.FILES.get(f"image_{i}")
                 if img:
+                    # Strict image format validation
+                    ext = img.name.split('.')[-1].lower()
+                    if ext not in ['jpg', 'jpeg', 'png', 'webp']:
+                        messages.error(request, f"File '{img.name}' is not a valid image format. Use JPG, PNG or WEBP.")
+                        return redirect("admin-variants", id=product.id)
+
                     if img.size > 2 * 1024 * 1024:
                         messages.error(request, f"Image {img.name} exceeds the 2MB size limit.")
                         return redirect("admin-variants", id=product.id)
@@ -352,6 +369,12 @@ def admin_variants(request, id):
                 new_primary = variant.images.filter(is_primary=True).last()
                 if new_primary:
                     variant.images.exclude(id=new_primary.id).update(is_primary=False)
+
+            # Final check: Ensure variant has at least one image after edits
+            total_images_remaining = variant.images.count()
+            if total_images_remaining == 0:
+                messages.error(request, "A variant must have at least one image.")
+                return redirect("admin-variants", id=product.id)
 
             if (
                 variant.images.exists()
