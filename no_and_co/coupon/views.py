@@ -7,6 +7,7 @@ from django.views.decorators.cache import never_cache
 from .models import Coupon, CouponUsage
 from django.db.models import Count, Max
 from django.core.paginator import Paginator
+from utils.validation import validate_meaningful_content, clean_input
 @admin_required
 @never_cache
 
@@ -59,6 +60,16 @@ def add_coupon(request):
             errors['discount_value'] = 'Discount value is required.'
         if not discount_type:
             errors['discount_type'] = 'Discount type is required.'
+
+        if not validate_meaningful_content(code):
+            errors['code'] = 'Please enter a valid meaningful coupon code.'
+
+        if discount_type == 'flat' and discount_value and min_purchase:
+            try:
+                if float(discount_value) > float(min_purchase):
+                    errors['discount_value'] = 'Flat discount cannot exceed minimum purchase amount.'
+            except ValueError:
+                pass
 
         if discount_type == 'percentage' and discount_value:
             try:
@@ -136,6 +147,20 @@ def edit_coupon(request):
             errors['discount_value'] = 'Discount value is required.'
         if not discount_type:
             errors['discount_type'] = 'Discount type is required.'
+
+        if not validate_meaningful_content(code):
+            errors['code'] = 'Please enter a valid meaningful coupon code.'
+
+        if discount_type == 'flat' and discount_value and min_purchase:
+            try:
+                if float(discount_value) > float(min_purchase):
+                    errors['discount_value'] = 'Flat discount cannot exceed minimum purchase amount.'
+            except ValueError:
+                pass
+
+        if code:
+            if Coupon.objects.filter(code=code).exclude(id=coupon_id).exists():
+                errors['code'] = 'Coupon code already exists.'
 
         if discount_type == 'percentage' and discount_value:
             try:

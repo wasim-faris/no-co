@@ -7,6 +7,7 @@ from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
+from utils.validation import validate_meaningful_content, clean_input
 
 
 @admin_required
@@ -27,8 +28,13 @@ def admin_category(request):
             return redirect("admin-category")
 
         if action == "create":
-            name = request.POST.get("category_name")
-            name = name.strip().upper()
+            name = request.POST.get("category_name", "").strip()
+            
+            if not validate_meaningful_content(name):
+                messages.error(request, "Please enter a valid meaningful name")
+                return redirect("admin-category")
+            
+            name = name.upper()
 
             if Category.objects.filter(category_name=name).exists():
                 messages.error(request, "Category already exists or archived")
@@ -52,8 +58,19 @@ def admin_category(request):
             return redirect("admin-category")
 
         if action == "edit":
-            cat = Category.objects.get(id=request.POST.get("category_id"))
-            cat.category_name = request.POST.get("category_name")
+            name = request.POST.get("category_name", "").strip()
+            if not validate_meaningful_content(name):
+                messages.error(request, "Please enter a valid meaningful name")
+                return redirect("admin-category")
+            
+            name = name.upper()
+            cat_id = request.POST.get("category_id")
+            if Category.objects.filter(category_name=name).exclude(id=cat_id).exists():
+                messages.error(request, "Category name already exists")
+                return redirect("admin-category")
+
+            cat = Category.objects.get(id=cat_id)
+            cat.category_name = name
             cat.updated_at = timezone.now()
             cat.save()
             messages.success(request, "Category edited")
@@ -130,9 +147,13 @@ def admin_subcategory(request):
 
         if action == "create":
             parent_category = request.POST.get("parent_category")
-            name = request.POST.get("subcategory_name")
+            name = request.POST.get("subcategory_name", "").strip()
 
-            name = name.strip().upper()
+            if not validate_meaningful_content(name):
+                messages.error(request, "Please enter a valid meaningful name")
+                return redirect("admin-subcategory")
+            
+            name = name.upper()
 
             if Subcategory.objects.filter(
                 subcategory_name=name, category=parent_category
@@ -166,27 +187,26 @@ def admin_subcategory(request):
             return redirect("admin-subcategory")
 
         if action == "edit":
-            name = request.POST.get("subcategory_name")
+            name = request.POST.get("subcategory_name", "").strip()
+            parent_category_id = request.POST.get("parent_category")
+            sub_id = request.POST.get("subcategory_id")
 
-            if len(name) < 3:
-                messages.error(request, "Please make sure word more than 3 words")
+            if not validate_meaningful_content(name):
+                messages.error(request, "Please enter a valid meaningful name")
+                return redirect("admin-subcategory")
+            
+            name = name.upper()
+
+            if Subcategory.objects.filter(subcategory_name=name, category_id=parent_category_id).exclude(id=sub_id).exists():
+                messages.error(request, "Subcategory already exists in this category")
                 return redirect("admin-subcategory")
 
-            if not name:
-                messages.error(request, "Please fill form")
-                return redirect("admin-subcategory")
-
-            sub = get_object_or_404(Subcategory, id=request.POST.get("subcategory_id"))
-            sub.subcategory_name = request.POST.get("subcategory_name")
-
-            if not sub.subcategory_name:
-                messages.error(request, "Please fill the filed")
-                return redirect("admin-subcategory")
-
-            sub.category_id = request.POST.get("parent_category")
+            sub = get_object_or_404(Subcategory, id=sub_id)
+            sub.subcategory_name = name
+            sub.category_id = parent_category_id
             sub.updated_at = timezone.now()
             sub.save()
-            messages.success(request, "Category edited")
+            messages.success(request, "Subcategory edited")
             return redirect("admin-subcategory")
 
         if action == "restore":

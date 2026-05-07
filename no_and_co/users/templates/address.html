@@ -341,12 +341,14 @@
             <div class="form-row">
                 <div class="form-field">
                     <label class="form-label">First Name *</label>
-                    <input type="text" id="f-first-name" name="first_name" class="form-input" placeholder="First name" autocomplete="given-name">
+                    <input type="text" id="f-first-name" name="first_name" class="form-input" placeholder="First name" autocomplete="given-name" value="{% if address_form_data %}{{ address_form_data.first_name }}{% endif %}">
+                    <span class="sub-label" style="display:block; margin-top:4px;">At least 2 characters.</span>
                     <span class="error-msg" id="err-first-name">Please enter your first name</span>
                 </div>
                 <div class="form-field">
                     <label class="form-label">Last Name *</label>
-                    <input type="text" id="f-last-name" name="last_name" class="form-input" placeholder="Last name" autocomplete="family-name">
+                    <input type="text" id="f-last-name" name="last_name" class="form-input" placeholder="Last name" autocomplete="family-name" value="{% if address_form_data %}{{ address_form_data.last_name }}{% endif %}">
+                    <span class="sub-label" style="display:block; margin-top:4px;">At least 1 character.</span>
                     <span class="error-msg" id="err-last-name">Please enter your last name</span>
                 </div>
             </div>
@@ -354,41 +356,44 @@
                 <label class="form-label">Phone *</label>
                 <div class="phone-row" id="phone-row-add">
                     <select id="f-phone-code" name="phone_code" class="phone-code-select"><option value="">Loading…</option></select>
-                    <input type="tel" id="f-phone" name="phone" class="phone-number-input" placeholder="Phone number" maxlength="15" autocomplete="tel-national">
+                    <input type="tel" id="f-phone" name="phone" class="phone-number-input" placeholder="Phone number" maxlength="15" autocomplete="tel-national" value="{% if address_form_data %}{{ address_form_data.phone }}{% endif %}">
                 </div>
-                <span class="error-msg" id="err-phone">Please enter a valid phone number (7–15 digits)</span>
+                <span class="sub-label" style="display:block; margin-top:4px;">10-digit mobile number.</span>
+                <span class="error-msg" id="err-phone">Please enter a valid phone number (10 digits)</span>
             </div>
             <div class="form-field">
                 <label class="form-label">Address Line 1 *</label>
-                <input type="text" id="f-addr1" name="address_line_1" class="form-input" placeholder="House / flat, street name" autocomplete="address-line1">
+                <input type="text" id="f-addr1" name="address_line_1" class="form-input" placeholder="House / flat, street name" autocomplete="address-line1" value="{% if address_form_data %}{{ address_form_data.address_line_1 }}{% endif %}">
+                <span class="sub-label" style="display:block; margin-top:4px;">Detailed address for delivery.</span>
                 <span class="error-msg" id="err-addr1">Please enter your address</span>
             </div>
             <div class="form-field">
                 <label class="form-label">Address Line 2 <span style="font-weight:300;text-transform:none;letter-spacing:0;color:var(--muted);">(optional)</span></label>
-                <input type="text" id="f-addr2" name="address_line_2" class="form-input" placeholder="Apartment, landmark…" autocomplete="address-line2">
+                <input type="text" id="f-addr2" name="address_line_2" class="form-input" placeholder="Apartment, landmark…" autocomplete="address-line2" value="{% if address_form_data %}{{ address_form_data.address_line_2 }}{% endif %}">
             </div>
             <div class="form-row">
                 <div class="form-field">
                     <label class="form-label">City *</label>
-                    <input type="text" id="f-city" name="city" class="form-input" placeholder="City" autocomplete="address-level2">
+                    <input type="text" id="f-city" name="city" class="form-input" placeholder="City" autocomplete="address-level2" value="{% if address_form_data %}{{ address_form_data.city }}{% endif %}">
                     <span class="error-msg" id="err-city">Please enter your city</span>
                 </div>
                 <div class="form-field">
                     <label class="form-label">State *</label>
-                    <input type="text" id="f-state" name="state" class="form-input" placeholder="State" autocomplete="address-level1">
+                    <input type="text" id="f-state" name="state" class="form-input" placeholder="State" autocomplete="address-level1" value="{% if address_form_data %}{{ address_form_data.state }}{% endif %}">
                     <span class="error-msg" id="err-state">Please enter your state</span>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-field">
                     <label class="form-label">Postal Code *</label>
-                    <input type="text" id="f-postal" name="postal_code" class="form-input" placeholder="Postal code" maxlength="10" autocomplete="postal-code">
+                    <input type="text" id="f-postal" name="postal_code" class="form-input" placeholder="Postal code" maxlength="6" autocomplete="postal-code" value="{% if address_form_data %}{{ address_form_data.postal_code }}{% endif %}">
+                    <span class="sub-label" style="display:block; margin-top:4px;">6-digit Indian PIN code.</span>
                     <span class="error-msg" id="err-postal">Please enter a valid postal code</span>
                 </div>
                 <div class="form-field">
                     <label class="form-label">Country *</label>
                     <div style="position:relative;display:flex;align-items:center;">
-                        <select id="f-country" name="country" class="form-input" style="padding-right:24px;"><option value="">Select country…</option></select>
+                        <select id="f-country" name="country" class="form-input" style="padding-right:24px;" data-saved-value="{% if address_form_data %}{{ address_form_data.country }}{% endif %}"><option value="">Select country…</option></select>
                         <span id="country-loading" class="spinner" style="position:absolute;right:0;display:none;"></span>
                     </div>
                     <span class="error-msg" id="err-country">Please select a country</span>
@@ -397,18 +402,38 @@
             <div class="form-field">
                 <label class="form-label">Address Type</label>
                 <div class="radio-group" style="display: flex; gap: 20px; margin-top: 10px;">
-                    <label class="radio-item"><input type="radio" name="address_type" value="Home" checked><span class="radio-label">Home</span></label>
-                    <label class="radio-item"><input type="radio" name="address_type" value="Work"><span class="radio-label">Work</span></label>
-                    <label class="radio-item"><input type="radio" name="address_type" value="Other"><span class="radio-label">Other</span></label>
+                    <label class="radio-item"><input type="radio" name="address_type" value="Home" {% if not address_form_data or address_form_data.address_type == 'Home' %}checked{% endif %}><span class="radio-label">Home</span></label>
+                    <label class="radio-item"><input type="radio" name="address_type" value="Work" {% if address_form_data.address_type == 'Work' %}checked{% endif %}><span class="radio-label">Work</span></label>
+                    <label class="radio-item"><input type="radio" name="address_type" value="Other" {% if address_form_data.address_type == 'Other' %}checked{% endif %}><span class="radio-label">Other</span></label>
                 </div>
             </div>
             <div class="form-field">
                 <label class="check-item" style="display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-                    <input type="checkbox" id="f-default" name="is_default" value="true">
+                    <input type="checkbox" id="f-default" name="is_default" value="true" {% if address_form_data.is_default %}checked{% endif %}>
                     <span class="check-label">Set as default address</span>
                 </label>
             </div>
         </form>
+        <script>
+            // Auto-open modal if there are errors (form data present)
+            {% if address_form_data %}
+            document.addEventListener('DOMContentLoaded', () => {
+                const modal = document.getElementById('addressModal');
+                const overlay = document.getElementById('addressModalOverlay');
+                if (modal && overlay) {
+                    modal.classList.add('active');
+                    overlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    // Re-set country after they are loaded
+                    setTimeout(() => {
+                        const countrySel = document.getElementById('f-country');
+                        const saved = countrySel.getAttribute('data-saved-value');
+                        if (saved) setSelectValue(countrySel, saved);
+                    }, 500);
+                }
+            });
+            {% endif %}
+        </script>
     </div>
     <div class="uni-modal-footer">
         <button type="submit" form="addressForm" id="submit-btn" class="uni-modal-btn uni-modal-btn-primary">Save Address</button>
@@ -434,11 +459,13 @@
                 <div class="form-field">
                     <label class="form-label">First Name *</label>
                     <input type="text" name="first_name" id="edit-first-name" class="form-input" placeholder="First name">
+                    <span class="sub-label" style="display:block; margin-top:4px;">At least 2 characters.</span>
                     <span id="err-edit-first-name" class="error-msg"></span>
                 </div>
                 <div class="form-field">
                     <label class="form-label">Last Name *</label>
                     <input type="text" name="last_name" id="edit-last-name" class="form-input" placeholder="Last name">
+                    <span class="sub-label" style="display:block; margin-top:4px;">At least 1 character.</span>
                     <span id="err-edit-last-name" class="error-msg"></span>
                 </div>
             </div>
@@ -447,11 +474,13 @@
                 <div class="phone-row" id="phone-row-edit">
                     <input type="tel" name="phone_number" id="edit-phone" class="phone-number-input" placeholder="10-digit phone number" style="padding-left: 0 !important;">
                 </div>
+                <span class="sub-label" style="display:block; margin-top:4px;">10-digit mobile number.</span>
                 <span id="err-edit-phone" class="error-msg"></span>
             </div>
             <div class="form-field">
                 <label class="form-label">Address Line 1 *</label>
                 <input type="text" name="address_line1" id="edit-addr1" class="form-input" placeholder="House / flat, street name">
+                <span class="sub-label" style="display:block; margin-top:4px;">Detailed address for delivery.</span>
                 <span id="err-edit-addr1" class="error-msg"></span>
             </div>
             <div class="form-field">
@@ -474,6 +503,7 @@
                 <div class="form-field">
                     <label class="form-label">Pin Code *</label>
                     <input type="text" name="pin_code" id="edit-pin" class="form-input" placeholder="6-digit PIN">
+                    <span class="sub-label" style="display:block; margin-top:4px;">6-digit Indian PIN code.</span>
                     <span id="err-edit-pin" class="error-msg"></span>
                 </div>
                 <div class="form-field">
@@ -497,9 +527,7 @@
                 </label>
             </div>
         </form>
-    </div>
-    <div class="uni-modal-footer">
-        <button type="submit" form="editAddressForm" class="uni-modal-btn uni-modal-btn-primary">Update Address</button>
+        <button type="submit" id="edit-submit-btn" form="editAddressForm" class="uni-modal-btn uni-modal-btn-primary">Update Address</button>
         <button type="button" onclick="closeEditModal()" class="uni-modal-btn uni-modal-btn-secondary">Cancel</button>
     </div>
 </div>
@@ -669,7 +697,13 @@ function validateAddress(ctx, ids) {
     function req(inputId, errId, message) {
         const el = document.getElementById(inputId), errEl = document.getElementById(errId);
         if (!el) return;
-        if (!el.value.trim()) { showFieldError(el, errEl, message); ok = false; }
+        const val = el.value.trim();
+        el.value = val; // Trim on the fly
+        if (!val) { 
+            showFieldError(el, errEl, message); ok = false; 
+        } else if (!ValidationUtils.isMeaningful(val)) {
+            showFieldError(el, errEl, "Please enter meaningful content."); ok = false;
+        }
     }
     function reqSelect(selectId, errId, message) {
         const el = document.getElementById(selectId), errEl = document.getElementById(errId);
@@ -687,11 +721,26 @@ function validateAddress(ctx, ids) {
     const phoneEl = document.getElementById(ids.phone), errPhoneEl = document.getElementById(ids.errPhone);
     if (phoneEl) {
         const phoneVal = phoneEl.value.trim();
-        if (!phoneVal) { showFieldError(phoneEl, errPhoneEl, 'Please enter your phone number.'); ok = false; }
-        else if (!/^\d{10}$/.test(phoneVal)) { showFieldError(phoneEl, errPhoneEl, 'Phone number must be exactly 10 digits.'); ok = false; }
+        if (!phoneVal) {
+            showFieldError(phoneEl, errPhoneEl, 'Please enter your phone number.');
+            ok = false;
+        } else if (phoneEl.dataset.pending === "true") {
+            // If it's still being checked by the AJAX validator
+            showFieldError(phoneEl, errPhoneEl, 'Verifying phone number, please wait...');
+            ok = false;
+        } else if (phoneEl.dataset.valid === "false") {
+            showFieldError(phoneEl, errPhoneEl, 'Please enter a valid active mobile number.');
+            ok = false;
+        } else if (!/^[6-9]\d{9}$/.test(phoneVal)) {
+            showFieldError(phoneEl, errPhoneEl, 'Phone number must be a valid 10-digit number starting with 6-9.');
+            ok = false;
+        }
     }
     const pinEl = document.getElementById(ids.pin), errPinEl = document.getElementById(ids.errPin);
-    if (pinEl && pinEl.value.trim() && !/^\d{6}$/.test(pinEl.value.trim())) { showFieldError(pinEl, errPinEl, 'PIN code must be exactly 6 digits.'); ok = false; }
+    if (pinEl && pinEl.value.trim() && !/^\d{6}$/.test(pinEl.value.trim())) {
+        showFieldError(pinEl, errPinEl, 'PIN code must be exactly 6 digits.');
+        ok = false;
+    }
     return ok;
 }
 
@@ -838,15 +887,12 @@ document.addEventListener('submit', async function(e) {
                 if (ex) { ex.value = val; } else { const h = document.createElement('input'); h.type='hidden'; h.name=sel.name; h.value=val; h.setAttribute('data-mirror','1'); form.appendChild(h); }
             });
 
-            if (isAddressForm && !validateAddress('add', ADD_IDS)) {
+            const ctx = isAddressForm ? 'add' : 'edit';
+            const ids = isAddressForm ? ADD_IDS : EDIT_IDS;
+            
+            if (!validateAddress(ctx, ids)) {
                 e.preventDefault();
-                const firstErr = form.querySelector('.error, .error-msg.show');
-                if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
-                return;
-            }
-            if (isEditForm && !validateAddress('edit', EDIT_IDS)) {
-                e.preventDefault();
-                const firstErr = form.querySelector('.error, [id^="err-edit-"]:not(.hidden)');
+                const firstErr = form.querySelector('.error, .error-msg.show, [id^="err-edit-"]:not(.hidden)');
                 if (firstErr) firstErr.scrollIntoView({ behavior:'smooth', block:'center' });
                 return;
             }
@@ -854,11 +900,12 @@ document.addEventListener('submit', async function(e) {
 
         /* 2. Convert to AJAX POST */
         e.preventDefault();
-        const submitBtn = document.querySelector(`button[type="submit"][form="${form.id}"]`) || 
-                          form.querySelector('button[type="submit"]') || 
-                          form.querySelector('input[type="submit"]');
+        
+        // Prevent double submission
+        if (form.dataset.submitting === "true" || submitBtn.disabled) return;
 
         if (submitBtn) {
+            form.dataset.submitting = "true";
             submitBtn.dataset.originalText = submitBtn.innerHTML;
             const loadingText = isAddressForm ? 'Saving...' : (isEditForm ? 'Updating...' : 'Processing...');
             submitBtn.innerHTML = `<span class="btn-loader" style="margin-right: 8px;"></span> ${loadingText}`;
@@ -903,6 +950,7 @@ document.addEventListener('submit', async function(e) {
                     submitBtn.innerHTML = submitBtn.dataset.originalText;
                     submitBtn.disabled = false; 
                 }
+                delete form.dataset.submitting;
             }
         } catch (error) {
             console.error('AJAX Submit Error:', error);
@@ -910,12 +958,78 @@ document.addEventListener('submit', async function(e) {
                 submitBtn.innerHTML = submitBtn.dataset.originalText;
                 submitBtn.disabled = false; 
             }
+            delete form.dataset.submitting;
         }
     }
 });
 
 /* Escape → close */
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') { closeModal(); closeEditModal(); } });
+
+/* ── Real-time phone validation ── */
+document.addEventListener('DOMContentLoaded', function() {
+    const PHONE_AJAX_URL = "{% url 'validate-phone' %}";
+
+    // Setup Validation Maps
+    const addMap = {
+        '#f-first-name': (val) => val.trim().length >= 2,
+        '#f-last-name': (val) => val.trim().length >= 1,
+        '#f-phone': (val) => true, // Handled by attachPhoneValidation
+        '#f-addr1': (val) => val.trim().length >= 5,
+        '#f-city': (val) => val.trim().length >= 2,
+        '#f-state': (val) => val.trim().length >= 2,
+        '#f-postal': (val) => /^\d{6}$/.test(val.trim()),
+        '#f-country': (val) => val && val !== ""
+    };
+
+    const editMap = {
+        '#edit-first-name': (val) => val.trim().length >= 2,
+        '#edit-last-name': (val) => val.trim().length >= 1,
+        '#edit-phone': (val) => true,
+        '#edit-addr1': (val) => val.trim().length >= 5,
+        '#edit-city': (val) => val.trim().length >= 2,
+        '#edit-state': (val) => val.trim().length >= 2,
+        '#edit-pin': (val) => /^\d{6}$/.test(val.trim()),
+        '#edit-country': (val) => val && val !== ""
+    };
+
+    // Attach Phone Validation
+    ValidationUtils.attachPhoneValidation('#f-phone', '#submit-btn', PHONE_AJAX_URL);
+    ValidationUtils.attachPhoneValidation('#edit-phone', '#edit-submit-btn', PHONE_AJAX_URL);
+
+    // Attach Form Watchers
+    ValidationUtils.watchForm('#addressForm', '#submit-btn', addMap);
+    ValidationUtils.watchForm('#editAddressForm', '#edit-submit-btn', editMap);
+
+    // Add individual real-time listeners for feedback
+    const setupRealtimeFeedback = (map, formId) => {
+        const form = document.getElementById(formId);
+        Object.keys(map).forEach(selector => {
+            const el = form.querySelector(selector);
+            if (!el || selector.includes('phone')) return;
+            
+            el.addEventListener('input', () => {
+                const val = el.value.trim();
+                const isValid = map[selector](val);
+                const errId = selector.replace('#f-', 'err-').replace('#edit-', 'err-edit-');
+                const errEl = document.getElementById(errId);
+                
+                if (!isValid) {
+                    el.dataset.isValid = "false";
+                    if (val) { // Only show error if they've typed something
+                        showFieldError(el, errEl, "Please enter valid information");
+                    }
+                } else {
+                    el.dataset.isValid = "true";
+                    clearFieldError(el, errEl);
+                }
+            });
+        });
+    };
+
+    setupRealtimeFeedback(addMap, 'addressForm');
+    setupRealtimeFeedback(editMap, 'editAddressForm');
+});
 </script>
 
 {% include 'user_base/components/nav_js.html' %}

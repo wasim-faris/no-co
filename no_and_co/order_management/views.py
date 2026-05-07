@@ -151,33 +151,34 @@ def admin_update_order_status(request, order_id):
                             referrer = referral_record.referrer
                             referred_user = order.user
 
+                            # Use the amount stored in the record (respecting the 500 cap)
+                            reward_referrer = referral_record.reward_amount_referrer
+                            if reward_referrer > 0:
+                                referrer_wallet, _ = Wallet.objects.get_or_create(user=referrer)
+                                referrer_wallet.balance = Decimal(referrer_wallet.balance) + reward_referrer
+                                referrer_wallet.save()
 
-                            referrer_wallet, _ = Wallet.objects.get_or_create(user=referrer)
-                            reward_referrer = Decimal('100.00')
-                            referrer_wallet.balance = Decimal(referrer_wallet.balance) + reward_referrer
-                            referrer_wallet.save()
+                                WalletTransaction.objects.create(
+                                    wallet=referrer_wallet,
+                                    amount=reward_referrer,
+                                    transaction_type='CREDIT',
+                                    payment_status='SUCCESS',
+                                    description=f"Referral reward for Order #{order.order_number}"
+                                )
 
-                            WalletTransaction.objects.create(
-                                wallet=referrer_wallet,
-                                amount=reward_referrer,
-                                transaction_type='CREDIT',
-                                payment_status='SUCCESS',
-                                description=f"Referral reward — your friend completed their first order"
-                            )
+                            reward_referred = referral_record.reward_amount_referred
+                            if reward_referred > 0:
+                                user_wallet, _ = Wallet.objects.get_or_create(user=referred_user)
+                                user_wallet.balance = Decimal(user_wallet.balance) + reward_referred
+                                user_wallet.save()
 
-
-                            user_wallet, _ = Wallet.objects.get_or_create(user=referred_user)
-                            reward_referred = Decimal('40.00')
-                            user_wallet.balance = Decimal(user_wallet.balance) + reward_referred
-                            user_wallet.save()
-
-                            WalletTransaction.objects.create(
-                                wallet=user_wallet,
-                                amount=reward_referred,
-                                transaction_type='CREDIT',
-                                payment_status='SUCCESS',
-                                description=f"Referral bonus — reward for joining with a referral code"
-                            )
+                                WalletTransaction.objects.create(
+                                    wallet=user_wallet,
+                                    amount=reward_referred,
+                                    transaction_type='CREDIT',
+                                    payment_status='SUCCESS',
+                                    description=f"Referral bonus for joining"
+                                )
 
 
                             referral_record.reward_paid = True

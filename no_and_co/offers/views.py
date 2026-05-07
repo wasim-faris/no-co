@@ -4,6 +4,7 @@ from django.db.models import F, Q
 from django.contrib import messages
 from django.core.paginator import Paginator
 from datetime import datetime
+from utils.validation import validate_meaningful_content, clean_input
 
 from products.models import Product
 from category.models import Category
@@ -56,7 +57,7 @@ def get_categories(request):
 
 def create_offer(request):
     if request.method == "POST":
-        name = request.POST.get("name")
+        name = request.POST.get("name", "").strip()
         apply_to = request.POST.get("apply_to")
         discount_type = request.POST.get("discount_type")
         discount_value = request.POST.get("discount_value")
@@ -66,6 +67,10 @@ def create_offer(request):
         start_date = request.POST.get("start_date")
         end_date = request.POST.get("end_date")
         is_active = request.POST.get("is_active") == "on"
+
+        if not validate_meaningful_content(name):
+            messages.error(request, "Please enter a valid meaningful name for the offer")
+            return redirect("admin-offers")
 
         if not start_date or not end_date:
             messages.error(request, "Please select valid start and end dates")
@@ -81,8 +86,13 @@ def create_offer(request):
             if end_dt <= start_dt:
                 messages.error(request, "End date must be after start date")
                 return redirect("admin-offers")
+            
+            if discount_type == 'flat' and float(discount_value) > float(min_purchase):
+                messages.error(request, "Flat discount cannot exceed minimum purchase amount")
+                return redirect("admin-offers")
+
         except ValueError:
-            messages.error(request, "Invalid date selection")
+            messages.error(request, "Invalid input data")
             return redirect("admin-offers")
 
         from decimal import Decimal, ROUND_HALF_UP
@@ -116,12 +126,26 @@ def create_offer(request):
 def update_offer(request, offer_id):
     if request.method == "POST":
         offer = get_object_or_404(Offer, id=offer_id)
-        offer.name = request.POST.get("name")
-        offer.apply_to = request.POST.get("apply_to")
-        offer.discount_type = request.POST.get("discount_type")
+        name = request.POST.get("name", "").strip()
+        apply_to = request.POST.get("apply_to")
+        discount_type = request.POST.get("discount_type")
+        discount_value = request.POST.get("discount_value")
+        min_purchase = request.POST.get("min_purchase") or 0
+        
+        if not validate_meaningful_content(name):
+            messages.error(request, "Please enter a valid meaningful name for the offer")
+            return redirect("admin-offers")
+
+        if discount_type == 'flat' and float(discount_value) > float(min_purchase):
+            messages.error(request, "Flat discount cannot exceed minimum purchase amount")
+            return redirect("admin-offers")
+
+        offer.name = name
+        offer.apply_to = apply_to
+        offer.discount_type = discount_type
         from decimal import Decimal, ROUND_HALF_UP
-        offer.discount_value = Decimal(request.POST.get("discount_value")).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
-        offer.min_purchase = request.POST.get("min_purchase") or 0
+        offer.discount_value = Decimal(discount_value).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
+        offer.min_purchase = min_purchase
         max_disc = request.POST.get("max_discount")
         offer.max_discount = max_disc if max_disc else None
         offer.start_date = request.POST.get("start_date")
@@ -136,7 +160,9 @@ def update_offer(request, offer_id):
             start_dt = datetime.strptime(offer.start_date, "%Y-%m-%d").date()
             end_dt = datetime.strptime(offer.end_date, "%Y-%m-%d").date()
             today = datetime.now().date()
-            if start_dt < today:
+            # Allow start date to be in the past IF it's not being changed
+            original_offer = Offer.objects.get(id=offer_id)
+            if start_dt < today and start_dt != original_offer.start_date:
                 messages.error(request, "Start date cannot be in the past")
                 return redirect("admin-offers")
             if end_dt <= start_dt:

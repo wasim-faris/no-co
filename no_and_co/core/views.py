@@ -247,7 +247,9 @@ def product_details(request, id):
 def product_listing(request):
     sort = request.GET.get("sort")
     subcategory = request.GET.get("subcategory")
-    query = request.GET.get("q")
+    query = request.GET.get("q", "").strip()
+    from utils.validation import clean_input
+    query = clean_input(query)
     action = request.GET.get("action")
 
     if not request.session.session_key:
@@ -524,49 +526,55 @@ def checkout(request):
 @login_required(login_url="login")
 def place_order(request):
     if request.method == "POST":
-        print(dict(request.POST))
         user = request.user
         payment_method = request.POST.get("payment_method")
         address_id = request.POST.get("address_id")
+        
+        if not address_id:
+            messages.error(request, "Please select a shipping address to place the order.")
+            return redirect("checkout")
+            
         address = get_object_or_404(Addresses, id=address_id, user=user)
+
+        cart_items = Cart.objects.filter(user=user)
+        if not cart_items.exists():
+            messages.error(request, "Your cart is empty.")
+            return redirect("cart")
+
+        # Last-minute stock check
+        for item in cart_items:
+            if item.variant.stock < item.quantity:
+                messages.error(request, f"Sorry, {item.variant.product.product_name} is out of stock or quantity not available.")
+                return redirect("cart")
+
+        # Update cart prices to latest discounted price
+        for item in cart_items:
+            latest_price = item.variant.product.get_discounted_price(item.variant.price)
+            item.price = latest_price
+            item.save()
+
+        sub_total = sum(item.price * item.quantity for item in cart_items)
+        tax_rate = Decimal("0.12")
+        tax_amount = (sub_total * tax_rate).quantize(Decimal("0.01"))
+        delivery_charge = Decimal("149.00") if sub_total < Decimal("999.00") else Decimal("0.00")
+        discount = Decimal(str(request.session.get("discount", "0.00")))
+        total_amount = sub_total + tax_amount - discount + delivery_charge
+
+        # COD Limit Check
+        if payment_method == "COD" and total_amount > Decimal("1000.00"):
+            messages.error(request, "Cash on Delivery is not available for orders above ₹1000. Please use online payment or wallet.")
+            return redirect("checkout")
 
         if payment_method == "wallet":
             payment_status = "PAID"
         else:
             payment_status = "PENDING"
-        if not address_id:
-            messages.error(request, "Add address to place order")
-            return redirect("checkout")
 
-        cart_items = Cart.objects.filter(user=user)
-
-        # Update cart prices to latest discounted price before calculation
-        for item in cart_items:
-            latest_price = item.variant.product.get_discounted_price(item.variant.price)
-            if item.price != latest_price:
-                item.price = latest_price
-                item.save()
-
-        if not cart_items.exists():
-            messages.error(request, "no products in the cart")
-            return redirect("cart")
-
-        sub_total = sum(item.price * item.quantity for item in cart_items)
-
-        tax_rate = Decimal("0.12")
-        tax_amount = sub_total * tax_rate
-
-        delivery_charge = (
-            Decimal("149.00") if sub_total < Decimal("999.00") else Decimal("0.00")
-        )
-        discount = Decimal(str(request.session.get("discount", "0.00")))
         coupon_id = request.session.get("coupon_id")
         applied_coupon = None
         if coupon_id:
             from coupon.models import Coupon
             applied_coupon = Coupon.objects.filter(id=coupon_id).first()
-
-        total_amount = sub_total + tax_amount - discount + delivery_charge
 
         if total_amount < 0:
             total_amount = Decimal("0.00")
@@ -1023,6 +1031,15 @@ def return_order(request, order_id):
         description = request.POST.get("return_description", "").strip()
         order_item_id = request.POST.get("order_item_id", "").strip()
         return_all = request.POST.get("return_all") == "true"
+
+        # Check return window (7 days)
+        from datetime import timedelta
+        from django.utils import timezone
+        
+        reference_date = order.delivered_date if order.delivered_date else order.created_at
+        if timezone.now() > reference_date + timedelta(days=7):
+            messages.error(request, "The return window for this order has expired (7 days policy).")
+            return redirect("order_details", id=order.id)
 
         if not all([reason, description]) or (not order_item_id and not return_all):
             messages.error(request, "All fields are required")

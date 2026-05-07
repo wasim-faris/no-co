@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.db import transaction
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
+from utils.validation import validate_meaningful_content, clean_input
 
 
 @admin_required
@@ -139,7 +140,18 @@ def admin_product_details(request, id):
                 messages.error(request, "Invalid stock value")
                 return redirect("admin-product-details", id=product.id)
 
-            color = request.POST.get("color")
+            color = request.POST.get("color", "").strip()
+            if not validate_meaningful_content(color):
+                messages.error(request, "Please enter a valid meaningful color name")
+                return redirect("admin-product-details", id=product.id)
+            
+            size_obj, _ = Size.objects.get_or_create(name=size)
+
+            # Check for duplicate combination on edit
+            if Variant.objects.filter(product=product, size=size_obj, color=color, is_deleted=False).exclude(id=variant_id).exists():
+                messages.error(request, "A variant with this size and color already exists.")
+                return redirect("admin-product-details", id=product.id)
+
             is_active = request.POST.get("is_active") == "true"
             is_default = request.POST.get("is_default") == "true"
 
@@ -148,7 +160,6 @@ def admin_product_details(request, id):
                     is_default=False
                 )
 
-            size_obj, _ = Size.objects.get_or_create(name=size)
             variant.size = size_obj
             variant.price = price
             variant.stock = stock_val
@@ -239,6 +250,10 @@ def admin_product_management(request, id=None):
         subcategory = get_object_or_404(Subcategory, id=subcategory_id)
 
         if product:
+            if not validate_meaningful_content(product_name):
+                messages.error(request, "Please enter a valid meaningful product name")
+                return redirect("admin-products")
+            
             product.product_name = product_name
             product.description_fit = description_fit
             product.materials = materials
@@ -250,6 +265,10 @@ def admin_product_management(request, id=None):
             product.save()
             messages.success(request, "Product Updated")
         else:
+            if not validate_meaningful_content(product_name):
+                messages.error(request, "Please enter a valid meaningful product name")
+                return redirect("admin-products")
+
             product = Product.objects.create(
                 product_name=product_name,
                 description_fit=description_fit,
@@ -317,6 +336,12 @@ def admin_variants(request, id):
 
             if not sizes:
                 messages.error(request, "Select at least one size")
+                return redirect("admin-variants", id=product.id)
+
+            # Ensure at least one image is uploaded
+            images_provided = any(request.FILES.get(f"image_{i}") for i in range(4))
+            if not images_provided:
+                messages.error(request, "Please provide at least one image for the variant(s)")
                 return redirect("admin-variants", id=product.id)
 
             added_count = 0

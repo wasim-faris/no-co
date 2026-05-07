@@ -260,3 +260,6 @@ RAZORPAY_KEY_ID = config('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = config('RAZORPAY_KEY_SECRET')
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 CSRF_TRUSTED_ORIGINS = ["https://wasim-faris.online"]
+
+# Phone Verification API (AbstractAPI)
+ABSTRACT_PHONE_API_KEY = None

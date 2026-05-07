@@ -12,5 +12,6 @@ urlpatterns = [
     path("email-resend-otp-verification/", views.email_resend_otp_verification , name="email-resend-otp-verification"),
     path("delete-address/<int:id>/", views.delete_address, name="delete-address"),
     path("edit-address/<int:id>/", views.edit_address , name="edit-address"),
-    path("address-set-default/<int:id>/", views.address_set_default , name='address-set-default')
+    path("address-set-default/<int:id>/", views.address_set_default , name='address-set-default'),
+    path("validate-phone/", views.validate_phone_ajax, name="validate-phone"),
 ]

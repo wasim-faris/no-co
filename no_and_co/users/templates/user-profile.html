@@ -259,18 +259,116 @@
                 {% csrf_token %}
                 <div class="edit-field-group">
                     <label class="edit-label" for="editUsername">Username</label>
-                    <input class="edit-input" type="text" id="editUsername" name="username" value="{{ user.username }}">
+                    <input class="edit-input" type="text" id="editUsername" name="username" value="{% if profile_form_data %}{{ profile_form_data.username }}{% else %}{{ user.username }}{% endif %}" placeholder="e.g. john_doe_99">
+                    <span class="sub-label" style="display:block; margin-top:4px;">4-20 characters, letters, numbers, and underscores only.</span>
                 </div>
                 <div class="edit-field-group">
                     <label class="edit-label" for="editEmail">Email</label>
-                    <input class="edit-input" type="email" id="editEmail" name="email" value="{{ user.email }}" {% if not user.has_usable_password %}readonly{% endif %}>
+                    <input class="edit-input" type="email" id="editEmail" name="email" value="{% if profile_form_data %}{{ profile_form_data.email }}{% else %}{{ user.email }}{% endif %}" {% if not user.has_usable_password %}readonly{% endif %} placeholder="e.g. john@example.com">
+                    <span class="sub-label" style="display:block; margin-top:4px;">Must be a valid email address.</span>
                 </div>
                 <div class="edit-field-group">
                     <label class="edit-label" for="editPhone">Phone</label>
-                    <input class="edit-input" type="text" id="editPhone" name="phone" value="{{ user.phone_number|default:'' }}">
+                    <input class="edit-input" type="text" id="editPhone" name="phone" value="{% if profile_form_data %}{{ profile_form_data.phone }}{% else %}{{ user.phone_number|default:'' }}{% endif %}" placeholder="e.g. 9876543210">
+                    <span class="sub-label" style="display:block; margin-top:4px;">10-digit mobile number.</span>
                 </div>
                 <button type="submit" class="btn-outline edit-save-btn">Save Changes</button>
             </form>
+            <script>
+                // Auto-open drawer if there are errors (form data present)
+                {% if profile_form_data %}
+                document.addEventListener('DOMContentLoaded', () => {
+                    const editDrawer = document.getElementById('editDrawer');
+                    const editOverlay = document.getElementById('editDrawerOverlay');
+                    if (editDrawer && editOverlay) {
+                        editDrawer.classList.add('active');
+                        editOverlay.classList.add('active');
+                        document.body.style.overflow = 'hidden';
+                    }
+                });
+                {% endif %}
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    const form = document.getElementById('editProfileForm');
+                    const username = document.getElementById('editUsername');
+                    const email = document.getElementById('editEmail');
+                    const phone = document.getElementById('editPhone');
+                    const submitBtn = form.querySelector('button[type="submit"]');
+
+                    // Setup real-time validation map
+                    const validationMap = {
+                        '#editUsername': (val) => {
+                            const v = val.trim();
+                            if (!v) return false;
+                            if (v.length < 4 || v.length > 20) return false;
+                            // Reject symbols-only or purely repetitive garbage
+                            if (!/[a-zA-Z]/.test(v)) return false; 
+                            return true;
+                        },
+                        '#editEmail': (val) => {
+                            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+                        },
+                        '#editPhone': (val) => {
+                            // The attachPhoneValidation handles dataset.isValid
+                            return true; 
+                        }
+                    };
+
+                    // Initial attachment of phone validation
+                    ValidationUtils.attachPhoneValidation('#editPhone', 'button[type="submit"]', "{% url 'validate-phone' %}");
+
+                    // Attach strict form watcher
+                    ValidationUtils.watchForm('#editProfileForm', 'button[type="submit"]', validationMap);
+
+                    // Add individual real-time listeners for immediate error feedback
+                    username.addEventListener('input', () => {
+                        const val = username.value.trim();
+                        if (!val) {
+                            ValidationUtils.showError(username, "Username is required.");
+                            username.dataset.isValid = "false";
+                        } else if (val.length < 4) {
+                            ValidationUtils.showError(username, "Too short (min 4 chars).");
+                            username.dataset.isValid = "false";
+                        } else if (!/[a-zA-Z]/.test(val)) {
+                            ValidationUtils.showError(username, "Must contain at least one letter.");
+                            username.dataset.isValid = "false";
+                        } else {
+                            ValidationUtils.clearError(username);
+                            username.dataset.isValid = "true";
+                        }
+                    });
+
+                    email.addEventListener('input', () => {
+                        const val = email.value.trim();
+                        if (!val) {
+                            ValidationUtils.showError(email, "Email is required.");
+                            email.dataset.isValid = "false";
+                        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
+                            ValidationUtils.showError(email, "Enter a valid email format.");
+                            email.dataset.isValid = "false";
+                        } else {
+                            ValidationUtils.clearError(email);
+                            email.dataset.isValid = "true";
+                        }
+                    });
+
+                    form.addEventListener('submit', function(e) {
+                        // Final safety check
+                        if (submitBtn.disabled || form.dataset.submitting === "true") {
+                            e.preventDefault();
+                            return;
+                        }
+
+                        // Double-submit protection & Spinner
+                        form.dataset.submitting = "true";
+                        submitBtn.disabled = true;
+                        submitBtn.dataset.originalText = submitBtn.innerHTML;
+                        submitBtn.style.color = 'transparent';
+                        submitBtn.style.position = 'relative';
+                        submitBtn.insertAdjacentHTML('beforeend', '<div class="inline-spinner" style="position:absolute; top:50%; left:50%; margin-left:-8px; margin-top:-8px; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:btn-spin 1s linear infinite;"></div>');
+                    });
+                });
+            </script>
         </div>
     </div>
 
@@ -468,6 +566,13 @@
             if (editOverlay) editOverlay.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, false));
             if (editClose) editClose.addEventListener('click', () => toggleDrawer(editDrawer, editOverlay, false));
 
+            // Real-time phone validation for profile edit drawer
+            ValidationUtils.attachPhoneValidation(
+                '#editPhone',
+                null,
+                "{% url 'validate-phone' %}"
+            );
+
             // Wallet Counter & Progress Animation
             const walletCard = document.querySelector('.wallet-card');
             if (walletCard) {
@@ -608,19 +713,8 @@
                 });
             }
 
-            // Edit Profile Form Submit Loader
-            const editForm = document.getElementById('editProfileForm');
-            if (editForm) {
-                editForm.addEventListener('submit', function() {
-                    const submitBtn = this.querySelector('button[type="submit"]');
-                    if (submitBtn && !submitBtn.disabled) {
-                        submitBtn.disabled = true;
-                        submitBtn.style.color = 'transparent';
-                        submitBtn.style.position = 'relative';
-                        submitBtn.insertAdjacentHTML('beforeend', '<div class="inline-spinner" style="position:absolute; top:50%; left:50%; margin-left:-8px; margin-top:-8px; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:btn-spin 1s linear infinite;"></div>');
-                    }
-                });
-            }
+            // Note: Edit Profile Form Submit Loader is now handled in the main submit listener above
+            // to ensure it only triggers after successful validation.
 
             // Delete Photo
             const removeOverlay = document.getElementById('avatarRemoveOverlay');

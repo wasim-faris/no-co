@@ -18,6 +18,21 @@ from django.shortcuts import get_object_or_404
 from .decorators import block_check
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required
+from utils.validation import validate_meaningful_content, clean_input
+
+from django.http import JsonResponse
+from utils.phone_validation import is_valid_phone
+
+def validate_phone_ajax(request):
+    phone = request.GET.get('phone', '')
+    region = request.GET.get('region', 'IN')
+    
+    if not phone:
+        return JsonResponse({'valid': False, 'message': 'Phone number is required'})
+        
+    valid, message = is_valid_phone(phone, region)
+    return JsonResponse({'valid': valid, 'message': message})
+
 
 username_pattern = r"^[a-zA-Z0-9_]{4,20}$"
 email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
@@ -83,6 +98,7 @@ def user_profile(request, id):
             "wishlist_count": wishlist_count,
             "address_count": address_count,
             "recent_orders": recent_orders,
+            "profile_form_data": request.session.pop("profile_form_data", None),
         },
     )
 
@@ -96,12 +112,13 @@ def update_profile(request, id):
         phone_number = request.POST.get("phone", "").strip().replace(" ", "")
 
         if phone_number:
-            if not phone_number.startswith("+91"):
-                if len(phone_number) == 10 and phone_number.isdigit():
-                    phone_number = "+91" + phone_number
-                else:
-                    messages.error(request, "Invalid phone number")
-                    return redirect("user-profile", id=id)
+            phone_valid, phone_msg = is_valid_phone(phone_number, region="IN")
+            if not phone_valid:
+                request.session["profile_form_data"] = request.POST
+                messages.error(request, phone_msg or "Invalid phone number")
+                return redirect("user-profile", id=id)
+            if not phone_number.startswith("+91") and len(phone_number) == 10:
+                phone_number = "+91" + phone_number
 
         username = request.POST.get("username", "").strip()
         email = request.POST.get("email")
@@ -138,6 +155,12 @@ def update_profile(request, id):
             if not re.match(email_pattern, email):
                 messages.error(request, "enter a valid email format")
                 return redirect("user-profile", id=id)
+
+            if not validate_meaningful_content(username):
+                messages.error(request, "Please enter a valid meaningful username")
+                return redirect("user-profile", id=id)
+
+            username = clean_input(username)
 
             old_username = user.username
             old_phone_number = user.phone_number
@@ -212,6 +235,7 @@ def update_profile(request, id):
             return redirect("user-profile", id=id)
 
         except Exception as e:
+            request.session["profile_form_data"] = request.POST
             messages.error(request, f"An error occurred: {str(e)}")
             return redirect("user-profile", id=id)
 
@@ -363,31 +387,36 @@ def address(request):
         is_default = "is_default" in request.POST
 
         if Addresses.objects.filter(user=request.user, type=address_type).exists():
+            request.session["address_form_data"] = request.POST
             messages.error(request, "Only One Address For Each Place")
             return redirect("address")
 
-        if not all(
-            [
-                first_name,
-                last_name,
-                phone_number,
-                address_line1,
-                city,
-                state,
-                pin_code,
-                country,
-            ]
-        ):
+        if not all([first_name, last_name, phone_number, address_line1, city, state, pin_code, country]):
+            request.session["address_form_data"] = request.POST
             messages.error(request, "Please fill all required fields.")
             return redirect("address")
 
-        if not re.fullmatch(r"\d{10}", phone_number):
-            messages.error(request, "Phone number must be exactly 10 digits.")
+        if not validate_meaningful_content(first_name) or not validate_meaningful_content(last_name):
+            request.session["address_form_data"] = request.POST
+            messages.error(request, "Please enter a valid name.")
+            return redirect("address")
+
+        if not validate_meaningful_content(address_line1) or not validate_meaningful_content(city) or not validate_meaningful_content(state):
+            request.session["address_form_data"] = request.POST
+            messages.error(request, "Please enter valid address details.")
+            return redirect("address")
+
+        phone_valid, phone_msg = is_valid_phone(phone_number, region="IN")
+        if not phone_valid:
+            request.session["address_form_data"] = request.POST
+            messages.error(request, phone_msg or "Please enter a valid phone number.")
             return redirect("address")
 
         if not re.fullmatch(r"\d{6}", pin_code):
+            request.session["address_form_data"] = request.POST
             messages.error(request, "PIN code must be exactly 6 digits.")
             return redirect("address")
+
         try:
             response = requests.get(
                 f"https://api.postalpincode.in/pincode/{pin_code}", timeout=5
@@ -396,6 +425,7 @@ def address(request):
             if data and data[0]["Status"] == "Success":
                 api_state = data[0]["PostOffice"][0]["State"]
                 if state.lower() != api_state.strip().lower():
+                    request.session["address_form_data"] = request.POST
                     messages.error(
                         request,
                         f"State mismatch. PIN {pin_code} belongs to {api_state}.",
@@ -412,13 +442,10 @@ def address(request):
                 is_default=False
             )
         else:
-            # If no addresses exist, this must be the default
             if not Addresses.objects.filter(user=user).exists():
                 is_default = True
-            # If addresses exist but none is default (safety check)
             elif not Addresses.objects.filter(user=user, is_default=True).exists():
                 is_default = True
-
 
         Addresses.objects.create(
             user=user,
@@ -438,7 +465,6 @@ def address(request):
         messages.success(request, "New address added successfully.")
 
         next_url = request.GET.get("next") or request.POST.get("next")
-
         if next_url == "checkout":
             return redirect("checkout")
         else:
@@ -450,6 +476,7 @@ def address(request):
         {
             "user": user,
             "addresses": addresses,
+            "address_form_data": request.session.pop("address_form_data", None),
         },
     )
 
@@ -495,23 +522,21 @@ def edit_address(request, id):
             messages.error(request, f"{address_type} Already exists")
             return redirect("address")
 
-        if not all(
-            [
-                first_name,
-                last_name,
-                phone_number,
-                address_line1,
-                city,
-                state,
-                pin_code,
-                country,
-            ]
-        ):
+        if not all([first_name, last_name, phone_number, address_line1, city, state, pin_code, country]):
             messages.error(request, "Please fill all required fields.")
             return redirect("address")
 
-        if not re.fullmatch(r"\d{10}", phone_number):
-            messages.error(request, "Phone number must be exactly 10 digits.")
+        if not validate_meaningful_content(first_name) or not validate_meaningful_content(last_name):
+            messages.error(request, "Please enter a valid name.")
+            return redirect("address")
+
+        if not validate_meaningful_content(address_line1) or not validate_meaningful_content(city) or not validate_meaningful_content(state):
+            messages.error(request, "Please enter valid address details.")
+            return redirect("address")
+
+        phone_valid, phone_msg = is_valid_phone(phone_number, region="IN")
+        if not phone_valid:
+            messages.error(request, phone_msg or "Please enter a valid phone number.")
             return redirect("address")
 
         if not re.fullmatch(r"\d{6}", pin_code):
@@ -535,14 +560,11 @@ def edit_address(request, id):
             print(f"PIN API unavailable (edit): {e}")
 
         if is_default:
-            # Set all other addresses to not default
             Addresses.objects.filter(user=request.user, is_default=True).update(is_default=False)
             address.is_default = True
         else:
-            # If we are unsetting default, check if any other is default
             other_default = Addresses.objects.filter(user=request.user, is_default=True).exclude(id=id).exists()
             if not other_default:
-                # If this was default and we have other addresses, pick a new one
                 if address.is_default:
                     remaining = Addresses.objects.filter(user=request.user).exclude(id=id)
                     if remaining.exists():
@@ -551,14 +573,11 @@ def edit_address(request, id):
                         new_def.is_default = True
                         new_def.save()
                     else:
-                        # Only one address, must stay default
                         address.is_default = True
                 else:
-                    # No default exists at all, this must be it
                     address.is_default = True
             else:
                 address.is_default = False
-
 
         address.first_name = first_name
         address.last_name = last_name
@@ -570,7 +589,6 @@ def edit_address(request, id):
         address.pin_code = pin_code
         address.country = country
         address.type = address_type
-
         address.save()
 
         messages.success(request, "Address updated successfully.")

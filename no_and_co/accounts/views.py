@@ -244,6 +244,12 @@ def signup_otp_verification(request):
                 try:
                     referrer = User.objects.get(referral_code=referral_code_used)
                     if referrer != user:
+                        from django.db.models import Sum
+                        total_rewards = ReferralRecord.objects.filter(referrer=referrer).aggregate(total=Sum('reward_amount_referrer'))['total'] or Decimal('0.00')
+                        
+                        reward_for_referrer = Decimal('100.00')
+                        if total_rewards + reward_for_referrer > Decimal('500.00'):
+                            reward_for_referrer = max(Decimal('0.00'), Decimal('500.00') - total_rewards)
 
                         user.referred_by = referrer
                         user.save()
@@ -251,7 +257,7 @@ def signup_otp_verification(request):
                         ReferralRecord.objects.create(
                             referrer=referrer,
                             referred_user=user,
-                            reward_amount_referrer=Decimal('100.00'),
+                            reward_amount_referrer=reward_for_referrer,
                             reward_amount_referred=Decimal('40.00'),
                             reward_paid=False
                         )
