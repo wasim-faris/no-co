@@ -29,15 +29,15 @@ def admin_category(request):
 
         if action == "create":
             name = request.POST.get("category_name", "").strip()
-            
+
             if not validate_meaningful_content(name):
-                messages.error(request, "Only alphabet letters and single spaces are allowed")
+                messages.error(request, "Please enter a valid meaningful name")
                 return redirect("admin-category")
-            
+
             name = name.upper()
 
-            if Category.objects.filter(category_name__iexact=name).exists():
-                messages.error(request, "Category already exists")
+            if Category.objects.filter(category_name=name).exists():
+                messages.error(request, "Category already exists or archived")
                 return redirect("admin-category")
 
             if not name or len(name.strip()) < 3:
@@ -60,12 +60,12 @@ def admin_category(request):
         if action == "edit":
             name = request.POST.get("category_name", "").strip()
             if not validate_meaningful_content(name):
-                messages.error(request, "Only alphabet letters and single spaces are allowed")
+                messages.error(request, "Please enter a valid meaningful name")
                 return redirect("admin-category")
-            
+
             name = name.upper()
             cat_id = request.POST.get("category_id")
-            if Category.objects.filter(category_name__iexact=name).exclude(id=cat_id).exists():
+            if Category.objects.filter(category_name=name).exclude(id=cat_id).exists():
                 messages.error(request, "Category name already exists")
                 return redirect("admin-category")
 
@@ -115,11 +115,6 @@ def admin_category(request):
     inactive_count = all_categories.filter(is_active=False).count()
     subcategory_count = Subcategory.objects.filter(is_deleted=False).count()
 
-    # Fetch all categories for real-time validation
-    import json
-    all_categories_data = list(Category.objects.filter(is_deleted=False).values('id', 'category_name'))
-    all_categories_json = json.dumps(all_categories_data)
-
     return render(
         request,
         "admin-category.html",
@@ -130,7 +125,6 @@ def admin_category(request):
             "inactive_count": inactive_count,
             "search_query": query,
             "subcategory_count": subcategory_count,
-            "all_categories_json": all_categories_json,
         },
     )
 
@@ -156,15 +150,15 @@ def admin_subcategory(request):
             name = request.POST.get("subcategory_name", "").strip()
 
             if not validate_meaningful_content(name):
-                messages.error(request, "Only alphabet letters and single spaces are allowed")
+                messages.error(request, "Please enter a valid meaningful name")
                 return redirect("admin-subcategory")
-            
+
             name = name.upper()
 
             if Subcategory.objects.filter(
-                subcategory_name__iexact=name
+                subcategory_name=name, category=parent_category
             ).exists():
-                messages.error(request, "Subcategory name already exists")
+                messages.error(request, "Subcategory already exists or archived")
                 return redirect("admin-subcategory")
 
             if not name or len(name.strip()) < 3:
@@ -198,16 +192,17 @@ def admin_subcategory(request):
             sub_id = request.POST.get("subcategory_id")
 
             if not validate_meaningful_content(name):
-                messages.error(request, "Only alphabet letters and single spaces are allowed")
+                messages.error(request, "Please enter a valid meaningful name")
                 return redirect("admin-subcategory")
-            
-            # Global case-insensitive duplicate check
-            if Subcategory.objects.filter(subcategory_name__iexact=name).exclude(id=sub_id).exists():
-                messages.error(request, "Subcategory name already exists")
+
+            name = name.upper()
+
+            if Subcategory.objects.filter(subcategory_name=name, category_id=parent_category_id).exclude(id=sub_id).exists():
+                messages.error(request, "Subcategory already exists in this category")
                 return redirect("admin-subcategory")
 
             sub = get_object_or_404(Subcategory, id=sub_id)
-            sub.subcategory_name = name.upper()
+            sub.subcategory_name = name
             sub.category_id = parent_category_id
             sub.updated_at = timezone.now()
             sub.save()
@@ -258,11 +253,6 @@ def admin_subcategory(request):
     active_subcategory = live_subcategory.filter(is_active=True).count()
     inactive_subcategory = live_subcategory.filter(is_active=False).count()
 
-    # Fetch all subcategories for real-time validation (names and parent category IDs)
-    import json
-    all_subcats_data = list(Subcategory.objects.filter(is_deleted=False).values('id', 'subcategory_name', 'category_id'))
-    all_subcats_json = json.dumps(all_subcats_data)
-
     return render(
         request,
         "admin-subcategory.html",
@@ -270,10 +260,8 @@ def admin_subcategory(request):
             "query": query,
             "category": category,
             "page_obj": page_obj,
-            "category_list": Category.objects.filter(is_deleted=False, is_active=True),
             "subcategory_count": subcategory_count,
             "active_subcategory": active_subcategory,
             "inactive_subcategory": inactive_subcategory,
-            "all_subcats_json": all_subcats_json,
         },
     )

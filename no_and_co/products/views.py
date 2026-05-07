@@ -9,8 +9,7 @@ from django.db.models import Q
 from django.db import transaction
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
-from utils.validation import validate_meaningful_content, validate_color_name, clean_input
-from offers.utils import apply_offers_to_variants
+from utils.validation import validate_meaningful_content, clean_input, validate_color_name
 
 
 @admin_required
@@ -56,15 +55,6 @@ def admin_products(request):
         )
     ).order_by("-id")
 
-    # Apply offers to default variants
-    all_default_variants = []
-    for p in product:
-        if hasattr(p, 'default_variants'):
-            all_default_variants.extend(p.default_variants)
-    
-    if all_default_variants:
-        apply_offers_to_variants(all_default_variants)
-
     count = all_products.count()
     active_count = all_products.filter(is_active=True).count()
     inactive_count = all_products.filter(is_active=False).count()
@@ -97,12 +87,122 @@ def admin_product_details(request, id):
     product = get_object_or_404(Product, id=id)
 
     if request.method == "POST":
+        action = request.POST.get("action")
+
+        if action == "add_variant":
+            size_name = request.POST.get("size")
+            size_obj, _ = Size.objects.get_or_create(name=size_name)
+
+            try:
+                stock_val = int(request.POST.get("stock", 0))
+                if stock_val < 0 or stock_val > 100000:
+                    messages.error(request, "Stock must be between 0 and 100,000")
+                    return redirect("admin-product-details", id=product.id)
+            except ValueError:
+                messages.error(request, "Invalid stock value")
+                return redirect("admin-product-details", id=product.id)
+            if Variant.objects.filter(
+                product=product,
+                size_id=size_obj.id,
+                color=request.POST.get("color"),
+                is_deleted=False,
+            ).exists():
+                messages.warning(
+                    request, "A variant with this size and color already exists."
+                )
+                return redirect("admin-product-details", id=product.id)
+
+            Variant.objects.create(
+                product=product,
+                size=size_obj,
+                color=request.POST.get("color"),
+                color_hex=request.POST.get("color_hex"),
+                price=request.POST.get("price"),
+                stock=stock_val,
+                is_active=request.POST.get("is_active") == "true",
+                is_default=request.POST.get("is_default") == "true",
+            )
+            messages.success(request, "Product variant created successfully")
+            return redirect("admin-product-details", id=product.id)
+
+        if action == "edit_variant":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant, id=variant_id)
+            size = request.POST.get("size")
+            price = request.POST.get("price")
+
+            try:
+                stock_val = int(request.POST.get("stock", 0))
+                if stock_val < 0 or stock_val > 100000:
+                    messages.error(request, "Stock must be between 0 and 100,000")
+                    return redirect("admin-product-details", id=product.id)
+            except ValueError:
+                messages.error(request, "Invalid stock value")
+                return redirect("admin-product-details", id=product.id)
+
+            color = request.POST.get("color", "").strip()
+            if not validate_color_name(color):
+                messages.error(request, "Only letters, spaces, and \"/\" are allowed in color name")
+                return redirect("admin-product-details", id=product.id)
+
+            size_obj, _ = Size.objects.get_or_create(name=size)
+
+            # Check for duplicate combination on edit
+            if Variant.objects.filter(product=product, size=size_obj, color=color, is_deleted=False).exclude(id=variant_id).exists():
+                messages.error(request, "A variant with this size and color already exists.")
+                return redirect("admin-product-details", id=product.id)
+
+            is_active = request.POST.get("is_active") == "true"
+            is_default = request.POST.get("is_default") == "true"
+
+            if is_default:
+                Variant.objects.filter(is_default=True, product=variant.product).update(
+                    is_default=False
+                )
+
+            variant.size = size_obj
+            variant.price = price
+            variant.stock = stock_val
+            variant.color = color
+            variant.color_hex = request.POST.get("color_hex")
+            variant.is_active = is_active
+            variant.is_default = is_default
+            variant.save()
+            messages.success(request, "Product edited succesfully")
+            return redirect("admin-product-details", id=product.id)
+
+        if action == "delete_variant":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant, id=variant_id)
+            variant.is_deleted = True
+            variant.save()
+            messages.success(request, "Product variant deleted succesfully")
+            return redirect("admin-product-details", id=product.id)
+
+        if action == "set_default":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant, id=variant_id)
+            variant.is_default = True
+            variant.save()
+            messages.success(request, "Default variant updated")
+            return redirect("admin-product-details", id=product.id)
+
         deleted_product = request.POST.get("deleted_product")
         if deleted_product:
             product.is_deleted = True
             product.save()
             messages.success(request, "Product moved to archives")
             return redirect("admin-products")
+
+        if action == "toggle_variant":
+            variant_id = request.POST.get("variant_id")
+            variant = get_object_or_404(Variant, id=variant_id)
+            if not variant.is_default:
+                variant.is_active = not variant.is_active
+                variant.save()
+                messages.success(request, "Status updated")
+            else:
+                messages.warning(request, "Default variant must stay active")
 
         return redirect("admin-product-details", id=product.id)
 
@@ -150,9 +250,9 @@ def admin_product_management(request, id=None):
 
         if product:
             if not validate_meaningful_content(product_name):
-                messages.error(request, "Only alphabet letters and single spaces are allowed")
+                messages.error(request, "Please enter a valid meaningful product name")
                 return redirect("admin-products")
-            
+
             product.product_name = product_name
             product.description_fit = description_fit
             product.materials = materials
@@ -164,7 +264,7 @@ def admin_product_management(request, id=None):
             messages.success(request, "Product Updated")
         else:
             if not validate_meaningful_content(product_name):
-                messages.error(request, "Only alphabet letters and single spaces are allowed")
+                messages.error(request, "Please enter a valid meaningful product name")
                 return redirect("admin-products")
 
             product = Product.objects.create(
@@ -218,7 +318,7 @@ def admin_variants(request, id):
             sizes = request.POST.getlist("sizes")
             color = request.POST.get("color", "").strip()
             if not validate_color_name(color):
-                messages.error(request, "Only letters, spaces, and \"/\" are allowed")
+                messages.error(request, "Only letters, spaces, and \"/\" are allowed in color name")
                 return redirect("admin-variants", id=product.id)
 
             color_hex = request.POST.get("color_hex")
@@ -239,10 +339,10 @@ def admin_variants(request, id):
                 messages.error(request, "Select at least one size")
                 return redirect("admin-variants", id=product.id)
 
-            # Ensure at least one image is uploaded
-            images_provided = any(request.FILES.get(f"image_{i}") for i in range(4))
-            if not images_provided:
-                messages.error(request, "Please provide at least one image for the variant(s)")
+            # Ensure at least 3 images are uploaded
+            images_count = sum(1 for i in range(4) if request.FILES.get(f"image_{i}"))
+            if images_count < 3:
+                messages.error(request, "Please provide at least 3 images for the variant(s)")
                 return redirect("admin-variants", id=product.id)
 
             added_count = 0
@@ -268,12 +368,6 @@ def admin_variants(request, id):
                     for i in range(4):
                         img = request.FILES.get(f"image_{i}")
                         if img:
-                            # Strict image format validation
-                            ext = img.name.split('.')[-1].lower()
-                            if ext not in ['jpg', 'jpeg', 'png', 'webp']:
-                                messages.error(request, f"File '{img.name}' is not a valid image format. Use JPG, PNG or WEBP.")
-                                return redirect("admin-variants", id=product.id)
-
                             if img.size > 2 * 1024 * 1024:
                                 messages.error(request, f"Image {img.name} exceeds the 2MB size limit.")
                                 return redirect("admin-variants", id=product.id)
@@ -328,12 +422,7 @@ def admin_variants(request, id):
             if sizes and sizes[0]:
                 variant.size_id = int(sizes[0])
 
-            color = request.POST.get("color", "").strip()
-            if not validate_color_name(color):
-                messages.error(request, "Only letters, spaces, and \"/\" are allowed")
-                return redirect("admin-variants", id=product.id)
-            
-            variant.color = color
+            variant.color = request.POST.get("color")
             variant.color_hex = request.POST.get("color_hex")
             variant.is_active = "true" in request.POST.getlist("is_active")
             variant.is_default = "true" in request.POST.getlist("is_default")
@@ -347,12 +436,6 @@ def admin_variants(request, id):
             for i in range(4):
                 img = request.FILES.get(f"image_{i}")
                 if img:
-                    # Strict image format validation
-                    ext = img.name.split('.')[-1].lower()
-                    if ext not in ['jpg', 'jpeg', 'png', 'webp']:
-                        messages.error(request, f"File '{img.name}' is not a valid image format. Use JPG, PNG or WEBP.")
-                        return redirect("admin-variants", id=product.id)
-
                     if img.size > 2 * 1024 * 1024:
                         messages.error(request, f"Image {img.name} exceeds the 2MB size limit.")
                         return redirect("admin-variants", id=product.id)
@@ -370,10 +453,10 @@ def admin_variants(request, id):
                 if new_primary:
                     variant.images.exclude(id=new_primary.id).update(is_primary=False)
 
-            # Final check: Ensure variant has at least one image after edits
+            # Final check: Ensure variant has at least 3 images after edits
             total_images_remaining = variant.images.count()
-            if total_images_remaining == 0:
-                messages.error(request, "A variant must have at least one image.")
+            if total_images_remaining < 3:
+                messages.error(request, "A variant must have at least 3 images.")
                 return redirect("admin-variants", id=product.id)
 
             if (
@@ -465,10 +548,6 @@ def admin_variants(request, id):
 
     paginator = Paginator(variants, 4)
     page_obj = paginator.get_page(request.GET.get("page"))
-    
-    # Apply offers to paginated variants
-    apply_offers_to_variants(page_obj.object_list)
-
     sizes = Size.objects.all()
     context = {
         "product": product,

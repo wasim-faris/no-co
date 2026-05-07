@@ -26,10 +26,10 @@ from utils.phone_validation import is_valid_phone
 def validate_phone_ajax(request):
     phone = request.GET.get('phone', '')
     region = request.GET.get('region', 'IN')
-    
+
     if not phone:
         return JsonResponse({'valid': False, 'message': 'Phone number is required'})
-        
+
     valid, message = is_valid_phone(phone, region)
     return JsonResponse({'valid': valid, 'message': message})
 
@@ -157,7 +157,7 @@ def update_profile(request, id):
                 return redirect("user-profile", id=id)
 
             if not validate_meaningful_content(username):
-                messages.error(request, "Only alphabet letters and single spaces are allowed")
+                messages.error(request, "Please enter a valid meaningful username")
                 return redirect("user-profile", id=id)
 
             username = clean_input(username)

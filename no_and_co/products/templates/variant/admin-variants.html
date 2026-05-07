@@ -841,22 +841,33 @@ function checkFormValidity(modalType) {
     const colorValid = validateColor(modalType, true); // silent check
     const priceEl = document.getElementById(`${modalType}-price`);
     const stockEl = document.getElementById(`${modalType}-stock`);
+    const imgErr = document.getElementById(`${modalType}-image-error`);
     
     const priceValid = priceEl.value.trim() !== "" && parseFloat(priceEl.value) >= 0;
     const stockValid = stockEl.value.trim() !== "" && parseInt(stockEl.value) >= 0 && Number.isInteger(Number(stockEl.value));
 
-    // Check images
-    let hasImage = false;
+    // Check images - Minimum 3 required
+    let imageCount = 0;
     for (let i = 0; i < 4; i++) {
         const container = document.getElementById(`${modalType}-preview-container-${i}`);
         // If container exists and is NOT hidden, we have an image (new or existing)
         if (container && !container.classList.contains('hidden')) {
-            hasImage = true;
-            break;
+            imageCount++;
+        }
+    }
+    const imagesValid = imageCount >= 3;
+
+    // Real-time inline error message control
+    if (imgErr) {
+        if (!imagesValid && imageCount > 0) {
+            imgErr.textContent = "Minimum 3 images are required";
+            imgErr.classList.remove('hidden');
+        } else if (imagesValid) {
+            imgErr.classList.add('hidden');
         }
     }
 
-    if (colorValid && priceValid && stockValid && hasImage) {
+    if (colorValid && priceValid && stockValid && imagesValid) {
         btn.disabled = false;
         btn.classList.remove('opacity-50', 'cursor-not-allowed');
     } else {
@@ -918,17 +929,19 @@ function validateForm(modalType, e) {
         if (el) el.classList.add('hidden');
     });
 
-    let hasImage = false;
+    let imageCount = 0;
     for (let i = 0; i < 4; i++) {
         const container = document.getElementById(`${modalType}-preview-container-${i}`);
         if (container && !container.classList.contains('hidden')) {
-            hasImage = true;
-            break;
+            imageCount++;
         }
     }
-    if (!hasImage) {
+    if (imageCount < 3) {
         let err = document.getElementById(`${modalType}-image-error`);
-        if (err) err.classList.remove('hidden');
+        if (err) {
+            err.textContent = "Minimum 3 images are required";
+            err.classList.remove('hidden');
+        }
         isValid = false;
     }
 

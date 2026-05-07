@@ -4,352 +4,438 @@
 
 {% block extra_head %}
 <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f5f1eb;
-            scroll-behavior: smooth;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: #f5f1eb;
+        scroll-behavior: smooth;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .rounded-custom {
+        border-radius: 24px;
+    }
+
+    /* Modal Animation */
+    .modal-overlay {
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-container {
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+
+    .modal-hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .modal-hidden .modal-container {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    /* Toast */
+    .icon-bubble {
+        position: relative;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .icon-bubble svg {
+        transform: rotate(45deg);
+    }
+
+    input:-webkit-autofill {
+        -webkit-box-shadow: 0 0 0px 1000px #F5F1EB inset !important;
+        -webkit-text-fill-color: #3E3A37 !important;
+    }
+
+    @media (max-width: 768px) {
+        .image-section {
+            display: none;
         }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .rounded-custom { border-radius: 24px; }
-
-        /* Modal Animation */
-        .modal-overlay { transition: opacity 0.3s ease; }
-        .modal-container { transition: transform 0.3s ease, opacity 0.3s ease; }
-        .modal-hidden { opacity: 0; pointer-events: none; }
-        .modal-hidden .modal-container { transform: scale(0.95); opacity: 0; }
-
-        /* Toast */
-        .icon-bubble {
-            position: relative;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .icon-bubble svg { transform: rotate(45deg); }
-
-        input:-webkit-autofill {
-            -webkit-box-shadow: 0 0 0px 1000px #F5F1EB inset !important;
-            -webkit-text-fill-color: #3E3A37 !important;
-        }
-
-        @media (max-width: 768px) {
-            .image-section { display: none; }
-        }
-
-    </style>
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 
 <!-- Header Area (matches product details) -->
-        <div class="px-8 pt-6 pb-4 bg-[#f5f1eb]">
-            <!-- Breadcrumb -->
-            <nav class="text-xs uppercase tracking-widest text-gray-400 flex gap-3 items-center mb-4">
-                <span>CATEGORY MANAGEMENT</span>
-                <span>&gt;</span>
-                <a href="{% url 'admin-category' %}" class="hover:text-gray-600 transition">CATEGORIES</a>
-                <span>&gt;</span>
-                <span class="text-gray-900 font-semibold">SUBCATEGORIES</span>
-            </nav>
+<div class="px-8 pt-6 pb-4 bg-[#f5f1eb]">
+    <!-- Breadcrumb -->
+    <nav class="text-xs uppercase tracking-widest text-gray-400 flex gap-3 items-center mb-4">
+        <span>CATEGORY MANAGEMENT</span>
+        <span>&gt;</span>
+        <a href="{% url 'admin-category' %}" class="hover:text-gray-600 transition">CATEGORIES</a>
+        <span>&gt;</span>
+        <span class="text-gray-900 font-semibold">SUBCATEGORIES</span>
+    </nav>
 
-            <!-- Title + Action -->
-            <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-4xl font-serif text-gray-900">
-                        Subcategories
-                    </h1>
-                    <div class="w-12 h-[2px] bg-gray-900 mt-2"></div>
-                </div>
-                <div class="flex items-center gap-3">
-                    <a href="{% url 'admin-category' %}"
-                       class="text-sm font-medium rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100 transition shadow-sm">
-                        ← Back to Categories
-                    </a>
-                    <button id="openModal" class="px-6 py-3 bg-black text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm flex items-center gap-2">
-                        <span class="text-lg leading-none">+</span> Add Subcategory
-                    </button>
-                </div>
-            </div>
+    <!-- Title + Action -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-4xl font-serif text-gray-900">
+                Subcategories
+            </h1>
+            <div class="w-12 h-[2px] bg-gray-900 mt-2"></div>
         </div>
-
-        <main class="max-w-6xl mx-auto px-8 py-8 w-full space-y-6 overflow-y-auto hide-scrollbar" style="max-height: calc(100vh - 120px);">
-
-            <!-- Stats Row -->
-            <section class="grid grid-cols-3 gap-4">
-                <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
-                    <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Total Subcategories</p>
-                    <p class="text-xl font-medium tracking-tight">{{subcategory_count}}</p>
-                </div>
-                <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
-                    <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Active</p>
-                    <p class="text-xl font-medium tracking-tight">{{active_subcategory}}</p>
-                </div>
-                <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
-                    <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Inactive</p>
-                    <p class="text-xl font-medium tracking-tight text-red-400">{{ inactive_subcategory}}</p>
-                </div>
-            </section>
-
-            <!-- Search + Filter Bar -->
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <form method="GET" id="searchForm" class="flex-1 max-w-[360px] relative" onsubmit="event.preventDefault();">
-                    {% if request.GET.status %}<input type="hidden" name="status" value="{{ request.GET.status }}">{% endif %}
-                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                    </div>
-                    <input id="searchInput" type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search by name..." class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition-all placeholder:text-gray-300 font-medium text-gray-700">
-                </form>
-            </div>
-
-            <!-- Live / Archive Tabs -->
-            <div class="flex gap-6 px-2 border-b border-gray-100">
-                <a href="?status=live" class="text-[10px] font-bold uppercase tracking-widest {% if request.GET.status != 'archived' %}text-black border-b-2 border-black{% else %}text-gray-400 hover:text-gray-600 border-b-2 border-transparent{% endif %} pb-3 transition-all">Live</a>
-                <a href="?status=archived" class="text-[10px] font-bold uppercase tracking-widest {% if request.GET.status == 'archived' %}text-black border-b-2 border-black{% else %}text-gray-400 hover:text-gray-600 border-b-2 border-transparent{% endif %} pb-3 transition-all">Archived</a>
-            </div>
-
-            <!-- Table Container -->
-            <div class="bg-white rounded-custom shadow-sm overflow-hidden border border-white">
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse min-w-[800px]">
-                        <thead class="text-[9px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 bg-white">
-                            <tr>
-                                <th class="px-5 py-3">Sl.No</th>
-                                <th class="px-3 py-3">Subcategory Name</th>
-                                <th class="px-3 py-3 text-center">Category</th>
-                                <th class="px-3 py-3 text-center">Products</th>
-                                <th class="px-3 py-3">Status</th>
-                                <th class="px-5 py-3 text-right">Action</th>
-                            </tr>
-                        </thead>
-                        <!-- SEARCH: id added so JS can swap contents -->
-                        <tbody id="subcategoryTableBody" class="divide-y divide-gray-50 text-sm">
-                            {% for i in page_obj %}
-                            <tr class="hover:bg-gray-50/50 transition-colors group">
-                                <td class="px-5 py-3 text-[13px] text-gray-400 align-middle">{{ forloop.counter0|add:page_obj.start_index }}</td>
-                                <td class="px-3 py-3 align-middle">
-                                    <span class="font-bold text-gray-900 text-[13px] tracking-tight">{{i.subcategory_name}}</span>
-                                </td>
-                                <td class="px-3 py-3 text-[13px] font-medium text-gray-900 text-center align-middle">{{ i.category }}</td>
-                                <td class="px-3 py-3 text-[13px] font-medium text-gray-900 text-center align-middle">124</td>
-                                <td class="px-3 py-3 align-middle">
-                                   {% if i.is_deleted %}
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-500">Archived</span>
-                                    {% elif i.is_active %}
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-green-50 text-green-600">Live</span>
-                                    {% else %}
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500">Hidden</span>
-                                    {% endif %}
-                                </td>
-                                <td class="px-5 py-3 text-right align-middle">
-                                    <div class="action-buttons flex items-center justify-end gap-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                                        {% if request.GET.status == 'archived' %}
-                                        <form method="POST">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="subcategory_id" value="{{i.id}}">
-                                            <input type="hidden" name="action" value="restore">
-                                            <button type="submit" class="text-gray-400 hover:text-black transition-colors text-[9px] font-bold uppercase tracking-tight hover:underline underline-offset-2">
-                                                Restore
-                                            </button>
-                                        </form>
-                                        <button type="button" onclick="openPermanentDeleteModal('{{i.id}}', '{{i.subcategory_name}}')" class="text-red-300 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                                                <path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path>
-                                            </svg>
-                                        </button>
-
-                                        {% else %}
-                                        <button onclick="openEditModal('{{i.id}}', '{{i.subcategory_name}}', '{{i.category.id}}')" class="text-gray-300 hover:text-black transition-colors p-1.5 rounded-lg hover:bg-gray-50">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10"></path></svg>
-                                        </button>
-                                        <button onclick="openDeleteModal('{{i.id}}', '{{i.subcategory_name}}')" class="text-red-200 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"></path></svg>
-                                        </button>
-                                       <form method="POST">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="subcategory_id" value="{{i.id}}">
-                                            <input type="hidden" name="action" value="toggle">
-                                            <label class="relative inline-flex items-center cursor-pointer m-0">
-                                                <input type="checkbox" onChange="this.form.submit()" class="sr-only peer" {% if i.is_active %}checked{% endif %}>
-                                                <div class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black shadow-inner"></div>
-                                            </label>
-                                        </form>
-                                        {% endif %}
-                                    </div>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- SEARCH: id added so JS can swap pagination after search -->
-                <div id="paginationSection">
-                    {% include 'admin_base/components/pagination.html' %}
-                </div>
-            </div>
-
-        </main>
-    </div>
-
-    <!-- ADD SUBCATEGORY MODAL -->
-    <div id="modalOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-6 modal-overlay modal-hidden">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-        <div class="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl z-10 modal-container">
-            <div class="p-8 pb-4 border-b border-gray-50 bg-white">
-                <h3 class="text-2xl font-serif text-gray-900 mb-1">Add Subcategory</h3>
-                <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Create a new product group</p>
-            </div>
-
-            <form action="" method="POST" class="p-8 space-y-6">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="create">
-                <div>
-                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Parent Category</label>
-                    <select name="parent_category" id="addParentCategory" required 
-                            onchange="validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError')"
-                            class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors appearance-none">
-                        <option value="" disabled selected>Select a main category</option>
-                        {% for i in category %}
-                        <option value="{{i.id}}" {% if not i.is_active %}disabled{% endif %}>
-    {{i.category_name}} {% if not i.is_active %}(Inactive){% endif %}
-</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Subcategory Name</label>
-                    <input type="text" name="subcategory_name" id="addSubcatName" placeholder="e.g. Linen Shirts" required 
-                           oninput="validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError')"
-                           class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors placeholder:text-gray-300">
-                    <p id="addSubcatError" class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden"></p>
-                </div>
-
-                <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100">
-                    <div>
-                        <span class="text-xs font-bold text-gray-900">Activate Immediately</span>
-                        <p class="text-[10px] text-gray-400 mt-0.5">Visible to customers upon creation</p>
-                    </div>
-                    <button type="button" id="modalToggle" class="relative w-12 h-6 bg-black rounded-full transition-colors duration-200 ease-in-out">
-                        <input type="hidden" name="is_active" value="true">
-                        <span class="absolute top-1 w-4 h-4 bg-white rounded-full translate-x-6 transition-transform duration-200 ease-in-out shadow-sm"></span>
-                    </button>
-                </div>
-
-                <div class="flex gap-4 pt-2">
-                    <button type="button" id="cancelBtn" class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">Cancel</button>
-                    <button type="submit" id="addSubcatSubmit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">Create Subcategory</button>
-                </div>
-            </form>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'admin-category' %}"
+                class="text-sm font-medium rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100 transition shadow-sm">
+                ← Back to Categories
+            </a>
+            <button id="openModal"
+                class="px-6 py-3 bg-black text-white rounded-xl text-sm font-medium hover:opacity-90 transition shadow-sm flex items-center gap-2">
+                <span class="text-lg leading-none">+</span> Add Subcategory
+            </button>
         </div>
     </div>
+</div>
 
-    <!-- DELETE MODAL -->
-    <div id="deleteModal" class="fixed inset-0 z-[110] flex items-center justify-center p-6 modal-overlay modal-hidden">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-        <div class="relative bg-white w-full max-w-sm rounded-[32px] p-10 text-center shadow-2xl z-10 modal-container">
-            <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            </div>
-            <h3 class="text-xl font-semibold mb-2">Archive Subcategory?</h3>
-            <p class="text-sm text-gray-400 mb-8">This will move <span id="deleteItemName" class="font-bold text-gray-900"></span> to archives. It will no longer appear on the website.</p>
+<main class="max-w-6xl mx-auto px-8 py-8 w-full space-y-6 overflow-y-auto hide-scrollbar"
+    style="max-height: calc(100vh - 120px);">
 
-            <form method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="subcategory_id" id="deleteSubcatId">
-                <input type="hidden" name="action" value="delete">
-                <div class="flex flex-col gap-3">
-                    <button type="submit" class="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold mb-2">Archive</button>
-                    <button type="button" onclick="closeDeleteModal()" class="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold">Cancel</button>
-                </div>
-            </form>
+    <!-- Stats Row -->
+    <section class="grid grid-cols-3 gap-4">
+        <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Total Subcategories</p>
+            <p class="text-xl font-medium tracking-tight">{{subcategory_count}}</p>
         </div>
-    </div>
-
-    <!-- EDIT MODAL -->
-    <div id="editModal" class="fixed inset-0 z-[120] flex items-center justify-center p-6 modal-overlay modal-hidden">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-        <div class="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl z-10 modal-container">
-            <div class="p-8 pb-4 border-b border-gray-50 bg-white">
-                <h3 class="text-2xl font-serif text-gray-900 mb-1">Edit Subcategory</h3>
-                <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Update subcategory details</p>
-            </div>
-
-            <form method="POST" class="p-8 space-y-6">
-                {% csrf_token %}
-                <input type="hidden" name="action" value="edit">
-                <input type="hidden" name="subcategory_id" id="editSubcatId">
-
-                <!-- Parent Category -->
-                <div>
-                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Parent Category</label>
-                    <select name="parent_category" id="editParentCategory" required 
-                            onchange="const subId = document.getElementById('editSubcatId').value; validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', subId)"
-                            class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
-                        {% for i in category %}
-                        <option value="{{i.id}}">{{i.category_name}}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Subcategory Name -->
-                <div>
-                    <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Subcategory Name</label>
-                    <input type="text" name="subcategory_name" id="editSubcatName" required
-                        oninput="validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError')"
-                        class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
-                    <p id="editSubcatError" class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden"></p>
-                </div>
-
-                <!-- Buttons -->
-                <div class="flex gap-4 pt-2">
-                    <button type="button" onclick="closeEditModal()" class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">
-                        Cancel
-                    </button>
-                    <button type="submit" id="editSubcatSubmit" class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">
-                        Update
-                    </button>
-                </div>
-            </form>
+        <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Active</p>
+            <p class="text-xl font-medium tracking-tight">{{active_subcategory}}</p>
         </div>
-    </div>
+        <div class="bg-white p-5 rounded-custom border border-white shadow-sm">
+            <p class="text-[9px] uppercase font-bold text-gray-400 mb-1">Inactive</p>
+            <p class="text-xl font-medium tracking-tight text-red-400">{{ inactive_subcategory}}</p>
+        </div>
+    </section>
 
-    <!-- PERMANENT DELETE MODAL -->
-    <div id="permanentDeleteModal" class="fixed inset-0 z-[130] flex items-center justify-center p-6 modal-overlay modal-hidden">
-        <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
-        <div class="relative bg-white w-full max-w-sm rounded-[32px] p-10 text-center shadow-2xl z-10 modal-container">
-            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6"></path>
+    <!-- Search + Filter Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <form method="GET" id="searchForm" class="flex-1 max-w-[360px] relative" onsubmit="event.preventDefault();">
+            {% if request.GET.status %}<input type="hidden" name="status" value="{{ request.GET.status }}">{% endif %}
+            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
             </div>
+            <input id="searchInput" type="text" name="q" value="{{ request.GET.q|default:'' }}"
+                placeholder="Search by name..."
+                class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-full text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition-all placeholder:text-gray-300 font-medium text-gray-700">
+        </form>
+    </div>
 
-            <h3 class="text-xl font-semibold mb-2">Delete Permanently?</h3>
-            <p class="text-sm text-gray-400 mb-8">
-                This will permanently delete
-                <span id="permanentDeleteName" class="font-bold text-gray-900"></span>.
-                This action cannot be undone.
-            </p>
+    <!-- Live / Archive Tabs -->
+    <div class="flex gap-6 px-2 border-b border-gray-100">
+        <a href="?status=live"
+            class="text-[10px] font-bold uppercase tracking-widest {% if request.GET.status != 'archived' %}text-black border-b-2 border-black{% else %}text-gray-400 hover:text-gray-600 border-b-2 border-transparent{% endif %} pb-3 transition-all">Live</a>
+        <a href="?status=archived"
+            class="text-[10px] font-bold uppercase tracking-widest {% if request.GET.status == 'archived' %}text-black border-b-2 border-black{% else %}text-gray-400 hover:text-gray-600 border-b-2 border-transparent{% endif %} pb-3 transition-all">Archived</a>
+    </div>
 
-            <form method="POST">
-                {% csrf_token %}
-                <input type="hidden" name="subcategory_id" id="permanentDeleteId">
-                <input type="hidden" name="action" value="permanent_delete">
+    <!-- Table Container -->
+    <div class="bg-white rounded-custom shadow-sm overflow-hidden border border-white">
 
-                <div class="flex flex-col gap-3">
-                    <button type="submit" class="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold mb-2">Delete</button>
-                    <button type="button" onclick="closePermanentDeleteModal()" class="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold">Cancel</button>
-                </div>
-            </form>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[800px]">
+                <thead
+                    class="text-[9px] font-bold uppercase tracking-widest text-gray-400 border-b border-gray-50 bg-white">
+                    <tr>
+                        <th class="px-5 py-3">Sl.No</th>
+                        <th class="px-3 py-3">Subcategory Name</th>
+                        <th class="px-3 py-3 text-center">Category</th>
+                        <th class="px-3 py-3 text-center">Products</th>
+                        <th class="px-3 py-3">Status</th>
+                        <th class="px-5 py-3 text-right">Action</th>
+                    </tr>
+                </thead>
+                <!-- SEARCH: id added so JS can swap contents -->
+                <tbody id="subcategoryTableBody" class="divide-y divide-gray-50 text-sm">
+                    {% for i in page_obj %}
+                    <tr class="hover:bg-gray-50/50 transition-colors group">
+                        <td class="px-5 py-3 text-[13px] text-gray-400 align-middle">{{
+                            forloop.counter0|add:page_obj.start_index }}</td>
+                        <td class="px-3 py-3 align-middle">
+                            <span
+                                class="font-bold text-gray-900 text-[13px] tracking-tight">{{i.subcategory_name}}</span>
+                        </td>
+                        <td class="px-3 py-3 text-[13px] font-medium text-gray-900 text-center align-middle">{{
+                            i.category }}</td>
+                        <td class="px-3 py-3 text-[13px] font-medium text-gray-900 text-center align-middle">124</td>
+                        <td class="px-3 py-3 align-middle">
+                            {% if i.is_deleted %}
+                            <span
+                                class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-500">Archived</span>
+                            {% elif i.is_active %}
+                            <span
+                                class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-green-50 text-green-600">Live</span>
+                            {% else %}
+                            <span
+                                class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500">Hidden</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-3 text-right align-middle">
+                            <div
+                                class="action-buttons flex items-center justify-end gap-3 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                                {% if request.GET.status == 'archived' %}
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="subcategory_id" value="{{i.id}}">
+                                    <input type="hidden" name="action" value="restore">
+                                    <button type="submit"
+                                        class="text-gray-400 hover:text-black transition-colors text-[9px] font-bold uppercase tracking-tight hover:underline underline-offset-2">
+                                        Restore
+                                    </button>
+                                </form>
+                                <button type="button"
+                                    onclick="openPermanentDeleteModal('{{i.id}}', '{{i.subcategory_name}}')"
+                                    class="text-red-300 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8"
+                                        viewBox="0 0 24 24">
+                                        <path
+                                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0">
+                                        </path>
+                                    </svg>
+                                </button>
+
+                                {% else %}
+                                <button
+                                    onclick="openEditModal('{{i.id}}', '{{i.subcategory_name}}', '{{i.category.id}}')"
+                                    class="text-gray-300 hover:text-black transition-colors p-1.5 rounded-lg hover:bg-gray-50">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8"
+                                        viewBox="0 0 24 24">
+                                        <path
+                                            d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <button onclick="openDeleteModal('{{i.id}}', '{{i.subcategory_name}}')"
+                                    class="text-red-200 hover:text-red-500 transition-colors p-1.5 rounded-lg hover:bg-red-50">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8"
+                                        viewBox="0 0 24 24">
+                                        <path
+                                            d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0">
+                                        </path>
+                                    </svg>
+                                </button>
+                                <form method="POST">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="subcategory_id" value="{{i.id}}">
+                                    <input type="hidden" name="action" value="toggle">
+                                    <label class="relative inline-flex items-center cursor-pointer m-0">
+                                        <input type="checkbox" onChange="this.form.submit()" class="sr-only peer" {% if
+                                            i.is_active %}checked{% endif %}>
+                                        <div
+                                            class="w-10 h-5 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-200 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-black shadow-inner">
+                                        </div>
+                                    </label>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- SEARCH: id added so JS can swap pagination after search -->
+        <div id="paginationSection">
+            {% include 'admin_base/components/pagination.html' %}
         </div>
     </div>
 
-    
+</main>
+</div>
+
+<!-- ADD SUBCATEGORY MODAL -->
+<div id="modalOverlay" class="fixed inset-0 z-50 flex items-center justify-center p-6 modal-overlay modal-hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+    <div class="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl z-10 modal-container">
+        <div class="p-8 pb-4 border-b border-gray-50 bg-white">
+            <h3 class="text-2xl font-serif text-gray-900 mb-1">Add Subcategory</h3>
+            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Create a new product group</p>
+        </div>
+
+        <form action="" method="POST" class="p-8 space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="create">
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Parent
+                    Category</label>
+                <select name="parent_category" id="addParentCategory" required
+                    onchange="validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError')"
+                    class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors appearance-none">
+                    <option value="" disabled selected>Select a main category</option>
+                    {% for i in category %}
+                    <option value="{{i.id}}" {% if not i.is_active %}disabled{% endif %}>
+                        {{i.category_name}} {% if not i.is_active %}(Inactive){% endif %}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Subcategory
+                    Name</label>
+                <input type="text" name="subcategory_name" id="addSubcatName" placeholder="e.g. Linen Shirts" required
+                    oninput="validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError')"
+                    class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors placeholder:text-gray-300">
+                <p id="addSubcatError" class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden">
+                </p>
+            </div>
+
+            <div class="flex items-center justify-between p-4 bg-gray-50/50 rounded-xl border border-gray-100">
+                <div>
+                    <span class="text-xs font-bold text-gray-900">Activate Immediately</span>
+                    <p class="text-[10px] text-gray-400 mt-0.5">Visible to customers upon creation</p>
+                </div>
+                <button type="button" id="modalToggle"
+                    class="relative w-12 h-6 bg-black rounded-full transition-colors duration-200 ease-in-out">
+                    <input type="hidden" name="is_active" value="true">
+                    <span
+                        class="absolute top-1 w-4 h-4 bg-white rounded-full translate-x-6 transition-transform duration-200 ease-in-out shadow-sm"></span>
+                </button>
+            </div>
+
+            <div class="flex gap-4 pt-2">
+                <button type="button" id="cancelBtn"
+                    class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">Cancel</button>
+                <button type="submit" id="addSubcatSubmit"
+                    class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">Create
+                    Subcategory</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div id="deleteModal" class="fixed inset-0 z-[110] flex items-center justify-center p-6 modal-overlay modal-hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+    <div class="relative bg-white w-full max-w-sm rounded-[32px] p-10 text-center shadow-2xl z-10 modal-container">
+        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                </path>
+            </svg>
+        </div>
+        <h3 class="text-xl font-semibold mb-2">Archive Subcategory?</h3>
+        <p class="text-sm text-gray-400 mb-8">This will move <span id="deleteItemName"
+                class="font-bold text-gray-900"></span> to archives. It will no longer appear on the website.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="subcategory_id" id="deleteSubcatId">
+            <input type="hidden" name="action" value="delete">
+            <div class="flex flex-col gap-3">
+                <button type="submit"
+                    class="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold mb-2">Archive</button>
+                <button type="button" onclick="closeDeleteModal()"
+                    class="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="editModal" class="fixed inset-0 z-[120] flex items-center justify-center p-6 modal-overlay modal-hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+    <div class="relative bg-white w-full max-w-lg rounded-[32px] overflow-hidden shadow-2xl z-10 modal-container">
+        <div class="p-8 pb-4 border-b border-gray-50 bg-white">
+            <h3 class="text-2xl font-serif text-gray-900 mb-1">Edit Subcategory</h3>
+            <p class="text-[10px] uppercase tracking-widest text-gray-400 font-bold">Update subcategory details</p>
+        </div>
+
+        <form method="POST" class="p-8 space-y-6">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="subcategory_id" id="editSubcatId">
+
+            <!-- Parent Category -->
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Parent
+                    Category</label>
+                <select name="parent_category" id="editParentCategory" required
+                    onchange="const subId = document.getElementById('editSubcatId').value; validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', subId, this.value)"
+                    class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    {% for i in category %}
+                    <option value="{{i.id}}">{{i.category_name}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Subcategory Name -->
+            <div>
+                <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Subcategory
+                    Name</label>
+                <input type="text" name="subcategory_name" id="editSubcatName" required
+                    oninput="validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError')"
+                    class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                <p id="editSubcatError"
+                    class="text-red-500 text-[10px] font-bold uppercase tracking-widest mt-1 hidden"></p>
+            </div>
+
+            <!-- Buttons -->
+            <div class="flex gap-4 pt-2">
+                <button type="button" onclick="closeEditModal()"
+                    class="flex-1 py-4 text-[10px] uppercase font-bold border border-gray-100 rounded-2xl hover:bg-gray-50 transition-all text-black">
+                    Cancel
+                </button>
+                <button type="submit" id="editSubcatSubmit"
+                    class="flex-1 py-4 text-[10px] uppercase font-bold bg-black text-white rounded-2xl shadow-xl hover:bg-gray-800 transition-all">
+                    Update
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- PERMANENT DELETE MODAL -->
+<div id="permanentDeleteModal"
+    class="fixed inset-0 z-[130] flex items-center justify-center p-6 modal-overlay modal-hidden">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+    <div class="relative bg-white w-full max-w-sm rounded-[32px] p-10 text-center shadow-2xl z-10 modal-container">
+        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6"></path>
+            </svg>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-2">Delete Permanently?</h3>
+        <p class="text-sm text-gray-400 mb-8">
+            This will permanently delete
+            <span id="permanentDeleteName" class="font-bold text-gray-900"></span>.
+            This action cannot be undone.
+        </p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="subcategory_id" id="permanentDeleteId">
+            <input type="hidden" name="action" value="permanent_delete">
+
+            <div class="flex flex-col gap-3">
+                <button type="submit"
+                    class="w-full py-4 bg-red-500 text-white rounded-2xl text-[10px] uppercase tracking-widest font-bold mb-2">Delete</button>
+                <button type="button" onclick="closePermanentDeleteModal()"
+                    class="w-full py-4 bg-gray-50 text-gray-400 rounded-2xl text-[10px] uppercase tracking-widest font-bold">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
 {% endblock %}
 
 {% block extra_scripts %}
@@ -357,228 +443,228 @@
     {{ all_subcats_json|safe }}
 </script>
 <script>
-        const subcategoriesData = JSON.parse(document.getElementById('subcategories-data').textContent);
+    const subcategoriesData = JSON.parse(document.getElementById('subcategories-data').textContent);
 
-        function validateName(inputId, submitId, errorId, currentId = null) {
-            const input = document.getElementById(inputId);
-            const submit = document.getElementById(submitId);
-            const error = document.getElementById(errorId);
-            const val = input.value.trim();
-            const lowerVal = val.toLowerCase();
-            let errorMessage = "";
+    function validateName(inputId, submitId, errorId, currentId = null) {
+        const input = document.getElementById(inputId);
+        const submit = document.getElementById(submitId);
+        const error = document.getElementById(errorId);
+        const val = input.value.trim();
+        const lowerVal = val.toLowerCase();
+        let errorMessage = "";
 
-            if (val.length === 0) {
-                errorMessage = "Name is required";
-            } else if (val.length < 3) {
-                errorMessage = "Name must be at least 3 characters";
-            } else if (!/^[a-zA-Z ]+$/.test(val)) {
-                errorMessage = "Only alphabet letters and spaces are allowed";
-            } else if (/\s{2,}/.test(val)) {
-                errorMessage = "Multiple consecutive spaces are not allowed";
-            } else {
-                // Global duplicate check
-                const isDuplicate = subcategoriesData.some(sub => 
-                    sub.subcategory_name.toLowerCase() === lowerVal && 
-                    String(sub.id) !== String(currentId)
-                );
-                if (isDuplicate) {
-                    errorMessage = "Subcategory name already exists";
+        if (val.length === 0) {
+            errorMessage = "Name is required";
+        } else if (val.length < 3) {
+            errorMessage = "Name must be at least 3 characters";
+        } else if (!/^[a-zA-Z ]+$/.test(val)) {
+            errorMessage = "Only alphabet letters and spaces are allowed";
+        } else if (/\s{2,}/.test(val)) {
+            errorMessage = "Multiple consecutive spaces are not allowed";
+        } else {
+            // Global duplicate check
+            const isDuplicate = subcategoriesData.some(sub =>
+                sub.subcategory_name.toLowerCase() === lowerVal &&
+                String(sub.id) !== String(currentId)
+            );
+            if (isDuplicate) {
+                errorMessage = "Subcategory name already exists";
+            }
+        }
+
+        if (errorMessage) {
+            error.textContent = errorMessage;
+            error.classList.remove('hidden');
+            input.classList.add('border-red-500');
+            submit.disabled = true;
+            submit.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        } else {
+            error.classList.add('hidden');
+            input.classList.remove('border-red-500');
+            submit.disabled = false;
+            submit.classList.remove('opacity-50', 'cursor-not-allowed');
+            return true;
+        }
+    }
+    // Modal Logic
+    const modal = document.getElementById('modalOverlay');
+    const openBtn = document.getElementById('openModal');
+    const closeBtn = document.getElementById('closeModal');
+    const cancelBtn = document.getElementById('cancelBtn');
+
+    const toggleModal = () => {
+        modal.classList.toggle('modal-hidden');
+        if (!modal.classList.contains('modal-hidden')) {
+            validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError');
+        }
+    };
+
+    openBtn.addEventListener('click', toggleModal);
+    cancelBtn.addEventListener('click', toggleModal);
+
+    // Close on clicking outside
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) toggleModal();
+    });
+
+    // Modal Status Toggle Logic
+    const modalToggle = document.getElementById('modalToggle');
+    const statusInput = modalToggle.querySelector('input');
+    const toggleDot = modalToggle.querySelector('span');
+
+    modalToggle.addEventListener('click', () => {
+        const isActive = toggleDot.classList.contains('translate-x-6');
+        if (isActive) {
+            toggleDot.classList.replace('translate-x-6', 'translate-x-1');
+            modalToggle.classList.replace('bg-black', 'bg-gray-300');
+            statusInput.value = "false";
+        } else {
+            toggleDot.classList.replace('translate-x-1', 'translate-x-6');
+            modalToggle.classList.replace('bg-gray-300', 'bg-black');
+            statusInput.value = "true";
+        }
+    });
+
+    // Table Toggle Logic
+    document.querySelectorAll('.rounded-full.p-1').forEach(btn => {
+        if (btn.id !== 'modalToggle') { // Skip the modal toggle
+            btn.addEventListener('click', function () {
+                const dot = this.querySelector('div');
+                const isActive = dot.classList.contains('translate-x-4');
+                if (isActive) {
+                    dot.classList.replace('translate-x-4', 'translate-x-0');
+                    this.classList.replace('bg-noco-text', 'bg-gray-300');
+                } else {
+                    dot.classList.replace('translate-x-0', 'translate-x-4');
+                    this.classList.replace('bg-gray-300', 'bg-noco-text');
                 }
-            }
-
-            if (errorMessage) {
-                error.textContent = errorMessage;
-                error.classList.remove('hidden');
-                input.classList.add('border-red-500');
-                submit.disabled = true;
-                submit.classList.add('opacity-50', 'cursor-not-allowed');
-                return false;
-            } else {
-                error.classList.add('hidden');
-                input.classList.remove('border-red-500');
-                submit.disabled = false;
-                submit.classList.remove('opacity-50', 'cursor-not-allowed');
-                return true;
-            }
+            });
         }
-        // Modal Logic
-        const modal = document.getElementById('modalOverlay');
-        const openBtn = document.getElementById('openModal');
-        const closeBtn = document.getElementById('closeModal');
-        const cancelBtn = document.getElementById('cancelBtn');
+    });
 
-        const toggleModal = () => {
-            modal.classList.toggle('modal-hidden');
-            if (!modal.classList.contains('modal-hidden')) {
-                validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError');
-            }
-        };
+    // Auto-slug Logic (Simple version for UI feel)
+    const nameInput = document.querySelector('input[name="subcategory_name"]');
+    const slugInput = document.querySelector('input[name="slug"]');
+    nameInput.addEventListener('input', (e) => {
+        slugInput.value = e.target.value.toLowerCase().split(' ').join('-');
+    });
 
-        openBtn.addEventListener('click', toggleModal);
-        cancelBtn.addEventListener('click', toggleModal);
+    // Toast animation - removed duplicate, handled by base.html
 
-        // Close on clicking outside
-        modal.addEventListener('click', (e) => {
-            if(e.target === modal) toggleModal();
-        });
-
-        // Modal Status Toggle Logic
-        const modalToggle = document.getElementById('modalToggle');
-        const statusInput = modalToggle.querySelector('input');
-        const toggleDot = modalToggle.querySelector('span');
-
-        modalToggle.addEventListener('click', () => {
-            const isActive = toggleDot.classList.contains('translate-x-6');
-            if(isActive) {
-                toggleDot.classList.replace('translate-x-6', 'translate-x-1');
-                modalToggle.classList.replace('bg-black', 'bg-gray-300');
-                statusInput.value = "false";
-            } else {
-                toggleDot.classList.replace('translate-x-1', 'translate-x-6');
-                modalToggle.classList.replace('bg-gray-300', 'bg-black');
-                statusInput.value = "true";
-            }
-        });
-
-        // Table Toggle Logic
-        document.querySelectorAll('.rounded-full.p-1').forEach(btn => {
-            if(btn.id !== 'modalToggle') { // Skip the modal toggle
-                btn.addEventListener('click', function() {
-                    const dot = this.querySelector('div');
-                    const isActive = dot.classList.contains('translate-x-4');
-                    if(isActive) {
-                        dot.classList.replace('translate-x-4', 'translate-x-0');
-                        this.classList.replace('bg-noco-text', 'bg-gray-300');
-                    } else {
-                        dot.classList.replace('translate-x-0', 'translate-x-4');
-                        this.classList.replace('bg-gray-300', 'bg-noco-text');
-                    }
-                });
-            }
-        });
-
-        // Auto-slug Logic (Simple version for UI feel)
-        const nameInput = document.querySelector('input[name="subcategory_name"]');
-        const slugInput = document.querySelector('input[name="slug"]');
-        nameInput.addEventListener('input', (e) => {
-            slugInput.value = e.target.value.toLowerCase().split(' ').join('-');
-        });
-
-      // Toast animation - removed duplicate, handled by base.html
-
-        // Delete Modal Controls
-        function openDeleteModal(id, name) {
-            document.getElementById('deleteSubcatId').value = id;
-            document.getElementById('deleteItemName').innerText = name;
-            deleteModal.classList.remove('modal-hidden');
-        }
-        function closeDeleteModal() { deleteModal.classList.add('modal-hidden'); }
+    // Delete Modal Controls
+    function openDeleteModal(id, name) {
+        document.getElementById('deleteSubcatId').value = id;
+        document.getElementById('deleteItemName').innerText = name;
+        deleteModal.classList.remove('modal-hidden');
+    }
+    function closeDeleteModal() { deleteModal.classList.add('modal-hidden'); }
 
 
 
-        // Close on outside click
-       window.onclick = (e) => {
-    if(e.target === deleteModal) closeDeleteModal();
-    if(e.target === editModal) closeEditModal();
-    if(e.target === permanentDeleteModal) closePermanentDeleteModal();
-}
-
-const editModal = document.getElementById("editModal");
-
-function openEditModal(id, name, categoryId=null) {
-    const nameInput = document.getElementById("editSubcatName");
-    const submitBtn = document.getElementById("editSubcatSubmit");
-    const errorDiv = document.getElementById("editSubcatError");
-
-    document.getElementById("editSubcatId").value = id;
-    nameInput.value = name;
-
-    if(categoryId){
-        document.getElementById("editParentCategory").value = categoryId;
+    // Close on outside click
+    window.onclick = (e) => {
+        if (e.target === deleteModal) closeDeleteModal();
+        if (e.target === editModal) closeEditModal();
+        if (e.target === permanentDeleteModal) closePermanentDeleteModal();
     }
 
-    editModal.classList.remove("modal-hidden");
-    
-    // Add event listener for real-time duplicate check during edit (global)
-    nameInput.oninput = () => validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', id);
-    
-    // Initial validation
-    validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', id);
-}
+    const editModal = document.getElementById("editModal");
 
-function closeEditModal() {
-    editModal.classList.add("modal-hidden");
-}
-const permanentDeleteModal = document.getElementById("permanentDeleteModal");
+    function openEditModal(id, name, categoryId = null) {
+        const nameInput = document.getElementById("editSubcatName");
+        const submitBtn = document.getElementById("editSubcatSubmit");
+        const errorDiv = document.getElementById("editSubcatError");
 
-function openPermanentDeleteModal(id, name) {
-    document.getElementById("permanentDeleteId").value = id;
-    document.getElementById("permanentDeleteName").innerText = name;
+        document.getElementById("editSubcatId").value = id;
+        nameInput.value = name;
 
-    permanentDeleteModal.classList.remove("modal-hidden");
-}
-
-        function closePermanentDeleteModal() {
-            permanentDeleteModal.classList.add('modal-hidden');
+        if (categoryId) {
+            document.getElementById("editParentCategory").value = categoryId;
         }
 
-        // -------------------------------------------------------
-        // LIVE SEARCH — debounced fetch, replaces tbody + pagination only
-        // -------------------------------------------------------
-        (function () {
-            const searchInput = document.getElementById('searchInput');
-            const tableBody   = document.getElementById('subcategoryTableBody');
-            const pagination  = document.getElementById('paginationSection');
-            const searchForm  = document.getElementById('searchForm');
-            let debounceTimer = null;
+        editModal.classList.remove("modal-hidden");
 
-            if (!searchInput || !tableBody || !pagination || !searchForm) return;
+        // Add event listener for real-time duplicate check during edit (global)
+        nameInput.oninput = () => validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', id);
 
-            function buildURL(query) {
-                const params = new URLSearchParams(window.location.search);
-                if (query) {
-                    params.set('q', query);
-                } else {
-                    params.delete('q');
-                }
-                params.delete('page'); // reset to page 1 on new search
-                return window.location.pathname + '?' + params.toString();
+        // Initial validation
+        validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', id);
+    }
+
+    function closeEditModal() {
+        editModal.classList.add("modal-hidden");
+    }
+    const permanentDeleteModal = document.getElementById("permanentDeleteModal");
+
+    function openPermanentDeleteModal(id, name) {
+        document.getElementById("permanentDeleteId").value = id;
+        document.getElementById("permanentDeleteName").innerText = name;
+
+        permanentDeleteModal.classList.remove("modal-hidden");
+    }
+
+    function closePermanentDeleteModal() {
+        permanentDeleteModal.classList.add('modal-hidden');
+    }
+
+    // -------------------------------------------------------
+    // LIVE SEARCH — debounced fetch, replaces tbody + pagination only
+    // -------------------------------------------------------
+    (function () {
+        const searchInput = document.getElementById('searchInput');
+        const tableBody = document.getElementById('subcategoryTableBody');
+        const pagination = document.getElementById('paginationSection');
+        const searchForm = document.getElementById('searchForm');
+        let debounceTimer = null;
+
+        if (!searchInput || !tableBody || !pagination || !searchForm) return;
+
+        function buildURL(query) {
+            const params = new URLSearchParams(window.location.search);
+            if (query) {
+                params.set('q', query);
+            } else {
+                params.delete('q');
             }
+            params.delete('page'); // reset to page 1 on new search
+            return window.location.pathname + '?' + params.toString();
+        }
 
-            function doSearch(query) {
-                const url = buildURL(query);
-                // Update browser URL so pagination links rendered server-side stay correct
-                window.history.replaceState(null, '', url);
+        function doSearch(query) {
+            const url = buildURL(query);
+            // Update browser URL so pagination links rendered server-side stay correct
+            window.history.replaceState(null, '', url);
 
-                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                    .then(function (res) { return res.text(); })
-                    .then(function (html) {
-                        const doc = new DOMParser().parseFromString(html, 'text/html');
-                        const newBody = doc.getElementById('subcategoryTableBody');
-                        const newPagination = doc.getElementById('paginationSection');
-                        if (newBody) tableBody.innerHTML = newBody.innerHTML;
-                        if (newPagination) pagination.innerHTML = newPagination.innerHTML;
-                    })
-                    .catch(function () {
-                        // Fallback: normal form submit if fetch fails
-                        searchForm.submit();
-                    });
-            }
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (res) { return res.text(); })
+                .then(function (html) {
+                    const doc = new DOMParser().parseFromString(html, 'text/html');
+                    const newBody = doc.getElementById('subcategoryTableBody');
+                    const newPagination = doc.getElementById('paginationSection');
+                    if (newBody) tableBody.innerHTML = newBody.innerHTML;
+                    if (newPagination) pagination.innerHTML = newPagination.innerHTML;
+                })
+                .catch(function () {
+                    // Fallback: normal form submit if fetch fails
+                    searchForm.submit();
+                });
+        }
 
-            // Live search on keystroke with 300ms debounce
-            searchInput.addEventListener('input', function () {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(function () {
-                    doSearch(searchInput.value.trim());
-                }, 300);
-            });
-
-            // Intercept Enter / form submit — no page reload
-            searchForm.addEventListener('submit', function (e) {
-                e.preventDefault();
-                clearTimeout(debounceTimer);
+        // Live search on keystroke with 300ms debounce
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function () {
                 doSearch(searchInput.value.trim());
-            });
-        })();
-    </script>
+            }, 300);
+        });
+
+        // Intercept Enter / form submit — no page reload
+        searchForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            clearTimeout(debounceTimer);
+            doSearch(searchInput.value.trim());
+        });
+    })();
+</script>
 {% endblock %}
