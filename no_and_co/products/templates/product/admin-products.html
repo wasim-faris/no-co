@@ -201,7 +201,17 @@
             <td class="px-3 py-3 align-middle">
               {% if i.default_variants %}
                 {% with default_variant=i.default_variants|first %}
-                  <span class="font-bold text-gray-900 text-[13px]">₹{{ default_variant.price }}</span>
+                  <div class="flex flex-col">
+                    {% if default_variant.has_discount %}
+                      <div class="flex items-center gap-1.5">
+                        <span class="font-bold text-gray-900 text-[13px]">₹{{ default_variant.final_price }}</span>
+                        <span class="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded font-bold">{{ default_variant.discount_percent }}% OFF</span>
+                      </div>
+                      <span class="text-[10px] text-gray-400 line-through">₹{{ default_variant.original_price }}</span>
+                    {% else %}
+                      <span class="font-bold text-gray-900 text-[13px]">₹{{ default_variant.price }}</span>
+                    {% endif %}
+                  </div>
                 {% endwith %}
               {% else %}
                 <span class="text-gray-400 text-[13px]">No price yet</span>

@@ -334,7 +334,7 @@
                         </div>
 
                         <div class="p-4 space-y-3 overflow-y-auto hide-scrollbar flex-1">
-                            {% for variant in product.variants.all %}
+                            {% for variant in variants %}
                             <div
                                 class="p-4 rounded-2xl border border-gray-100 bg-gray-50/50 hover:border-black/20 hover:bg-white transition-all group relative">
                                 <div class="flex justify-between items-start">
@@ -355,7 +355,17 @@
 
                                     <!-- Right: Price & Status -->
                                     <div class="flex flex-col items-end text-right">
-                                        <p class="text-[11px] font-black text-black mb-2">₹{{ variant.price }}</p>
+                                        <div class="mb-2 flex flex-col items-end">
+                                            {% if variant.has_discount %}
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-[11px] font-black text-black">₹{{ variant.final_price }}</span>
+                                                    <span class="text-[7px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded font-black">{{ variant.discount_percent }}% OFF</span>
+                                                </div>
+                                                <span class="text-[9px] text-gray-400 line-through">₹{{ variant.original_price }}</span>
+                                            {% else %}
+                                                <p class="text-[11px] font-black text-black">₹{{ variant.price }}</p>
+                                            {% endif %}
+                                        </div>
                                         <div class="space-y-0.5">
                                             <p class="text-[9px] font-bold uppercase">
                                                 {% if variant.is_active %}
@@ -392,6 +402,7 @@
                                         data-color="{{ variant.color }}"
                                         data-color-hex="{{ variant.color_hex|default:'' }}"
                                         data-price="{{ variant.price }}"
+                                        data-final-price="{{ variant.final_price|default:variant.price }}"
                                         data-stock="{{ variant.stock }}"
                                         data-active="{{ variant.is_active|yesno:'true,false' }}"
                                         data-default="{{ variant.is_default|yesno:'true,false' }}">

@@ -10,6 +10,7 @@ from django.db import transaction
 from admin_dashboard.decorators import admin_required
 from django.views.decorators.cache import never_cache
 from utils.validation import validate_meaningful_content, clean_input
+from offers.utils import apply_offers_to_variants
 
 
 @admin_required
@@ -54,6 +55,15 @@ def admin_products(request):
             to_attr="default_variants",
         )
     ).order_by("-id")
+
+    # Apply offers to default variants
+    all_default_variants = []
+    for p in product:
+        if hasattr(p, 'default_variants'):
+            all_default_variants.extend(p.default_variants)
+    
+    if all_default_variants:
+        apply_offers_to_variants(all_default_variants)
 
     count = all_products.count()
     active_count = all_products.filter(is_active=True).count()
@@ -208,6 +218,10 @@ def admin_product_details(request, id):
 
     category = Category.objects.filter(is_deleted=False, is_active=True)
     subcategory = Subcategory.objects.filter(is_deleted=False, is_active=True)
+    
+    # Apply offers to variants for display
+    variants = product.variants.filter(is_deleted=False).order_by('-is_default', 'id')
+    apply_offers_to_variants(variants)
 
     return render(
         request,
@@ -216,6 +230,7 @@ def admin_product_details(request, id):
             "product": product,
             "category": category,
             "subcategory": subcategory,
+            "variants": variants, # Pass calculated variants
         },
     )
 
@@ -542,6 +557,10 @@ def admin_variants(request, id):
 
     paginator = Paginator(variants, 4)
     page_obj = paginator.get_page(request.GET.get("page"))
+    
+    # Apply offers to paginated variants
+    apply_offers_to_variants(page_obj.object_list)
+
     sizes = Size.objects.all()
     context = {
         "product": product,
