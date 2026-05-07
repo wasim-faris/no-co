@@ -156,9 +156,9 @@ def admin_subcategory(request):
             name = name.upper()
 
             if Subcategory.objects.filter(
-                subcategory_name=name, category=parent_category
+                subcategory_name__iexact=name
             ).exists():
-                messages.error(request, "Subcategory already exists or archived")
+                messages.error(request, "Subcategory name already exists")
                 return redirect("admin-subcategory")
 
             if not name or len(name.strip()) < 3:
@@ -195,14 +195,13 @@ def admin_subcategory(request):
                 messages.error(request, "Only alphabet letters and single spaces are allowed")
                 return redirect("admin-subcategory")
             
-            name = name.upper()
-
-            if Subcategory.objects.filter(subcategory_name=name, category_id=parent_category_id).exclude(id=sub_id).exists():
-                messages.error(request, "Subcategory already exists in this category")
+            # Global case-insensitive duplicate check
+            if Subcategory.objects.filter(subcategory_name__iexact=name).exclude(id=sub_id).exists():
+                messages.error(request, "Subcategory name already exists")
                 return redirect("admin-subcategory")
 
             sub = get_object_or_404(Subcategory, id=sub_id)
-            sub.subcategory_name = name
+            sub.subcategory_name = name.upper()
             sub.category_id = parent_category_id
             sub.updated_at = timezone.now()
             sub.save()
@@ -253,6 +252,11 @@ def admin_subcategory(request):
     active_subcategory = live_subcategory.filter(is_active=True).count()
     inactive_subcategory = live_subcategory.filter(is_active=False).count()
 
+    # Fetch all subcategories for real-time validation (names and parent category IDs)
+    import json
+    all_subcats_data = list(Subcategory.objects.filter(is_deleted=False).values('id', 'subcategory_name', 'category_id'))
+    all_subcats_json = json.dumps(all_subcats_data)
+
     return render(
         request,
         "admin-subcategory.html",
@@ -260,8 +264,10 @@ def admin_subcategory(request):
             "query": query,
             "category": category,
             "page_obj": page_obj,
+            "category_list": Category.objects.filter(is_deleted=False, is_active=True),
             "subcategory_count": subcategory_count,
             "active_subcategory": active_subcategory,
             "inactive_subcategory": inactive_subcategory,
+            "all_subcats_json": all_subcats_json,
         },
     )

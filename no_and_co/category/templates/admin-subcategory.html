@@ -210,7 +210,9 @@
                 <input type="hidden" name="action" value="create">
                 <div>
                     <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Parent Category</label>
-                    <select name="parent_category" required class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors appearance-none">
+                    <select name="parent_category" id="addParentCategory" required 
+                            onchange="validateName('addSubcatName', 'addSubcatSubmit', 'addSubcatError')"
+                            class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors appearance-none">
                         <option value="" disabled selected>Select a main category</option>
                         {% for i in category %}
                         <option value="{{i.id}}" {% if not i.is_active %}disabled{% endif %}>
@@ -286,7 +288,9 @@
                 <!-- Parent Category -->
                 <div>
                     <label class="block text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2">Parent Category</label>
-                    <select name="parent_category" id="editParentCategory" required class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
+                    <select name="parent_category" id="editParentCategory" required 
+                            onchange="const subId = document.getElementById('editSubcatId').value; validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', subId)"
+                            class="w-full bg-[#f9fafb] border border-gray-100 rounded-xl px-4 py-3 text-sm outline-none focus:border-black font-medium transition-colors">
                         {% for i in category %}
                         <option value="{{i.id}}">{{i.category_name}}</option>
                         {% endfor %}
@@ -349,12 +353,18 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<script id="subcategories-data" type="application/json">
+    {{ all_subcats_json|safe }}
+</script>
 <script>
-        function validateName(inputId, submitId, errorId) {
+        const subcategoriesData = JSON.parse(document.getElementById('subcategories-data').textContent);
+
+        function validateName(inputId, submitId, errorId, currentId = null) {
             const input = document.getElementById(inputId);
             const submit = document.getElementById(submitId);
             const error = document.getElementById(errorId);
             const val = input.value.trim();
+            const lowerVal = val.toLowerCase();
             let errorMessage = "";
 
             if (val.length === 0) {
@@ -365,6 +375,15 @@
                 errorMessage = "Only alphabet letters and spaces are allowed";
             } else if (/\s{2,}/.test(val)) {
                 errorMessage = "Multiple consecutive spaces are not allowed";
+            } else {
+                // Global duplicate check
+                const isDuplicate = subcategoriesData.some(sub => 
+                    sub.subcategory_name.toLowerCase() === lowerVal && 
+                    String(sub.id) !== String(currentId)
+                );
+                if (isDuplicate) {
+                    errorMessage = "Subcategory name already exists";
+                }
             }
 
             if (errorMessage) {
@@ -373,11 +392,13 @@
                 input.classList.add('border-red-500');
                 submit.disabled = true;
                 submit.classList.add('opacity-50', 'cursor-not-allowed');
+                return false;
             } else {
                 error.classList.add('hidden');
                 input.classList.remove('border-red-500');
                 submit.disabled = false;
                 submit.classList.remove('opacity-50', 'cursor-not-allowed');
+                return true;
             }
         }
         // Modal Logic
@@ -465,15 +486,24 @@
 const editModal = document.getElementById("editModal");
 
 function openEditModal(id, name, categoryId=null) {
+    const nameInput = document.getElementById("editSubcatName");
+    const submitBtn = document.getElementById("editSubcatSubmit");
+    const errorDiv = document.getElementById("editSubcatError");
+
     document.getElementById("editSubcatId").value = id;
-    document.getElementById("editSubcatName").value = name;
+    nameInput.value = name;
 
     if(categoryId){
         document.getElementById("editParentCategory").value = categoryId;
     }
 
     editModal.classList.remove("modal-hidden");
-    validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError');
+    
+    // Add event listener for real-time duplicate check during edit (global)
+    nameInput.oninput = () => validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', id);
+    
+    // Initial validation
+    validateName('editSubcatName', 'editSubcatSubmit', 'editSubcatError', id);
 }
 
 function closeEditModal() {
