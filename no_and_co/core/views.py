@@ -370,9 +370,11 @@ def product_listing(request):
     apply_offers_to_variants(page_obj.object_list)
 
 
+    # Build base_qs for navigation links (Subcategory tabs)
+    # We EXCLUDE 'q' and 'page' here so clicking a tab resets search/pagination
     base_qs_parts = []
     for key, values in request.GET.lists():
-        if key not in ('subcategory', 'page'):
+        if key not in ('subcategory', 'page', 'q'):
             for value in values:
                 base_qs_parts.append(f"{key}={value}")
     base_qs = "&".join(base_qs_parts)
@@ -529,11 +531,11 @@ def place_order(request):
         user = request.user
         payment_method = request.POST.get("payment_method")
         address_id = request.POST.get("address_id")
-        
+
         if not address_id:
             messages.error(request, "Please select a shipping address to place the order.")
             return redirect("checkout")
-            
+
         address = get_object_or_404(Addresses, id=address_id, user=user)
 
         cart_items = Cart.objects.filter(user=user)
@@ -842,7 +844,7 @@ def download_invoice(request, id):
 
     # Use the entire item set to show both active and cancelled items
     items = list(order.items.select_related("variant__product", "variant__size").all())
-    
+
     for item in items:
         # line_total for each item (unit price * qty)
         item.line_total = item.price * item.quantity
@@ -894,20 +896,20 @@ def cancel_order(request, order_id):
             return redirect("order_details", id=order_id)
 
         items_to_cancel = order.items.select_related("variant").exclude(item_status="CANCELLED")
-        
+
         for item in items_to_cancel:
             # Restore stock
             variant = item.variant
             variant.stock += item.quantity
             variant.save()
-            
+
         # Refund the full amount paid including GST
         total_refund = order.total_amount
 
         order.items.update(item_status="CANCELLED")
         order.status = "CANCELLED"
         order.cancelled_at = timezone.now()
-        
+
         OrderStatusHistory.objects.create(
             order=order,
             status="CANCELLED",
@@ -971,13 +973,13 @@ def cancel_order_item(request, item_id):
         item_base = Decimal(item.final_price) * item.quantity
         tax_rate = order.tax_amount / order.subtotal if order.subtotal > 0 else Decimal('0.00')
         item_tax = (Decimal(item.price) * item.quantity * tax_rate).quantize(Decimal('0.01'))
-        
+
         refund_amount = item_base + item_tax
-        
+
         # Check if this is the last item to be cancelled
         if not order.items.exclude(id=item.id).exclude(item_status="CANCELLED").exists():
             refund_amount += Decimal(order.delivery_charge)
-        
+
         wallet.balance = F('balance') + refund_amount
         wallet.save()
 
@@ -1008,7 +1010,7 @@ def cancel_order_item(request, item_id):
             order.payment_status = "PARTIALLY_REFUNDED"
     else:
         order.status = "PENDING"
-    
+
     order.save()
 
     # Log history
@@ -1035,7 +1037,7 @@ def return_order(request, order_id):
         # Check return window (7 days)
         from datetime import timedelta
         from django.utils import timezone
-        
+
         reference_date = order.delivered_date if order.delivered_date else order.created_at
         if timezone.now() > reference_date + timedelta(days=7):
             messages.error(request, "The return window for this order has expired (7 days policy).")
@@ -1074,7 +1076,7 @@ def return_order(request, order_id):
 
             order.status = "RETURN_REQUESTED"
             order.save()
-            
+
             OrderStatusHistory.objects.create(
                 order=order,
                 status="RETURN_REQUESTED",
@@ -1090,7 +1092,7 @@ def apply_coupon(request):
             return JsonResponse({
                 "success": False , "message": "A coupon is already applied. Please remove it first."
             })
-            
+
         code = request.POST.get("code")
 
         try:

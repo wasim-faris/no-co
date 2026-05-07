@@ -598,11 +598,19 @@
               {% endif %}
           </h1>
           
-          {% if query and query.strip and query != "None" %}
-          <p style="font-size: 14px; font-weight: 500; color: #767676; margin-top: 12px; text-transform: none; letter-spacing: 0.02em;">
-              Results for "<span style="color: #000;">{{ query }}</span>"
-          </p>
+          <div id="searchResultContainer">
+          {% if query and query.strip and query != "None" and not request.GET.subcategory and not request.GET.category %}
+          <div style="display: flex; align-items: center; gap: 12px; margin-top: 12px;">
+              <p style="font-size: 14px; font-weight: 500; color: #767676; margin: 0; text-transform: none; letter-spacing: 0.02em;">
+                  Results for "<span style="color: #000;">{{ query }}</span>"
+              </p>
+              <a href="?{% for key, values in request.GET.lists %}{% if key != 'q' and key != 'page' %}{% for value in values %}{{ key }}={{ value }}&{% endfor %}{% endif %}{% endfor %}" 
+                 style="font-size: 11px; font-weight: 600; color: #000; text-decoration: underline; text-transform: uppercase; letter-spacing: 0.05em;">
+                 Clear Search
+              </a>
+          </div>
           {% endif %}
+          </div>
       </div>
 
       <!-- ══ CATEGORY TABS ══ -->
@@ -632,9 +640,12 @@
 
               <div class="sort-menu" id="sortMenu">
                   <form method="GET" action="." id="sortForm">
-                      <!-- PRESERVE ONLY CONTEXT -->
+                      <!-- PRESERVE ONLY CONTEXT (Reset search on sort per user requirement) -->
                       <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}">
-                      <input type="hidden" name="q" value="{{ request.GET.q }}">
+                      <input type="hidden" name="section" value="{{ request.GET.section }}">
+                      {% for cat in request.GET.getlist.category %}
+                      <input type="hidden" name="category" value="{{ cat }}">
+                      {% endfor %}
 
                       <label class="sort-option">
                           Recommended
@@ -961,10 +972,12 @@
         filterReset.addEventListener('click', () => {
             const url = new URL(window.location.href);
             const sub = url.searchParams.get('subcategory');
-            const q = url.searchParams.get('q');
+            const section = url.searchParams.get('section');
             url.search = '';
+            // We keep section/subcategory as they define the base page context
+            if (section) url.searchParams.set('section', section);
             if (sub) url.searchParams.set('subcategory', sub);
-            if (q) url.searchParams.set('q', q);
+            
             if (typeof fetchProducts === 'function') fetchProducts(url);
             else window.location.href = url.pathname + url.search;
             setTimeout(syncUIWithURL, 50);
@@ -1029,6 +1042,7 @@
     /* ── AJAX Filtering & Sorting ── */
     function updatePageHeader(params) {
         const h1 = document.querySelector('h1');
+        const searchUI = document.getElementById('searchResultContainer');
         if (!h1) return;
 
         const q = params.get('q');
@@ -1037,15 +1051,23 @@
 
         if (q && q !== 'None') {
             h1.textContent = q;
-            // Update subtitle if exists
-            const subtitle = h1.parentElement.querySelector('p');
-            if (subtitle) subtitle.innerHTML = `Results for "<span style="color: #000;">${q}</span>"`;
-        } else if (sub) {
-            h1.textContent = sub.replace(/-/g, ' ');
-        } else if (cats.length === 1) {
-            h1.textContent = cats[0];
+            if (searchUI) {
+                searchUI.style.display = 'block';
+                // Find or update the text inside the container if needed
+                const p = searchUI.querySelector('p');
+                if (p) p.innerHTML = `Results for "<span style="color: #000;">${q}</span>"`;
+            }
         } else {
-            h1.textContent = "All Products";
+            // Aggressively hide search UI if not in direct search mode
+            if (searchUI) searchUI.style.display = 'none';
+            
+            if (sub) {
+                h1.textContent = sub.replace(/-/g, ' ').toUpperCase();
+            } else if (cats.length === 1) {
+                h1.textContent = cats[0].toUpperCase();
+            } else {
+                h1.textContent = "All Products";
+            }
         }
     }
 
@@ -1148,6 +1170,9 @@
             e.preventDefault();
             const formData = new FormData(sortFormEl);
             const url = new URL(window.location.href);
+            
+            // Clear search context on sort per user requirement
+            url.searchParams.delete('q');
             
             // Apply new Sort value to existing URL context
             const sortVal = formData.get('sort');
