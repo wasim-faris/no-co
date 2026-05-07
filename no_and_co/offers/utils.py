@@ -140,6 +140,12 @@ def apply_offers_to_variants(variants):
                         best_discount = disc
                         winning_offer = o
         
+        # Priority 3: Manual Product Offer Percentage (Fallback)
+        is_manual = False
+        if not winning_offer and product.offer_percentage > 0:
+            best_discount = (original_price * (product.offer_percentage / Decimal('100'))).quantize(Decimal('0.01'))
+            is_manual = True
+
         final_price = (original_price - best_discount).quantize(Decimal('0.01'))
         if final_price < 0: final_price = Decimal('0.00')
         
@@ -152,11 +158,19 @@ def apply_offers_to_variants(variants):
                 # Fallback for flat discounts
                 if original_price > 0:
                     discount_percent = round((best_discount / original_price) * 100)
+        elif is_manual:
+            discount_percent = round(product.offer_percentage, 2)
             
         variant.original_price = original_price
         variant.final_price = final_price
         variant.discount_percent = discount_percent
         variant.has_discount = best_discount > 0
         variant.savings = best_discount
+        if winning_offer:
+            variant.active_offer = winning_offer.name
+        elif is_manual:
+            variant.active_offer = "Product Offer"
+        else:
+            variant.active_offer = None
         
     return variants

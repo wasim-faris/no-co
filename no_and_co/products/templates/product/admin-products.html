@@ -207,7 +207,9 @@
                         <span class="font-bold text-gray-900 text-[13px]">₹{{ default_variant.final_price }}</span>
                         <span class="text-[10px] bg-green-50 text-green-600 px-1.5 py-0.5 rounded font-bold">{{ default_variant.discount_percent }}% OFF</span>
                       </div>
-                      <span class="text-[10px] text-gray-400 line-through">₹{{ default_variant.original_price }}</span>
+                      <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-gray-400 line-through">₹{{ default_variant.original_price }}</span>
+                      </div>
                     {% else %}
                       <span class="font-bold text-gray-900 text-[13px]">₹{{ default_variant.price }}</span>
                     {% endif %}
