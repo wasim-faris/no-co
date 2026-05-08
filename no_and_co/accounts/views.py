@@ -55,7 +55,7 @@ def signup(request):
             password = request.POST.get("password")
             confirm_password = request.POST.get("confirm_password")
             referral_code = request.POST.get("referral_code", "").strip().upper()
-            
+
             errors = {}
 
             if not username:
@@ -76,7 +76,7 @@ def signup(request):
                 errors['password'] = "Password is required"
             elif not re.match(password_pattern, password):
                 errors['password'] = "Password too weak. Must contain uppercase, lowercase, number, and special character."
-            
+
             if not confirm_password:
                 errors['confirm_password'] = "Please confirm your password"
             elif password != confirm_password:
@@ -111,18 +111,16 @@ def signup(request):
 
             request.session["otp_count"] = 0
 
-            # ── HTML OTP email ───────────────────────────────────────
             html_body = render_to_string('emails/otp_email.html', {'otp': otp})
             text_body = f"Your NO & CO verification code is: {otp}\n\nThis code expires in 10 minutes."
             msg = EmailMultiAlternatives(
                 subject="Your NO & CO Verification Code",
                 body=text_body,
-                from_email=None,          # uses settings.DEFAULT_FROM_EMAIL
+                from_email=None,
                 to=[email],
             )
             msg.attach_alternative(html_body, 'text/html')
             msg.send(fail_silently=False)
-            # ────────────────────────────────────────────────────────
 
             messages.success(request, "otp successfully send to mail")
             return redirect("signup-otp-verification")
@@ -197,7 +195,7 @@ def login_user(request):
             if login_attempts >= 5:
                 errors['non_field'] = "Too many login attempts. Try again later."
                 return render(request, "login.html", {"errors": errors, "values": {"username": username}})
-            
+
             errors['password'] = "Invalid password"
             return render(request, "login.html", {"errors": errors, "values": {"username": username}})
 
@@ -252,7 +250,7 @@ def signup_otp_verification(request):
                     if referrer != user:
                         from django.db.models import Sum
                         total_rewards = ReferralRecord.objects.filter(referrer=referrer).aggregate(total=Sum('reward_amount_referrer'))['total'] or Decimal('0.00')
-                        
+
                         reward_for_referrer = Decimal('100.00')
                         if total_rewards + reward_for_referrer > Decimal('500.00'):
                             reward_for_referrer = max(Decimal('0.00'), Decimal('500.00') - total_rewards)
@@ -323,7 +321,6 @@ def resend_otp_verification(request):
 
             email = signup_data["email"]
 
-            # ── HTML OTP email ───────────────────────────────────────
             html_body = render_to_string('emails/otp_email.html', {'otp': otp})
             text_body = f"Your NO & CO verification code is: {otp}\n\nThis code expires in 10 minutes."
             msg = EmailMultiAlternatives(
@@ -334,7 +331,6 @@ def resend_otp_verification(request):
             )
             msg.attach_alternative(html_body, 'text/html')
             msg.send(fail_silently=False)
-            # ────────────────────────────────────────────────────────
 
             otp_count += 1
             request.session["otp_count"] = otp_count
@@ -411,7 +407,6 @@ def forgot_password(request):
                     send_forgot_password_email(user, reset_link=reset_link, expiry_hours=10)
                 except Exception as e:
                     print(f"[forgot_password] email failed: {e}")
-                # ────────────────────────────────────────────────────────
                 messages.success(request, "reset link send to the email")
                 return redirect("email-confirm")
 

@@ -583,13 +583,15 @@
                 </p>
             </div>
             <div class="header-actions">
-                {% if order.status == 'PLACED' or order.status == 'PENDING' %}
+                {% if order.status == 'PLACED' or order.status == 'PENDING' or order.status == 'PARTIAL_CANCELLED' %}
+                    {% if order.active_items.count > 1 %}
                     <button class="btn btn-hm-secondary" id="cancel-order-btn" style="color: #7F1D1D; border-color: #FECACA; background: #FEF2F2;">
                         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/>
                         </svg>
                         Cancel Order
                     </button>
+                    {% endif %}
                 {% endif %}
                 {% if order.status == 'DELIVERED' %}
                     <button class="btn btn-hm-secondary" id="return-order-btn" style="color: #7F1D1D; border-color: #FECACA; background: #FEF2F2;">
@@ -676,12 +678,10 @@
                             <div class="prod-info">
                                 <div class="prod-name">{{ item.variant.product.product_name }}</div>
                                 <div class="prod-meta">Colour: {{ item.variant.color }} &nbsp;·&nbsp; Size: {{ item.variant.size.name }} &nbsp;·&nbsp; Qty: {{ item.quantity }}</div>
-                                <div class="prod-actions">
-                                    {% if order.items.all|length > 1 %}
+                                    <div class="prod-actions">
                                         {% if item.item_status == 'PLACED' or item.item_status == 'PENDING' %}
                                         <button type="button" class="order-action-mini cancel-item-btn" data-item-index="{{ forloop.counter0 }}">Cancel Item</button>
                                         {% endif %}
-                                    {% endif %}
                                     
                                     {% if order.items.all|length > 1 %}
                                         {% if item.item_status == 'DELIVERED' %}

@@ -84,7 +84,6 @@ def admin_dashboard(request):
 
     is_custom = request.GET.get('is_custom') == 'true'
 
-    # Handle custom date range
     if is_custom and start_date_str and end_date_str:
         try:
             start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d').date()
@@ -95,7 +94,6 @@ def admin_dashboard(request):
             is_custom = False
 
     if not is_custom:
-        # Default ranges based on chart_filter
         if chart_filter == 'yearly':
             start_date = today.replace(year=today.year - 5, month=1, day=1)
             end_date = today
@@ -107,7 +105,6 @@ def admin_dashboard(request):
             start_date = today - datetime.timedelta(days=365)
             end_date = today
 
-    # Base Query for Valid Orders (only completed/delivered/paid)
     valid_order_ids = Order.objects.filter(
         Q(payment_status='PAID') |
         Q(payment_method='COD', items__item_status='DELIVERED')
@@ -115,7 +112,6 @@ def admin_dashboard(request):
 
     valid_orders = Order.objects.filter(id__in=valid_order_ids)
 
-    # Filter by date range
     filtered_orders = valid_orders.filter(created_at__date__range=[start_date, end_date])
 
     metrics = filtered_orders.aggregate(
@@ -131,7 +127,6 @@ def admin_dashboard(request):
     total_sales = metrics['total_sales'] or Decimal('0.00')
     total_discount = max(total_sales - net_revenue - total_coupon, Decimal('0.00'))
 
-    # Chart Data
     if chart_filter == 'yearly':
         trunc_func = TruncYear('created_at')
     elif chart_filter == 'daily':
