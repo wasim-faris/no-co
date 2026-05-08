@@ -528,6 +528,8 @@ def change_password(request):
 
         if not new_password:
             errors['new_password'] = "New password is required"
+        elif current_password and new_password == current_password:
+            errors['new_password'] = "New password cannot be the same as current password"
         elif not re.match(password_pattern, new_password):
             errors['new_password'] = "Weak password. Must contain 8+ chars, uppercase, lowercase, number, special char."
 
