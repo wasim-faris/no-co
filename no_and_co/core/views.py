@@ -990,15 +990,13 @@ def cancel_order_item(request, item_id):
         wallet, _ = Wallet.objects.get_or_create(user=order.user)
         
         # USE STORED SOURCE OF TRUTH (Actual amount user paid for this specific item line)
+        # This amount ALREADY includes the proportional tax share.
         refund_amount = OrderCalculator.round_money(item.net_paid_amount)
 
         # Check if this is the last item to be cancelled
+        # If so, refund the delivery charge too.
         if not order.items.exclude(id=item.id).exclude(item_status="CANCELLED").exists():
-            refund_amount += Decimal(order.delivery_charge)
-
-        # Check if this is the last item to be cancelled
-        if not order.items.exclude(id=item.id).exclude(item_status="CANCELLED").exists():
-            refund_amount += Decimal(order.delivery_charge)
+            refund_amount += Decimal(str(order.delivery_charge))
 
         wallet.balance = F('balance') + refund_amount
         wallet.save()

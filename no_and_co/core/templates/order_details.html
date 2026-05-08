@@ -734,9 +734,9 @@
                                         </div>
                                     {% endif %}
 
-                                    <!-- Final Paid Contribution (Price - Coupon) -->
+                                    <!-- Final Paid Contribution (Price - Coupon + Tax) -->
                                     <div style="font-size: 10px; font-weight: 600; color: #111; margin-top: 2px;">
-                                        Paid: ₹{{ item|get_item_line_total }}
+                                        Paid: ₹{{ item.net_paid_amount }}
                                     </div>
                                     <div style="font-size: 8px; color: #6B7280; text-transform: uppercase; letter-spacing: 0.05em;">
                                         (Qty: {{ item.quantity }})
