@@ -99,6 +99,8 @@ def user_profile(request, id):
             "address_count": address_count,
             "recent_orders": recent_orders,
             "profile_form_data": request.session.pop("profile_form_data", None),
+            "errors": request.session.pop("form_errors", None),
+            "values": request.session.pop("form_values", None),
         },
     )
 
@@ -111,57 +113,47 @@ def update_profile(request, id):
 
         phone_number = request.POST.get("phone", "").strip().replace(" ", "")
 
-        if phone_number:
-            phone_valid, phone_msg = is_valid_phone(phone_number, region="IN")
-            if not phone_valid:
-                request.session["profile_form_data"] = request.POST
-                messages.error(request, phone_msg or "Invalid phone number")
-                return redirect("user-profile", id=id)
-            if not phone_number.startswith("+91") and len(phone_number) == 10:
-                phone_number = "+91" + phone_number
-
         username = request.POST.get("username", "").strip()
         email = request.POST.get("email")
         old_mail = request.user.email
         user = request.user
 
-        request.session["phone_number"] = phone_number
+        errors = {}
 
-        if (
-            username == user.username
-            and email == user.email
-            and phone_number == user.phone_number
-        ):
-            messages.error(request, "Cant update profile")
-            return redirect("user-profile", id=user.id)
+        if not phone_number:
+            errors['phone'] = "Phone number is required"
+        else:
+            phone_valid, phone_msg = is_valid_phone(phone_number, region="IN")
+            if not phone_valid:
+                errors['phone'] = phone_msg or "Invalid phone number"
+            elif not phone_number.startswith("+91") and len(phone_number) == 10:
+                phone_number = "+91" + phone_number
+
+        if not username:
+            errors['username'] = "Username is required"
+        elif len(username) < 4:
+            errors['username'] = "Username must be more than 4 characters"
+        elif not re.match(r"^[A-Za-z\s]+$", username):
+            errors['username'] = "Only letters and spaces are allowed"
+        elif not validate_meaningful_content(username):
+            errors['username'] = "Please enter a valid meaningful username"
+        
+        if username:
+            username = re.sub(r'\s+', ' ', username).strip()
+
+        if not email:
+            errors['email'] = "Email is required"
+        elif not re.match(email_pattern, email):
+            errors['email'] = "Enter a valid email format"
+
+        if errors:
+            request.session["form_errors"] = errors
+            request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
+            return redirect("user-profile", id=id)
+
+        username = clean_input(username)
 
         try:
-            if not phone_number:
-                messages.error(request, "Phone number is required")
-                return redirect("user-profile", id=id)
-
-            if not username:
-                messages.error(request, "Please fill form to update profile")
-                return redirect("user-profile", id=id)
-
-            if len(username) < 4:
-                messages.error(request, "Username must be more than 4 characters")
-                return redirect("user-profile", id=id)
-
-            if not re.match(username_pattern, username):
-                messages.error(request, "Invalid username format")
-                return redirect("user-profile", id=id)
-
-            if not re.match(email_pattern, email):
-                messages.error(request, "enter a valid email format")
-                return redirect("user-profile", id=id)
-
-            if not validate_meaningful_content(username):
-                messages.error(request, "Please enter a valid meaningful username")
-                return redirect("user-profile", id=id)
-
-            username = clean_input(username)
-
             old_username = user.username
             old_phone_number = user.phone_number
 
@@ -175,16 +167,19 @@ def update_profile(request, id):
                     .exclude(id=user.id)
                     .exists()
                 ):
-                    messages.error(request, "Phone number already registered")
+                    request.session["form_errors"] = {'phone': "Phone number already registered"}
+                    request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
                     return redirect("user-profile", id=id)
 
             if email != old_mail:
                 if User.objects.filter(email=email).exclude(email=old_mail).exists():
-                    messages.error(request, "email already exists")
+                    request.session["form_errors"] = {'email': "Email already exists"}
+                    request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
                     return redirect("user-profile", id=id)
 
                 if SocialAccount.objects.filter(user=user, provider="google").exists():
-                    messages.error(request, "Google Sign-In User Cant Change Email.")
+                    request.session["form_errors"] = {'email': "Google Sign-In User Can't Change Email."}
+                    request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
                     return redirect("user-profile", id=id)
 
                 else:
@@ -210,7 +205,8 @@ def update_profile(request, id):
 
                 # check username already exists
                 if User.objects.filter(username=username).exclude(id=user.id).exists():
-                    messages.error(request, "Username already exists")
+                    request.session["form_errors"] = {'username': "Username already exists"}
+                    request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
                     return redirect("user-profile", id=id)
 
                 # check 7 day restriction
@@ -219,10 +215,8 @@ def update_profile(request, id):
 
                     if timezone.now() < next_change:
                         remaining_days = (next_change - timezone.now()).days
-                        messages.error(
-                            request,
-                            f"You can change username after {remaining_days} day(s)",
-                        )
+                        request.session["form_errors"] = {'username': f"You can change username after {remaining_days} day(s)"}
+                        request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
                         return redirect("user-profile", id=id)
 
                 # update username

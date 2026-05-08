@@ -258,25 +258,25 @@
             <form id="editProfileForm" action="{% url 'update-profile' user.id %}" method="POST">
                 {% csrf_token %}
                 <div class="edit-field-group">
-                    <label class="edit-label" for="editUsername">Username</label>
-                    <input class="edit-input" type="text" id="editUsername" name="username" value="{% if profile_form_data %}{{ profile_form_data.username }}{% else %}{{ user.username }}{% endif %}" placeholder="e.g. john_doe_99">
-                    <span class="sub-label" style="display:block; margin-top:4px;">4-20 characters, letters, numbers, and underscores only.</span>
+                    <label class="edit-label" for="editUsername">Name</label>
+                    <input class="edit-input w-full border-b {% if errors.username %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300" type="text" id="editUsername" name="username" value="{{ values.username|default:user.username }}" placeholder="e.g. Sarah Lee">
+                    <p id="editUsername_error" class="text-[9px] text-red-500 mt-1 uppercase tracking-widest {% if not errors.username %}hidden{% endif %}">{{ errors.username }}</p>
                 </div>
                 <div class="edit-field-group">
                     <label class="edit-label" for="editEmail">Email</label>
-                    <input class="edit-input" type="email" id="editEmail" name="email" value="{% if profile_form_data %}{{ profile_form_data.email }}{% else %}{{ user.email }}{% endif %}" {% if not user.has_usable_password %}readonly{% endif %} placeholder="e.g. john@example.com">
-                    <span class="sub-label" style="display:block; margin-top:4px;">Must be a valid email address.</span>
+                    <input class="edit-input w-full border-b {% if errors.email %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300" type="email" id="editEmail" name="email" value="{{ values.email|default:user.email }}" {% if not user.has_usable_password %}readonly{% endif %} placeholder="e.g. sarah@example.com">
+                    <p id="editEmail_error" class="text-[9px] text-red-500 mt-1 uppercase tracking-widest {% if not errors.email %}hidden{% endif %}">{{ errors.email }}</p>
                 </div>
                 <div class="edit-field-group">
                     <label class="edit-label" for="editPhone">Phone</label>
-                    <input class="edit-input" type="text" id="editPhone" name="phone" value="{% if profile_form_data %}{{ profile_form_data.phone }}{% else %}{{ user.phone_number|default:'' }}{% endif %}" placeholder="e.g. 9876543210">
-                    <span class="sub-label" style="display:block; margin-top:4px;">10-digit mobile number.</span>
+                    <input class="edit-input w-full border-b {% if errors.phone %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300" type="text" id="editPhone" name="phone" value="{{ values.phone|default:user.phone_number|default:'' }}" placeholder="e.g. 9876543210">
+                    <p id="editPhone_error" class="text-[9px] text-red-500 mt-1 uppercase tracking-widest {% if not errors.phone %}hidden{% endif %}">{{ errors.phone }}</p>
                 </div>
-                <button type="submit" class="btn-outline edit-save-btn">Save Changes</button>
+                <button type="submit" id="editSubmitBtn" class="w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] active:scale-[0.99] transition-all duration-300 mt-4">Save Changes</button>
             </form>
             <script>
-                // Auto-open drawer if there are errors (form data present)
-                {% if profile_form_data %}
+                // Auto-open drawer if there are errors
+                {% if errors %}
                 document.addEventListener('DOMContentLoaded', () => {
                     const editDrawer = document.getElementById('editDrawer');
                     const editOverlay = document.getElementById('editDrawerOverlay');
@@ -293,73 +293,106 @@
                     const username = document.getElementById('editUsername');
                     const email = document.getElementById('editEmail');
                     const phone = document.getElementById('editPhone');
-                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const submitBtn = document.getElementById('editSubmitBtn');
 
-                    // Setup real-time validation map
-                    const validationMap = {
-                        '#editUsername': (val) => {
-                            const v = val.trim();
-                            if (!v) return false;
-                            if (v.length < 4 || v.length > 20) return false;
-                            // Reject symbols-only or purely repetitive garbage
-                            if (!/[a-zA-Z]/.test(v)) return false; 
-                            return true;
-                        },
-                        '#editEmail': (val) => {
-                            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
-                        },
-                        '#editPhone': (val) => {
-                            // The attachPhoneValidation handles dataset.isValid
-                            return true; 
+                    const usernameError = document.getElementById('editUsername_error');
+                    const emailError = document.getElementById('editEmail_error');
+                    const phoneError = document.getElementById('editPhone_error');
+
+                    const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+                    const namePattern = /^[A-Za-z\s]+$/;
+
+                    function showError(input, errorElement, message) {
+                        input.classList.remove('border-gray-200');
+                        input.classList.add('border-red-500');
+                        errorElement.textContent = message;
+                        errorElement.classList.remove('hidden');
+                    }
+
+                    function clearError(input, errorElement) {
+                        input.classList.remove('border-red-500');
+                        input.classList.add('border-gray-200');
+                        errorElement.textContent = "";
+                        errorElement.classList.add('hidden');
+                    }
+
+                    function validateForm() {
+                        let isValid = true;
+                        
+                        const valName = username.value;
+                        const cleanName = valName.replace(/\s+/g, ' ').trim();
+                        
+                        // Name validation
+                        if (valName && !namePattern.test(valName)) {
+                            showError(username, usernameError, "Only letters and spaces are allowed.");
+                            isValid = false;
+                        } else if (cleanName.length > 0 && cleanName.length < 4) {
+                            showError(username, usernameError, "Name must be more than 4 characters.");
+                            isValid = false;
+                        } else {
+                            if (usernameError.textContent && !usernameError.textContent.includes("already exists")) {
+                                clearError(username, usernameError);
+                            }
                         }
-                    };
+                        if(!valName) isValid = false;
 
-                    // Initial attachment of phone validation
-                    ValidationUtils.attachPhoneValidation('#editPhone', 'button[type="submit"]', "{% url 'validate-phone' %}");
+                        // Email validation
+                        const valEmail = email.value.trim();
+                        if (valEmail && !emailPattern.test(valEmail)) {
+                            showError(email, emailError, "Enter a valid email format.");
+                            isValid = false;
+                        } else {
+                            if (emailError.textContent && !emailError.textContent.includes("already exists")) {
+                                clearError(email, emailError);
+                            }
+                        }
+                        if(!valEmail) isValid = false;
 
-                    // Attach strict form watcher
-                    ValidationUtils.watchForm('#editProfileForm', 'button[type="submit"]', validationMap);
+                        // Phone logic
+                        const valPhone = phone.value.trim();
+                        if (valPhone && valPhone.length < 10) {
+                            showError(phone, phoneError, "Phone number too short.");
+                            isValid = false;
+                        } else {
+                            if (phoneError.textContent && !phoneError.textContent.includes("already registered")) {
+                                clearError(phone, phoneError);
+                            }
+                        }
+                        if(!valPhone) isValid = false;
 
-                    // Add individual real-time listeners for immediate error feedback
+                        submitBtn.disabled = !isValid;
+                        if (!isValid) {
+                            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                        } else {
+                            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                        }
+                    }
+
                     username.addEventListener('input', () => {
-                        const val = username.value.trim();
-                        if (!val) {
-                            ValidationUtils.showError(username, "Username is required.");
-                            username.dataset.isValid = "false";
-                        } else if (val.length < 4) {
-                            ValidationUtils.showError(username, "Too short (min 4 chars).");
-                            username.dataset.isValid = "false";
-                        } else if (!/[a-zA-Z]/.test(val)) {
-                            ValidationUtils.showError(username, "Must contain at least one letter.");
-                            username.dataset.isValid = "false";
-                        } else {
-                            ValidationUtils.clearError(username);
-                            username.dataset.isValid = "true";
-                        }
+                        if (usernameError.textContent.includes("already exists")) clearError(username, usernameError);
+                        validateForm();
+                    });
+                    email.addEventListener('input', () => {
+                        if (emailError.textContent.includes("already exists") || emailError.textContent.includes("Sign-In")) clearError(email, emailError);
+                        validateForm();
+                    });
+                    phone.addEventListener('input', () => {
+                        if (phoneError.textContent.includes("already registered")) clearError(phone, phoneError);
+                        validateForm();
                     });
 
-                    email.addEventListener('input', () => {
-                        const val = email.value.trim();
-                        if (!val) {
-                            ValidationUtils.showError(email, "Email is required.");
-                            email.dataset.isValid = "false";
-                        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
-                            ValidationUtils.showError(email, "Enter a valid email format.");
-                            email.dataset.isValid = "false";
-                        } else {
-                            ValidationUtils.clearError(email);
-                            email.dataset.isValid = "true";
-                        }
+                    username.addEventListener('blur', () => {
+                        username.value = username.value.replace(/\s+/g, ' ').trim();
+                        validateForm();
                     });
+                    email.addEventListener('blur', validateForm);
+                    phone.addEventListener('blur', validateForm);
 
                     form.addEventListener('submit', function(e) {
-                        // Final safety check
                         if (submitBtn.disabled || form.dataset.submitting === "true") {
                             e.preventDefault();
                             return;
                         }
-
-                        // Double-submit protection & Spinner
                         form.dataset.submitting = "true";
                         submitBtn.disabled = true;
                         submitBtn.dataset.originalText = submitBtn.innerHTML;

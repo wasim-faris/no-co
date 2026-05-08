@@ -519,27 +519,34 @@ def change_password(request):
         confirm_new_password = request.POST.get("confirm_new_password")
         user = get_object_or_404(User, id=request.user.id)
 
-        if not current_password or not confirm_new_password or not new_password:
-            messages.error(request, "Please fill full form")
-            return redirect("change-password")
-        if not new_password == confirm_new_password:
-            messages.error(request, "Password does not match")
-            return redirect("change-password")
+        errors = {}
 
-        if not check_password(current_password, user.password):
-            messages.error(request, "Current password incorrect")
-            return redirect("change-password")
+        if not current_password:
+            errors['current_password'] = "Current password is required"
+        elif not check_password(current_password, user.password):
+            errors['current_password'] = "Current password incorrect"
 
-        if not re.match(password_pattern, new_password):
-            messages.error(request, "Password too week")
-            return redirect("change-password")
+        if not new_password:
+            errors['new_password'] = "New password is required"
+        elif not re.match(password_pattern, new_password):
+            errors['new_password'] = "Weak password. Must contain 8+ chars, uppercase, lowercase, number, special char."
 
-        if not re.match(password_pattern, confirm_new_password):
-            messages.error(request, "Passwoed too week")
-            return redirect("change-password")
+        if not confirm_new_password:
+            errors['confirm_new_password'] = "Please confirm your new password"
+        elif new_password != confirm_new_password:
+            errors['confirm_new_password'] = "Passwords do not match"
+
+        if errors:
+            return render(request, "accounts/change_password.html", {
+                "errors": errors,
+                "values": {
+                    "current_password": current_password,
+                    "new_password": new_password,
+                    "confirm_new_password": confirm_new_password
+                }
+            })
 
         user.set_password(new_password)
-
         user.save()
 
         messages.success(request, "Password updated successfully")
