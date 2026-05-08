@@ -348,17 +348,17 @@
                         }
                         if(!valEmail) isValid = false;
 
-                        // Phone logic
+                        // Phone logic (Handled by ValidationUtils)
                         const valPhone = phone.value.trim();
-                        if (valPhone && valPhone.length < 10) {
-                            showError(phone, phoneError, "Phone number too short.");
+                        if (!valPhone) {
+                            isValid = false;
+                        } else if (phone.dataset.isValid === "false" || phone.dataset.pending === "true") {
                             isValid = false;
                         } else {
-                            if (phoneError.textContent && !phoneError.textContent.includes("already registered")) {
+                            if (phoneError.textContent && !phoneError.textContent.includes("already registered") && phoneError.dataset.vuSet !== "true") {
                                 clearError(phone, phoneError);
                             }
                         }
-                        if(!valPhone) isValid = false;
 
                         submitBtn.disabled = !isValid;
                         if (!isValid) {

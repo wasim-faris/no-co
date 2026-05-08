@@ -58,18 +58,37 @@ const ValidationUtils = {
      */
     showError: function(element, message) {
         this.clearError(element);
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'validation-error-message';
-        errorDiv.style.color = '#dc2626';
-        errorDiv.style.fontSize = '11px';
-        errorDiv.style.marginTop = '4px';
-        errorDiv.style.fontFamily = 'Inter, sans-serif';
-        errorDiv.textContent = message;
         
-        // Handle input wrappers if present
-        const targetParent = element.classList.contains('input-field') ? element.parentNode : element.parentNode;
-        targetParent.appendChild(errorDiv);
-        element.style.borderColor = '#dc2626';
+        let errorEl = null;
+        if (element.id) {
+            // Check for new UX patterns like id="editPhone_error" or "err-edit-phone"
+            errorEl = document.getElementById(element.id + '_error') || document.getElementById('err-' + element.id);
+        }
+        
+        if (errorEl) {
+            errorEl.textContent = message;
+            errorEl.classList.remove('hidden');
+            if (errorEl.style.display === 'none') errorEl.style.display = '';
+            
+            element.style.borderColor = '#dc2626';
+            if (element.classList.contains('border-gray-200')) {
+                element.classList.remove('border-gray-200');
+                element.classList.add('border-red-500');
+            }
+            errorEl.dataset.vuSet = "true";
+        } else {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'validation-error-message';
+            errorDiv.style.color = '#dc2626';
+            errorDiv.style.fontSize = '11px';
+            errorDiv.style.marginTop = '4px';
+            errorDiv.style.fontFamily = 'Inter, sans-serif';
+            errorDiv.textContent = message;
+            
+            const targetParent = element.classList.contains('input-field') ? element.parentNode : element.parentNode;
+            targetParent.appendChild(errorDiv);
+            element.style.borderColor = '#dc2626';
+        }
     },
 
     /**
@@ -77,12 +96,29 @@ const ValidationUtils = {
      * @param {HTMLElement} element 
      */
     clearError: function(element) {
+        let errorEl = null;
+        if (element.id) {
+            errorEl = document.getElementById(element.id + '_error') || document.getElementById('err-' + element.id);
+        }
+        
+        if (errorEl && errorEl.dataset.vuSet === "true") {
+            errorEl.textContent = '';
+            errorEl.classList.add('hidden');
+            if (errorEl.style.display === '') errorEl.style.display = 'none';
+            delete errorEl.dataset.vuSet;
+        }
+
         const parent = element.parentNode;
         const existingError = parent.querySelector('.validation-error-message');
         if (existingError) {
             existingError.remove();
         }
+        
         element.style.borderColor = '';
+        if (element.classList.contains('border-red-500')) {
+            element.classList.remove('border-red-500');
+            element.classList.add('border-gray-200');
+        }
     },
 
     /**
