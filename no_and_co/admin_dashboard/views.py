@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect,get_object_or_404
 from accounts.models import User
 from django.contrib.auth import login, logout, authenticate
 from django.contrib import messages
@@ -8,7 +8,11 @@ import time
 import re
 from django.contrib.auth.hashers import make_password, check_password
 from .decorators import admin_required
-
+from core.models import Order, OrderItem
+from django.db.models import Sum, Count, F, Q, Case, When, DecimalField
+from decimal import Decimal
+import openpyxl
+from openpyxl.styles import Font
 email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 password_pattern = (
     r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
@@ -20,7 +24,14 @@ from django.utils import timezone
 from datetime import timedelta, datetime
 import csv
 from django.http import HttpResponse
-
+from core.models import Order, OrderItem
+from django.db.models import Sum, Count, F, Q, Case, When, DecimalField
+from django.utils import timezone
+from decimal import Decimal
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 # Create your views here.
 
 
@@ -139,7 +150,6 @@ def admin_dashboard(request):
         sales=Sum('total_amount')
     ).order_by('date')
 
-    # Fill in missing points for chart
     labels = []
     data = []
     graph_json = []
@@ -243,14 +253,6 @@ def admin_dashboard(request):
 @admin_required
 @never_cache
 def export_dashboard_pdf(request):
-    from core.models import Order, OrderItem
-    from django.db.models import Sum, Count, F, Q, Case, When, DecimalField
-    from django.utils import timezone
-    from decimal import Decimal
-    from reportlab.lib import colors
-    from reportlab.lib.pagesizes import letter
-    from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-    from reportlab.lib.styles import getSampleStyleSheet
 
     valid_order_ids = Order.objects.filter(
         Q(payment_status='PAID') | Q(payment_method='COD', items__item_status='DELIVERED')
@@ -337,11 +339,6 @@ def export_dashboard_pdf(request):
 @admin_required
 @never_cache
 def export_dashboard_excel(request):
-    from core.models import Order, OrderItem
-    from django.db.models import Sum, Count, F, Q, Case, When, DecimalField
-    from decimal import Decimal
-    import openpyxl
-    from openpyxl.styles import Font
 
     valid_order_ids = Order.objects.filter(
         Q(payment_status='PAID') | Q(payment_method='COD', items__item_status='DELIVERED')
@@ -694,7 +691,7 @@ def admin_sales_report(request):
     from django.db.models.functions import TruncDate, TruncMonth
     from decimal import Decimal
 
-    # 1. Date Filtering
+
     today = timezone.now().date()
     period = request.GET.get('period', 'weekly')
 
@@ -708,7 +705,7 @@ def admin_sales_report(request):
         start_date = today.replace(month=1, day=1)
         end_date = today
     else:
-        # Custom or Default
+
         start_date_str = request.GET.get('start_date')
         end_date_str = request.GET.get('end_date')
         default_start = today - timedelta(days=30)
@@ -726,7 +723,6 @@ def admin_sales_report(request):
             start_date = default_start
             end_date = today
 
-    # 2. Base Query for Valid Orders
     valid_orders = Order.objects.filter(
         Q(payment_status='PAID') |
         Q(payment_method='COD', items__item_status='DELIVERED')
@@ -734,7 +730,6 @@ def admin_sales_report(request):
 
     filtered_orders = valid_orders.filter(created_at__date__range=[start_date, end_date])
 
-    # 2.1 Additional Search and Status Filters
     query = request.GET.get('q', '')
     if query:
         filtered_orders = filtered_orders.filter(
@@ -747,14 +742,14 @@ def admin_sales_report(request):
     if status_filter and status_filter != 'All Status':
         filtered_orders = filtered_orders.filter(payment_status=status_filter.upper())
 
-    # 3. Aggregations (Top Metric Cards)
+
     metrics = filtered_orders.aggregate(
         total_revenue=Sum('total_amount'),
         total_orders=Count('id', distinct=True),
         coupon_deduction=Sum('discount_amount')
     )
 
-    # Offer discounts from OrderItem
+
     total_offer_discounts = OrderItem.objects.filter(
         order__in=filtered_orders
     ).exclude(item_status__in=['CANCELLED', 'RETURN_REFUNDED']).aggregate(
@@ -771,12 +766,12 @@ def admin_sales_report(request):
     total_orders_count = metrics['total_orders'] or 0
     coupon_deduction = metrics['coupon_deduction'] or Decimal('0.00')
 
-    # 4. Chart Data: Revenue Overview
+
     daily_labels = []
     daily_values = []
 
     if period == 'yearly':
-        # Group by month for yearly view
+
         revenue_data = filtered_orders.annotate(
             month=TruncMonth('created_at')
         ).values('month').annotate(
@@ -785,7 +780,7 @@ def admin_sales_report(request):
 
         revenue_dict = {item['month'].date() if item['month'] else None: float(item['revenue']) for item in revenue_data if item['month']}
 
-        # Build labels and values for all months from start_date to end_date
+
         curr = start_date.replace(day=1)
         while curr <= end_date:
             daily_labels.append(curr.strftime('%b %Y'))
@@ -795,7 +790,7 @@ def admin_sales_report(request):
             else:
                 curr = curr.replace(month=curr.month + 1)
     else:
-        # Group by day for weekly, monthly, custom views
+
         revenue_data = filtered_orders.annotate(
             date=TruncDate('created_at')
         ).values('date').annotate(
@@ -810,13 +805,11 @@ def admin_sales_report(request):
             daily_values.append(revenue_dict.get(curr, 0.0))
             curr += timedelta(days=1)
 
-    # 5. Chart Data: Monthly Growth (Last 12 Months)
-    # Ensure we show all last 12 months even if revenue is 0
     monthly_data = []
     for i in range(11, -1, -1):
-        # Calculate start of month i months ago
+
         first_day = (today.replace(day=1) - timedelta(days=i*31)).replace(day=1)
-        # Calculate end of that month
+
         if first_day.month == 12:
             next_month = first_day.replace(year=first_day.year + 1, month=1)
         else:
@@ -835,25 +828,25 @@ def admin_sales_report(request):
     monthly_labels = [m['label'] for m in monthly_data]
     monthly_values = [m['value'] for m in monthly_data]
 
-    # 6. Recent Transactions Table (Paginated - Limit 5)
+
     transactions_list = filtered_orders.order_by('-created_at').select_related('user')
     paginator = Paginator(transactions_list, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    # 7. Export Functionality
+
     if request.GET.get('export') == 'csv':
-        # Generate clean filename
+
         filename = f"sales_report_{start_date.strftime('%Y_%m_%d')}_to_{end_date.strftime('%Y_%m_%d')}.csv"
 
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
 
-        # Add UTF-8 BOM for Excel to recognize UTF-8 encoding immediately
+
         response.write('\ufeff'.encode('utf8'))
 
         writer = csv.writer(response)
-        # Professional Headers
+
         writer.writerow(['Order ID', 'Date', 'Customer Name', 'Status', 'Payment Method', 'Total Amount', 'Discount Applied', 'Final Amount'])
 
         if not transactions_list.exists():
@@ -888,7 +881,7 @@ def admin_sales_report(request):
         'query': query,
         'status_filter': status_filter,
         'period': period,
-        # Growth placeholders (as requested)
+       
         'rev_growth': 24.8,
         'ord_growth': 15.2,
         'prod_growth': 12.5,
@@ -909,21 +902,21 @@ def admin_user_details(request, id):
 
     target_user = get_object_or_404(User, id=id)
 
-    # Ensure user has a referral code
+
     if not target_user.referral_code:
         target_user.save()
 
-    # User stats
+
     user_orders = Order.objects.filter(user=target_user).order_by('-created_at')
     total_orders = user_orders.count()
     total_spent = user_orders.aggregate(total=Sum('total_amount'))['total'] or 0
 
-    # Default address
+
     default_address = Addresses.objects.filter(user=target_user, is_default=True).first()
     if not default_address:
         default_address = Addresses.objects.filter(user=target_user).first()
 
-    # Pagination for orders
+
     paginator = Paginator(user_orders, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
