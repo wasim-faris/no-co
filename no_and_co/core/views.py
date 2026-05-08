@@ -33,6 +33,7 @@ from coupon.models import Coupon, CouponUsage
 from offers.utils import apply_offers_to_variants
 from .utils import coupon_validation, get_cart_total, get_available_coupons, revalidate_coupon
 from offers.utils import get_best_offer
+from utils.order_calculations import OrderCalculator
 # Create your views here.
 
 
@@ -567,10 +568,27 @@ def place_order(request):
             return redirect("checkout")
 
         sub_total = sum(item.price * item.quantity for item in cart_items)
+        
+        # ── COUPLING VALIDATION & CALCULATION (RACE CONDITION FIX) ───────
+        # We RE-CALCULATE the discount from the source coupon to ensure it matches
+        # the current sub_total, ignoring potentially stale session values.
+        coupon_id = request.session.get("coupon_id")
+        applied_coupon = None
+        discount = Decimal("0.00")
+        
+        if coupon_id:
+            from coupon.models import Coupon
+            applied_coupon = Coupon.objects.filter(id=coupon_id, is_active=True, is_deleted=False).first()
+            if applied_coupon:
+                is_valid, result = coupon_validation(applied_coupon, request.user, sub_total)
+                if is_valid:
+                    discount = Decimal(str(result))
+                else:
+                    applied_coupon = None # Coupon no longer valid for this cart
+        
         tax_rate = Decimal("0.12")
         tax_amount = (sub_total * tax_rate).quantize(Decimal("0.01"))
         delivery_charge = Decimal("149.00") if sub_total < Decimal("999.00") else Decimal("0.00")
-        discount = Decimal(str(request.session.get("discount", "0.00")))
         total_amount = sub_total + tax_amount - discount + delivery_charge
 
         # COD Limit Check
@@ -582,12 +600,6 @@ def place_order(request):
             payment_status = "PAID"
         else:
             payment_status = "PENDING"
-
-        coupon_id = request.session.get("coupon_id")
-        applied_coupon = None
-        if coupon_id:
-            from coupon.models import Coupon
-            applied_coupon = Coupon.objects.filter(id=coupon_id).first()
 
         if total_amount < 0:
             total_amount = Decimal("0.00")
@@ -619,39 +631,29 @@ def place_order(request):
                 )
 
 
-                remaining_discount = discount
-                items = list(cart_items)
-                total_items = len(items)
+                # Centralized Calculation Service Usage
+                items_data = [{'id': item.id, 'price': item.price, 'quantity': item.quantity} for item in cart_items]
+                
+                calculation_results = OrderCalculator.calculate_order_shares(items_data, discount, tax_amount)
 
-                for i, item in enumerate(items):
-
-                    if i == total_items - 1:
-
-                        item_coupon_discount = remaining_discount
-                    else:
-                        item_line_total = item.price * item.quantity
-                        if sub_total > 0:
-                            item_coupon_discount = ((item_line_total / sub_total) * discount).quantize(Decimal("0.01"))
-                        else:
-                            item_coupon_discount = Decimal("0.00")
-                        remaining_discount -= item_coupon_discount
-
-
-                    item_line_total = item.price * item.quantity
-                    if item_coupon_discount > item_line_total:
-                        item_coupon_discount = item_line_total
-
-                    item_final_total = item_line_total - item_coupon_discount
-                    item_final_price_per_unit = (item_final_total / item.quantity).quantize(Decimal("0.01")) if item.quantity > 0 else Decimal("0.00")
-
+                for item in cart_items:
+                    res = calculation_results[item.id]
+                    
+                    # Store final sources of truth
+                    unit_offer_discount = item.variant.price - item.price
+                    
                     OrderItem.objects.create(
                         order=order,
                         variant=item.variant,
-                        original_price=item.variant.price,
-                        discount_amount=item_coupon_discount,
-                        final_price=item_final_price_per_unit,
-                        price=item.price,
+                        original_price=item.variant.price, # MRP
+                        offer_discount=OrderCalculator.round_money(unit_offer_discount * item.quantity),
+                        price=item.price, # Unit price after product offer
                         quantity=item.quantity,
+                        discount_amount=res['coupon_share'], # Coupon share for the line
+                        tax_amount=res['tax_share'], # Tax share for the line
+                        net_paid_amount=res['net_paid'], # Final paid amount for the line (Base + Tax - Coupon)
+                        # final_price stored per unit (after coupon, before tax)
+                        final_price=OrderCalculator.round_money((item.price * item.quantity - res['coupon_share']) / item.quantity) if item.quantity > 0 else Decimal('0.00')
                     )
 
                 if payment_method == "COD":
@@ -906,16 +908,22 @@ def cancel_order(request, order_id):
             messages.error(request, "This order cannot be cancelled as it has already been shipped.")
             return redirect("order_details", id=order_id)
 
-        items_to_cancel = order.items.select_related("variant").exclude(item_status="CANCELLED")
+        items_to_cancel = list(order.items.select_related("variant").exclude(item_status="CANCELLED"))
 
+        total_refund = Decimal('0.00')
         for item in items_to_cancel:
             # Restore stock
             variant = item.variant
             variant.stock += item.quantity
             variant.save()
 
-        # Refund the full amount paid including GST
-        total_refund = order.total_amount
+            if order.payment_method in ["ONLINE", "wallet"] and order.payment_status in ["PAID", "PARTIALLY_REFUNDED"]:
+                # USE STORED SOURCE OF TRUTH
+                total_refund += item.net_paid_amount
+
+        # Add delivery charge refund since the whole order is now cancelled
+        if order.payment_method in ["ONLINE", "wallet"] and order.payment_status in ["PAID", "PARTIALLY_REFUNDED"]:
+            total_refund += Decimal(order.delivery_charge)
 
         order.items.update(item_status="CANCELLED")
         order.status = "CANCELLED"
@@ -978,14 +986,15 @@ def cancel_order_item(request, item_id):
     item.save()
 
     # 3. Handle Refund
-    if order.payment_status == "PAID" or order.payment_method == "wallet":
+    if order.payment_status in ["PAID", "PARTIALLY_REFUNDED"] or order.payment_method == "wallet":
         wallet, _ = Wallet.objects.get_or_create(user=order.user)
-        # Calculate proportional tax for the item
-        item_base = Decimal(item.final_price) * item.quantity
-        tax_rate = order.tax_amount / order.subtotal if order.subtotal > 0 else Decimal('0.00')
-        item_tax = (Decimal(item.price) * item.quantity * tax_rate).quantize(Decimal('0.01'))
+        
+        # USE STORED SOURCE OF TRUTH (Actual amount user paid for this specific item line)
+        refund_amount = OrderCalculator.round_money(item.net_paid_amount)
 
-        refund_amount = item_base + item_tax
+        # Check if this is the last item to be cancelled
+        if not order.items.exclude(id=item.id).exclude(item_status="CANCELLED").exists():
+            refund_amount += Decimal(order.delivery_charge)
 
         # Check if this is the last item to be cancelled
         if not order.items.exclude(id=item.id).exclude(item_status="CANCELLED").exists():

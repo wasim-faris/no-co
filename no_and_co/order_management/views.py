@@ -119,7 +119,7 @@ def admin_update_order_status(request, order_id):
                     if order.payment_status == "PAID" or order.payment_method == "wallet":
                         if order.payment_status != "REFUNDED":
                             wallet, _ = Wallet.objects.get_or_create(user=order.user)
-                            refund_amount = order.total_amount
+                            refund_amount = order.active_total
                             wallet.balance = Decimal(wallet.balance) + Decimal(refund_amount)
                             wallet.save()
 

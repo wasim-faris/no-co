@@ -145,32 +145,33 @@ class Order(models.Model):
 
     @property
     def active_subtotal(self):
+        # Base paid amount after coupon but BEFORE tax
         return sum(item.final_price * item.quantity for item in self.active_items)
 
     @property
     def cancelled_subtotal(self):
+        # Base paid amount for cancelled items after coupon but BEFORE tax
         return sum(item.final_price * item.quantity for item in self.cancelled_items)
 
     @property
     def active_tax(self):
-        from decimal import Decimal
-        if self.subtotal > 0:
-            tax_rate = self.tax_amount / self.subtotal
-            return (self.active_original_subtotal * tax_rate).quantize(Decimal('0.01'))
-        return Decimal('0.00')
+        return sum(item.tax_amount for item in self.active_items)
 
     @property
     def refund_amount(self):
         from decimal import Decimal
+        from utils.order_calculations import OrderCalculator
         if self.payment_method == 'COD':
             return Decimal('0.00')
-        return self.cancelled_subtotal
+        # Total actual money to be refunded (Base + Tax - Coupon)
+        return OrderCalculator.round_money(sum(item.net_paid_amount for item in self.cancelled_items))
 
     @property
     def active_total(self):
         from decimal import Decimal
+        from utils.order_calculations import OrderCalculator
         if self.active_items.exists():
-            return (self.active_subtotal + self.active_tax + self.delivery_charge).quantize(Decimal('0.01'))
+            return OrderCalculator.round_money(sum(item.net_paid_amount for item in self.active_items) + self.delivery_charge)
         return Decimal('0.00')
 
     def save(self, *args, **kwargs):
@@ -227,7 +228,15 @@ class OrderItem(models.Model):
     discount_amount = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=0.00
+        default=0.00,
+        help_text="Coupon discount share for this line"
+    )
+
+    offer_discount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        help_text="Product/Category offer discount for this line"
     )
 
     final_price = models.DecimalField(
@@ -239,7 +248,21 @@ class OrderItem(models.Model):
     price = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        help_text="Direct purchase price (synced with final_price)"
+        help_text="Direct purchase price (after product offers)"
+    )
+
+    tax_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        help_text="Proportional tax amount for this item line"
+    )
+
+    net_paid_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0.00,
+        help_text="Actual final paid amount for this line (base + tax - coupon)"
     )
 
     quantity = models.PositiveIntegerField()
