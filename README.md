@@ -1,130 +1,245 @@
-# NØ & CO.
-### H&M Inspired Modern Fashion Ecommerce Platform
----
-
 <div align="center">
-  <img src="https://img.shields.io/badge/Status-Production--Ready-black?style=for-the-badge" alt="Status">
-  <img src="https://img.shields.io/badge/UI/UX-Minimalist-black?style=for-the-badge" alt="UI/UX">
-  <img src="https://img.shields.io/badge/Architecture-MVC-black?style=for-the-badge" alt="Architecture">
+
+# NØ & CO.
+
+### Premium Fashion E-Commerce Platform
+
+<br/>
+
+![Status](https://img.shields.io/badge/Status-Production--Ready-000000?style=for-the-badge)
+![Django](https://img.shields.io/badge/Django-5.2-092E20?style=for-the-badge&logo=django&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+
+<br/>
+
+*Inspired by the clean, Scandinavian minimalism of H&M and ZARA — built for the modern fashion consumer.*
+
 </div>
 
-<br />
+---
 
-NØ & CO is a premium fashion e-commerce destination built for the modern consumer. Inspired by the clean, Scandinavian minimalist aesthetic of industry leaders like H&M and ZARA, this platform delivers a seamless, high-performance shopping experience. From a sophisticated variant management system to a robust checkout flow, every detail is engineered for scalability and aesthetic excellence.
+## 📖 Overview
+
+**NØ & CO.** is a full-stack, production-grade fashion e-commerce platform built with Django 5.2. It features a sophisticated multi-variant product catalog, a complete checkout pipeline with Razorpay payment integration, a user wallet system for instant refunds, and a bespoke admin dashboard — all wrapped in a minimalist, premium UI.
+
+---
+
+## ✨ Features
+
+### 🛍️ Customer-Facing
+
+| Feature | Details |
+|---|---|
+| **Product Catalog** | Multi-variant support (Color × Size) with real-time stock tracking |
+| **Smart Wishlist** | Dynamic "Heart" sync across all product surfaces |
+| **Shopping Cart** | Persistent session-based cart with offer price calculations |
+| **Checkout Flow** | Multi-step checkout with address selection and order summary |
+| **Payment Gateway** | Razorpay integration with signature verification |
+| **Wallet System** | Internal user wallet for refunds and direct purchases |
+| **Coupon Engine** | Validated discount codes with minimum order thresholds |
+| **Offer System** | Category-wise and product-wise offer pricing with countdown timers |
+| **Order Management** | Order history, live status tracking, item-level cancellation & returns |
+| **PDF Invoices** | Downloadable order invoices generated with xhtml2pdf |
+| **Product Reviews** | Verified-purchase review and star-rating system |
+| **Search & Filter** | Multi-attribute filtering by Category, Subcategory, Price, and Color |
+| **Custom 404 Page** | Branded, production-ready error handling |
+
+### ⚙️ Admin & Back-Office
+
+| Feature | Details |
+|---|---|
+| **Custom Admin Dashboard** | Bespoke management interface separate from Django's default admin |
+| **User Management** | View, activate, and block user accounts |
+| **Product & Variant Control** | Add/edit products with integrated image cropper |
+| **Cloudinary Storage** | Cloud-hosted media via `django-cloudinary-storage` |
+| **Inventory Alerts** | Automated low-stock tracking at the variant level |
+| **Coupon & Offer Hub** | Centralized control panel for all platform discounts |
+| **Order Processing** | Update order statuses and manage partial refunds |
+| **Sales Reports** | Filtered order and revenue analytics |
+
+### 🔐 Authentication & Accounts
+
+- Secure session-based authentication with `django-allauth`
+- Google OAuth social login
+- Phone number support via `phonenumbers`
+- Password reset via email OTP
+- Multiple saved shipping addresses with primary selection
 
 ---
 
 ## 🛠️ Tech Stack
 
-<div align="center">
-  <img src="https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Django-4.x-092E20?style=flat-square&logo=django&logoColor=white" alt="Django">
-  <img src="https://img.shields.io/badge/PostgreSQL-Data-336791?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL">
-  <img src="https://img.shields.io/badge/HTML5-Structure-E34F26?style=flat-square&logo=html5&logoColor=white" alt="HTML5">
-  <img src="https://img.shields.io/badge/CSS3-Design-1572B6?style=flat-square&logo=css3&logoColor=white" alt="CSS3">
-  <img src="https://img.shields.io/badge/JavaScript-Logic-F7DF1E?style=flat-square&logo=javascript&logoColor=black" alt="JavaScript">
-  <img src="https://img.shields.io/badge/Tailwind-Styling-06B6D4?style=flat-square&logo=tailwind-css&logoColor=white" alt="Tailwind">
-  <img src="https://img.shields.io/badge/Git-Version_Control-F05032?style=flat-square&logo=git&logoColor=white" alt="Git">
-</div>
-
----
-
-## 💎 Key Features
-
-### 🛍️ Customer Experience
-- **Premium UI/UX**: Minimalist fashion-forward design with responsive layouts.
-- **Advanced Product Catalog**: Multi-variant support (Color/Size) with real-time stock tracking.
-- **Smart Wishlist**: Dynamic "Heart" sync across the entire platform.
-- **Secure Checkout**: Streamlined multi-step checkout with wallet and Razorpay integration.
-- **Offer System**: Category-wise and product-wise offer pricing with countdown timers.
-- **Coupon Engine**: Robust coupon validation system for discounted shopping.
-- **Order Management**: Comprehensive order history, status tracking, and easy returns/cancellations.
-
-### 🛡️ Core Infrastructure
-- **Authentication**: Secure JWT/Session based auth with password recovery.
-- **Wallet System**: Integrated user wallet for instant refunds and internal transactions.
-- **Address Management**: Multiple shipping address support with primary selection.
-- **Search & Filtering**: High-performance multi-attribute filtering (Category, Subcategory, Price, Color).
-
-### ⚙️ Administrative Control
-- **Custom Admin Dashboard**: Bespoke management interface for products, orders, and users.
-- **Image Processing**: Integrated image cropper for standardized product photography.
-- **Stock Control**: Automated inventory alerts and variant-level management.
-- **Coupon & Offer Management**: Centralized hub for controlling platform-wide discounts.
-
----
-
-## 🚀 Installation & Setup
-
-Follow these steps to get the project running locally:
-
-### 1. Clone Repository
-```bash
-git clone https://github.com/yourusername/no-and-co.git
-cd no-and-co
-```
-
-### 2. Environment Setup
-```bash
-# Create virtual environment
-python -m venv venv
-
-# Activate (Windows)
-venv\Scripts\activate
-
-# Activate (Mac/Linux)
-source venv/bin/activate
-```
-
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Database Migrations
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-### 5. Run Server
-```bash
-python manage.py runserver
-```
+| Layer | Technology |
+|---|---|
+| **Backend Framework** | Django 5.2 |
+| **Database** | PostgreSQL (via `psycopg2-binary`) |
+| **Authentication** | `django-allauth` + PyJWT |
+| **Payment** | Razorpay |
+| **Media Storage** | Cloudinary + `django-cloudinary-storage` |
+| **PDF Generation** | `xhtml2pdf` + `reportlab` |
+| **Image Processing** | Pillow |
+| **Environment Config** | `python-decouple` |
+| **WSGI Server** | Gunicorn |
+| **Frontend** | HTML5, CSS3, Vanilla JavaScript, Tailwind CSS |
 
 ---
 
 ## 📂 Project Structure
 
-```text
-no_and_co/
-├── accounts/          # User authentication & Profile management
-├── products/          # Product & Variant logic
-├── category/          # Category & Subcategory hierarchies
-├── cart/              # Shopping bag & Cart sessions
-├── order_management/  # Checkout flows & Order processing
-├── wallet/            # Wallet & Transaction tracking
-├── coupon/            # Discount & Coupon logic
-├── core/              # Homepage & Global views
-├── templates/         # UI Components & Page layouts
-└── static/            # Stylesheets, Scripts, and Brand assets
+```
+no_and_co/                        # Django project root
+├── no_and_co/                    # Project settings & URL config
+├── accounts/                     # User authentication & profile management
+├── products/                     # Product & variant logic
+├── category/                     # Category & subcategory hierarchies
+├── cart/                         # Shopping bag & cart sessions
+├── order_management/             # Checkout flows & order processing
+├── payment/                      # Razorpay payment integration
+├── wallet/                       # Wallet & transaction tracking
+├── coupon/                       # Discount & coupon logic
+├── offers/                       # Category & product-level offers
+├── wishlist/                     # Wishlist management
+├── reviews/                      # Product review system
+├── returns/                      # Order return & refund handling
+├── admin_dashboard/              # Bespoke admin panel
+├── users/                        # Extended user profiles
+├── core/                         # Homepage, global views & template tags
+├── utils/                        # Shared utilities & helpers
+├── templates/                    # Global HTML templates & base layouts
+├── static/                       # CSS, JS, and brand assets
+├── media/                        # Uploaded product images (local dev)
+├── manage.py
+└── requirements.txt
 ```
 
 ---
 
-## 📸 Screenshots
+## 🚀 Getting Started
 
-| Homepage | Product Details |
-| :---: | :---: |
-| ![Homepage Placeholder](https://placehold.co/600x400?text=Minimalist+Homepage+UI) | ![PDP Placeholder](https://placehold.co/600x400?text=Premium+Product+Page) |
+### Prerequisites
 
-| Cart & Bag | Admin Dashboard |
-| :---: | :---: |
-| ![Cart Placeholder](https://placehold.co/600x400?text=Streamlined+Checkout) | ![Admin Placeholder](https://placehold.co/600x400?text=Powerful+Admin+Dashboard) |
+- Python 3.10+
+- PostgreSQL
+- A [Cloudinary](https://cloudinary.com/) account
+- A [Razorpay](https://razorpay.com/) account (for payment processing)
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/yourusername/no-and-co.git
+cd no-and-co
+```
+
+### 2. Create & Activate Virtual Environment
+
+```bash
+# Create
+python -m venv venv
+
+# Activate — Windows
+venv\Scripts\activate
+
+# Activate — macOS / Linux
+source venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure Environment Variables
+
+Create a `.env` file inside the `no_and_co/` project directory and populate it:
+
+```env
+SECRET_KEY=your_django_secret_key
+DEBUG=True
+ALLOWED_HOSTS=127.0.0.1,localhost
+
+# Database
+DB_NAME=your_db_name
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_HOST=localhost
+DB_PORT=5432
+
+# Cloudinary
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# Razorpay
+RAZORPAY_KEY_ID=your_key_id
+RAZORPAY_KEY_SECRET=your_key_secret
+
+# Email (for OTP)
+EMAIL_HOST_USER=your_email@gmail.com
+EMAIL_HOST_PASSWORD=your_app_password
+```
+
+### 5. Apply Migrations
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### 6. Create a Superuser
+
+```bash
+python manage.py createsuperuser
+```
+
+### 7. Run the Development Server
+
+```bash
+python manage.py runserver
+```
+
+Visit **http://127.0.0.1:8000** — the platform is live.
+
+---
+
+## 🌐 Deployment
+
+This project is production-ready with **Gunicorn** as the WSGI server.
+
+```bash
+gunicorn no_and_co.wsgi:application --bind 0.0.0.0:8000
+```
+
+**Recommended deployment stack:** Gunicorn + Nginx + PostgreSQL on a cloud VPS (e.g., AWS EC2, DigitalOcean Droplet).
+
+> [!IMPORTANT]
+> Set `DEBUG=False` and configure `ALLOWED_HOSTS` with your actual domain before deploying to production.
+
+---
+
+## 📦 Key Dependencies
+
+| Package | Purpose |
+|---|---|
+| `Django 5.2` | Core web framework |
+| `django-allauth` | Social & standard authentication |
+| `razorpay` | Payment gateway SDK |
+| `cloudinary` + `django-cloudinary-storage` | Cloud media storage |
+| `Pillow` | Image processing & uploads |
+| `xhtml2pdf` + `reportlab` | PDF invoice generation |
+| `psycopg2-binary` | PostgreSQL adapter |
+| `python-decouple` | `.env` environment management |
+| `gunicorn` | Production WSGI server |
+| `PyJWT` | JSON Web Token handling |
+| `phonenumbers` | Phone number validation |
 
 ---
 
 <div align="center">
-  <p>Developed with ❤️ for the Modern Fashion Industry</p>
-  <p><strong>NØ & CO.</strong> — Redefining Digital Fashion.</p>
+
+Developed with ❤️ for the modern fashion industry
+
+**NØ & CO.** — *Redefining Digital Fashion.*
+
 </div>
