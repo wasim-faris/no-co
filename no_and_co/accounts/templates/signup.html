@@ -177,7 +177,10 @@ body{font-family:'Inter',sans-serif}
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                                     </span>
                                 </label>
-                                <input type="text" name="username" placeholder="Sarah" class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none">
+                                <input type="text" name="username" placeholder="Sarah" value="{{ values.username|default:'' }}" class="w-full border-b {% if errors.username %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none">
+                                {% if errors.username %}
+                                    <p class="text-[9px] text-red-500 mt-1 uppercase tracking-widest">{{ errors.username }}</p>
+                                {% endif %}
                             </div>
 
                             <div class="group">
@@ -187,7 +190,10 @@ body{font-family:'Inter',sans-serif}
                                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                                     </span>
                                 </label>
-                                <input type="email" name="email" placeholder="sarah@example.com" class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none">
+                                <input type="email" name="email" placeholder="sarah@example.com" value="{{ values.email|default:'' }}" class="w-full border-b {% if errors.email %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none">
+                                {% if errors.email %}
+                                    <p class="text-[9px] text-red-500 mt-1 uppercase tracking-widest">{{ errors.email }}</p>
+                                {% endif %}
                             </div>
 
                             <div class="grid grid-cols-2 gap-6">
@@ -199,16 +205,22 @@ body{font-family:'Inter',sans-serif}
                                         </span>
                                     </label>
                                     <div class="relative flex items-center">
-                                        <input type="password" id="password" oninput="checkInput(this)" name="password" placeholder="••••••••" class="w-full border-b border-gray-200 bg-transparent py-2 pr-10 text-sm focus:outline-none focus:border-black rounded-none">
+                                        <input type="password" id="password" oninput="checkInput(this)" name="password" placeholder="••••••••" class="w-full border-b {% if errors.password %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 pr-10 text-sm focus:outline-none focus:border-black rounded-none">
                                         <button type="button" onclick="togglePassword('password', this)" class="toggle-btn absolute right-0 text-[10px] text-gray-400 uppercase hover:text-black">Show</button>
                                     </div>
+                                    {% if errors.password %}
+                                        <p class="text-[9px] text-red-500 mt-1 uppercase tracking-widest">{{ errors.password }}</p>
+                                    {% endif %}
                                 </div>
                                 <div class="group relative flex flex-col">
                                     <label class="text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1">Confirm</label>
                                     <div class="relative flex items-center">
-                                        <input type="password" id="confirm_password" oninput="checkInput(this)" name="confirm_password" placeholder="••••••••" class="w-full border-b border-gray-200 bg-transparent py-2 pr-10 text-sm focus:outline-none focus:border-black rounded-none">
+                                        <input type="password" id="confirm_password" oninput="checkInput(this)" name="confirm_password" placeholder="••••••••" class="w-full border-b {% if errors.confirm_password %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 pr-10 text-sm focus:outline-none focus:border-black rounded-none">
                                         <button type="button" onclick="togglePassword('confirm_password', this)" class="toggle-btn absolute right-0 text-[10px] text-gray-400 uppercase hover:text-black">Show</button>
                                     </div>
+                                    {% if errors.confirm_password %}
+                                        <p class="text-[9px] text-red-500 mt-1 uppercase tracking-widest">{{ errors.confirm_password }}</p>
+                                    {% endif %}
                                 </div>
                             </div>
 
@@ -225,7 +237,7 @@ body{font-family:'Inter',sans-serif}
                                                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                                             </span>
                                         </label>
-                                        <input type="text" name="referral_code" id="referral_input" placeholder="Enter referral code" class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none uppercase">
+                                        <input type="text" name="referral_code" id="referral_input" placeholder="Enter referral code" value="{{ values.referral_code|default:'' }}" class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black rounded-none uppercase">
                                         <p id="referralStatus" class="text-[9px] font-bold mt-1 uppercase tracking-widest hidden"></p>
                                     </div>
                                 </div>

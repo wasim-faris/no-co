@@ -135,8 +135,11 @@ body{font-family:'Inter',sans-serif}
                         <div class="space-y-6">
                             <div class="group">
                                 <label class="block text-[9px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-1 transition-colors group-focus-within:text-black">Username or Email</label>
-                                <input type="text" name="username" placeholder="sarah@example.com"
-                                       class="w-full border-b border-gray-200 bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
+                                <input type="text" name="username" placeholder="sarah@example.com" value="{{ values.username|default:'' }}"
+                                       class="w-full border-b {% if errors.username %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
+                                {% if errors.username %}
+                                    <p class="text-[9px] text-red-500 mt-1 uppercase tracking-widest">{{ errors.username }}</p>
+                                {% endif %}
                             </div>
 
                             <div class="group relative">
@@ -145,11 +148,17 @@ body{font-family:'Inter',sans-serif}
                                     <a href="{% url "forgot-password" %}" class="text-[9px] text-gray-300 hover:text-black uppercase tracking-widest transition-colors">Forgot?</a>
                                 </div>
                                 <input type="password" id="password" name="password" placeholder="••••••••"
-                                       class="w-full border-b border-gray-200 bg-transparent py-2 pr-12 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
+                                       class="w-full border-b {% if errors.password %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 pr-12 text-sm focus:outline-none focus:border-black transition-all duration-300 rounded-none">
                                 <button type="button" onclick="togglePassword('password', this)" class="absolute right-0 bottom-2 text-[9px] font-bold text-gray-400 hover:text-black uppercase tracking-tighter transition-colors">
                                     Show
                                 </button>
+                                {% if errors.password %}
+                                    <p class="text-[9px] text-red-500 mt-1 uppercase tracking-widest">{{ errors.password }}</p>
+                                {% endif %}
                             </div>
+                            {% if errors.non_field %}
+                                <p class="text-[9px] text-red-500 mt-1 uppercase tracking-widest text-center">{{ errors.non_field }}</p>
+                            {% endif %}
                         </div>
 
                         <button type="submit" class="btn-stable w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] active:scale-[0.99] transition-all duration-300 mt-4">

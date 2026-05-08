@@ -51,45 +51,46 @@ def signup(request):
         if request.method == "POST":
             print(request.POST)
             username = request.POST.get("username", "").strip()
-            email = request.POST.get("email")
+            email = request.POST.get("email", "").strip()
             password = request.POST.get("password")
             confirm_password = request.POST.get("confirm_password")
-            print(password)
-            if not username or not email or not password or not confirm_password:
-                messages.error(request, "All fields are required")
-                return redirect("signup")
-
-            if not re.match(username_pattern, username):
-                messages.error(
-                    request,
-                    "Invalid Full Name Format",
-                )
-                return redirect("signup")
-
-            if not re.match(email_pattern, email):
-                messages.error(request, "Invalid email address")
-                return redirect("signup")
-
-            if password != confirm_password:
-                messages.error(request, "Password Doesnt Match")
-                return redirect("signup")
-
-            if not re.match(password_pattern, password):
-                messages.error(
-                    request,
-                    "Password too weak.",
-                )
-                return redirect("signup")
-
-            if User.objects.filter(email=email).exists():
-                messages.error(request, "Email Already Exists")
-                return redirect("signup")
-
-            if User.objects.filter(username=username).exists():
-                messages.error(request, "Full Name Already Exists")
-                return redirect("signup")
-
             referral_code = request.POST.get("referral_code", "").strip().upper()
+            
+            errors = {}
+
+            if not username:
+                errors['username'] = "Username is required"
+            elif not re.match(username_pattern, username):
+                errors['username'] = "Invalid Full Name Format"
+            elif User.objects.filter(username=username).exists():
+                errors['username'] = "Full Name Already Exists"
+
+            if not email:
+                errors['email'] = "Email is required"
+            elif not re.match(email_pattern, email):
+                errors['email'] = "Invalid email address"
+            elif User.objects.filter(email=email).exists():
+                errors['email'] = "Email Already Exists"
+
+            if not password:
+                errors['password'] = "Password is required"
+            elif not re.match(password_pattern, password):
+                errors['password'] = "Password too weak. Must contain uppercase, lowercase, number, and special character."
+            
+            if not confirm_password:
+                errors['confirm_password'] = "Please confirm your password"
+            elif password != confirm_password:
+                errors['confirm_password'] = "Password Doesn't Match"
+
+            if errors:
+                return render(request, "signup.html", {
+                    "errors": errors,
+                    "values": {
+                        "username": username,
+                        "email": email,
+                        "referral_code": referral_code
+                    }
+                })
 
             request.session["signup_values"] = {
                 "username": username,
@@ -153,26 +154,31 @@ def login_user(request):
         password = request.POST.get("password")
 
         print(password)
+        errors = {}
 
-        if not username or not password:
-            messages.error(request, "All fields are required")
-            return redirect("login")
+        if not username:
+            errors['username'] = "Username or email is required"
+        if not password:
+            errors['password'] = "Password is required"
+
+        if errors:
+            return render(request, "login.html", {"errors": errors, "values": {"username": username}})
 
         user_obj = User.objects.filter(Q(username=username) | Q(email=username)).first()
 
         if user_obj:
             user = authenticate(request, username=user_obj.username, password=password)
         else:
-            messages.error(request, "user not found")
-            return redirect("login")
+            errors['username'] = "User not found"
+            return render(request, "login.html", {"errors": errors, "values": {"username": username}})
 
         if user is not None:
             if user and user.is_superuser:
-                messages.error(request, "admin cant access in user dashboard")
-                return redirect("admin-login")
+                errors['username'] = "Admin can't access user dashboard"
+                return render(request, "login.html", {"errors": errors, "values": {"username": username}})
             if user.is_blocked:
-                messages.error(request, "you are currently blocked")
-                return redirect("login")
+                errors['username'] = "You are currently blocked"
+                return render(request, "login.html", {"errors": errors, "values": {"username": username}})
             old_session_key = request.session.session_key
             print("Before login session:", request.session.session_key)
             login(request, user)
@@ -189,11 +195,11 @@ def login_user(request):
             request.session["login_attempts"] = login_attempts
 
             if login_attempts >= 5:
-                messages.error(request, "Too many login attempts. Try again later.")
-                return redirect("login")
-            messages.error(request, "invalid username or password")
-
-            return redirect("login")
+                errors['non_field'] = "Too many login attempts. Try again later."
+                return render(request, "login.html", {"errors": errors, "values": {"username": username}})
+            
+            errors['password'] = "Invalid password"
+            return render(request, "login.html", {"errors": errors, "values": {"username": username}})
 
     return render(request, "login.html")
 
@@ -363,10 +369,10 @@ def forgot_password(request):
     if request.method == "POST":
 
         email = request.POST.get("email")
+        errors = {}
         if not email:
-            messages.error(request, "please fill form to continue")
-
-            return redirect("forgot-password")
+            errors['email'] = "Please provide an email address"
+            return render(request, "forgot-password.html", {"errors": errors, "values": {"email": email}})
         email = email.strip()
 
         try:
@@ -378,8 +384,8 @@ def forgot_password(request):
                 return redirect("login")
 
             if user.is_superuser:
-                messages.error(request, "Admin not allowed to use")
-                return redirect("forgot-password")
+                errors['email'] = "Admin not allowed to use"
+                return render(request, "forgot-password.html", {"errors": errors, "values": {"email": email}})
 
             last_token = PasswordResetToken.objects.filter(
                 user=user, is_used=False
@@ -389,8 +395,8 @@ def forgot_password(request):
             if last_token and current_time - last_token.created_at < timedelta(
                 minutes=10
             ):
-                messages.error(request, "link already send")
-                return redirect("forgot-password")
+                errors['email'] = "Link already sent. Please check your email."
+                return render(request, "forgot-password.html", {"errors": errors, "values": {"email": email}})
             else:
                 uuid_token = uuid.uuid4()
 
@@ -411,8 +417,8 @@ def forgot_password(request):
 
         except User.DoesNotExist:
 
-            messages.error(request, "email doenst exists")
-            return redirect("forgot-password")
+            errors['email'] = "Email doesn't exist"
+            return render(request, "forgot-password.html", {"errors": errors, "values": {"email": email}})
 
     return render(request, "forgot-password.html")
 
