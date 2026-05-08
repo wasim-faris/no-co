@@ -450,20 +450,28 @@ def reset_link(request, uuid):
 def reset_password(request, uuid):
 
     if request.method == "POST":
-        new_password = request.POST.get("new_password")
-        new_confirm_password = request.POST.get("confirm_password")
+        new_password = request.POST.get("new_password", "")
+        new_confirm_password = request.POST.get("confirm_password", "")
 
-        if not re.match(password_pattern, new_password):
-            messages.error(request, "week password")
-            return redirect("reset-password", uuid=uuid)
+        errors = {}
 
-        if not new_password or not new_confirm_password:
-            messages.error(request, "please fill form to continue")
-            return redirect("reset-password", uuid=uuid)
+        if not new_password:
+            errors['new_password'] = "Password is required"
+        elif not re.match(password_pattern, new_password):
+            errors['new_password'] = "Weak password. Must contain 8+ chars, uppercase, lowercase, number, special char."
 
-        if new_password != new_confirm_password:
-            messages.error(request, "password doesnt match")
-            return redirect("reset-password", uuid=uuid)
+        if not new_confirm_password:
+            errors['confirm_password'] = "Please confirm your password"
+        elif new_password != new_confirm_password:
+            errors['confirm_password'] = "Password doesn't match"
+
+        if errors:
+            return render(request, "reset-password.html", {
+                "uuid": uuid,
+                "errors": errors,
+                "values": {"new_password": new_password, "confirm_password": new_confirm_password}
+            })
+
         try:
             reset_password_user = PasswordResetToken.objects.get(
                 uuid_token=uuid, is_used=False
@@ -472,8 +480,12 @@ def reset_password(request, uuid):
             current_password = reset_password_user.user.password
 
             if check_password(new_password, current_password):
-                messages.error(request, "Cannot reuse old password")
-                return redirect("reset-password", uuid=uuid)
+                errors['new_password'] = "Cannot reuse old password"
+                return render(request, "reset-password.html", {
+                    "uuid": uuid,
+                    "errors": errors,
+                    "values": {"new_password": new_password, "confirm_password": new_confirm_password}
+                })
 
             reset_password_user.user.set_password(new_password)
             reset_password_user.is_used = True
