@@ -41,7 +41,7 @@ email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 @block_check
 @never_cache
 @login_required
-def user_profile(request, id):
+def user_profile(request):
 
     if not request.user.is_authenticated:
         return redirect("login")
@@ -107,7 +107,7 @@ def user_profile(request, id):
 
 @never_cache
 @login_required
-def update_profile(request, id):
+def update_profile(request):
 
     if request.method == "POST":
 
@@ -149,7 +149,7 @@ def update_profile(request, id):
         if errors:
             request.session["form_errors"] = errors
             request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
-            return redirect("user-profile", id=id)
+            return redirect("user-profile")
 
         username = clean_input(username)
 
@@ -169,18 +169,18 @@ def update_profile(request, id):
                 ):
                     request.session["form_errors"] = {'phone': "Phone number already registered"}
                     request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
-                    return redirect("user-profile", id=id)
+                    return redirect("user-profile")
 
             if email != old_mail:
                 if User.objects.filter(email=email).exclude(email=old_mail).exists():
                     request.session["form_errors"] = {'email': "Email already exists"}
                     request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
-                    return redirect("user-profile", id=id)
+                    return redirect("user-profile")
 
                 if SocialAccount.objects.filter(user=user, provider="google").exists():
                     request.session["form_errors"] = {'email': "Google Sign-In User Can't Change Email."}
                     request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
-                    return redirect("user-profile", id=id)
+                    return redirect("user-profile")
 
                 else:
                     otp = random.randint(100000, 999999)
@@ -207,7 +207,7 @@ def update_profile(request, id):
                 if User.objects.filter(username=username).exclude(id=user.id).exists():
                     request.session["form_errors"] = {'username': "Username already exists"}
                     request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
-                    return redirect("user-profile", id=id)
+                    return redirect("user-profile")
 
                 # check 7 day restriction
                 if user.update_at is not None:
@@ -217,7 +217,7 @@ def update_profile(request, id):
                         remaining_days = (next_change - timezone.now()).days
                         request.session["form_errors"] = {'username': f"You can change username after {remaining_days} day(s)"}
                         request.session["form_values"] = {"username": username, "email": email, "phone": phone_number}
-                        return redirect("user-profile", id=id)
+                        return redirect("user-profile")
 
                 # update username
                 user.username = username
@@ -226,17 +226,17 @@ def update_profile(request, id):
             user.save()
 
             messages.success(request, "User profile updated successfully")
-            return redirect("user-profile", id=id)
+            return redirect("user-profile")
 
         except Exception as e:
             request.session["profile_form_data"] = request.POST
             messages.error(request, f"An error occurred: {str(e)}")
-            return redirect("user-profile", id=id)
+            return redirect("user-profile")
 
 
 from django.http import JsonResponse
 
-def add_profile_pic(request, id):
+def add_profile_pic(request):
 
     if request.method == "POST":
         user = request.user
@@ -247,21 +247,21 @@ def add_profile_pic(request, id):
             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
                 return JsonResponse({"error": "Please select a profile picture"}, status=400)
             messages.error(request, "Please select a profile picture")
-            return redirect("user-profile", id=id)
+            return redirect("user-profile")
 
         user.profile_photo = new_photo
-        user.save(update_fields=['profile_photo'])
+        user.save()
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({"image_url": user.profile_photo.url})
 
         messages.success(request, "profile uploadded succesfully")
-        return redirect("user-profile", id=id)
+        return redirect("user-profile")
 
-    return redirect("user-profile", id=id)
+    return redirect("user-profile")
 
 
-def delete_profile_pic(request, id):
+def delete_profile_pic(request):
     user = request.user
 
     if user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg":
@@ -269,10 +269,10 @@ def delete_profile_pic(request, id):
         user.profile_photo = "profile_photos/default.jpg"
         user.save()
         messages.success(request, "profile deleted successfully")
-        return redirect("user-profile", id=id)
+        return redirect("user-profile")
     else:
         messages.error(request, "no profile to delete")
-        return redirect("user-profile", id=id)
+        return redirect("user-profile")
 
 
 def email_verificaton(request):
@@ -308,7 +308,7 @@ def email_verificaton(request):
             user.save()
             request.session.pop("otp", None)
             messages.success(request, "email chanaged succesfully")
-            return redirect("user-profile", id=user.id)
+            return redirect("user-profile")
         else:
             if remaining <= 0:
                 messages.error(request, "otp exipred click resend to get new one")
@@ -337,7 +337,7 @@ def email_resend_otp_verification(request):
 
         if not email:
             messages.error(request, "Session expired")
-            return redirect("user-profile", id=request.user.id)
+            return redirect("user-profile")
 
         send_mail(
             "Email verification OTP",
@@ -353,7 +353,7 @@ def email_resend_otp_verification(request):
 def cancel_email_verification(request, id):
     if request.method == "POST":
         messages.error(request, "email verification failed")
-        return redirect("user-profile", id=id)
+        return redirect("user-profile")
 
 
 @block_check
@@ -503,7 +503,7 @@ def address(request):
 
 
 def delete_address(request, id):
-    address = get_object_or_404(Addresses, id=id, user=request.user)
+    address = get_object_or_404(Addresses, user=request.user)
     was_default = address.is_default
     address.delete()
 
@@ -520,7 +520,7 @@ def delete_address(request, id):
 
 
 def edit_address(request, id):
-    address = get_object_or_404(Addresses, id=id, user=request.user)
+    address = get_object_or_404(Addresses, user=request.user)
 
     if request.method == "POST":
         first_name = request.POST.get("first_name", "").strip()
@@ -649,7 +649,7 @@ def edit_address(request, id):
 def address_set_default(request, id):
     if request.method == "POST":
 
-        address = get_object_or_404(Addresses, id=id, user=request.user)
+        address = get_object_or_404(Addresses, user=request.user)
 
         Addresses.objects.filter(user=request.user, is_default=True).update(
             is_default=False

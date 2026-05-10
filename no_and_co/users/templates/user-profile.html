@@ -255,7 +255,7 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
-            <form id="editProfileForm" action="{% url 'update-profile' user.id %}" method="POST">
+            <form id="editProfileForm" action="{% url 'update-profile' %}" method="POST">
                 {% csrf_token %}
                 <div class="edit-field-group">
                     <label class="edit-label" for="editUsername">Name</label>
@@ -715,7 +715,7 @@
                         const formData = new FormData();
                         formData.append('profile_photo', optimizedFile);
 
-                        const response = await fetch("{% url 'add-profile-pic' user.id %}", {
+                        const response = await fetch("{% url 'add-profile-pic' %}", {
                             method: 'POST',
                             body: formData,
                             headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
@@ -755,7 +755,7 @@
                 removeOverlay.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (!confirm("Remove profile photo?")) return;
-                    fetch("{% url 'delete-profile-pic' user.id %}", {
+                    fetch("{% url 'delete-profile-pic' %}", {
                         method: 'GET',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     }).then(() => window.location.reload());

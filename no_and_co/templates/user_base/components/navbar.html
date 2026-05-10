@@ -160,7 +160,7 @@
                         <p class="text-[9px] text-gray-400 uppercase tracking-widest mb-1">Membership</p>
                         <p class="text-[12px] font-medium truncate uppercase tracking-tighter">{{ user.username }}</p>
                     </div>
-                    <a href="{% url 'user-profile' user.id %}" class="dropdown-item">My Profile</a>
+                    <a href="{% url 'user-profile' %}" class="dropdown-item">My Profile</a>
                     <a href="{% url 'orders' %}" class="dropdown-item">Orders</a>
                     <a href="{% url 'wishlist' %}" class="dropdown-item">Wishlist</a>
                     <a href="{% url 'wallet' %}" class="dropdown-item">Wallet</a>
