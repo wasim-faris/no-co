@@ -691,7 +691,14 @@
                                     
                                     {% if item.item_status == 'DELIVERED' %}
                                         {% if item.variant.product.id not in reviewed_product_ids %}
-                                        <a href="{% url 'add-review' %}?productId={{ item.variant.product.id }}&orderId={{ order.id }}" class="order-action-mini" style="text-decoration: none; display: inline-block;">Add Review</a>
+                                        <button type="button" class="order-action-mini add-review-trigger" 
+                                                data-product-id="{{ item.variant.product.id }}"
+                                                data-order-id="{{ order.id }}"
+                                                data-product-name="{{ item.variant.product.product_name }}"
+                                                data-color="{{ item.variant.color }}"
+                                                data-size="{{ item.variant.size.name }}"
+                                                data-image-url="{% if item.variant.images.first %}{{ item.variant.images.first.image.url }}{% endif %}"
+                                                style="display: inline-block;">Add Review</button>
                                         {% endif %}
                                     {% endif %}
                                 </div>
@@ -1393,6 +1400,7 @@
 })();
 </script>
 
+{% include 'reviews/partials/review_modal.html' %}
 {% include 'user_base/components/footer.html' %}
 {% include 'user_base/components/nav_js.html' %}
 {% endblock %}

@@ -9,34 +9,6 @@ from .models import Review
 from core.models import Order, OrderItem
 from products.models import Product
 
-@login_required(login_url="login")
-def add_review_page(request):
-    product_id = request.GET.get("productId")
-    order_id = request.GET.get("orderId")
-    
-    if not product_id or not order_id:
-        messages.error(request, "Invalid review request.")
-        return redirect("orders")
-        
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    product = get_object_or_404(Product, id=product_id)
-    
-    # Check if a review already exists
-    if Review.objects.filter(user=request.user, product=product, order=order).exists():
-        messages.warning(request, "You have already reviewed this product for this order.")
-        return redirect("order_details", id=order.id)
-        
-    # Check if the product is in the order and delivered
-    order_item = order.items.filter(variant__product=product, item_status="DELIVERED").first()
-    if not order_item:
-        messages.error(request, "You can only review products that have been delivered.")
-        return redirect("order_details", id=order.id)
-        
-    return render(request, "reviews/add_review.html", {
-        "product": product,
-        "order": order,
-        "order_item": order_item
-    })
 
 @login_required(login_url="login")
 def submit_review(request):
@@ -51,28 +23,27 @@ def submit_review(request):
             if rating < 1 or rating > 5:
                 raise ValueError
         except (TypeError, ValueError):
-            messages.error(request, "Invalid rating.")
-            return redirect("orders")
+            return JsonResponse({"success": False, "error": "Invalid rating."}, status=400)
             
-        order = get_object_or_404(Order, id=order_id, user=request.user)
-        product = get_object_or_404(Product, id=product_id)
+        try:
+            order = Order.objects.get(id=order_id, user=request.user)
+            product = Product.objects.get(id=product_id)
+        except (Order.DoesNotExist, Product.DoesNotExist):
+            return JsonResponse({"success": False, "error": "Invalid request."}, status=400)
         
         # Check if already reviewed
         if Review.objects.filter(user=request.user, product=product, order=order).exists():
-            messages.warning(request, "You have already reviewed this product for this order.")
-            return redirect("order_details", id=order.id)
+            return JsonResponse({"success": False, "error": "You have already reviewed this product for this order."}, status=400)
             
         # Get delivered item
         order_item = order.items.filter(variant__product=product, item_status="DELIVERED").first()
         if not order_item:
-            messages.error(request, "You can only review products that have been delivered.")
-            return redirect("order_details", id=order.id)
+            return JsonResponse({"success": False, "error": "You can only review products that have been delivered."}, status=400)
             
         # Images are optional
         images = request.FILES.getlist("images")
         if len(images) > 3:
-            messages.error(request, "You can only upload a maximum of 3 images.")
-            return redirect(f"/review/add/?productId={product_id}&orderId={order_id}")
+            return JsonResponse({"success": False, "error": "You can only upload a maximum of 3 images."}, status=400)
             
         review = Review(
             user=request.user,
@@ -91,10 +62,9 @@ def submit_review(request):
             review.image3 = images[2]
             
         review.save()
-        messages.success(request, "Review submitted successfully! It will be visible once approved.")
-        return redirect("order_details", id=order.id)
+        return JsonResponse({"success": True, "message": "Review submitted successfully! It will be visible once approved."})
         
-    return redirect("orders")
+    return JsonResponse({"success": False, "error": "Invalid request method."}, status=405)
 
 def product_reviews_api(request, product_id):
     product = get_object_or_404(Product, id=product_id)
