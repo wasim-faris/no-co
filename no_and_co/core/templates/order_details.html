@@ -688,6 +688,12 @@
                                         <button type="button" class="order-action-mini return-item-btn" data-item-index="{{ forloop.counter0 }}" data-order-item-id="{{ item.id }}">Return Item</button>
                                         {% endif %}
                                     {% endif %}
+                                    
+                                    {% if item.item_status == 'DELIVERED' %}
+                                        {% if item.variant.product.id not in reviewed_product_ids %}
+                                        <a href="{% url 'add-review' %}?productId={{ item.variant.product.id }}&orderId={{ order.id }}" class="order-action-mini" style="text-decoration: none; display: inline-block;">Add Review</a>
+                                        {% endif %}
+                                    {% endif %}
                                 </div>
                                 <div class="item-state-note" data-role="item-state-note">
                                     {% with return_request=item.returns.first %}

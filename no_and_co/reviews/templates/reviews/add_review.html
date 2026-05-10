@@ -1,0 +1,438 @@
+{% extends 'user_base/base.html' %}
+{% load static %}
+
+{% block title %}Add Review - NØ&CO{% endblock %}
+
+{% block content %}
+<style>
+    .review-page-wrapper {
+        min-height: 100vh;
+        background-color: #f5f1eb;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .review-card {
+        background: #fff;
+        border: 1px solid #000;
+        width: 100%;
+        max-width: 500px;
+        padding: 40px;
+        animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    @keyframes fadeUp {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .review-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .review-header h1 {
+        font-size: 24px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #111;
+        margin-bottom: 8px;
+    }
+
+    .review-header p {
+        font-size: 12px;
+        color: #666;
+        letter-spacing: 0.05em;
+    }
+
+    .product-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        background: #fafafa;
+        border: 1px solid #eee;
+        margin-bottom: 30px;
+    }
+
+    .product-img {
+        width: 60px;
+        height: 80px;
+        object-fit: cover;
+        background: #eee;
+    }
+
+    .product-details h3 {
+        font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #111;
+        margin-bottom: 4px;
+    }
+
+    .product-details p {
+        font-size: 11px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: #111;
+        margin-bottom: 12px;
+    }
+
+    /* Star Rating */
+    .star-rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 8px;
+    }
+
+    .star-rating input {
+        display: none;
+    }
+
+    .star-rating label {
+        cursor: pointer;
+        font-size: 32px;
+        color: #ddd;
+        transition: color 0.2s, transform 0.2s;
+        line-height: 1;
+    }
+
+    .star-rating label:hover,
+    .star-rating label:hover ~ label,
+    .star-rating input:checked ~ label {
+        color: #111;
+    }
+
+    .star-rating label:hover {
+        transform: scale(1.1);
+    }
+
+    /* Description */
+    .textarea-wrapper {
+        position: relative;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 16px;
+        border: 1px solid #ddd;
+        background: #fff;
+        font-family: inherit;
+        font-size: 13px;
+        color: #111;
+        resize: vertical;
+        min-height: 120px;
+        transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #111;
+    }
+
+    .char-count {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        font-size: 10px;
+        color: #999;
+    }
+
+    /* Image Upload */
+    .upload-zone {
+        border: 1px dashed #ccc;
+        padding: 30px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: #fafafa;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+        border-color: #111;
+        background: #f0f0f0;
+    }
+
+    .upload-icon {
+        font-size: 24px;
+        color: #666;
+        margin-bottom: 8px;
+    }
+
+    .upload-text {
+        font-size: 11px;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .image-preview-container {
+        display: flex;
+        gap: 12px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+
+    .image-preview {
+        width: 80px;
+        height: 80px;
+        position: relative;
+        border: 1px solid #ddd;
+    }
+
+    .image-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .remove-image {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 20px;
+        height: 20px;
+        background: #111;
+        color: #fff;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        cursor: pointer;
+        border: none;
+    }
+
+    .submit-btn {
+        width: 100%;
+        padding: 16px;
+        background: #111;
+        color: #fff;
+        border: none;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        cursor: pointer;
+        transition: background 0.2s;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .submit-btn:hover {
+        background: #333;
+    }
+
+    .submit-btn:disabled {
+        background: #999;
+        cursor: not-allowed;
+    }
+
+    .loader {
+        display: none;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #fff;
+        border-bottom-color: transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+        .review-card {
+            padding: 24px;
+        }
+    }
+</style>
+
+<div class="review-page-wrapper">
+    <div class="review-card">
+        <div class="review-header">
+            <h1>Write a Review</h1>
+            <p>Share your experience with others</p>
+        </div>
+
+        <div class="product-info">
+            {% if order_item.variant.images.first %}
+                <img src="{{ order_item.variant.images.first.image.url }}" alt="{{ product.product_name }}" class="product-img">
+            {% else %}
+                <div class="product-img"></div>
+            {% endif %}
+            <div class="product-details">
+                <h3>{{ product.product_name }}</h3>
+                <p>Color: {{ order_item.variant.color }} &nbsp;|&nbsp; Size: {{ order_item.variant.size.name }}</p>
+            </div>
+        </div>
+
+        <form action="{% url 'submit-review' %}" method="POST" enctype="multipart/form-data" id="reviewForm">
+            {% csrf_token %}
+            <input type="hidden" name="productId" value="{{ product.id }}">
+            <input type="hidden" name="orderId" value="{{ order.id }}">
+
+            <div class="form-group">
+                <label class="form-label">Rating *</label>
+                <div class="star-rating">
+                    <input type="radio" id="star5" name="rating" value="5" required />
+                    <label for="star5" title="5 stars">&#9733;</label>
+                    <input type="radio" id="star4" name="rating" value="4" />
+                    <label for="star4" title="4 stars">&#9733;</label>
+                    <input type="radio" id="star3" name="rating" value="3" />
+                    <label for="star3" title="3 stars">&#9733;</label>
+                    <input type="radio" id="star2" name="rating" value="2" />
+                    <label for="star2" title="2 stars">&#9733;</label>
+                    <input type="radio" id="star1" name="rating" value="1" />
+                    <label for="star1" title="1 star">&#9733;</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description *</label>
+                <div class="textarea-wrapper">
+                    <textarea name="description" class="form-control" id="description" maxlength="500" required placeholder="What did you like or dislike? How was the fit?"></textarea>
+                    <span class="char-count"><span id="charCount">0</span>/500</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Upload Images (Optional, Max 3)</label>
+                <div class="upload-zone" id="uploadZone">
+                    <div class="upload-icon">&#128247;</div>
+                    <div class="upload-text">Click or drag images here</div>
+                    <input type="file" id="imageInput" name="images" accept="image/*" multiple style="display: none;">
+                </div>
+                <div class="image-preview-container" id="previewContainer"></div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span>Submit Review</span>
+                <div class="loader" id="submitLoader"></div>
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const descInput = document.getElementById('description');
+        const charCount = document.getElementById('charCount');
+        
+        descInput.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+
+        const uploadZone = document.getElementById('uploadZone');
+        const imageInput = document.getElementById('imageInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const form = document.getElementById('reviewForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitLoader = document.getElementById('submitLoader');
+
+        let selectedFiles = [];
+
+        uploadZone.addEventListener('click', () => imageInput.click());
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            const newFiles = Array.from(files);
+            
+            if (selectedFiles.length + newFiles.length > 3) {
+                alert('You can only upload a maximum of 3 images.');
+                return;
+            }
+
+            newFiles.forEach(file => {
+                if (!file.type.startsWith('image/')) {
+                    alert('Please upload only image files.');
+                    return;
+                }
+                selectedFiles.push(file);
+                renderPreviews();
+            });
+            
+            updateFileInput();
+        }
+
+        function renderPreviews() {
+            previewContainer.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const div = document.createElement('div');
+                    div.className = 'image-preview';
+                    div.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <button type="button" class="remove-image" data-index="${index}">&times;</button>
+                    `;
+                    previewContainer.appendChild(div);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        previewContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remove-image')) {
+                const index = parseInt(e.target.getAttribute('data-index'));
+                selectedFiles.splice(index, 1);
+                renderPreviews();
+                updateFileInput();
+            }
+        });
+
+        function updateFileInput() {
+            const dt = new DataTransfer();
+            selectedFiles.forEach(file => dt.items.add(file));
+            imageInput.files = dt.files;
+        }
+
+        form.addEventListener('submit', function() {
+            submitBtn.disabled = true;
+            submitBtn.querySelector('span').textContent = 'Submitting...';
+            submitLoader.style.display = 'block';
+        });
+    });
+</script>
+{% endblock %}

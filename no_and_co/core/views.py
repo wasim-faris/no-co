@@ -845,8 +845,16 @@ def orders(request):
 def order_details(request, id):
 
     order = get_object_or_404(Order, user=request.user ,id=id)
+    
+    from reviews.models import Review
+    reviewed_product_ids = set(Review.objects.filter(
+        user=request.user, 
+        order=order
+    ).values_list('product_id', flat=True))
+    
     return render(request, 'order_details.html',{
-        "order":order
+        "order":order,
+        "reviewed_product_ids": reviewed_product_ids
     })
 
 

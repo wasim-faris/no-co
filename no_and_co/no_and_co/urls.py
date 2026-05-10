@@ -37,6 +37,7 @@ urlpatterns = [
     path("", include("wallet.urls")),
     path("", include("coupon.urls")),
     path("", include("offers.urls")),
+    path("", include("reviews.urls")),
 ]
 
 if settings.DEBUG:
