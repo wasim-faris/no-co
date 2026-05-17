@@ -1037,6 +1037,12 @@ def cancel_order_item(request, item_id):
     else:
         order.status = "PENDING"
 
+    # Recalculate order totals to reflect the active items only
+    order.subtotal = Decimal(str(order.active_original_subtotal))
+    order.tax_amount = Decimal(str(order.active_tax))
+    order.discount_amount = Decimal(str(order.active_discount))
+    order.total_amount = Decimal(str(order.active_total))
+
     order.save()
 
     # Log history

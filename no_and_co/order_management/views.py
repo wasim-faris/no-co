@@ -88,15 +88,26 @@ def admin_update_order_status(request, order_id):
 
         with transaction.atomic():
             if new_status in valid_statuses:
+                active_items = order.items.exclude(item_status="CANCELLED")
+                
+                if not active_items.exists():
+                    messages.error(request, "No active items to update.")
+                    return redirect("admin-order-detail", order_id=order_id)
+                    
+                # Calculate refund amount BEFORE changing statuses to CANCELLED
+                refund_amount = Decimal('0.00')
+                if new_status == "CANCELLED":
+                    refund_amount = Decimal(str(order.active_total))
+
                 try:
-                    for item in order.items.all():
+                    for item in active_items:
                         item.item_status = new_status
                         item.clean()
                 except ValidationError as e:
                     messages.error(request, e.message)
                     return redirect("admin-order-detail", order_id=order_id)
 
-                for item in order.items.all():
+                for item in active_items:
                     item.item_status = new_status
                     item.save()
 
@@ -107,20 +118,30 @@ def admin_update_order_status(request, order_id):
                         status=new_status,
                     )
 
-                if new_status == "CANCELLED":
+                all_items_count = order.items.count()
+                cancelled_items_count = order.items.filter(item_status="CANCELLED").count()
+
+                if cancelled_items_count == all_items_count:
+                    order.status = "CANCELLED"
                     order.cancelled_at = timezone.now()
                     if order.payment_method == "COD":
                         order.payment_status = "VOIDED"
+                else:
+                    order.status = new_status
                 
-                order.status = new_status
+                # Recalculate order totals for active items
+                order.subtotal = Decimal(str(order.active_original_subtotal))
+                order.tax_amount = Decimal(str(order.active_tax))
+                order.discount_amount = Decimal(str(order.active_discount))
+                order.total_amount = Decimal(str(order.active_total))
+
                 order.save()
 
                 if new_status == "CANCELLED":
-                    if order.payment_status == "PAID" or order.payment_method == "wallet":
+                    if order.payment_status in ["PAID", "PARTIALLY_REFUNDED"] or order.payment_method == "wallet":
                         if order.payment_status != "REFUNDED":
                             wallet, _ = Wallet.objects.get_or_create(user=order.user)
-                            refund_amount = order.active_total
-                            wallet.balance = Decimal(wallet.balance) + Decimal(refund_amount)
+                            wallet.balance = F('balance') + refund_amount
                             wallet.save()
 
                             WalletTransaction.objects.create(

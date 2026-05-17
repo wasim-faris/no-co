@@ -249,8 +249,17 @@ def add_profile_pic(request):
             messages.error(request, "Please select a profile picture")
             return redirect("user-profile")
 
-        user.profile_photo = new_photo
-        user.save()
+        if user.profile_photo and user.profile_photo.name != "profile_photos/default.jpg":
+            # Clean up old photo from Cloudinary
+            user.profile_photo.delete(save=False)
+
+        import uuid
+        import os
+        ext = os.path.splitext(new_photo.name)[1]
+        unique_name = f"profile_{uuid.uuid4().hex[:8]}{ext}"
+
+        # Explicitly save the file to the Cloudinary storage field
+        user.profile_photo.save(unique_name, new_photo, save=True)
 
         if request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return JsonResponse({"image_url": user.profile_photo.url})

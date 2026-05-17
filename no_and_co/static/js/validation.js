@@ -175,7 +175,7 @@ const ValidationUtils = {
             delete input.dataset.pending;
         };
 
-        const validate = async () => {
+        const validate = async (silent = false) => {
             const value = input.value.trim();
             
             if (!value && !input.required) {
@@ -204,7 +204,7 @@ const ValidationUtils = {
             if (abortController) abortController.abort();
             abortController = new AbortController();
 
-            showChecking();
+            if (!silent) showChecking();
 
             try {
                 const timeoutId = setTimeout(() => abortController.abort(), 8000);
@@ -235,13 +235,33 @@ const ValidationUtils = {
         input.addEventListener('input', () => {
             clearTimeout(debounceTimer);
             this.clearError(input);
-            input.dataset.isValid = "false";
-            debounceTimer = setTimeout(validate, 600);
+            
+            const value = input.value.trim();
+            const localResult = this.validatePhone(value);
+            
+            if (localResult.valid) {
+                if (ajaxUrl) {
+                    input.dataset.pending = "true";
+                    setSubmitState(false);
+                    debounceTimer = setTimeout(() => validate(true), 400); // Silent AJAX check
+                } else {
+                    input.dataset.isValid = "true";
+                    setSubmitState(true);
+                }
+            } else {
+                input.dataset.isValid = "false";
+                setSubmitState(false);
+                if (value.length > 0) {
+                    this.showError(input, localResult.message);
+                } else if (input.required) {
+                    this.showError(input, "Phone number is required");
+                }
+            }
         });
 
         input.addEventListener('blur', () => {
             if (input.dataset.pending !== "true" && input.dataset.isValid !== "true") {
-                validate();
+                validate(false);
             }
         });
     },
@@ -263,35 +283,41 @@ const ValidationUtils = {
             for (const [selector, validateFn] of Object.entries(validationMap)) {
                 const input = form.querySelector(selector);
                 if (!input) continue;
+                
+                let fieldValid = true;
 
                 // Check if field is required and empty
                 if (input.required && !input.value.trim()) {
-                    isFormValid = false;
-                    break;
+                    fieldValid = false;
                 }
-
                 // Check pending AJAX states
-                if (input.dataset.pending === "true") {
-                    isFormValid = false;
-                    break;
+                else if (input.dataset.pending === "true") {
+                    fieldValid = false;
                 }
-
                 // Check explicit validity markers (set by real-time listeners)
-                if (input.dataset.isValid === "false") {
-                    isFormValid = false;
-                    break;
+                else if (input.dataset.isValid === "false") {
+                    fieldValid = false;
                 }
-
                 // Run custom validation function if provided
-                if (validateFn && !validateFn(input.value)) {
+                else if (validateFn && !validateFn(input.value)) {
+                    fieldValid = false;
+                }
+                
+                if (!fieldValid) {
                     isFormValid = false;
-                    break;
                 }
             }
 
             submitBtn.disabled = !isFormValid;
-            submitBtn.style.opacity = isFormValid ? '1' : '0.5';
-            submitBtn.style.cursor = isFormValid ? 'pointer' : 'not-allowed';
+            if (isFormValid) {
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                submitBtn.style.opacity = '1';
+                submitBtn.style.cursor = 'pointer';
+            } else {
+                submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                submitBtn.style.opacity = '0.5';
+                submitBtn.style.cursor = 'not-allowed';
+            }
             
             // If invalid, ensure loader is hidden
             if (!isFormValid) {
@@ -305,6 +331,7 @@ const ValidationUtils = {
                 }
                 delete form.dataset.submitting;
             }
+            return isFormValid;
         };
 
         // Attach listeners to all fields in the map

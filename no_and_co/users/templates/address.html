@@ -768,6 +768,11 @@ function openModal() {
     unlockSelect(document.getElementById('f-country'));
     const countryEl = document.getElementById('f-country');
     if (countryEl) setSelectValue(countryEl, 'India');
+    
+    // Disable submit button initially for Add Address
+    const phoneInput = document.getElementById('f-phone');
+    if (phoneInput) phoneInput.dispatchEvent(new Event('input'));
+
     document.getElementById('addressModal').classList.add('active');
     document.getElementById('addressModalOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -794,6 +799,10 @@ async function openEditModal(data) {
     document.getElementById('edit-first-name').value = data.first_name || '';
     document.getElementById('edit-last-name').value  = data.last_name  || '';
     document.getElementById('edit-phone').value      = data.phone      || '';
+    
+    // Trigger real-time phone validation for Edit Address
+    document.getElementById('edit-phone').dispatchEvent(new Event('input'));
+
     document.getElementById('edit-addr1').value      = data.addr1      || '';
     document.getElementById('edit-addr2').value      = data.addr2      || '';
     cityEl.value  = data.city   || '';
@@ -837,6 +846,9 @@ function cancelDelete(id)  { const o = document.getElementById(`delete-overlay-$
 document.addEventListener('DOMContentLoaded', function () {
     fetchCountries();
     ensureEditErrorSpans();
+
+    ValidationUtils.attachPhoneValidation('#f-phone', '#submit-btn');
+    ValidationUtils.attachPhoneValidation('#edit-phone', '#edit-submit-btn');
 });
 
 /* ── Event Delegation (works even after DOM updates) ── */
@@ -844,8 +856,6 @@ document.addEventListener('input', function(e) {
     const id = e.target.id;
     if (id === 'f-postal') verifyPin('add', { pin:'f-postal', city:'f-city', state:'f-state', country:'f-country', errPin:'err-postal' });
     if (id === 'edit-pin') verifyPin('edit', { pin:'edit-pin', city:'edit-city', state:'edit-state', country:'edit-country', errPin:'err-edit-pin' });
-    if (id === 'f-phone') { e.target.value = e.target.value.replace(/\D/g,'').slice(0,10); clearFieldError(e.target, document.getElementById('err-phone')); }
-    if (id === 'edit-phone') { e.target.value = e.target.value.replace(/\D/g,'').slice(0,10); clearFieldError(e.target, document.getElementById('err-edit-phone')); }
     const fieldMap = { 'f-first-name':'err-first-name','f-last-name':'err-last-name','f-addr1':'err-addr1','f-city':'err-city','f-state':'err-state','edit-first-name':'err-edit-first-name','edit-last-name':'err-edit-last-name','edit-addr1':'err-edit-addr1','edit-city':'err-edit-city','edit-state':'err-edit-state' };
     if (fieldMap[id]) clearFieldError(e.target, document.getElementById(fieldMap[id]));
 });

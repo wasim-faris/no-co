@@ -32,30 +32,27 @@ def calculate_final_price(product, price):
         offerproduct__product=product
     )
     
-    found_pd = False
     for o in product_offers:
         if o.min_purchase <= price:
             disc = calculate_discount_amount(o, price)
             if disc > best_discount:
                 best_discount = disc
                 winning_offer = o
-                found_pd = True
     
-    if not found_pd:
-        # Priority 2: Category Offers
-        category_offers = Offer.objects.filter(
-            apply_to='category',
-            is_active=True,
-            start_date__lte=today,
-            end_date__gte=today,
-            offercategory__category=product.category
-        )
-        for o in category_offers:
-            if o.min_purchase <= price:
-                disc = calculate_discount_amount(o, price)
-                if disc > best_discount:
-                    best_discount = disc
-                    winning_offer = o
+    # Priority 2: Category Offers
+    category_offers = Offer.objects.filter(
+        apply_to='category',
+        is_active=True,
+        start_date__lte=today,
+        end_date__gte=today,
+        offercategory__category=product.category
+    )
+    for o in category_offers:
+        if o.min_purchase <= price:
+            disc = calculate_discount_amount(o, price)
+            if disc > best_discount:
+                best_discount = disc
+                winning_offer = o
 
     final_price = (price - best_discount).quantize(Decimal('0.01'))
     if final_price < 0: final_price = Decimal('0.00')
@@ -129,16 +126,15 @@ def apply_offers_to_variants(variants):
                     best_discount = disc
                     winning_offer = o
         
-        if not winning_offer:
-            # Priority 2: Category Offers
-            category_id = getattr(product, 'category_id', None)
-            cat_offers = category_offer_map.get(category_id, []) if category_id else []
-            for o in cat_offers:
-                if o.min_purchase <= original_price:
-                    disc = calculate_discount_amount(o, original_price)
-                    if disc > best_discount:
-                        best_discount = disc
-                        winning_offer = o
+        # Priority 2: Category Offers
+        category_id = getattr(product, 'category_id', None)
+        cat_offers = category_offer_map.get(category_id, []) if category_id else []
+        for o in cat_offers:
+            if o.min_purchase <= original_price:
+                disc = calculate_discount_amount(o, original_price)
+                if disc > best_discount:
+                    best_discount = disc
+                    winning_offer = o
         
         # Priority 3: Manual Product Offer Percentage (Fallback)
         is_manual = False

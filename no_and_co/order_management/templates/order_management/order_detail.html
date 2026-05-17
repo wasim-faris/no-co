@@ -48,7 +48,7 @@
                                 </span>
                             {% else %}
                                 <span id="current-status-pill" class="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-600 uppercase tracking-widest">
-                                    {{ order.items.first.item_status|default:"PENDING" }}
+                                    {{ order.active_status|default:"PENDING" }}
                                 </span>
                             {% endif %}
                         {% endwith %}
@@ -175,7 +175,7 @@
                     <!-- Improved Order Progress Stepper -->
                     <section class="bg-white p-6 rounded-custom shadow-sm border border-white mt-8">
                         {% with latest_status=order.status_history.first.status|upper|default:"PENDING" %}
-                        {% with item_status=order.items.first.item_status|default:"PENDING"|upper %}
+                        {% with item_status=order.active_status|default:"PENDING"|upper %}
                         {% with return_request=order.returns.first %}
 
                             <div class="flex items-center justify-between mb-10">
@@ -390,7 +390,7 @@
                                                 {% elif return_request.status == 'REQUESTED' %}Refund Not Applicable
                                                 {% else %}Paid{% endif %}
                                             {% else %}
-                                                {% if order.items.first.item_status == 'DELIVERED' or order.delivered_date %}Paid
+                                                {% if order.active_status == 'DELIVERED' or order.delivered_date %}Paid
                                                 {% else %}Pending{% endif %}
                                             {% endif %}
                                         {% endwith %}
@@ -479,7 +479,7 @@
                 }
             });
 
-            const currentStatus = "{{ order.items.first.item_status|default:'PENDING'|escapejs }}";
+            const currentStatus = "{{ order.active_status|default:'PENDING'|escapejs }}";
             setStatusDisplay(currentStatus);
         })();
 

@@ -640,7 +640,10 @@
 
               <div class="sort-menu" id="sortMenu">
                   <form method="GET" action="." id="sortForm">
-                      <!-- PRESERVE ONLY CONTEXT (Reset search on sort per user requirement) -->
+                      <!-- PRESERVE CONTEXT INCLUDING SEARCH -->
+                      {% if request.GET.q %}
+                      <input type="hidden" name="q" value="{{ request.GET.q }}">
+                      {% endif %}
                       <input type="hidden" name="subcategory" value="{{ request.GET.subcategory }}">
                       <input type="hidden" name="section" value="{{ request.GET.section }}">
                       {% for cat in request.GET.getlist.category %}
@@ -850,7 +853,10 @@
     </div>
 
     <form class="filter-body" method="GET" action="." id="filterForm">
-        <!-- GLOBAL FILTERS (No subcategory/q restriction) -->
+        <!-- GLOBAL FILTERS -->
+        {% if request.GET.q %}
+        <input type="hidden" name="q" value="{{ request.GET.q }}">
+        {% endif %}
 
         <!-- Sort Section -->
         <div class="filter-section">
@@ -923,8 +929,7 @@
             params.set('subcategory', subSlug);
         }
 
-        // Reset search query when applying filters/tabs
-        params.delete('q');
+        // Search query is no longer reset when applying filters/tabs to allow them to work together
         
         if (typeof fetchProducts === 'function') fetchProducts(url);
     }

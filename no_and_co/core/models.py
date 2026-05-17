@@ -132,6 +132,11 @@ class Order(models.Model):
         return self.items.exclude(item_status="CANCELLED")
 
     @property
+    def active_status(self):
+        active = self.active_items.first()
+        return active.item_status if active else self.status
+
+    @property
     def cancelled_items(self):
         return self.items.filter(item_status="CANCELLED")
 
@@ -152,6 +157,19 @@ class Order(models.Model):
     def cancelled_subtotal(self):
         # Base paid amount for cancelled items after coupon but BEFORE tax
         return sum(item.final_price * item.quantity for item in self.cancelled_items)
+
+    @property
+    def refunded_items(self):
+        return self.items.filter(item_status__in=[
+            "RETURN_REQUESTED", "RETURN_APPROVED", "RETURN_PICKUP_SCHEDULED", 
+            "RETURN_PICKED_UP", "RETURN_RECEIVED", "RETURN_INSPECTED", 
+            "RETURN_REFUND_INITIATED", "RETURN_REFUNDED", "RETURN_REJECTED"
+        ])
+
+    @property
+    def refunded_subtotal(self):
+        # Base paid amount for returned/refunded items
+        return sum(item.final_price * item.quantity for item in self.refunded_items)
 
     @property
     def active_tax(self):
