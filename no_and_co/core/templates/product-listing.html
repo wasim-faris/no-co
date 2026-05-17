@@ -599,7 +599,7 @@
           </h1>
           
           <div id="searchResultContainer">
-          {% if query and query.strip and query != "None" and not request.GET.subcategory and not request.GET.category %}
+          {% if query and query.strip and query != "None" %}
           <div style="display: flex; align-items: center; gap: 12px; margin-top: 12px;">
               <p style="font-size: 14px; font-weight: 500; color: #767676; margin: 0; text-transform: none; letter-spacing: 0.02em;">
                   Results for "<span style="color: #000;">{{ query }}</span>"
@@ -1021,25 +1021,21 @@
         
         // Sync Categories (Checkboxes)
         const categories = urlParams.getAll('category');
-        if (categories.length > 0) {
-            document.querySelectorAll('input[name="category"]').forEach(checkbox => {
-                checkbox.checked = categories.includes(checkbox.value);
-            });
-        }
+        document.querySelectorAll('input[name="category"]').forEach(checkbox => {
+            checkbox.checked = categories.includes(checkbox.value);
+        });
 
         // Sync Sort (Radios)
-        const sort = urlParams.get('sort');
-        if (sort) {
-            document.querySelectorAll('input[name="sort"]').forEach(radio => {
-                radio.checked = (radio.value === sort);
-            });
-        }
+        const sort = urlParams.get('sort') || 'recommended';
+        document.querySelectorAll('input[name="sort"]').forEach(radio => {
+            radio.checked = (radio.value === sort);
+        });
         
         // Sync Prices (Ranges)
-        const min = urlParams.get('price_min');
-        const max = urlParams.get('price_max');
-        if (min) priceMin.value = min;
-        if (max) priceMax.value = max;
+        const min = urlParams.get('price_min') || '0';
+        const max = urlParams.get('price_max') || '9999';
+        if (priceMin) priceMin.value = min;
+        if (priceMax) priceMax.value = max;
         
         updatePriceUI();
     }
@@ -1137,9 +1133,7 @@
             const url = new URL(window.location.href);
             const params = url.searchParams;
             
-            // Global Filter behavior: reset subcategory/search context when using the drawer
-            params.delete('subcategory');
-            params.delete('q');
+            // Global Filter behavior: preserve subcategory/search context when using the drawer
             
             // 2. Handle Categories: Clean replacement
             const newCategories = formData.getAll('category');
@@ -1175,10 +1169,6 @@
             e.preventDefault();
             const formData = new FormData(sortFormEl);
             const url = new URL(window.location.href);
-            
-            // Clear search context on sort per user requirement
-            url.searchParams.delete('q');
-            
             // Apply new Sort value to existing URL context
             const sortVal = formData.get('sort');
             if (sortVal) {
@@ -1198,9 +1188,7 @@
         const url = new URL(window.location.href);
         const params = url.searchParams;
         
-        // Reset broad category view when removing filter tags
-        params.delete('subcategory');
-        params.delete('q');
+        // Keep subcategory and search query when removing filter tags
 
         if (key === 'category') {
             const currentValues = params.getAll('category');
