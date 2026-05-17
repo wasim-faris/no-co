@@ -1,0 +1,373 @@
+<!-- Add Review Modal Component -->
+<div id="addReviewModal" 
+     class="fixed inset-0 z-[9999] hidden items-center justify-center opacity-0 transition-opacity duration-300"
+     style="background-color: rgba(0,0,0,0.5);"
+     role="dialog" 
+     aria-modal="true" 
+     aria-labelledby="reviewModalTitle">
+    
+    <div class="bg-white w-full max-w-[500px] max-h-[90vh] overflow-y-auto flex flex-col relative transform scale-95 transition-transform duration-300 mx-4"
+         style="border: 1px solid #000000; color: #000000;">
+        
+        <!-- Close Button -->
+        <button id="closeAddReviewBtn" 
+                class="absolute top-4 right-4 text-3xl leading-none hover:opacity-70 focus:outline-none focus:ring-2 focus:ring-black"
+                style="background: transparent; color: #000000;"
+                aria-label="Close modal">&times;</button>
+        
+        <div class="p-8">
+            <h2 id="reviewModalTitle" class="text-xl font-semibold uppercase tracking-widest text-center mb-6">Write a Review</h2>
+            
+            <!-- Dynamic Product Info -->
+            <div class="flex items-center gap-4 p-4 mb-6" style="border: 1px solid #000000;">
+                <img id="reviewProductImage" src="" alt="Product" class="w-16 h-20 object-cover" style="background: #f5f5f5;">
+                <div>
+                    <h3 id="reviewProductName" class="text-sm font-semibold uppercase tracking-widest mb-1"></h3>
+                    <p class="text-[11px] uppercase tracking-wider text-gray-600">
+                        Color: <span id="reviewProductColor"></span> | Size: <span id="reviewProductSize"></span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Error/Success Messages -->
+            <div id="reviewFormError" class="hidden mb-4 text-[12px] uppercase tracking-wider font-semibold" style="color: #ff0000;"></div>
+            <div id="reviewFormSuccess" class="hidden mb-4 text-[12px] uppercase tracking-wider font-semibold" style="color: #000000; border: 1px solid #000000; padding: 12px; text-align: center;"></div>
+
+            <form id="reviewSubmitForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="productId" id="reviewProductId">
+                <input type="hidden" name="orderId" id="reviewOrderId">
+
+                <!-- Star Rating -->
+                <div class="mb-6">
+                    <label class="block text-[11px] font-semibold uppercase tracking-[0.1em] mb-2">Rating *</label>
+                    <div class="flex flex-row-reverse justify-end gap-2 star-rating-input">
+                        <input type="radio" id="m_star5" name="rating" value="5" class="hidden" required />
+                        <label for="m_star5" class="cursor-pointer text-3xl leading-none transition-transform hover:scale-110" style="color: #d1d1d1;">&#9733;</label>
+                        
+                        <input type="radio" id="m_star4" name="rating" value="4" class="hidden" />
+                        <label for="m_star4" class="cursor-pointer text-3xl leading-none transition-transform hover:scale-110" style="color: #d1d1d1;">&#9733;</label>
+                        
+                        <input type="radio" id="m_star3" name="rating" value="3" class="hidden" />
+                        <label for="m_star3" class="cursor-pointer text-3xl leading-none transition-transform hover:scale-110" style="color: #d1d1d1;">&#9733;</label>
+                        
+                        <input type="radio" id="m_star2" name="rating" value="2" class="hidden" />
+                        <label for="m_star2" class="cursor-pointer text-3xl leading-none transition-transform hover:scale-110" style="color: #d1d1d1;">&#9733;</label>
+                        
+                        <input type="radio" id="m_star1" name="rating" value="1" class="hidden" />
+                        <label for="m_star1" class="cursor-pointer text-3xl leading-none transition-transform hover:scale-110" style="color: #d1d1d1;">&#9733;</label>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="mb-6 relative">
+                    <label class="block text-[11px] font-semibold uppercase tracking-[0.1em] mb-2" for="reviewDescription">Description *</label>
+                    <textarea name="description" id="reviewDescription" 
+                              class="w-full p-4 min-h-[120px] text-[13px] focus:outline-none focus:ring-1 focus:ring-black resize-y"
+                              style="border: 1px solid #000000; background: #ffffff; color: #000000;"
+                              maxlength="500" required placeholder="What did you like or dislike? How was the fit?"></textarea>
+                    <span class="absolute bottom-3 right-3 text-[10px]" style="color: #000000;"><span id="reviewCharCount">0</span>/500</span>
+                </div>
+
+                <!-- Images -->
+                <div class="mb-8">
+                    <label class="block text-[11px] font-semibold uppercase tracking-[0.1em] mb-2">Upload Images (Max 3, Optional)</label>
+                    <div id="reviewUploadZone" 
+                         class="p-6 text-center cursor-pointer transition-colors"
+                         style="border: 1px dashed #000000; background: #ffffff;">
+                        <div class="text-2xl mb-2" style="color: #000000;">&#128247;</div>
+                        <div class="text-[11px] uppercase tracking-wider" style="color: #000000;">Click or drag images here</div>
+                        <input type="file" id="reviewImageInput" name="images" accept="image/*" multiple class="hidden">
+                    </div>
+                    <div id="reviewPreviewContainer" class="flex gap-3 mt-4 flex-wrap"></div>
+                </div>
+
+                <button type="submit" id="reviewSubmitBtn" 
+                        class="w-full py-4 text-[12px] font-semibold uppercase tracking-[0.15em] transition-opacity hover:opacity-80 flex justify-center items-center gap-2 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black"
+                        style="background: #000000; color: #ffffff; border: none;">
+                    <span>Submit Review</span>
+                    <div id="reviewSubmitLoader" class="hidden w-4 h-4 rounded-full border-2 border-white border-b-transparent animate-spin"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* CSS for Star Rating functionality */
+    .star-rating-input label:hover,
+    .star-rating-input label:hover ~ label,
+    .star-rating-input input:checked ~ label {
+        color: #000000 !important;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('addReviewModal');
+    const closeBtn = document.getElementById('closeAddReviewBtn');
+    const form = document.getElementById('reviewSubmitForm');
+    const errorDiv = document.getElementById('reviewFormError');
+    const successDiv = document.getElementById('reviewFormSuccess');
+    const submitBtn = document.getElementById('reviewSubmitBtn');
+    const submitText = submitBtn.querySelector('span');
+    const submitLoader = document.getElementById('reviewSubmitLoader');
+    
+    // Form fields
+    const descInput = document.getElementById('reviewDescription');
+    const charCount = document.getElementById('reviewCharCount');
+    const uploadZone = document.getElementById('reviewUploadZone');
+    const imageInput = document.getElementById('reviewImageInput');
+    const previewContainer = document.getElementById('reviewPreviewContainer');
+
+    let selectedFiles = [];
+    let focusableElements;
+    let firstFocusableElement;
+    let lastFocusableElement;
+
+    // Trigger buttons logic
+    const triggers = document.querySelectorAll('.add-review-trigger');
+    triggers.forEach(trigger => {
+        trigger.addEventListener('click', function(e) {
+            e.preventDefault();
+            const pId = this.getAttribute('data-product-id');
+            const oId = this.getAttribute('data-order-id');
+            const pName = this.getAttribute('data-product-name');
+            const color = this.getAttribute('data-color');
+            const size = this.getAttribute('data-size');
+            const imgUrl = this.getAttribute('data-image-url');
+
+            // Populate Modal
+            document.getElementById('reviewProductId').value = pId;
+            document.getElementById('reviewOrderId').value = oId;
+            document.getElementById('reviewProductName').textContent = pName;
+            document.getElementById('reviewProductColor').textContent = color;
+            document.getElementById('reviewProductSize').textContent = size;
+            
+            const imgEl = document.getElementById('reviewProductImage');
+            if (imgUrl) {
+                imgEl.src = imgUrl;
+                imgEl.style.display = 'block';
+            } else {
+                imgEl.style.display = 'none';
+            }
+
+            openModal();
+        });
+    });
+
+    function openModal() {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        // Reset state
+        resetForm();
+        
+        // Trigger reflow for animation
+        void modal.offsetWidth;
+        modal.classList.remove('opacity-0');
+        modal.querySelector('.bg-white').classList.remove('scale-95');
+        modal.querySelector('.bg-white').classList.add('scale-100');
+
+        // Set up focus trap
+        focusableElements = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        firstFocusableElement = focusableElements[0];
+        lastFocusableElement = focusableElements[focusableElements.length - 1];
+        
+        // Focus first element (usually close button)
+        setTimeout(() => firstFocusableElement.focus(), 100);
+        document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    }
+
+    function closeModal() {
+        modal.classList.add('opacity-0');
+        modal.querySelector('.bg-white').classList.remove('scale-100');
+        modal.querySelector('.bg-white').classList.add('scale-95');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
+        }, 300);
+    }
+
+    function resetForm() {
+        form.reset();
+        errorDiv.classList.add('hidden');
+        successDiv.classList.add('hidden');
+        form.style.display = 'block';
+        charCount.textContent = '0';
+        selectedFiles = [];
+        renderPreviews();
+        updateFileInput();
+    }
+
+    // Event Listeners for closing
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // Keyboard events (Escape to close, Tab to trap focus)
+    modal.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeModal();
+        } else if (e.key === 'Tab') {
+            if (e.shiftKey) { // Shift + Tab
+                if (document.activeElement === firstFocusableElement) {
+                    lastFocusableElement.focus();
+                    e.preventDefault();
+                }
+            } else { // Tab
+                if (document.activeElement === lastFocusableElement) {
+                    firstFocusableElement.focus();
+                    e.preventDefault();
+                }
+            }
+        }
+    });
+
+    // Character counter
+    descInput.addEventListener('input', function() {
+        charCount.textContent = this.value.length;
+    });
+
+    // Image Upload Logic
+    uploadZone.addEventListener('click', () => imageInput.click());
+    
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.style.backgroundColor = '#f0f0f0';
+    });
+
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.style.backgroundColor = '#ffffff';
+    });
+
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.style.backgroundColor = '#ffffff';
+        handleFiles(e.dataTransfer.files);
+    });
+
+    imageInput.addEventListener('change', (e) => {
+        handleFiles(e.target.files);
+    });
+
+    function handleFiles(files) {
+        const newFiles = Array.from(files);
+        
+        if (selectedFiles.length + newFiles.length > 3) {
+            showError('You can only upload a maximum of 3 images.');
+            return;
+        }
+
+        newFiles.forEach(file => {
+            if (!file.type.startsWith('image/')) {
+                showError('Please upload only image files.');
+                return;
+            }
+            selectedFiles.push(file);
+            renderPreviews();
+        });
+        
+        updateFileInput();
+        errorDiv.classList.add('hidden'); // Clear error if success
+    }
+
+    function renderPreviews() {
+        previewContainer.innerHTML = '';
+        selectedFiles.forEach((file, index) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const div = document.createElement('div');
+                div.className = 'relative w-[80px] h-[80px]';
+                div.style.border = '1px solid #000000';
+                div.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview" class="w-full h-full object-cover">
+                    <button type="button" class="absolute -top-2 -right-2 w-5 h-5 flex items-center justify-center rounded-full text-[10px] remove-img-btn" 
+                            style="background: #000000; color: #ffffff; border: none; cursor: pointer;" 
+                            data-index="${index}">&times;</button>
+                `;
+                previewContainer.appendChild(div);
+            };
+            reader.readAsDataURL(file);
+        });
+    }
+
+    previewContainer.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-img-btn')) {
+            const index = parseInt(e.target.getAttribute('data-index'));
+            selectedFiles.splice(index, 1);
+            renderPreviews();
+            updateFileInput();
+        }
+    });
+
+    function updateFileInput() {
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        imageInput.files = dt.files;
+    }
+
+    function showError(msg) {
+        errorDiv.textContent = msg;
+        errorDiv.classList.remove('hidden');
+    }
+
+    // Form Submission (AJAX)
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Validate rating
+        const rating = form.querySelector('input[name="rating"]:checked');
+        if (!rating) {
+            showError("Please select a rating.");
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitText.textContent = 'Submitting...';
+        submitLoader.classList.remove('hidden');
+        errorDiv.classList.add('hidden');
+
+        const formData = new FormData(form);
+
+        fetch("{% url 'submit-review' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success, hide form
+                form.style.display = 'none';
+                successDiv.textContent = data.message;
+                successDiv.classList.remove('hidden');
+                
+                // Auto close and refresh after 2 seconds
+                setTimeout(() => {
+                    closeModal();
+                    window.location.reload();
+                }, 2000);
+            } else {
+                showError(data.error || "Something went wrong.");
+                resetSubmitBtn();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showError("A network error occurred. Please try again.");
+            resetSubmitBtn();
+        });
+    });
+
+    function resetSubmitBtn() {
+        submitBtn.disabled = false;
+        submitText.textContent = 'Submit Review';
+        submitLoader.classList.add('hidden');
+    }
+});
+</script>

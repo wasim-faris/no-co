@@ -1,7 +1,7 @@
 <aside class="desktop-sidebar">
     <div class="sidebar-label">Account Settings</div>
     <nav class="sidebar-nav">
-        <a href="{% url 'user-profile' user.id %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'user-profile' %}active{% endif %}">
+        <a href="{% url 'user-profile' %}" class="sidebar-nav-item {% if request.resolver_match.url_name == 'user-profile' %}active{% endif %}">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
             Overview
         </a>

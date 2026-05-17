@@ -754,7 +754,7 @@
                 </svg>
                 <span>Wishlist</span>
             </a>
-            <a href="{% if user.is_authenticated %}{% url 'user-profile' user.id %}{% else %}{% url 'login' %}{% endif %}" class="{% if request.resolver_match.url_name in 'user-profile login signup' %}active{% endif %}">
+            <a href="{% if user.is_authenticated %}{% url 'user-profile' %}{% else %}{% url 'login' %}{% endif %}" class="{% if request.resolver_match.url_name in 'user-profile login signup' %}active{% endif %}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
                     stroke-linejoin="round">
                     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />

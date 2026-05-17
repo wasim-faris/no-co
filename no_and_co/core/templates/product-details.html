@@ -1118,10 +1118,125 @@
             <span class="secondary-link">Check Availability</span>
         </div>
 
-        {% comment %} <div class="rating-row">
-            <span class="secondary-link">Reviews (1407)</span>
-            <span style="font-size:12px; font-weight:700; color:#000;">★★★★★ 4.6</span>
-        </div> {% endcomment %}
+        <div class="rating-row" id="reviewsTrigger" style="cursor:pointer; margin-top: 20px; padding: 16px 0; border-top: 1px solid #e5e5e5; display: flex; justify-content: space-between; align-items: center;" data-product-id="{{ product.id }}">
+            <span class="secondary-link" style="margin: 0;">Reviews (<span id="reviewsCount">0</span>)</span>
+            <span style="font-size:12px; font-weight:700; color:#000;">★★★★★ <span id="reviewsAvg">0.0</span></span>
+        </div>
+
+        <!-- Reviews Modal / Overlay -->
+        <div id="reviewsModal" class="fixed inset-0 z-[9999] bg-black/50 hidden items-center justify-center opacity-0 transition-opacity duration-300">
+            <div class="bg-white w-full h-full md:h-auto md:max-h-[85vh] md:w-[600px] flex flex-col transform translate-y-full md:translate-y-8 transition-transform duration-300 relative">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-6 border-b border-gray-100">
+                    <h2 class="text-xl font-semibold tracking-wide uppercase">Reviews</h2>
+                    <button id="closeReviewsBtn" class="text-2xl hover:text-gray-500 leading-none">&times;</button>
+                </div>
+                <!-- Content -->
+                <div class="p-6 overflow-y-auto flex-1 bg-gray-50/30" id="reviewsContent">
+                    <div class="text-center py-10" id="reviewsLoading">
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-black mx-auto"></div>
+                    </div>
+                    <div id="reviewsList" class="space-y-6"></div>
+                    <div id="noReviewsMsg" class="hidden text-center py-10 text-gray-500 uppercase tracking-wider text-xs">
+                        No reviews yet. Be the first to review this product!
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const trigger = document.getElementById('reviewsTrigger');
+                const modal = document.getElementById('reviewsModal');
+                const closeBtn = document.getElementById('closeReviewsBtn');
+                const content = document.getElementById('reviewsList');
+                const loading = document.getElementById('reviewsLoading');
+                const noReviews = document.getElementById('noReviewsMsg');
+                const countSpan = document.getElementById('reviewsCount');
+                const avgSpan = document.getElementById('reviewsAvg');
+                const productId = trigger.getAttribute('data-product-id');
+                
+                let loaded = false;
+
+                // Load initial count
+                fetch(`/api/reviews/product/${productId}/`)
+                    .then(r => r.json())
+                    .then(data => {
+                        countSpan.textContent = data.count;
+                        if(data.count > 0) {
+                            avgSpan.textContent = data.avg_rating.toFixed(1);
+                        }
+                    });
+
+                trigger.addEventListener('click', () => {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    // Trigger reflow
+                    void modal.offsetWidth;
+                    modal.classList.remove('opacity-0');
+                    modal.querySelector('.bg-white').classList.remove('translate-y-full', 'md:translate-y-8');
+                    modal.querySelector('.bg-white').classList.add('translate-y-0');
+
+                    if (!loaded) {
+                        fetch(`/api/reviews/product/${productId}/`)
+                            .then(r => r.json())
+                            .then(data => {
+                                loading.classList.add('hidden');
+                                if (data.reviews.length === 0) {
+                                    noReviews.classList.remove('hidden');
+                                } else {
+                                    data.reviews.forEach(review => {
+                                        let starsHtml = '';
+                                        for(let i=1; i<=5; i++) {
+                                            starsHtml += `<span class="${i <= review.rating ? 'text-yellow-400' : 'text-gray-300'}">★</span>`;
+                                        }
+                                        
+                                        let imagesHtml = '';
+                                        if (review.images.length > 0) {
+                                            imagesHtml = '<div class="flex gap-2 mt-3 overflow-x-auto pb-2">';
+                                            review.images.forEach(img => {
+                                                imagesHtml += `<a href="${img}" target="_blank" class="flex-shrink-0 w-16 h-16 border border-gray-200 block"><img src="${img}" class="w-full h-full object-cover"></a>`;
+                                            });
+                                            imagesHtml += '</div>';
+                                        }
+
+                                        const div = document.createElement('div');
+                                        div.className = 'bg-white p-5 border border-gray-100 shadow-sm';
+                                        div.innerHTML = `
+                                            <div class="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <p class="font-semibold text-sm">${review.username}</p>
+                                                    <p class="text-[10px] text-gray-400 uppercase tracking-widest mt-0.5">${review.date}</p>
+                                                </div>
+                                                <div class="flex text-sm">${starsHtml}</div>
+                                            </div>
+                                            <p class="text-sm text-gray-700 mt-3 leading-relaxed">${review.description}</p>
+                                            ${imagesHtml}
+                                        `;
+                                        content.appendChild(div);
+                                    });
+                                }
+                                loaded = true;
+                            });
+                    }
+                });
+
+                closeBtn.addEventListener('click', closeModal);
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) closeModal();
+                });
+
+                function closeModal() {
+                    modal.classList.add('opacity-0');
+                    modal.querySelector('.bg-white').classList.remove('translate-y-0');
+                    modal.querySelector('.bg-white').classList.add('translate-y-full', 'md:translate-y-8');
+                    setTimeout(() => {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                    }, 300);
+                }
+            });
+        </script>
 
         <!-- ══ FIT INDICATOR (H&M style, static) ══ -->
         <!-- No border-top here: rating-row already separates this section -->

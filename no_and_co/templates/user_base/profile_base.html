@@ -30,7 +30,7 @@
     </div>
     <div class="drawer-separator"></div>
     <nav class="drawer-nav">
-        <a href="{% url 'user-profile' user.id %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'user-profile' %}active{% endif %}">
+        <a href="{% url 'user-profile' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'user-profile' %}active{% endif %}">
             <svg class="drawer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
             </svg>

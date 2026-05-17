@@ -15,6 +15,15 @@
 
                 <!-- Hidden action input for specific commands (e.g. clear history) -->
                 <input type="hidden" name="action" id="search-action" value="">
+                
+                <!-- Preserve existing filters/sort when searching -->
+                {% for key, values in request.GET.lists %}
+                    {% if key != 'q' and key != 'page' and key != 'action' %}
+                        {% for value in values %}
+                            <input type="hidden" name="{{ key }}" value="{{ value }}">
+                        {% endfor %}
+                    {% endif %}
+                {% endfor %}
 
                 <!-- Input Field (Backend-friendly with name="q") -->
                 <input

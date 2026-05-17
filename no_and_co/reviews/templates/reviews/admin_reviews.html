@@ -1,0 +1,151 @@
+{% extends 'admin_base/base.html' %}
+{% load static %}
+
+{% block title %}Manage Reviews - NØ&CO{% endblock %}
+
+{% block content %}
+<div class="p-8">
+    <div class="mb-8 flex justify-between items-end">
+        <div>
+            <h1 class="text-2xl font-semibold text-[#1a1a1a] mb-2 tracking-wide uppercase">Reviews</h1>
+            <p class="text-sm text-gray-500">Manage customer reviews across all products</p>
+        </div>
+    </div>
+
+    <!-- Status Filters -->
+    <div class="flex gap-4 mb-6 border-b border-gray-200">
+        <a href="?status=all" class="px-4 py-2 text-sm font-medium uppercase tracking-wider {% if status_filter == 'all' %}border-b-2 border-black text-black{% else %}text-gray-500 hover:text-black{% endif %}">
+            All
+        </a>
+        <a href="?status=pending" class="px-4 py-2 text-sm font-medium uppercase tracking-wider {% if status_filter == 'pending' %}border-b-2 border-black text-black{% else %}text-gray-500 hover:text-black{% endif %}">
+            Pending
+        </a>
+        <a href="?status=approved" class="px-4 py-2 text-sm font-medium uppercase tracking-wider {% if status_filter == 'approved' %}border-b-2 border-black text-black{% else %}text-gray-500 hover:text-black{% endif %}">
+            Approved
+        </a>
+        <a href="?status=rejected" class="px-4 py-2 text-sm font-medium uppercase tracking-wider {% if status_filter == 'rejected' %}border-b-2 border-black text-black{% else %}text-gray-500 hover:text-black{% endif %}">
+            Rejected
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50/50 border-b border-gray-100">
+                        <th class="py-4 px-6 text-[10px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Product & User</th>
+                        <th class="py-4 px-6 text-[10px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Rating & Review</th>
+                        <th class="py-4 px-6 text-[10px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Images</th>
+                        <th class="py-4 px-6 text-[10px] uppercase tracking-[0.15em] text-gray-400 font-semibold">Status</th>
+                        <th class="py-4 px-6 text-[10px] uppercase tracking-[0.15em] text-gray-400 font-semibold text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for review in page_obj %}
+                    <tr class="hover:bg-gray-50/50 transition-colors">
+                        <td class="py-4 px-6 align-top">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-16 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                                    {% if review.product.variants.first.images.first %}
+                                    <img src="{{ review.product.variants.first.images.first.image.url }}" class="w-full h-full object-cover">
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 mb-1 line-clamp-2" title="{{ review.product.product_name }}">{{ review.product.product_name }}</p>
+                                    <p class="text-xs text-gray-500">{{ review.user.get_full_name|default:review.user.username }}</p>
+                                    <p class="text-[10px] text-gray-400 mt-1">{{ review.created_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 align-top max-w-md">
+                            <div class="flex gap-1 mb-2">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <span class="text-yellow-400 text-sm">★</span>
+                                    {% else %}
+                                        <span class="text-gray-300 text-sm">★</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="text-sm text-gray-700 break-words">{{ review.description }}</p>
+                        </td>
+                        <td class="py-4 px-6 align-top">
+                            <div class="flex gap-2 flex-wrap max-w-[150px]">
+                                {% if review.image1 %}
+                                <a href="{{ review.image1.url }}" target="_blank" class="w-10 h-10 border border-gray-200 rounded overflow-hidden hover:border-black transition-colors block">
+                                    <img src="{{ review.image1.url }}" class="w-full h-full object-cover">
+                                </a>
+                                {% endif %}
+                                {% if review.image2 %}
+                                <a href="{{ review.image2.url }}" target="_blank" class="w-10 h-10 border border-gray-200 rounded overflow-hidden hover:border-black transition-colors block">
+                                    <img src="{{ review.image2.url }}" class="w-full h-full object-cover">
+                                </a>
+                                {% endif %}
+                                {% if review.image3 %}
+                                <a href="{{ review.image3.url }}" target="_blank" class="w-10 h-10 border border-gray-200 rounded overflow-hidden hover:border-black transition-colors block">
+                                    <img src="{{ review.image3.url }}" class="w-full h-full object-cover">
+                                </a>
+                                {% endif %}
+                                {% if not review.image1 and not review.image2 and not review.image3 %}
+                                <span class="text-xs text-gray-400 italic">No images</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="py-4 px-6 align-top">
+                            {% if review.status == 'approved' %}
+                                <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-semibold uppercase tracking-wider bg-green-100 text-green-800">Approved</span>
+                            {% elif review.status == 'rejected' %}
+                                <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-semibold uppercase tracking-wider bg-red-100 text-red-800">Rejected</span>
+                            {% else %}
+                                <span class="inline-flex items-center px-2 py-1 rounded text-[10px] font-semibold uppercase tracking-wider bg-yellow-100 text-yellow-800">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-4 px-6 align-top text-right">
+                            {% if review.status == 'pending' %}
+                            <div class="flex gap-2 justify-end">
+                                <form action="{% url 'admin-review-status' review.id %}" method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="approved">
+                                    <button type="submit" class="px-3 py-1.5 bg-black text-white text-[10px] uppercase tracking-wider font-semibold hover:bg-gray-800 transition-colors rounded">Accept</button>
+                                </form>
+                                <form action="{% url 'admin-review-status' review.id %}" method="POST" class="inline">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="status" value="rejected">
+                                    <button type="submit" class="px-3 py-1.5 bg-white text-red-600 border border-red-200 text-[10px] uppercase tracking-wider font-semibold hover:bg-red-50 transition-colors rounded">Reject</button>
+                                </form>
+                            </div>
+                            {% elif review.status == 'approved' %}
+                            <form action="{% url 'admin-review-status' review.id %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="rejected">
+                                <button type="submit" class="px-3 py-1.5 bg-white text-gray-500 border border-gray-200 text-[10px] uppercase tracking-wider font-semibold hover:bg-gray-50 transition-colors rounded">Revoke Approval</button>
+                            </form>
+                            {% else %}
+                            <form action="{% url 'admin-review-status' review.id %}" method="POST" class="inline">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="approved">
+                                <button type="submit" class="px-3 py-1.5 bg-white text-gray-500 border border-gray-200 text-[10px] uppercase tracking-wider font-semibold hover:bg-gray-50 transition-colors rounded">Approve Now</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-gray-500">
+                            No reviews found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="mt-8">
+        {% include 'admin_base/components/pagination.html' %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

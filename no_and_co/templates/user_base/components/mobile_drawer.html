@@ -16,7 +16,7 @@
         <h3 class="drawer-title">Account Settings</h3>
     </div>
     <div class="drawer-nav">
-        <a href="{% url 'user-profile' user.id %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'user-profile' %}active{% endif %}">Overview</a>
+        <a href="{% url 'user-profile' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'user-profile' %}active{% endif %}">Overview</a>
         <a href="{% url 'orders' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'orders' or request.resolver_match.url_name == 'order_details' %}active{% endif %}">Orders</a>
         <a href="{% url 'wishlist' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">Wishlist</a>
         <a href="{% url 'wallet' %}" class="drawer-nav-item {% if request.resolver_match.url_name == 'wallet' %}active{% endif %}">Wallet</a>

@@ -255,24 +255,25 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
-            <form id="editProfileForm" action="{% url 'update-profile' user.id %}" method="POST">
+            <form id="editProfileForm" action="{% url 'update-profile' %}" method="POST">
                 {% csrf_token %}
                 <div class="edit-field-group">
                     <label class="edit-label" for="editUsername">Name</label>
-                    <input class="edit-input w-full border-b {% if errors.username %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300" type="text" id="editUsername" name="username" value="{{ values.username|default:user.username }}" placeholder="e.g. Sarah Lee">
+                    <input class="edit-input w-full border-b {% if errors.username %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300" type="text" id="editUsername" name="username" value="{{ values.username|default:user.username }}" placeholder="e.g. Sarah Lee" required>
                     <p id="editUsername_error" class="text-[9px] text-red-500 mt-1 uppercase tracking-widest {% if not errors.username %}hidden{% endif %}">{{ errors.username }}</p>
                 </div>
                 <div class="edit-field-group">
                     <label class="edit-label" for="editEmail">Email</label>
-                    <input class="edit-input w-full border-b {% if errors.email %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300" type="email" id="editEmail" name="email" value="{{ values.email|default:user.email }}" {% if not user.has_usable_password %}readonly{% endif %} placeholder="e.g. sarah@example.com">
+                    <input class="edit-input w-full border-b {% if errors.email %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300" type="email" id="editEmail" name="email" value="{{ values.email|default:user.email }}" {% if not user.has_usable_password %}readonly{% endif %} placeholder="e.g. sarah@example.com" required>
                     <p id="editEmail_error" class="text-[9px] text-red-500 mt-1 uppercase tracking-widest {% if not errors.email %}hidden{% endif %}">{{ errors.email }}</p>
                 </div>
                 <div class="edit-field-group">
                     <label class="edit-label" for="editPhone">Phone</label>
-                    <input class="edit-input w-full border-b {% if errors.phone %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300" type="text" id="editPhone" name="phone" value="{{ values.phone|default:user.phone_number|default:'' }}" placeholder="e.g. 9876543210">
+                    <input class="edit-input w-full border-b {% if errors.phone %}border-red-500{% else %}border-gray-200{% endif %} bg-transparent py-2 text-sm focus:outline-none focus:border-black transition-all duration-300" type="text" id="editPhone" value="{{ values.phone|default:user.phone_number|default:'' }}" placeholder="e.g. 9876543210" required>
+                    <input type="hidden" name="phone" id="hiddenEditPhone">
                     <p id="editPhone_error" class="text-[9px] text-red-500 mt-1 uppercase tracking-widest {% if not errors.phone %}hidden{% endif %}">{{ errors.phone }}</p>
                 </div>
-                <button type="submit" id="editSubmitBtn" class="w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] active:scale-[0.99] transition-all duration-300 mt-4">Save Changes</button>
+                <button type="submit" id="editSubmitBtn" class="w-full bg-black text-white py-3.5 text-[10px] font-bold uppercase tracking-[0.3em] flex items-center justify-center space-x-2 hover:bg-[#333] transition-all duration-300 mt-4">Save Changes</button>
             </form>
             <script>
                 // Auto-open drawer if there are errors
@@ -302,103 +303,116 @@
                     const emailPattern = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
                     const namePattern = /^[A-Za-z\s]+$/;
 
-                    function showError(input, errorElement, message) {
-                        input.classList.remove('border-gray-200');
-                        input.classList.add('border-red-500');
-                        errorElement.textContent = message;
-                        errorElement.classList.remove('hidden');
-                    }
+                    // Initial phone formatting (strip +91 if present)
+                    const stripPrefix = (val) => {
+                        if (!val) return '';
+                        let clean = val.trim();
+                        if (clean.startsWith('+91')) return clean.slice(3);
+                        if (clean.startsWith('91') && clean.length > 10) return clean.slice(2);
+                        return clean;
+                    };
+                    phone.value = stripPrefix(phone.value);
 
-                    function clearError(input, errorElement) {
-                        input.classList.remove('border-red-500');
-                        input.classList.add('border-gray-200');
-                        errorElement.textContent = "";
-                        errorElement.classList.add('hidden');
-                    }
+                    // Initialize Phone Validation
+                    ValidationUtils.attachPhoneValidation(
+                        '#editPhone',
+                        null,
+                        "{% url 'validate-phone' %}"
+                    );
 
-                    function validateForm() {
-                        let isValid = true;
-                        
-                        const valName = username.value;
-                        const cleanName = valName.replace(/\s+/g, ' ').trim();
-                        
-                        // Name validation
-                        if (valName && !namePattern.test(valName)) {
-                            showError(username, usernameError, "Only letters and spaces are allowed.");
-                            isValid = false;
-                        } else if (cleanName.length > 0 && cleanName.length < 4) {
-                            showError(username, usernameError, "Name must be more than 4 characters.");
-                            isValid = false;
-                        } else {
+                    // Watch form for overall validity
+                    const checkFormValidity = ValidationUtils.watchForm('#editProfileForm', '#editSubmitBtn', {
+                        '#editUsername': (val) => {
+                            const cleanName = val.replace(/\s+/g, ' ').trim();
+                            if (!val) return false;
+                            if (!namePattern.test(val)) {
+                                ValidationUtils.showError(username, "Only letters and spaces are allowed.");
+                                return false;
+                            }
+                            if (cleanName.length > 0 && cleanName.length < 4) {
+                                ValidationUtils.showError(username, "Name must be more than 4 characters.");
+                                return false;
+                            }
                             if (usernameError.textContent && !usernameError.textContent.includes("already exists")) {
-                                clearError(username, usernameError);
+                                ValidationUtils.clearError(username);
                             }
-                        }
-                        if(!valName) isValid = false;
-
-                        // Email validation
-                        const valEmail = email.value.trim();
-                        if (valEmail && !emailPattern.test(valEmail)) {
-                            showError(email, emailError, "Enter a valid email format.");
-                            isValid = false;
-                        } else {
-                            if (emailError.textContent && !emailError.textContent.includes("already exists")) {
-                                clearError(email, emailError);
+                            return true;
+                        },
+                        '#editEmail': (val) => {
+                            const valEmail = val.trim();
+                            if (!valEmail) return false;
+                            if (!emailPattern.test(valEmail)) {
+                                ValidationUtils.showError(email, "Enter a valid email format.");
+                                return false;
                             }
-                        }
-                        if(!valEmail) isValid = false;
-
-                        // Phone logic (Handled by ValidationUtils)
-                        const valPhone = phone.value.trim();
-                        if (!valPhone) {
-                            isValid = false;
-                        } else if (phone.dataset.isValid === "false" || phone.dataset.pending === "true") {
-                            isValid = false;
-                        } else {
-                            if (phoneError.textContent && !phoneError.textContent.includes("already registered") && phoneError.dataset.vuSet !== "true") {
-                                clearError(phone, phoneError);
+                            if (emailError.textContent && !emailError.textContent.includes("already exists") && !emailError.textContent.includes("Sign-In")) {
+                                ValidationUtils.clearError(email);
                             }
+                            return true;
+                        },
+                        '#editPhone': (val) => {
+                            const valPhone = val.trim();
+                            if (!valPhone) {
+                                ValidationUtils.showError(phone, "Phone number is required");
+                                return false;
+                            }
+                            if (!/^\d{10}$/.test(valPhone)) {
+                                if (valPhone.length > 0 && valPhone.length !== 10) {
+                                    ValidationUtils.showError(phone, "Phone number must be exactly 10 digits");
+                                }
+                                return false;
+                            }
+                            // Clear registered error if user starts typing
+                            if (phoneError.textContent.includes("already registered")) {
+                                ValidationUtils.clearError(phone);
+                            }
+                            return true;
                         }
+                    });
 
-                        submitBtn.disabled = !isValid;
-                        if (!isValid) {
-                            submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                        } else {
-                            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                        }
-                    }
-
+                    // Clear server-side errors on input
                     username.addEventListener('input', () => {
-                        if (usernameError.textContent.includes("already exists")) clearError(username, usernameError);
-                        validateForm();
+                        if (usernameError.textContent.includes("already exists")) ValidationUtils.clearError(username);
                     });
                     email.addEventListener('input', () => {
-                        if (emailError.textContent.includes("already exists") || emailError.textContent.includes("Sign-In")) clearError(email, emailError);
-                        validateForm();
+                        if (emailError.textContent.includes("already exists") || emailError.textContent.includes("Sign-In")) ValidationUtils.clearError(email);
                     });
-                    phone.addEventListener('input', () => {
-                        if (phoneError.textContent.includes("already registered")) clearError(phone, phoneError);
-                        validateForm();
-                    });
-
-                    username.addEventListener('blur', () => {
-                        username.value = username.value.replace(/\s+/g, ' ').trim();
-                        validateForm();
-                    });
-                    email.addEventListener('blur', validateForm);
-                    phone.addEventListener('blur', validateForm);
 
                     form.addEventListener('submit', function(e) {
-                        if (submitBtn.disabled || form.dataset.submitting === "true") {
+                        // Prevent click if button is visually disabled or already submitting
+                        if (submitBtn.classList.contains('pointer-events-none') || form.dataset.submitting === "true") {
                             e.preventDefault();
                             return;
                         }
+                        
+                        // Final check before submission
+                        if (checkFormValidity && !checkFormValidity()) {
+                            e.preventDefault();
+                            return;
+                        }
+
+                        // Prepare the data for submission (Append +91 internally)
+                        const rawPhone = phone.value.trim();
+                        const hiddenPhone = document.getElementById('hiddenEditPhone');
+                        if (rawPhone.length === 10) {
+                            hiddenPhone.value = "+91" + rawPhone;
+                        } else {
+                            hiddenPhone.value = rawPhone; // Should be blocked by validation anyway
+                        }
+
+                        // Set submitting state
                         form.dataset.submitting = "true";
-                        submitBtn.disabled = true;
-                        submitBtn.dataset.originalText = submitBtn.innerHTML;
-                        submitBtn.style.color = 'transparent';
-                        submitBtn.style.position = 'relative';
-                        submitBtn.insertAdjacentHTML('beforeend', '<div class="inline-spinner" style="position:absolute; top:50%; left:50%; margin-left:-8px; margin-top:-8px; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:btn-spin 1s linear infinite;"></div>');
+                        
+                        // Delay disabling the button to ensure the native form submission isn't canceled
+                        // Some browsers cancel the request if the submitter is disabled immediately
+                        setTimeout(() => {
+                            submitBtn.disabled = true;
+                            submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+                            submitBtn.dataset.originalText = submitBtn.innerHTML;
+                            submitBtn.style.color = 'transparent';
+                            submitBtn.style.position = 'relative';
+                            submitBtn.insertAdjacentHTML('beforeend', '<div class="inline-spinner" style="position:absolute; top:50%; left:50%; margin-left:-8px; margin-top:-8px; width:16px; height:16px; border:2px solid rgba(255,255,255,0.3); border-top-color:#fff; border-radius:50%; animation:btn-spin 1s linear infinite;"></div>');
+                        }, 10);
                     });
                 });
             </script>
@@ -715,7 +729,7 @@
                         const formData = new FormData();
                         formData.append('profile_photo', optimizedFile);
 
-                        const response = await fetch("{% url 'add-profile-pic' user.id %}", {
+                        const response = await fetch("{% url 'add-profile-pic' %}", {
                             method: 'POST',
                             body: formData,
                             headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
@@ -755,7 +769,7 @@
                 removeOverlay.addEventListener('click', (e) => {
                     e.stopPropagation();
                     if (!confirm("Remove profile photo?")) return;
-                    fetch("{% url 'delete-profile-pic' user.id %}", {
+                    fetch("{% url 'delete-profile-pic' %}", {
                         method: 'GET',
                         headers: { 'X-Requested-With': 'XMLHttpRequest' }
                     }).then(() => window.location.reload());

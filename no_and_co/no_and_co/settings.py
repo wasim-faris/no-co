@@ -67,6 +67,7 @@ INSTALLED_APPS = [
     "wallet",
     "coupon",
     "offers",
+    "reviews",
     'cloudinary',
     'cloudinary_storage',
 ]

@@ -688,6 +688,19 @@
                                         <button type="button" class="order-action-mini return-item-btn" data-item-index="{{ forloop.counter0 }}" data-order-item-id="{{ item.id }}">Return Item</button>
                                         {% endif %}
                                     {% endif %}
+                                    
+                                    {% if item.item_status == 'DELIVERED' %}
+                                        {% if item.variant.product.id not in reviewed_product_ids %}
+                                        <button type="button" class="order-action-mini add-review-trigger" 
+                                                data-product-id="{{ item.variant.product.id }}"
+                                                data-order-id="{{ order.id }}"
+                                                data-product-name="{{ item.variant.product.product_name }}"
+                                                data-color="{{ item.variant.color }}"
+                                                data-size="{{ item.variant.size.name }}"
+                                                data-image-url="{% if item.variant.images.first %}{{ item.variant.images.first.image.url }}{% endif %}"
+                                                style="display: inline-block;">Add Review</button>
+                                        {% endif %}
+                                    {% endif %}
                                 </div>
                                 <div class="item-state-note" data-role="item-state-note">
                                     {% with return_request=item.returns.first %}
@@ -873,7 +886,13 @@
                         {% if order.cancelled_subtotal > 0 %}
                         <div class="price-row" style="border-top: 1px dashed var(--ink-faint); margin-top: 8px; padding-top: 8px;">
                             <span class="price-label" style="color: var(--ink-soft);">Cancelled Amount</span>
-                            <span class="price-value" style="color: var(--ink-soft); text-decoration: line-through;">₹{{ order.cancelled_subtotal }}</span>
+                            <span class="price-value" style="color: var(--ink-soft);">-₹{{ order.cancelled_subtotal }}</span>
+                        </div>
+                        {% endif %}
+                        {% if order.refunded_subtotal > 0 %}
+                        <div class="price-row" style="border-top: 1px dashed var(--ink-faint); margin-top: 8px; padding-top: 8px;">
+                            <span class="price-label" style="color: var(--ink-soft);">Refunded Amount</span>
+                            <span class="price-value" style="color: var(--ink-soft);">-₹{{ order.refunded_subtotal }}</span>
                         </div>
                         {% endif %}
                         <div class="price-row">
@@ -897,7 +916,7 @@
                     <div class="module-body">
                         <div class="timeline">
                             {% with latest_status=order.status_history.first.status|upper|default:"PENDING" %}
-                            {% with item_cancelled=order.items.first.item_status|upper %}
+                            {% with item_cancelled=order.active_status|upper %}
                             {% with return_request=order.returns.first %}
                                 
                                 {% if return_request %}
@@ -1036,11 +1055,11 @@
                                         </div>
                                     </div>
                                     
-                                    {% with status=order.active_items.first.item_status|default:"PENDING"|upper %}
+                                    {% with status=order.active_status|default:"PENDING"|upper %}
                                         {% include 'partials/order_timeline_steps.html' with status=status %}
                                     {% endwith %}
                                 {% else %}
-                                    {% with status=order.active_items.first.item_status|default:"PENDING"|upper %}
+                                    {% with status=order.active_status|default:"PENDING"|upper %}
                                         {% include 'partials/order_timeline_steps.html' with status=status %}
                                     {% endwith %}
                                 {% endif %}
@@ -1387,6 +1406,7 @@
 })();
 </script>
 
+{% include 'reviews/partials/review_modal.html' %}
 {% include 'user_base/components/footer.html' %}
 {% include 'user_base/components/nav_js.html' %}
 {% endblock %}

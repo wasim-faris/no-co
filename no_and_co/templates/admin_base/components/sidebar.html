@@ -29,6 +29,12 @@
                 <span class="font-medium text-sm">Returns</span>
             </a>
 
+            {# Reviews #}
+            <a href="{% url 'admin-reviews' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg transition-all duration-200 {% if active == 'admin-reviews' %}text-white bg-[#1a1a1a] shadow-lg shadow-gray-200/50 font-semibold{% else %}text-gray-600 hover:bg-gray-50 group{% endif %}">
+                <svg class="w-5 h-5 {% if active == 'admin-reviews' %}text-white{% else %}text-gray-400 group-hover:text-black{% endif %}" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                <span class="font-medium text-sm">Reviews</span>
+            </a>
+
             {# Products #}
             <a href="{% url 'admin-products' %}" class="flex items-center gap-3.5 px-3 py-2.5 rounded-lg transition-all duration-200 {% if active == 'admin-products' or active == 'admin-product-details' or active == 'admin-variants' or active == 'add-product' or active == 'admin-edit-product' %}text-white bg-[#1a1a1a] shadow-lg shadow-gray-200/50 font-semibold{% else %}text-gray-600 hover:bg-gray-50 group{% endif %}">
                 <svg class="w-5 h-5 {% if active == 'admin-products' or active == 'admin-product-details' or active == 'admin-variants' or active == 'add-product' or active == 'admin-edit-product' %}text-white{% else %}text-gray-400 group-hover:text-black{% endif %}" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
