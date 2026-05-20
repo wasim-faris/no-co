@@ -1,0 +1,17 @@
+{% extends 'user_base/base.html' %}
+{% block title %}Server Error – NØ&CO{% endblock %}
+{% block content %}
+<div class="min-h-[60vh] flex flex-col items-center justify-center px-4 py-20 bg-white text-black">
+    <div class="text-center max-w-lg mx-auto">
+        <h1 class="text-[120px] md:text-[160px] font-extrabold leading-none tracking-tighter text-black select-none" style="font-family: 'Playfair Display', serif;">500</h1>
+        <h2 class="text-sm md:text-base font-bold uppercase tracking-[0.3em] mb-4 text-neutral-800">Server Error</h2>
+        <div class="w-12 h-[1px] bg-black mx-auto mb-6"></div>
+        <p class="text-neutral-500 text-xs md:text-sm mb-10 leading-relaxed uppercase tracking-wider max-w-sm mx-auto">
+            Something went wrong on our server. We are currently looking into the issue. Please try again later.
+        </p>
+        <a href="{% url 'home' %}" class="inline-block bg-black text-white hover:bg-neutral-800 transition-colors duration-300 px-8 py-3.5 text-xs font-bold uppercase tracking-[0.2em]">
+            Return Home
+        </a>
+    </div>
+</div>
+{% endblock %}
